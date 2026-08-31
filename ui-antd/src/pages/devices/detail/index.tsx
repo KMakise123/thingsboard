@@ -29,6 +29,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
 import AlarmsPanel from '@/components/devices/detail/AlarmsPanel';
 import AttributesPanel from '@/components/devices/detail/AttributesPanel';
+import AuditLogsPanel from '@/components/devices/detail/AuditLogsPanel';
 import EventsPanel from '@/components/devices/detail/EventsPanel';
 import LatestTelemetryPanel from '@/components/devices/detail/LatestTelemetryPanel';
 import RelationsPanel from '@/components/devices/detail/RelationsPanel';
@@ -321,6 +322,14 @@ function buildTabItems({
       children: device ? (
         <RelationsPanel deviceEntityId={device.id} readOnly={readOnly} />
       ) : null,
+    },
+    {
+      key: 'audit-logs',
+      label: formatMessage({
+        id: 'pages.devices.detail.tabAuditLogs',
+        defaultMessage: 'Audit logs',
+      }),
+      children: device ? <AuditLogsPanel entityId={device.id} /> : null,
     },
   ];
   if (readOnly) {
