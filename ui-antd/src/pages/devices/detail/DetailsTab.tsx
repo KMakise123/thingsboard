@@ -21,7 +21,7 @@ import { useEffect, useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { serverErrorText } from '@/components/devices/server-error-text';
 import { getDeviceProfiles, saveDevice } from '@/services/tb/device';
-import { EntityType, type Device, type DeviceInfo } from '@/types/tb';
+import { type Device, type DeviceInfo, EntityType } from '@/types/tb';
 
 export interface DeviceDetailsFormValues {
   name: string;
@@ -109,10 +109,7 @@ export default function DetailsTab({
   // Remount the form whenever the server-side values actually change (after
   // a save + invalidation): the key makes initialValues re-apply without
   // clobbering in-progress edits on identity-only refetches.
-  const formKey = useMemo(
-    () => JSON.stringify(initialValues),
-    [initialValues],
-  );
+  const formKey = useMemo(() => JSON.stringify(initialValues), [initialValues]);
 
   const profilesQuery = useQuery({
     queryKey: ['device-profiles', 'detail-select', device.id.id],

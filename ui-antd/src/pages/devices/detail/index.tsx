@@ -27,6 +27,7 @@ import {
 } from 'antd';
 import { useCallback, useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
+import AttributesPanel from '@/components/devices/detail/AttributesPanel';
 import { serverErrorText } from '@/components/devices/server-error-text';
 import { getDeviceInfoById } from '@/services/tb/device';
 import type { DeviceInfo } from '@/types/tb';
@@ -262,6 +263,16 @@ function buildTabItems({
           onEditingChange={onEditingChange}
           onDirtyChange={onDirtyChange}
         />
+      ) : null,
+    },
+    {
+      key: 'attributes',
+      label: formatMessage({
+        id: 'pages.devices.detail.tabAttributes',
+        defaultMessage: 'Attributes',
+      }),
+      children: device ? (
+        <AttributesPanel deviceId={device.id.id} readOnly={readOnly} />
       ) : null,
     },
   ];
