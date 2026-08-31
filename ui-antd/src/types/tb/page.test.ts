@@ -2,38 +2,38 @@ import { describe, expect, expectTypeOf, it } from 'vitest';
 import type { DeviceCredentialsValue } from './device';
 import { DeviceCredentialsType } from './device';
 import type { PageData, PageLink } from './page';
-import { emptyPageData, pageLinkToQuery } from './page';
+import { emptyPageData, pageLinkToQueryParams } from './page';
 
-describe('pageLinkToQuery', () => {
+describe('pageLinkToQueryParams', () => {
   it('serializes page and pageSize', () => {
-    expect(pageLinkToQuery({ page: 0, pageSize: 10 })).toBe(
-      'pageSize=10&page=0',
-    );
-  });
-
-  it('trims and encodes textSearch', () => {
-    const q = pageLinkToQuery({
-      page: 2,
-      pageSize: 20,
-      textSearch: '  dev one ',
+    expect(pageLinkToQueryParams({ page: 0, pageSize: 10 })).toEqual({
+      pageSize: 10,
+      page: 0,
     });
-    expect(q).toBe('pageSize=20&page=2&textSearch=dev+one');
   });
 
-  it('drops empty textSearch', () => {
-    const q = pageLinkToQuery({ page: 0, pageSize: 10, textSearch: '   ' });
-    expect(q).toBe('pageSize=10&page=0');
+  it('trims textSearch and drops it when blank', () => {
+    expect(
+      pageLinkToQueryParams({ page: 2, pageSize: 20, textSearch: '  dev  ' }),
+    ).toEqual({ pageSize: 20, page: 2, textSearch: 'dev' });
+    expect(
+      pageLinkToQueryParams({ page: 0, pageSize: 10, textSearch: '   ' }),
+    ).toEqual({ pageSize: 10, page: 0 });
   });
 
   it('serializes explicit sort order', () => {
-    const q = pageLinkToQuery({
-      page: 0,
+    expect(
+      pageLinkToQueryParams({
+        page: 0,
+        pageSize: 10,
+        sortOrder: { property: 'createdTime', direction: 'DESC' },
+      }),
+    ).toEqual({
       pageSize: 10,
-      sortOrder: { property: 'createdTime', direction: 'DESC' },
+      page: 0,
+      sortProperty: 'createdTime',
+      sortOrder: 'DESC',
     });
-    expect(q).toBe(
-      'pageSize=10&page=0&sortProperty=createdTime&sortOrder=DESC',
-    );
   });
 });
 

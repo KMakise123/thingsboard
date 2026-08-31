@@ -127,18 +127,37 @@ export interface SaveDeviceParams {
   accessToken?: string;
 }
 
-/** CSV bulk import body — POST /api/device/bulk_import (multipart/form-data). */
-export interface BulkImportRequest {
-  file: File | Blob;
-  mapping: Record<string, unknown>;
+/** Column mapping row for CSV bulk import (ImportEntityColumnType values). */
+export interface ColumnMapping {
+  /** Wire enum value: name, type, credential, accessToken, sharedAttribute, serverAttribute, timeseries, isgateway, activityTime, description. */
+  type: string;
+  key?: string;
 }
 
-/** Bulk import response — per-row errors and counters. */
+/** CSV delimiter in the bulk-import mapping (tab is spelled `TAB`). */
+export type CsvDelimiter = ',' | ';' | '|' | 'TAB';
+
+/**
+ * POST /api/device/bulk_import body — JSON, not multipart: the backend
+ * binding is `@RequestBody BulkImportRequest` and `file` is the CSV **text**
+ * (see BulkImportRequest.java / import-dialog-csv.component.ts).
+ */
+export interface BulkImportRequest {
+  file: string;
+  mapping: {
+    columns: Array<ColumnMapping>;
+    delimiter: CsvDelimiter;
+    header: boolean;
+    update: boolean;
+  };
+}
+
+/** Bulk import response — counters plus error strings (BulkImportResult.java). */
 export interface BulkImportResult {
   created: number;
   updated: number;
-  deleted: number;
-  errors: Array<{ line: number; error: string }>;
+  errors: number;
+  errorsList: Array<string>;
 }
 
 /** Connectivity-check payload — GET /api/device-connectivity/{deviceId}. */
@@ -162,4 +181,9 @@ export interface PublishTelemetryCommand {
 export interface DeviceSearchQuery {
   entityFilter: Record<string, unknown>;
   deviceTypes?: Array<string>;
+}
+
+/** GET /api/device/types row — legacy profile-type name envelope. */
+export interface EntitySubtype {
+  type: string;
 }

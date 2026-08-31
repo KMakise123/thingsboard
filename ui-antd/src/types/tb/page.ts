@@ -40,18 +40,29 @@ export function emptyPageData<T>(): PageData<T> {
   return { data: [], totalPages: 0, totalElements: 0, hasNext: false };
 }
 
-/** Serialize a PageLink into URL query params (no leading `?`). */
-export function pageLinkToQuery(link: PageLink): string {
-  const params = new URLSearchParams();
-  params.set('pageSize', String(link.pageSize));
-  params.set('page', String(link.page));
+/** Param-object shape consumed by core/http's `query` option. */
+export type PageQueryParams = Record<
+  string,
+  string | number | boolean | undefined
+>;
+
+/**
+ * Serialize a PageLink into a query-param object (spread into the HTTP
+ * client's `query`), so paged calls keep ONE url/query source instead of
+ * pre-baking a `?...` string that would double up on `?`.
+ */
+export function pageLinkToQueryParams(link: PageLink): PageQueryParams {
+  const params: PageQueryParams = {
+    pageSize: link.pageSize,
+    page: link.page,
+  };
   const text = link.textSearch?.trim();
   if (text) {
-    params.set('textSearch', text);
+    params.textSearch = text;
   }
   if (link.sortOrder) {
-    params.set('sortProperty', link.sortOrder.property);
-    params.set('sortOrder', link.sortOrder.direction);
+    params.sortProperty = link.sortOrder.property;
+    params.sortOrder = link.sortOrder.direction;
   }
-  return params.toString();
+  return params;
 }
