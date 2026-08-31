@@ -11,6 +11,11 @@ const useHeaderActionStyles = createStyles(({ token, css }) => ({
     padding-block: 0 !important;
     border-radius: ${token.borderRadius}px !important;
   `,
+  // Token-driven success color for the current-locale check mark (replaces
+  // the scaffold's inline hex).
+  active: css`
+    color: ${token.colorSuccess};
+  `,
 }));
 
 export default useHeaderActionStyles;

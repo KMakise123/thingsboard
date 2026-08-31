@@ -20,7 +20,7 @@ const onLangClick: MenuProps['onClick'] = ({ key }) => {
 };
 
 export const LangDropdown: React.FC = () => {
-  const { styles, token } = useHeaderActionStyles();
+  const { styles } = useHeaderActionStyles();
   const allLocales = useMemo(() => getAllLocales(), []);
   const currentLocale = getLocale();
   const supportLocales = allLocales.filter((l) => l in localeLabelMap);
@@ -33,7 +33,7 @@ export const LangDropdown: React.FC = () => {
     key: `lang-${locale}`,
     icon:
       locale === currentLocale ? (
-        <CheckOutlined style={{ color: token.colorSuccess }} />
+        <CheckOutlined className={styles.active} />
       ) : (
         <span style={{ display: 'inline-block', width: 14 }} />
       ),
