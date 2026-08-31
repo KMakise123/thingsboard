@@ -28,6 +28,7 @@ import {
 import { useCallback, useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
 import AttributesPanel from '@/components/devices/detail/AttributesPanel';
+import LatestTelemetryPanel from '@/components/devices/detail/LatestTelemetryPanel';
 import { serverErrorText } from '@/components/devices/server-error-text';
 import { getDeviceInfoById } from '@/services/tb/device';
 import type { DeviceInfo } from '@/types/tb';
@@ -273,6 +274,16 @@ function buildTabItems({
       }),
       children: device ? (
         <AttributesPanel deviceId={device.id.id} readOnly={readOnly} />
+      ) : null,
+    },
+    {
+      key: 'latest-telemetry',
+      label: formatMessage({
+        id: 'pages.devices.detail.tabLatestTelemetry',
+        defaultMessage: 'Latest telemetry',
+      }),
+      children: device ? (
+        <LatestTelemetryPanel deviceId={device.id.id} />
       ) : null,
     },
   ];
