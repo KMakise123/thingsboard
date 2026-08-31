@@ -109,6 +109,58 @@ interface RefreshSuccess {
   refreshToken: string;
 }
 
+/**
+ * Standalone single-flight token refresher, so the WS manager and the HTTP
+ * client can SHARE one refresh flight (composition root wires both to the
+ * same instance). Uses /api/auth/token with no bearer and no recursion.
+ */
+export function createTokenRefresher(
+  deps: { baseUrl?: string; timeoutMs?: number; fetchImpl?: typeof fetch } = {},
+): () => Promise<boolean> {
+  const {
+    baseUrl = '',
+    timeoutMs = DEFAULT_TIMEOUT_MS,
+    fetchImpl = (...args) => fetch(...args),
+  } = deps;
+
+  const runRefresh = async (): Promise<boolean> => {
+    const refreshToken = tokenStore.getRefreshToken();
+    if (!refreshToken || !tokenStore.isTokenValid('refresh')) {
+      return false;
+    }
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetchImpl(`${baseUrl}/api/auth/token`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken }),
+        signal: controller.signal,
+      });
+      if (!response.ok) {
+        return false;
+      }
+      const refreshed = (await response.json()) as RefreshSuccess;
+      tokenStore.setTokens(refreshed.token, refreshed.refreshToken);
+      return true;
+    } catch {
+      return false;
+    } finally {
+      clearTimeout(timer);
+    }
+  };
+
+  let inFlight: Promise<boolean> | null = null;
+  return () => {
+    if (!inFlight) {
+      inFlight = runRefresh().finally(() => {
+        inFlight = null;
+      });
+    }
+    return inFlight;
+  };
+}
+
 export function createTbHttpClient(
   options: TbHttpClientOptions = {},
 ): TbHttpClient {

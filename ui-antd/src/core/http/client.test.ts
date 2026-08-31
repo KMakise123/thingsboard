@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { tokenStore } from '../auth/token-store';
-import { createTbHttpClient } from './client';
+import { createTbHttpClient, createTokenRefresher } from './client';
 
 /** JWT factory with valid iat/exp so the token store accepts it. */
 function makeJwt(sub: string, ttlSeconds = 3600): string {
@@ -314,5 +314,87 @@ describe('tb http client', () => {
       status: 0,
       titleKey: 'tb.error.network',
     });
+  });
+});
+
+describe('createTokenRefresher', () => {
+  let calls: Array<{ url: string; init: RequestInit | undefined }>;
+
+  const makeFetcher = (
+    respond: (call: { url: string; init: RequestInit | undefined }) => Response,
+  ) =>
+    (async (input: RequestInfo | URL, init?: RequestInit) => {
+      const call = { url: String(input), init };
+      calls.push(call);
+      return new Promise<Response>((resolve) => {
+        setTimeout(() => resolve(respond(call)), 0);
+      });
+    }) as typeof fetch;
+
+  beforeEach(() => {
+    calls = [];
+    tokenStore.setTokens(makeJwt('tenant@tb'), makeJwt('tenant@tb', 604800));
+  });
+
+  afterEach(() => {
+    tokenStore.clear();
+  });
+
+  it('refreshes without a bearer header and stores the new pair', async () => {
+    const newToken = makeJwt('tenant@tb');
+    const refresher = createTokenRefresher({
+      fetchImpl: makeFetcher(() =>
+        jsonResponse(200, {
+          token: newToken,
+          refreshToken: makeJwt('tenant@tb', 604800),
+        }),
+      ),
+    });
+    await expect(refresher()).resolves.toBe(true);
+    expect(calls).toHaveLength(1);
+    expect(calls[0].url).toBe('/api/auth/token');
+    const headers = new Headers(calls[0].init?.headers);
+    expect(headers.get('Authorization')).toBeNull();
+    expect(tokenStore.getToken()).toBe(newToken);
+  });
+
+  it('returns false without any request when the refresh token is gone', async () => {
+    tokenStore.clear();
+    const refresher = createTokenRefresher({
+      fetchImpl: makeFetcher(() => jsonResponse(200, {})),
+    });
+    await expect(refresher()).resolves.toBe(false);
+    expect(calls).toHaveLength(0);
+  });
+
+  it('shares one in-flight refresh across concurrent callers', async () => {
+    const newToken = makeJwt('tenant@tb');
+    const refresher = createTokenRefresher({
+      fetchImpl: makeFetcher(() =>
+        jsonResponse(200, {
+          token: newToken,
+          refreshToken: makeJwt('tenant@tb', 604800),
+        }),
+      ),
+    });
+    const [a, b, c] = await Promise.all([
+      refresher(),
+      refresher(),
+      refresher(),
+    ]);
+    expect([a, b, c]).toEqual([true, true, true]);
+    expect(calls).toHaveLength(1);
+    // a later call starts a new flight (the previous one settled)
+    await refresher();
+    expect(calls).toHaveLength(2);
+  });
+
+  it('returns false on a failed refresh and clears nothing by itself', async () => {
+    const refresher = createTokenRefresher({
+      fetchImpl: makeFetcher(() => jsonResponse(401, { message: 'expired' })),
+    });
+    await expect(refresher()).resolves.toBe(false);
+    // clearing + onUnauthorized stay with the caller (the http client wires them)
+    expect(tokenStore.getToken()).not.toBeNull();
   });
 });
