@@ -5,9 +5,15 @@
  * verifies zh-CN/en-US key parity and cross-file duplicates.
  */
 import common from './zh-CN/common';
+import devicesDetail from './zh-CN/devices/detail';
+import devicesList from './zh-CN/devices/list';
+import login from './zh-CN/login';
 import menu from './zh-CN/menu';
 
 export default {
   ...common,
+  ...login,
   ...menu,
+  ...devicesList,
+  ...devicesDetail,
 };

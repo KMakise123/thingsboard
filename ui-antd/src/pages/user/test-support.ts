@@ -16,11 +16,13 @@ const zhCN = { ...common, ...login, ...menu };
 
 export interface MockMessageDescriptor {
   id: string;
-  values?: Record<string, unknown>;
 }
 
 /** Locale-aware formatMessage backed by the real zh-CN bundle. */
-export function zhFormatMessage({ id, values }: MockMessageDescriptor): string {
+export function zhFormatMessage(
+  { id }: MockMessageDescriptor,
+  values?: Record<string, unknown>,
+): string {
   const template = (zhCN as Record<string, string>)[id] ?? id;
   return template.replace(/\{(\w+)\}/g, (_match, key: string) =>
     String(values?.[key] ?? ''),

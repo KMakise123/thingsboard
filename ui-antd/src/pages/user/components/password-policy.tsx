@@ -96,13 +96,19 @@ export function usePasswordPolicy() {
   });
 }
 
+/**
+ * formatMessage subset accepted here — values typed to match react-intl's
+ * PrimitiveType so `useIntl().formatMessage` is directly assignable.
+ */
+export type FormatMessageFn = (
+  descriptor: { id: string },
+  values?: Record<string, string | number | boolean | null | undefined>,
+) => string;
+
 /** Form rules for the new-password field, driven by the live policy. */
 export function newPasswordRules(
   policy: UserPasswordPolicy | undefined,
-  formatMessage: (descriptor: {
-    id: string;
-    values?: Record<string, unknown>;
-  }) => string,
+  formatMessage: FormatMessageFn,
 ): Rule[] {
   const requiredRule: Rule = {
     required: true,
@@ -130,10 +136,10 @@ export function newPasswordRules(
         }
         const summary = unsatisfied
           .map((requirement) =>
-            formatMessage({
-              id: `pages.password.policy.${requirement.key}`,
-              values: { n: requirement.n },
-            }),
+            formatMessage(
+              { id: `pages.password.policy.${requirement.key}` },
+              { n: requirement.n },
+            ),
           )
           .join('; ');
         return Promise.reject(new Error(summary));
@@ -225,10 +231,10 @@ export const PasswordPolicyPanel: React.FC<{
               className={`${styles.item} ${satisfied ? styles.itemSatisfied : ''}`}
             >
               {satisfied ? <CheckOutlined /> : <CloseOutlined />}
-              {formatMessage({
-                id: `pages.password.policy.${requirement.key}`,
-                values: { n: requirement.n },
-              })}
+              {formatMessage(
+                { id: `pages.password.policy.${requirement.key}` },
+                { n: requirement.n },
+              )}
             </li>
           );
         })}
