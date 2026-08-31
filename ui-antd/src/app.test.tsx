@@ -1,134 +1,166 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { TOKEN_STORAGE_KEYS, tokenStore } from '@/core/auth/token-store';
+import { Authority, type User } from '@/types/tb';
 
-// Mock all heavy dependencies before importing app
-const mockReplace = vi.fn();
-const mockHistory = {
-  location: {
-    pathname: '/',
-    search: '',
-    hash: '',
-  },
-  replace: mockReplace,
-};
+const historyMock = vi.hoisted(() => ({
+  location: { pathname: '/', search: '', hash: '' },
+  replace: vi.fn(),
+  push: vi.fn(),
+}));
 
-const mockRequest = vi.fn();
+const servicesMock = vi.hoisted(() => ({
+  getCurrentUser: vi.fn(),
+  setTbLanguage: vi.fn(),
+  setTbUnauthorizedHandler: vi.fn(),
+}));
+
+const wsMock = vi.hoisted(() => ({
+  installAppWsManager: vi.fn(),
+  resetWsManager: vi.fn(),
+}));
 
 vi.mock('@umijs/max', () => ({
-  history: mockHistory,
-  Link: ({ children }: any) => children,
-  request: mockRequest,
+  history: historyMock,
+  getLocale: () => 'zh-CN',
+  Link: ({ children }: { children: unknown }) => children,
+  useModel: () => ({ initialState: {}, setInitialState: vi.fn() }),
+  useIntl: () => ({ formatMessage: ({ id }: { id: string }) => id }),
 }));
+
+vi.mock('@/services/tb', () => servicesMock);
+
+vi.mock('@/components/layout/ws-manager', () => wsMock);
 
 vi.mock('@/components', () => ({
   AvatarDropdown: () => null,
-  ErrorBoundary: ({ children }: any) => children,
+  ErrorBoundary: ({ children }: { children: unknown }) => children,
   Footer: () => null,
   LangDropdown: () => null,
   OfflineBanner: () => null,
-}));
-
-vi.mock('@ant-design/pro-components', () => ({
-  SettingDrawer: () => null,
-}));
-
-vi.mock('./requestErrorConfig', () => ({
-  errorConfig: {},
 }));
 
 vi.mock('../config/defaultSettings', () => ({
   default: { navTheme: 'light' },
 }));
 
-describe('app getInitialState', () => {
+/** Minimal decodable JWT (header.payload.sig) with iat/exp claims. */
+function makeToken(ttlSeconds = 3600): string {
+  const now = Math.floor(Date.now() / 1000);
+  const b64url = (value: unknown) =>
+    btoa(JSON.stringify(value))
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+  return `${b64url({ alg: 'none', typ: 'JWT' })}.${b64url({ iat: now, exp: now + ttlSeconds })}.sig`;
+}
+
+function seedSession(): void {
+  tokenStore.setTokens(makeToken(), makeToken());
+}
+
+const tenantUser = {
+  authority: Authority.TENANT_ADMIN,
+  email: 'tenant@thingsboard.org',
+} as User;
+
+describe('app composition root', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
-    mockHistory.location = {
-      pathname: '/',
-      search: '',
-      hash: '',
-    };
+    // app.tsx wires the composition root at module scope (runs once), so
+    // only per-call mocks are reset — boot-time call counts must survive.
+    servicesMock.getCurrentUser.mockReset();
+    servicesMock.setTbLanguage.mockClear();
+    historyMock.replace.mockClear();
+    wsMock.resetWsManager.mockClear();
+    localStorage.clear();
+    historyMock.location = { pathname: '/', search: '', hash: '' };
   });
 
-  it('should fetch currentUser when not on login page', async () => {
-    const { getInitialState } = await import('./app');
-    mockRequest.mockResolvedValue({
-      name: 'Test User',
-      access: 'admin',
+  describe('getInitialState', () => {
+    it('returns null user without any local session and skips the network', async () => {
+      const { getInitialState } = await import('./app');
+
+      const state = await getInitialState();
+
+      expect(state.currentUser).toBeNull();
+      expect(servicesMock.getCurrentUser).not.toHaveBeenCalled();
+      expect(state.fetchUserInfo).toBeDefined();
+      expect(state.settings).toEqual({ navTheme: 'light' });
     });
 
-    const state = await getInitialState();
+    it('fetches the current user when a valid session exists', async () => {
+      seedSession();
+      servicesMock.getCurrentUser.mockResolvedValue(tenantUser);
+      const { getInitialState } = await import('./app');
 
-    expect(mockRequest).toHaveBeenCalledWith(
-      '/api/auth/user',
-      expect.objectContaining({ skipErrorHandler: true }),
-    );
-    expect(state.currentUser).toEqual({
-      name: 'Test User',
-      access: 'admin',
+      const state = await getInitialState();
+
+      expect(servicesMock.getCurrentUser).toHaveBeenCalledTimes(1);
+      expect(state.currentUser).toEqual(tenantUser);
     });
-    expect(state.settingDrawerOpen).toBe(false);
-    expect(state.fetchUserInfo).toBeDefined();
+
+    it('returns null user when the session cannot be resolved', async () => {
+      seedSession();
+      servicesMock.getCurrentUser.mockRejectedValue(new Error('401'));
+      const { getInitialState } = await import('./app');
+
+      const state = await getInitialState();
+
+      expect(state.currentUser).toBeNull();
+    });
+
+    it('wires Accept-Language to the restored umi locale', async () => {
+      const { getInitialState } = await import('./app');
+      await getInitialState();
+
+      expect(servicesMock.setTbLanguage).toHaveBeenCalled();
+    });
   });
 
-  it('should redirect to login when currentUser fetch fails (401)', async () => {
-    const { getInitialState } = await import('./app');
-    mockRequest.mockRejectedValue(new Error('401 Unauthorized'));
+  describe('unified unauthorized exit', () => {
+    async function registeredHandler(): Promise<(event: unknown) => void> {
+      await import('./app');
+      expect(servicesMock.setTbUnauthorizedHandler).toHaveBeenCalled();
+      const calls = servicesMock.setTbUnauthorizedHandler.mock.calls;
+      return calls[calls.length - 1][0];
+    }
 
-    const state = await getInitialState();
+    it('clears tokens, recycles the socket and redirects with the current URL', async () => {
+      const handler = await registeredHandler();
+      seedSession();
+      historyMock.location = {
+        pathname: '/devices',
+        search: '?page=2',
+        hash: '',
+      };
 
-    expect(mockReplace).toHaveBeenCalledWith(
-      expect.stringContaining('/user/login?redirect='),
-    );
-    expect(state.currentUser).toBeUndefined();
-  });
+      handler({ source: 'http', reason: 'refresh-failed' });
 
-  it('should not fetch currentUser on login page', async () => {
-    const { getInitialState } = await import('./app');
-    mockHistory.location = {
-      pathname: '/user/login',
-      search: '',
-      hash: '',
-    };
+      expect(tokenStore.getToken()).toBeNull();
+      expect(localStorage.getItem(TOKEN_STORAGE_KEYS.refreshToken)).toBeNull();
+      expect(wsMock.resetWsManager).toHaveBeenCalled();
+      expect(historyMock.replace).toHaveBeenCalledWith(
+        `/user/login?redirect=${encodeURIComponent('/devices?page=2')}`,
+      );
+    });
 
-    const state = await getInitialState();
+    it('does not redirect again while already in the login family', async () => {
+      const handler = await registeredHandler();
+      seedSession();
+      historyMock.location = {
+        pathname: '/user/login',
+        search: '',
+        hash: '',
+      };
 
-    expect(mockRequest).not.toHaveBeenCalled();
-    expect(state.currentUser).toBeUndefined();
-    expect(state.fetchUserInfo).toBeDefined();
-  });
+      handler({ source: 'ws' });
 
-  it('should encode redirect path correctly on 401', async () => {
-    const { getInitialState } = await import('./app');
-    mockHistory.location = {
-      pathname: '/devices',
-      search: '?page=2',
-      hash: '#section',
-    };
-    mockRequest.mockRejectedValue(new Error('401'));
+      expect(historyMock.replace).not.toHaveBeenCalled();
+      expect(tokenStore.getToken()).toBeNull();
+    });
 
-    await getInitialState();
-
-    expect(mockReplace).toHaveBeenCalledWith(
-      `/user/login?redirect=${encodeURIComponent('/devices?page=2#section')}`,
-    );
-  });
-
-  it('should include default settings in initial state', async () => {
-    const { getInitialState } = await import('./app');
-    mockRequest.mockResolvedValue({ name: 'User' });
-
-    const state = await getInitialState();
-
-    expect(state.settings).toEqual({ navTheme: 'light' });
-  });
-
-  it('fetchUserInfo should return user data on success', async () => {
-    const { getInitialState } = await import('./app');
-    mockRequest.mockResolvedValue({ name: 'Fetched User', access: 'user' });
-
-    const state = await getInitialState();
-
-    const user = await state.fetchUserInfo?.();
-    expect(user).toEqual({ name: 'Fetched User', access: 'user' });
+    it('installs the shell-owned WS manager at boot', async () => {
+      await import('./app');
+      expect(wsMock.installAppWsManager).toHaveBeenCalledTimes(1);
+    });
   });
 });

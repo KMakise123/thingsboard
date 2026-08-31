@@ -1,7 +1,8 @@
+import { UserOutlined } from '@ant-design/icons';
 import type { Settings as LayoutSettings } from '@ant-design/pro-components';
-import { SettingDrawer } from '@ant-design/pro-components';
-import type { RequestConfig, RunTimeLayoutConfig } from '@umijs/max';
-import { history, Link, request as umiRequest } from '@umijs/max';
+import { QueryClientProvider } from '@tanstack/react-query';
+import type { RunTimeLayoutConfig } from '@umijs/max';
+import { getLocale, history, Link } from '@umijs/max';
 import { ConfigProvider } from 'antd';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -13,13 +14,29 @@ dayjs.extend(relativeTime);
 import {
   AvatarDropdown,
   ErrorBoundary,
-  Footer,
   LangDropdown,
   OfflineBanner,
 } from '@/components';
+import {
+  AntdAppBridge,
+  getAppBridge,
+} from '@/components/layout/antd-app-bridge';
+import { Forbidden } from '@/components/layout/forbidden';
+import {
+  installAppWsManager,
+  resetWsManager,
+} from '@/components/layout/ws-manager';
+import { tokenStore } from '@/core/auth/token-store';
+import type { UnauthorizedEvent } from '@/core/http/client';
+import { createTbQueryClient } from '@/core/query-client';
+import {
+  getCurrentUser,
+  setTbLanguage,
+  setTbUnauthorizedHandler,
+} from '@/services/tb';
 import { getThemeConfig } from '@/theme/brand';
+import type { User } from '@/types/tb';
 import defaultSettings from '../config/defaultSettings';
-import { errorConfig } from './requestErrorConfig';
 
 const loginPath = '/user/login';
 
@@ -29,62 +46,83 @@ const loginPath = '/user/login';
 const appThemeConfig = getThemeConfig('light');
 
 /**
- * TEMP(auth wave): inline current-user fetch until the src/services/tb auth
- * layer lands. Returns undefined on any failure so the shell falls back to
- * the login redirect below.
+ * Unified unauthorized exit (issue #8): the HTTP client's failed-refresh
+ * event and the WS manager's AUTH-reject event both land here. Tokens are
+ * cleared, the socket is recycled and the browser goes to the login page
+ * with the current URL as the redirect target. Idempotent while already
+ * inside the login family.
  */
-async function fetchCurrentUser(): Promise<API.CurrentUser | undefined> {
-  try {
-    return await umiRequest<API.CurrentUser>('/api/auth/user', {
-      skipErrorHandler: true,
-    });
-  } catch {
-    return undefined;
+function handleUnauthorized(_event: UnauthorizedEvent): void {
+  tokenStore.clear();
+  resetWsManager();
+  const { pathname, search, hash } = history.location;
+  if (pathname.startsWith('/user/')) {
+    return;
   }
+  const target = `${pathname}${search}${hash}`;
+  history.replace(`${loginPath}?redirect=${encodeURIComponent(target)}`);
 }
+
+// Composition-root wiring (runs once at module import, before any page).
+setTbLanguage(() => getLocale());
+setTbUnauthorizedHandler(handleUnauthorized);
+installAppWsManager(handleUnauthorized);
+
+/**
+ * The app-wide QueryClient (core/query-client factory: 4xx never retried,
+ * 5xx/network up to twice). Global error routing toasts the generic shell
+ * title plus the verbatim server detail through the antd App context —
+ * no static antd message calls (ADR 0007).
+ */
+const tbQueryClient = createTbQueryClient({
+  onError: (error) => {
+    const bridge = getAppBridge();
+    if (!bridge) {
+      return;
+    }
+    const title = bridge.formatMessage(error.titleKey);
+    bridge.message.error(error.detail ? `${title}: ${error.detail}` : title);
+  },
+});
 
 /**
  * @see https://umijs.org/docs/api/runtime-config#getinitialstate
- * */
+ */
 export async function getInitialState(): Promise<{
   settings?: Partial<LayoutSettings>;
-  currentUser?: API.CurrentUser;
-  fetchUserInfo?: () => Promise<API.CurrentUser | undefined>;
-  settingDrawerOpen?: boolean;
+  currentUser?: User | null;
+  fetchUserInfo?: () => Promise<User | null>;
 }> {
-  const fetchUserInfo = async () => {
-    const currentUser = await fetchCurrentUser();
-    if (!currentUser) {
-      const { pathname, search, hash } = history.location;
-      history.replace(
-        `${loginPath}?redirect=${encodeURIComponent(pathname + search + hash)}`,
-      );
+  // umi's locale plugin has already restored the persisted choice from
+  // localStorage; redirect Accept-Language for every services/tb call.
+  setTbLanguage(() => getLocale());
+
+  // The documented bare-service exception (issue #8): getInitialState runs
+  // outside React, so the current user is fetched without react-query.
+  const fetchUserInfo = async (): Promise<User | null> => {
+    try {
+      return await getCurrentUser();
+    } catch {
+      return null;
     }
-    return currentUser;
   };
-  // 如果不是登录页面，执行
-  const { location } = history;
-  if (location.pathname !== loginPath) {
-    const currentUser = await fetchUserInfo();
-    return {
-      fetchUserInfo,
-      currentUser,
-      settings: defaultSettings as Partial<LayoutSettings>,
-      settingDrawerOpen: false,
-    };
-  }
+
+  // Skip the network round-trip without a locally-valid session: a doomed
+  // /api/auth/user would only fire the 401 refresh-failure event.
+  const hasSession =
+    tokenStore.isTokenValid('jwt') || tokenStore.isTokenValid('refresh');
+  const currentUser = hasSession ? await fetchUserInfo() : null;
+
   return {
     fetchUserInfo,
+    currentUser,
     settings: defaultSettings as Partial<LayoutSettings>,
-    settingDrawerOpen: false,
   };
 }
 
-// ProLayout 支持的api https://procomponents.ant.design/components/layout
-export const layout: RunTimeLayoutConfig = ({
-  initialState,
-  setInitialState,
-}) => {
+// ProLayout supported api https://procomponents.ant.design/components/layout
+export const layout: RunTimeLayoutConfig = ({ initialState }) => {
+  const user = initialState?.currentUser;
   return {
     menuItemRender: (item, dom) => {
       if (item.path) {
@@ -96,83 +134,56 @@ export const layout: RunTimeLayoutConfig = ({
       }
       return dom;
     },
-    actionsRender: () => {
-      // `locale: false` opts out of the language switcher. ProLayout's own
-      // `locale` prop is a locale string, so narrow to the boolean toggle here.
-      const localeEnabled =
-        (initialState?.settings as { locale?: boolean })?.locale !== false;
-      return [localeEnabled && <LangDropdown key="lang" />].filter(Boolean);
-    },
+    actionsRender: () => [<LangDropdown key="lang" />],
     avatarProps: {
-      src: initialState?.currentUser?.avatar,
-      title: initialState?.currentUser?.name ?? '',
+      icon: <UserOutlined />,
+      title: user?.name ?? user?.email ?? '',
       render: (_, avatarChildren) => (
         <AvatarDropdown>{avatarChildren}</AvatarDropdown>
       ),
     },
-    footerRender: () => <Footer />,
+    // v1 shell: no scaffold footer (brand lives in the header seam only).
+    footerRender: false,
     onPageChange: () => {
       const { location } = history;
-      // 如果没有登录，重定向到 login
-      if (!initialState?.currentUser && location.pathname !== loginPath) {
+      // Not signed in and outside the login family → login with redirect.
+      if (
+        !initialState?.currentUser &&
+        !location.pathname.startsWith('/user/')
+      ) {
         history.replace(
-          `${loginPath}?redirect=${encodeURIComponent(location.pathname + location.search + location.hash)}`,
+          `${loginPath}?redirect=${encodeURIComponent(
+            location.pathname + location.search + location.hash,
+          )}`,
         );
       }
     },
-    // Replace ProLayout's default ErrorBoundary with our offline-aware version,
-    // so chunk load errors show friendly messages instead of "Something went wrong."
+    // Replace ProLayout's default ErrorBoundary with our offline-aware
+    // version, so chunk load errors show friendly messages.
     ErrorBoundary,
     menuHeaderRender: undefined,
-    // 自定义 403 页面
-    // unAccessible: <div>unAccessible</div>,
-    // 增加一个 loading 的状态
-    childrenRender: (children) => {
-      return (
-        <>
-          {children}
-          <SettingDrawer
-            disableUrlParams
-            // v1 is light-only (D-4): no dark-mode entry, and the demo
-            // theme-color swatches are disabled so colorPrimary stays
-            // single-sourced from src/theme/brand.
-            colorList={false}
-            collapse={initialState?.settingDrawerOpen}
-            onCollapseChange={(open) => {
-              setInitialState((s) => ({
-                ...s,
-                settingDrawerOpen: open,
-              }));
-            }}
-            settings={initialState?.settings}
-            onSettingChange={(settings) => {
-              setInitialState((s) => ({
-                ...s,
-                settings,
-              }));
-            }}
-          />
-        </>
-      );
-    },
+    // Custom 403 (spec §3.2) — umi's default is Chinese-only scaffolding.
+    unAccessible: <Forbidden />,
+    // Capture the antd App context for module-scope consumers (query
+    // error sink). Runs for layout routes; login pages handle their own
+    // errors inline.
+    childrenRender: (children) => (
+      <>
+        <AntdAppBridge />
+        {children}
+      </>
+    ),
     ...initialState?.settings,
   };
-};
-
-/**
- * @name request 配置，可以配置错误处理
- * 它基于 axios 提供了一套统一的网络请求和错误处理方案
- * @doc https://umijs.org/docs/max/request#配置
- */
-export const request: RequestConfig = {
-  ...errorConfig,
 };
 
 export function rootContainer(container: React.ReactNode) {
   return (
     <ConfigProvider theme={appThemeConfig}>
-      <OfflineBanner />
-      <ErrorBoundary>{container}</ErrorBoundary>
+      <QueryClientProvider client={tbQueryClient}>
+        <OfflineBanner />
+        <ErrorBoundary>{container}</ErrorBoundary>
+      </QueryClientProvider>
     </ConfigProvider>
   );
 }

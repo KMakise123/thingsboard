@@ -170,8 +170,14 @@ export default defineConfig({
    * @name React Query 插件
    * @description 使用 react-query 管理服务端状态
    * @doc https://umijs.org/docs/max/react-query
+   *
+   * `queryClient: false` disables the plugin's own default
+   * QueryClientProvider (a plain `new QueryClient({})`): the composition
+   * root in src/app.tsx mounts the createTbQueryClient() instance
+   * (core/query-client: 4xx never retried, 5xx/network capped). Two
+   * stacked providers would race for context — exactly one stays.
    */
-  reactQuery: {},
+  reactQuery: { queryClient: false },
   /**
    * @name 权限插件
    * @description 基于 initialState 的权限插件，必须先打开 initialState
