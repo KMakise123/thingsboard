@@ -64,11 +64,16 @@ interface TbHttpClient {
 ```ts
 // server-error.ts
 interface ServerError { status: number; errorCode?: number; detail: string;
-                        titleKey: string; timestamp?: number }
-ServerErrorError extends Error implements ServerError   // 抛出的就是这个
+                        titleKey: string; timestamp?: number;
+                        resetToken?: string }  // CREDENTIALS_EXPIRED(15)专用,跳改密流
+ServerErrorError extends Error implements ServerError   // 抛出的就是这个;rawBody 挂原始 wire body
 ThingsboardErrorCode                                     // 错误码常量表
 titleKeyFor(status) / isCredentialsExpired(se)
 ```
+
+登录返回 `errorCode 15` 时 `resetToken` 可直接用于
+`resetPasswordByToken(token, newPassword)` 或跳
+`resetExpiredPassword?resetToken=xxx`。
 
 ## core/auth(token-store.ts)
 
@@ -116,7 +121,9 @@ AUTH 连败两次 → `onUnauthorized({source:'ws'})` 并废弃 manager。
 ## services/tb(index.ts 汇出全部)
 
 统一 `import { login, getTenantDevices, ... } from '@/services/tb'`。
-`setTbLanguage(() => locale)` 在语言引导时重定向 Accept-Language。
+`setTbLanguage(() => locale)` 在语言引导时重定向 Accept-Language;
+`setTbUnauthorizedHandler((e) => { tokenStore.clear(); history.push(loginPath); })`
+在组合根注册 HTTP 401 刷新失败的出口(每次失败的刷新 flight 恰好触发一次)。
 
 ### auth.ts
 
@@ -172,12 +179,18 @@ key 过滤统一用逗号分隔的 `keys` 查询参数(后端 `toKeysList` 只 s
 agg?, interval?, orderBy?, useStrictDataTypes? }`(limit 默认 100、agg 默认
 NONE、orderBy 默认 DESC)。
 
+### customer.ts(Wave2 增补)
+
+```ts
+getCustomers(pageLink): Promise<PageData<Customer>>   // GET /api/customers(指派选择器数据源)
+```
+
 ## Wave2 接线待办(Wave1 未做、别等)
 
 - `src/app.tsx` 里仍是脚手架的 `umiRequest` + `TEMP(auth wave)` 内联取
   current user —— 换成 `getCurrentUser()`(services/tb),登录态与
   `tokenStore` 对齐。
-- composition root(app 入口)统一建 `tbHttp` 的 `onUnauthorized`(跳登录)
+- composition root(app 入口)统一注册 `setTbUnauthorizedHandler`(跳登录)
   与 `setTbLanguage`;WS 的 `onUnauthorized` 与 HTTP 汇到同一个出口。
 - react-query 的 `QueryClientProvider` 挂 `createTbQueryClient()` 的实例。
 
