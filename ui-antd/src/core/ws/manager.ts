@@ -31,8 +31,6 @@ import type {
   AttributeData,
   AttributeScope,
   EntityId,
-  LatestTelemetry,
-  TsValue,
 } from '@/types/tb';
 
 import {
@@ -42,16 +40,22 @@ import {
   type EntityDataCmd,
   type EntityDataUpdateMsg,
   type EntityDataWire,
+  isSubscriptionUpdate,
   type LatestValueCmd,
+  parseServerMessage,
   type SubscriptionUpdateMsg,
   type TimeseriesSubscriptionCmd,
-  type WsServerMessage,
-  isSubscriptionUpdate,
-  parseServerMessage,
   WsCmdType,
+  type WsServerMessage,
 } from './protocol';
 
-export type WsStatus = 'idle' | 'connecting' | 'open' | 'reconnecting' | 'closed' | 'auth-error';
+export type WsStatus =
+  | 'idle'
+  | 'connecting'
+  | 'open'
+  | 'reconnecting'
+  | 'closed'
+  | 'auth-error';
 
 export interface UnauthorizedEvent {
   source: 'ws';
@@ -88,9 +92,13 @@ export interface WsSubscription<T> {
   unsubscribe(): void;
 }
 
-export interface EntityDataSubscription extends WsSubscription<EntityDataWire[]> {
+export interface EntityDataSubscription
+  extends WsSubscription<EntityDataWire[]> {
   /** Same-cmdId re-send: change pagination/sort/keys without resubscribing. */
-  update(changes: { query?: EntityDataCmd['query']; latestCmd?: LatestValueCmd }): void;
+  update(changes: {
+    query?: EntityDataCmd['query'];
+    latestCmd?: LatestValueCmd;
+  }): void;
 }
 
 export interface AttributesParams {
@@ -197,18 +205,31 @@ interface AlarmStatusRecord extends BaseRecord {
   snapshot: boolean;
 }
 
-type WsRecord = AttrLikeRecord | EntityDataRecord | AlarmDataRecord | CountRecord | AlarmStatusRecord;
+type WsRecord =
+  | AttrLikeRecord
+  | EntityDataRecord
+  | AlarmDataRecord
+  | CountRecord
+  | AlarmStatusRecord;
 
 export interface WsManager {
-  subscribeAttributes(params: AttributesParams): WsSubscription<AttributeData[]>;
-  subscribeLatestTelemetry(params: LatestTelemetryParams): WsSubscription<AttributeData[]>;
+  subscribeAttributes(
+    params: AttributesParams,
+  ): WsSubscription<AttributeData[]>;
+  subscribeLatestTelemetry(
+    params: LatestTelemetryParams,
+  ): WsSubscription<AttributeData[]>;
   subscribeEntityData(params: EntityDataParams): EntityDataSubscription;
-  subscribeEntityCount(params: { query: { entityFilter: Record<string, unknown> } }): WsSubscription<number>;
+  subscribeEntityCount(params: {
+    query: { entityFilter: Record<string, unknown> };
+  }): WsSubscription<number>;
   subscribeAlarmData(params: {
     query: Record<string, unknown>;
     seed?: AlarmData[];
   }): WsSubscription<AlarmData[]>;
-  subscribeAlarmCount(params: { query: { entityFilter: Record<string, unknown> } }): WsSubscription<number>;
+  subscribeAlarmCount(params: {
+    query: { entityFilter: Record<string, unknown> };
+  }): WsSubscription<number>;
   subscribeAlarmStatus(params: {
     originatorId: EntityId;
     severityList?: Array<string>;
@@ -241,7 +262,8 @@ export function createWsManager(options: WsManagerOptions): WsManager {
   const queue: Array<AnySubCmd | { cmdId: number; type: WsCmdType }> = [];
 
   let socket: WebSocket | null = null;
-  let pendingAuthCmd: { cmdId: 0; type: WsCmdType.AUTH; token: string } | null = null;
+  let pendingAuthCmd: { cmdId: 0; type: WsCmdType.AUTH; token: string } | null =
+    null;
   let isActive = false; // manager wants a connection
   let isOpening = false;
   let isOpened = false;
@@ -401,10 +423,17 @@ export function createWsManager(options: WsManagerOptions): WsManager {
 
     if (isSubscriptionUpdate(message)) {
       const record = records.get(message.subscriptionId);
-      if (record && (record.kind === 'attributes' || record.kind === 'latest-telemetry')) {
+      if (
+        record &&
+        (record.kind === 'attributes' || record.kind === 'latest-telemetry')
+      ) {
         const replace = record.awaitingSnapshot;
         record.awaitingSnapshot = false;
-        record.snapshot = mergeKeyedValues(record.snapshot, message.data, replace);
+        record.snapshot = mergeKeyedValues(
+          record.snapshot,
+          message.data,
+          replace,
+        );
         notify(record);
       }
       return;
@@ -419,7 +448,10 @@ export function createWsManager(options: WsManagerOptions): WsManager {
       case 'entity-data': {
         const msg = message as unknown as EntityDataUpdateMsg;
         if (msg.data?.data) {
-          record.snapshot = record.awaitingSnapshot || !msg.update ? [...msg.data.data] : record.snapshot;
+          record.snapshot =
+            record.awaitingSnapshot || !msg.update
+              ? [...msg.data.data]
+              : record.snapshot;
           record.awaitingSnapshot = false;
         }
         if (msg.update?.length) {
@@ -431,7 +463,14 @@ export function createWsManager(options: WsManagerOptions): WsManager {
             if (idx >= 0) {
               record.snapshot = [
                 ...record.snapshot.slice(0, idx),
-                { ...record.snapshot[idx], ...incoming, latest: { ...record.snapshot[idx].latest, ...incoming.latest } },
+                {
+                  ...record.snapshot[idx],
+                  ...incoming,
+                  latest: {
+                    ...record.snapshot[idx].latest,
+                    ...incoming.latest,
+                  },
+                },
                 ...record.snapshot.slice(idx + 1),
               ];
             } else {
@@ -443,7 +482,10 @@ export function createWsManager(options: WsManagerOptions): WsManager {
         break;
       }
       case 'alarm-data': {
-        const msg = message as { data?: { data: AlarmData[] }; update?: AlarmData[] };
+        const msg = message as {
+          data?: { data: AlarmData[] };
+          update?: AlarmData[];
+        };
         if (msg.data?.data) {
           record.snapshot = [...msg.data.data];
         }
@@ -540,17 +582,28 @@ export function createWsManager(options: WsManagerOptions): WsManager {
       abandon('reconnect-exhausted');
       return;
     }
-    const delay = Math.min(reconnectBaseMs * 2 ** reconnectAttempts, reconnectMaxMs);
+    const delay = Math.min(
+      reconnectBaseMs * 2 ** reconnectAttempts,
+      reconnectMaxMs,
+    );
     reconnectAttempts = Math.min(reconnectAttempts + 1, maxReconnectAttempts);
     scheduleReconnect(delay);
   };
 
-  const makeUnsubscribeCmd = (record: WsRecord): { cmdId: number; type: WsCmdType } => {
+  const makeUnsubscribeCmd = (
+    record: WsRecord,
+  ): { cmdId: number; type: WsCmdType } => {
     switch (record.kind) {
       case 'attributes':
-        return { ...record.cmd, unsubscribe: true } as AttributesSubscriptionCmd;
+        return {
+          ...record.cmd,
+          unsubscribe: true,
+        } as AttributesSubscriptionCmd;
       case 'latest-telemetry':
-        return { ...record.cmd, unsubscribe: true } as TimeseriesSubscriptionCmd;
+        return {
+          ...record.cmd,
+          unsubscribe: true,
+        } as TimeseriesSubscriptionCmd;
       case 'entity-data':
         return { cmdId: record.cmdId, type: WsCmdType.ENTITY_DATA_UNSUBSCRIBE };
       case 'alarm-data':
@@ -560,7 +613,10 @@ export function createWsManager(options: WsManagerOptions): WsManager {
           ? { cmdId: record.cmdId, type: WsCmdType.ALARM_COUNT_UNSUBSCRIBE }
           : { cmdId: record.cmdId, type: WsCmdType.ENTITY_COUNT_UNSUBSCRIBE };
       case 'alarm-status':
-        return { cmdId: record.cmdId, type: WsCmdType.ALARM_STATUS_UNSUBSCRIBE };
+        return {
+          cmdId: record.cmdId,
+          type: WsCmdType.ALARM_STATUS_UNSUBSCRIBE,
+        };
     }
   };
 
@@ -583,7 +639,10 @@ export function createWsManager(options: WsManagerOptions): WsManager {
     publishCommands();
   };
 
-  const wireSubscription = <T>(record: WsRecord, read: () => T): WsSubscription<T> => ({
+  const wireSubscription = <T>(
+    record: WsRecord,
+    read: () => T,
+  ): WsSubscription<T> => ({
     getSnapshot: read,
     getStatus: () => record.status,
     subscribe(listener: () => void) {

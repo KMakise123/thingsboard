@@ -10,10 +10,9 @@
  */
 
 import { useEffect, useMemo, useSyncExternalStore } from 'react';
-
+import type { AttributeData, AttributeScope } from '@/types/tb';
 import { tokenStore } from '../auth/token-store';
 import { createTokenRefresher } from '../http/client';
-import type { AttributeData, AttributeScope } from '@/types/tb';
 
 import {
   type AttributesParams,

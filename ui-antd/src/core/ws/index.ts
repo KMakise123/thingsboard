@@ -16,6 +16,6 @@
  *     client emits ({ source: 'ws' } vs { source: 'http' }).
  */
 
-export * from './protocol';
-export * from './manager';
 export * from './hooks';
+export * from './manager';
+export * from './protocol';

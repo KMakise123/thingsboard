@@ -37,7 +37,10 @@ class FakeWebSocket {
     this.onmessage?.({ data: JSON.stringify(obj) });
   }
 
-  frames(): Array<{ authCmd?: unknown; cmds: Array<{ cmdId: number; type: string }> }> {
+  frames(): Array<{
+    authCmd?: unknown;
+    cmds: Array<{ cmdId: number; type: string }>;
+  }> {
     return this.sent.map((raw) => JSON.parse(raw));
   }
 }
@@ -114,7 +117,10 @@ describe('ws hooks', () => {
       await vi.advanceTimersByTimeAsync(0);
     });
     const last = ws.frames().at(-1)?.cmds[0];
-    expect(last).toMatchObject({ type: WsCmdType.TIMESERIES, unsubscribe: true });
+    expect(last).toMatchObject({
+      type: WsCmdType.TIMESERIES,
+      unsubscribe: true,
+    });
   });
 
   it('resubscribes when the scope changes', async () => {

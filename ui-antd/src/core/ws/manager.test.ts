@@ -1,8 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-
+import { EntityType } from '@/types/tb';
 import { createWsManager, type WsManager } from './manager';
 import { WsCmdType } from './protocol';
-import { EntityType } from '@/types/tb';
 
 class FakeWebSocket {
   static instances: FakeWebSocket[] = [];
@@ -176,7 +175,9 @@ describe('ws manager', () => {
       data: { v: [[1000, 'x']] },
     });
 
-    const expected = [2000, 4000, 8000, 16000, 32000, 60000, 60000, 60000, 60000, 60000];
+    const expected = [
+      2000, 4000, 8000, 16000, 32000, 60000, 60000, 60000, 60000, 60000,
+    ];
     for (let i = 0; i < expected.length; i++) {
       ws.serverClose(1006);
       // no reconnect before the delay elapses
@@ -233,7 +234,9 @@ describe('ws manager', () => {
       errorMsg: '',
       data: { a: [[111, 1]] },
     });
-    expect(sub.getSnapshot()).toEqual([{ key: 'a', value: 1, lastUpdateTs: 111 }]);
+    expect(sub.getSnapshot()).toEqual([
+      { key: 'a', value: 1, lastUpdateTs: 111 },
+    ]);
 
     ws.serverClose(1006);
     await vi.advanceTimersByTimeAsync(2000);
@@ -251,7 +254,9 @@ describe('ws manager', () => {
       errorMsg: '',
       data: { b: [[222, 2]] },
     });
-    expect(sub.getSnapshot()).toEqual([{ key: 'b', value: 2, lastUpdateTs: 222 }]);
+    expect(sub.getSnapshot()).toEqual([
+      { key: 'b', value: 2, lastUpdateTs: 222 },
+    ]);
   });
 
   it('merges incremental legacy updates per key', async () => {
@@ -275,7 +280,9 @@ describe('ws manager', () => {
       errorMsg: '',
       data: { a: [[200, 'new']] },
     });
-    expect(sub.getSnapshot()).toEqual([{ key: 'a', value: 'new', lastUpdateTs: 200 }]);
+    expect(sub.getSnapshot()).toEqual([
+      { key: 'a', value: 'new', lastUpdateTs: 200 },
+    ]);
   });
 
   it('caps command frames at 10 per send', async () => {
@@ -354,9 +361,9 @@ describe('ws manager', () => {
         pageLink: { page: 1, pageSize: 10 },
       },
     });
-    const updateFrames = ws.frames().filter((f) =>
-      f.cmds.some((c) => c.type === WsCmdType.ENTITY_DATA),
-    );
+    const updateFrames = ws
+      .frames()
+      .filter((f) => f.cmds.some((c) => c.type === WsCmdType.ENTITY_DATA));
     // same cmdId re-sent with the new page (update semantics, no resubscribe)
     const ids = updateFrames.map(
       (f) => f.cmds.find((c) => c.type === WsCmdType.ENTITY_DATA).cmdId,
@@ -371,7 +378,10 @@ describe('ws manager', () => {
       cmdUpdateType: 'ENTITY_DATA',
       data: {
         data: [
-          { entityId: entity, latest: { TIME_SERIES: { temp: { ts: 1, value: '21' } } } },
+          {
+            entityId: entity,
+            latest: { TIME_SERIES: { temp: { ts: 1, value: '21' } } },
+          },
         ],
         totalPages: 1,
         totalElements: 1,
@@ -385,10 +395,16 @@ describe('ws manager', () => {
       errorMsg: '',
       cmdUpdateType: 'ENTITY_DATA',
       update: [
-        { entityId: entity, latest: { TIME_SERIES: { temp: { ts: 2, value: '22' } } } },
+        {
+          entityId: entity,
+          latest: { TIME_SERIES: { temp: { ts: 2, value: '22' } } },
+        },
       ],
     });
-    expect(sub.getSnapshot()[0].latest?.TIME_SERIES?.temp).toEqual({ ts: 2, value: '22' });
+    expect(sub.getSnapshot()[0].latest?.TIME_SERIES?.temp).toEqual({
+      ts: 2,
+      value: '22',
+    });
   });
 
   it('notifies listeners on every data change (useSyncExternalStore contract)', async () => {
