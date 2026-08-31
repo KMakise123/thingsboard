@@ -1,22 +1,11 @@
-import component from './en-US/component';
-import globalHeader from './en-US/globalHeader';
+/**
+ * en-US aggregator — same hand-written aggregation contract as zh-CN.ts
+ * (umi only scans top-level locale files).
+ */
+import common from './en-US/common';
 import menu from './en-US/menu';
-import network from './en-US/network';
-import pages from './en-US/pages';
-import settingDrawer from './en-US/settingDrawer';
-import settings from './en-US/settings';
 
 export default {
-  'navBar.lang': 'Languages',
-  'layout.user.link.help': 'Help',
-  'layout.user.link.privacy': 'Privacy',
-  'layout.user.link.terms': 'Terms',
-  'app.preview.down.block': 'Download this page to your local project',
-  ...globalHeader,
+  ...common,
   ...menu,
-  ...settingDrawer,
-  ...settings,
-  ...network,
-  ...component,
-  ...pages,
 };

@@ -124,6 +124,11 @@ export default defineConfig({
    * @name moment2dayjs 插件
    * @description 将项目中的 moment 替换为 dayjs
    * @doc https://umijs.org/docs/max/moment2dayjs
+   *
+   * DO NOT REMOVE (ADR 0007): besides aliasing moment imports, this plugin
+   * is what keeps dayjs locales in sync with the umi locale plugin
+   * (`antd: true`). Dropping it breaks dayjs locale switching even though
+   * no source file imports moment directly.
    */
   moment2dayjs: {
     preset: 'antd',
@@ -137,8 +142,10 @@ export default defineConfig({
     // default zh-CN
     default: 'zh-CN',
     antd: true,
-    // default true, when it is true, will use `navigator.language` overwrite default
-    baseNavigator: true,
+    // Persist the chosen locale; baseNavigator is off so zh-CN stays the
+    // deterministic default for first visits.
+    useLocalStorage: true,
+    baseNavigator: false,
   },
   /**
    * @name antd 插件

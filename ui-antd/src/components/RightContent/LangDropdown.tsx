@@ -1,30 +1,26 @@
 import { CheckOutlined, GlobalOutlined } from '@ant-design/icons';
-import { getAllLocales, getLocale, setLocale } from '@umijs/max';
+import { getAllLocales, getLocale } from '@umijs/max';
 import type { MenuProps } from 'antd';
 import { Button } from 'antd';
 import { useMemo } from 'react';
+import { changeLocale } from '@/locales/set-locale';
 import HeaderDropdown from '../HeaderDropdown';
 import useHeaderActionStyles from './style';
 
 const localeLabelMap: Record<string, { emoji: string; label: string }> = {
   'zh-CN': { emoji: '🇨🇳', label: '简体中文' },
-  'zh-TW': { emoji: '🇭🇰', label: '繁體中文' },
   'en-US': { emoji: '🇺🇸', label: 'English' },
-  'ja-JP': { emoji: '🇯🇵', label: '日本語' },
-  'pt-BR': { emoji: '🇧🇷', label: 'Português' },
-  'id-ID': { emoji: '🇮🇩', label: 'Bahasa Indonesia' },
-  'fa-IR': { emoji: '🇮🇷', label: 'فارسی' },
-  'bn-BD': { emoji: '🇧🇩', label: 'বাংলা' },
 };
 
 const onLangClick: MenuProps['onClick'] = ({ key }) => {
   if (key.startsWith('lang-')) {
-    setLocale(key.replace('lang-', ''), false);
+    // Single switch point (ADR 0007) — do not call umi setLocale directly.
+    changeLocale(key.replace('lang-', '') as 'zh-CN' | 'en-US');
   }
 };
 
 export const LangDropdown: React.FC = () => {
-  const { styles } = useHeaderActionStyles();
+  const { styles, token } = useHeaderActionStyles();
   const allLocales = useMemo(() => getAllLocales(), []);
   const currentLocale = getLocale();
   const supportLocales = allLocales.filter((l) => l in localeLabelMap);
@@ -37,7 +33,7 @@ export const LangDropdown: React.FC = () => {
     key: `lang-${locale}`,
     icon:
       locale === currentLocale ? (
-        <CheckOutlined style={{ color: '#52c41a' }} />
+        <CheckOutlined style={{ color: token.colorSuccess }} />
       ) : (
         <span style={{ display: 'inline-block', width: 14 }} />
       ),
