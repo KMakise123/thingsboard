@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { serverErrorFromResponse, titleKeyFor } from './server-error';
+import {
+  ServerErrorError,
+  serverErrorFromResponse,
+  titleKeyFor,
+} from './server-error';
 
 function res(status: number) {
   return { status } as Response;
@@ -80,6 +84,54 @@ describe('serverErrorFromResponse', () => {
 
   it('network failure maps to status 0 + network key', () => {
     expect(titleKeyFor(0)).toBe('tb.error.network');
+  });
+
+  it('carries resetToken from credentials-expired bodies', () => {
+    const err = serverErrorFromResponse(res(401), {
+      timestamp: 1609459200000,
+      status: 401,
+      message: 'User password expired!',
+      errorCode: 15,
+      resetToken: 'tok-1',
+    });
+    expect(err.resetToken).toBe('tok-1');
+    expect(err.titleKey).toBe('tb.error.credentialsExpired');
+  });
+
+  it('resetToken stays undefined for other errors or non-string values', () => {
+    expect(
+      serverErrorFromResponse(res(401), { errorCode: 10, message: 'x' })
+        .resetToken,
+    ).toBeUndefined();
+    expect(
+      serverErrorFromResponse(res(401), { errorCode: 15, resetToken: 42 })
+        .resetToken,
+    ).toBeUndefined();
+  });
+});
+
+describe('ServerErrorError', () => {
+  it('keeps resetToken and the raw body for edge-case consumers', () => {
+    const wire = {
+      timestamp: 1,
+      status: 401,
+      message: 'User password expired!',
+      errorCode: 15,
+      resetToken: 'tok-1',
+    };
+    const error = new ServerErrorError(
+      serverErrorFromResponse(res(401), wire),
+      wire,
+    );
+    expect(error.resetToken).toBe('tok-1');
+    expect(error.rawBody).toEqual(wire);
+    expect(String(error)).toContain('[401]');
+  });
+
+  it('rawBody optional — constructor stays compatible with ServerError only', () => {
+    const error = new ServerErrorError(serverErrorFromResponse(res(403), {}));
+    expect(error.rawBody).toBeUndefined();
+    expect(error.resetToken).toBeUndefined();
   });
 });
 

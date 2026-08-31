@@ -45,17 +45,28 @@ export interface ServerError {
   titleKey: string;
   /** Server timestamp when present (ms epoch). */
   timestamp?: number;
+  /**
+   * Present only on CREDENTIALS_EXPIRED (15) bodies: the backend's
+   * ThingsboardCredentialsExpiredResponse carries the one-shot token the
+   * expired-password flow redirects with (`resetExpiredPassword`).
+   */
+  resetToken?: string;
 }
 
-/** Error thrown by the HTTP client; `cause` keeps the raw Response for edge cases. */
+/**
+ * Error thrown by the HTTP client. `rawBody` keeps the parsed wire body for
+ * edge-case consumers (fields beyond the normalized ServerError shape).
+ */
 export class ServerErrorError extends Error implements ServerError {
   readonly status: number;
   readonly errorCode?: number;
   readonly detail: string;
   readonly titleKey: string;
   readonly timestamp?: number;
+  readonly resetToken?: string;
+  readonly rawBody?: unknown;
 
-  constructor(se: ServerError) {
+  constructor(se: ServerError, rawBody?: unknown) {
     super(`[${se.status}] ${se.titleKey}: ${se.detail}`);
     this.name = 'ServerErrorError';
     this.status = se.status;
@@ -63,6 +74,8 @@ export class ServerErrorError extends Error implements ServerError {
     this.detail = se.detail;
     this.titleKey = se.titleKey;
     this.timestamp = se.timestamp;
+    this.resetToken = se.resetToken;
+    this.rawBody = rawBody;
   }
 }
 
@@ -119,6 +132,7 @@ interface RawErrorBody {
   /** Some Spring error paths emit `error` instead of `message`. */
   error?: string;
   errorCode?: number;
+  resetToken?: unknown;
 }
 
 /** Build a ServerError from a Response and its (possibly unparsed) body. */
@@ -156,6 +170,8 @@ export function serverErrorFromResponse(
     titleKey,
     timestamp:
       typeof parsed.timestamp === 'number' ? parsed.timestamp : undefined,
+    resetToken:
+      typeof parsed.resetToken === 'string' ? parsed.resetToken : undefined,
   };
 }
 

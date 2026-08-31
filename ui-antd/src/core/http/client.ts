@@ -256,7 +256,7 @@ export function createTbHttpClient(
     } catch {
       raw = undefined;
     }
-    return new ServerErrorError(serverErrorFromResponse(response, raw));
+    return new ServerErrorError(serverErrorFromResponse(response, raw), raw);
   };
 
   const buildUrl = (path: string, query?: QueryParams): string => {
