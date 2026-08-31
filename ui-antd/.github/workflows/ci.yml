@@ -1,6 +1,27 @@
-name: CI
+# ui-antd CI — three parallel, all-required jobs (biome / tsc+vitest / build).
+#
+# NOTE: GitHub only executes workflows from the REPO ROOT .github/workflows/.
+# This monorepo keeps the frontend CI next to its package for now; hoist this
+# file verbatim to <repo-root>/.github/workflows/ui-antd-ci.yml to activate it
+# (working-directory and node-version-file below are already root-shaped).
+# Branch protection must then mark all three jobs as required checks.
+#
+# vitest runs inside the typecheck job: it shares the same `npm ci` (the
+# suite neither needs the build output nor a browser) and stays fast enough
+# (~1 min) that a fourth install cycle is not worth it.
 
-on: [push, pull_request]
+name: ui-antd CI
+
+on:
+  push:
+    branches: [master, feature/**]
+    paths: ['ui-antd/**']
+  pull_request:
+    paths: ['ui-antd/**']
+
+defaults:
+  run:
+    working-directory: ui-antd
 
 permissions:
   contents: read
@@ -9,47 +30,41 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: 22
+          node-version-file: ui-antd/.nvmrc
           cache: npm
-      - run: npm ci
-      - run: npm run biome:lint
+          cache-dependency-path: ui-antd/package-lock.json
+      # Full `biome check` (formatter + linter + assist) — must NOT degrade
+      # to `biome lint`.
+      - run: npx biome check
 
-  tsc:
+  typecheck-and-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: 22
+          node-version-file: ui-antd/.nvmrc
           cache: npm
+          cache-dependency-path: ui-antd/package-lock.json
+      # `prepare` (max setup) runs on install and generates src/.umi, which
+      # tsc depends on.
       - run: npm ci
       - run: npm run tsc
+      - run: npm run test
 
   build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        node_version: [22]
-        os: [ubuntu-latest, windows-latest, macOS-latest]
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Use Node.js ${{ matrix.node_version }}
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: ${{ matrix.node_version }}
+          node-version-file: ui-antd/.nvmrc
           cache: npm
-      - run: echo ${{github.ref}}
-      - uses: utooland/setup-utoo@e7aa4d726a17f79f68aed736476ea5bd68f8ba52 # v1
-        with:
-          cache-utoo: false
-      - run: ut
-      - run: ut lint
-      - run: ut build
+          cache-dependency-path: ui-antd/package-lock.json
+      - run: npm ci
+      - run: npm run build
         env:
-          CI: true
-          PROGRESS: none
-          NODE_ENV: test
           NODE_OPTIONS: --max_old_space_size=4096

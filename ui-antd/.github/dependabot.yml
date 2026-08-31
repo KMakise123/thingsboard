@@ -1,22 +1,23 @@
+# ui-antd Dependabot — alert-only (ADR 0007).
+#
+# All version updates are ignored so Dependabot never opens upgrade PRs;
+# vulnerability alerts and security updates are controlled by the repo's
+# Dependabot settings (keep them enabled). Reviews and bumps are done in
+# deliberate weekly passes.
+#
+# NOTE: like the CI workflow, this file only takes effect once hoisted to the
+# repo root .github/dependabot.yml (directory points at ui-antd already).
 version: 2
 updates:
-  - package-ecosystem: 'npm'
-    directory: '/'
+  - package-ecosystem: npm
+    directory: /ui-antd
     schedule:
-      interval: 'daily'
+      interval: weekly
     ignore:
       - dependency-name: '*'
-        update-types: ['version-update:semver-patch']
-    groups:
-      dependencies:
-        patterns:
-          - '*'
-
-  - package-ecosystem: 'github-actions'
-    directory: '/'
-    schedule:
-      interval: 'weekly'
-    groups:
-      github-actions:
-        patterns:
-          - '*'
+        update-types:
+          - 'version-update:semver-patch'
+          - 'version-update:semver-minor'
+          - 'version-update:semver-major'
+    commit-message:
+      prefix: 'chore(ui-antd)'
