@@ -15,6 +15,19 @@ import { fileURLToPath } from 'node:url';
 const LOCALES = ['zh-CN', 'en-US'];
 const localesDir = fileURLToPath(new URL('../src/locales/', import.meta.url));
 
+/** All .ts files under the locale dir, including domain subdirectories. */
+function listLocaleFiles(dir, prefix = '') {
+  const files = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (entry.isDirectory()) {
+      files.push(...listLocaleFiles(join(dir, entry.name), `${prefix}${entry.name}/`));
+    } else if (entry.name.endsWith('.ts')) {
+      files.push({ name: `${prefix}${entry.name}`, path: join(dir, entry.name) });
+    }
+  }
+  return files;
+}
+
 /** Top-level object keys of a `export default { 'k': 'v' }` locale file. */
 function extractKeys(source) {
   const keys = [];
@@ -27,12 +40,10 @@ function extractKeys(source) {
 
 function readLocaleFiles(locale) {
   const dir = join(localesDir, locale);
-  const files = readdirSync(dir)
-    .filter((name) => name.endsWith('.ts'))
-    .sort();
+  const files = listLocaleFiles(dir).sort((a, b) => a.name.localeCompare(b.name));
   const perFile = new Map();
-  for (const name of files) {
-    perFile.set(name, extractKeys(readFileSync(join(dir, name), 'utf8')));
+  for (const file of files) {
+    perFile.set(file.name, extractKeys(readFileSync(file.path, 'utf8')));
   }
   return perFile;
 }
