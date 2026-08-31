@@ -31,6 +31,7 @@ import AlarmsPanel from '@/components/devices/detail/AlarmsPanel';
 import AttributesPanel from '@/components/devices/detail/AttributesPanel';
 import EventsPanel from '@/components/devices/detail/EventsPanel';
 import LatestTelemetryPanel from '@/components/devices/detail/LatestTelemetryPanel';
+import RelationsPanel from '@/components/devices/detail/RelationsPanel';
 import { serverErrorText } from '@/components/devices/server-error-text';
 import { getDeviceInfoById } from '@/services/tb/device';
 import type { DeviceInfo } from '@/types/tb';
@@ -309,6 +310,16 @@ function buildTabItems({
           deviceId={device.id.id}
           tenantId={device.tenantId?.id ?? ''}
         />
+      ) : null,
+    },
+    {
+      key: 'relations',
+      label: formatMessage({
+        id: 'pages.devices.detail.tabRelations',
+        defaultMessage: 'Relations',
+      }),
+      children: device ? (
+        <RelationsPanel deviceEntityId={device.id} readOnly={readOnly} />
       ) : null,
     },
   ];
