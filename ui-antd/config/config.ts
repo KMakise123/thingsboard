@@ -2,6 +2,7 @@
 
 import { join } from 'node:path';
 import { defineConfig } from '@umijs/max';
+import { brand } from '../src/theme/brand/config';
 import defaultSettings from './defaultSettings';
 import proxy from './proxy';
 
@@ -114,7 +115,7 @@ export default defineConfig({
    * @name layout 插件
    * @doc https://umijs.org/docs/max/layout-menu
    */
-  title: 'Ant Design Pro',
+  title: brand.assets.appName,
   layout: {
     locale: true,
     ...defaultSettings,
@@ -146,13 +147,10 @@ export default defineConfig({
    */
   antd: {
     appConfig: {},
+    // Theme tokens are applied at runtime by the root ConfigProvider in
+    // src/app.tsx (getThemeConfig from src/theme/brand) — the single seam.
     configProvider: {
       variant: 'filled',
-      theme: {
-        token: {
-          fontFamily: 'AlibabaSans, sans-serif',
-        },
-      },
     },
   },
   /**

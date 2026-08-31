@@ -1,11 +1,4 @@
-import {
-  AlipayCircleOutlined,
-  LockOutlined,
-  MobileOutlined,
-  TaobaoCircleOutlined,
-  UserOutlined,
-  WeiboCircleOutlined,
-} from '@ant-design/icons';
+import { LockOutlined, MobileOutlined, UserOutlined } from '@ant-design/icons';
 import {
   LoginForm,
   ProFormCaptcha,
@@ -24,6 +17,7 @@ import { Alert, App, Button, Tabs } from 'antd';
 import { createStyles } from 'antd-style';
 import React, { startTransition, useState } from 'react';
 import { Footer } from '@/components';
+import { brand } from '@/theme/brand';
 import Settings from '../../../../config/defaultSettings';
 
 /**
@@ -65,17 +59,6 @@ const getSafeRedirectUrl = (redirect: string | null): string => {
 
 const useStyles = createStyles(({ token }) => {
   return {
-    action: {
-      marginLeft: '8px',
-      color: 'rgba(0, 0, 0, 0.2)',
-      fontSize: '24px',
-      verticalAlign: 'middle',
-      cursor: 'pointer',
-      transition: 'color 0.3s',
-      '&:hover': {
-        color: token.colorPrimaryActive,
-      },
-    },
     lang: {
       width: 42,
       height: 42,
@@ -92,33 +75,19 @@ const useStyles = createStyles(({ token }) => {
       flexDirection: 'column',
       height: '100vh',
       overflow: 'auto',
-      backgroundImage:
-        "url('https://mdn.alipayobjects.com/yuyan_qk0oxh/afts/img/V-_oS6r-i7wAAAAAAAAAAAAAFl94AQBr')",
-      backgroundSize: '100% 100%',
+      // Brand seam (issue #8): login background comes from src/theme/brand;
+      // without one, fall back to token-derived styling — no inline hex.
+      ...(brand.assets.loginBackground
+        ? {
+            backgroundImage: `url(${brand.assets.loginBackground})`,
+            backgroundSize: '100% 100%',
+          }
+        : {
+            background: `linear-gradient(150deg, ${token.colorPrimaryBg} 0%, ${token.colorBgContainer} 55%, ${token.colorPrimaryBgHover} 100%)`,
+          }),
     },
   };
 });
-
-const ActionIcons = () => {
-  const { styles } = useStyles();
-
-  return (
-    <>
-      <AlipayCircleOutlined
-        key="AlipayCircleOutlined"
-        className={styles.action}
-      />
-      <TaobaoCircleOutlined
-        key="TaobaoCircleOutlined"
-        className={styles.action}
-      />
-      <WeiboCircleOutlined
-        key="WeiboCircleOutlined"
-        className={styles.action}
-      />
-    </>
-  );
-};
 
 const Lang = () => {
   const { styles } = useStyles();
@@ -216,22 +185,14 @@ const Login: React.FC = () => {
             minWidth: 280,
             maxWidth: '75vw',
           }}
-          logo={<img alt="logo" src="/logo.svg" />}
-          title="Ant Design"
+          logo={<img alt="logo" src={brand.assets.logo} />}
+          title={brand.assets.appName}
           subTitle={intl.formatMessage({
             id: 'pages.layouts.userLayout.title',
           })}
           initialValues={{
             autoLogin: true,
           }}
-          actions={[
-            <FormattedMessage
-              key="loginWith"
-              id="pages.login.loginWith"
-              defaultMessage="其他登录方式"
-            />,
-            <ActionIcons key="icons" />,
-          ]}
           onFinish={async (values) => {
             await handleSubmit(values as API.LoginParams);
           }}

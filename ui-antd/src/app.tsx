@@ -2,6 +2,7 @@ import type { Settings as LayoutSettings } from '@ant-design/pro-components';
 import { SettingDrawer } from '@ant-design/pro-components';
 import type { RequestConfig, RunTimeLayoutConfig } from '@umijs/max';
 import { history, Link, request as umiRequest } from '@umijs/max';
+import { ConfigProvider } from 'antd';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import React from 'react';
@@ -16,10 +17,16 @@ import {
   LangDropdown,
   OfflineBanner,
 } from '@/components';
+import { getThemeConfig } from '@/theme/brand';
 import defaultSettings from '../config/defaultSettings';
 import { errorConfig } from './requestErrorConfig';
 
 const loginPath = '/user/login';
+
+// Persistent theme object (ADR 0007): computed once at module scope so the
+// root ConfigProvider never flips between undefined and an object, which
+// would remount the whole tree. v1 is light-only.
+const appThemeConfig = getThemeConfig('light');
 
 /**
  * TEMP(auth wave): inline current-user fetch until the src/services/tb auth
@@ -126,6 +133,10 @@ export const layout: RunTimeLayoutConfig = ({
           {children}
           <SettingDrawer
             disableUrlParams
+            // v1 is light-only (D-4): no dark-mode entry, and the demo
+            // theme-color swatches are disabled so colorPrimary stays
+            // single-sourced from src/theme/brand.
+            colorList={false}
             collapse={initialState?.settingDrawerOpen}
             onCollapseChange={(open) => {
               setInitialState((s) => ({
@@ -159,9 +170,9 @@ export const request: RequestConfig = {
 
 export function rootContainer(container: React.ReactNode) {
   return (
-    <>
+    <ConfigProvider theme={appThemeConfig}>
       <OfflineBanner />
       <ErrorBoundary>{container}</ErrorBoundary>
-    </>
+    </ConfigProvider>
   );
 }
