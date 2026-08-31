@@ -1,15 +1,41 @@
 /**
- * @see https://umijs.org/docs/max/access#access
+ * Authority dictionary mirroring the backend Authority enum (spec §2).
  *
- * Scaffold-era placeholder. The real authority dictionary (SYS_ADMIN /
- * TENANT_ADMIN / CUSTOMER_USER) lands with the auth wave; every key returned
- * here must stay aligned with the `access` fields in config/routes.ts.
+ * Every key returned here is referenced by the `access` fields in
+ * config/routes.ts — keep both sides in sync when adding keys.
+ *
+ *   canSysAdmin          SYS_ADMIN only (sys-domain pages, M3+)
+ *   canTenantAdmin       TENANT_ADMIN only
+ *   canCustomerUser      CUSTOMER_USER only (read-only subset of tenant pages)
+ *   canTenantOrCustomer  tenant-scoped pages (devices, assets, alarms, …)
+ *   canAuthenticated     any usable session
  */
+import { Authority, type User } from '@/types/tb';
+
+export interface AccessInitialState {
+  currentUser?: User | null;
+}
+
+export interface TbAccess {
+  canSysAdmin: boolean;
+  canTenantAdmin: boolean;
+  canCustomerUser: boolean;
+  canTenantOrCustomer: boolean;
+  canAuthenticated: boolean;
+}
+
 export default function access(
-  initialState: { currentUser?: API.CurrentUser } | undefined,
-) {
-  const { currentUser } = initialState ?? {};
+  initialState: AccessInitialState | undefined,
+): TbAccess {
+  const authority = initialState?.currentUser?.authority;
+  const canSysAdmin = authority === Authority.SYS_ADMIN;
+  const canTenantAdmin = authority === Authority.TENANT_ADMIN;
+  const canCustomerUser = authority === Authority.CUSTOMER_USER;
   return {
-    canAdmin: currentUser?.access === 'admin',
+    canSysAdmin,
+    canTenantAdmin,
+    canCustomerUser,
+    canTenantOrCustomer: canTenantAdmin || canCustomerUser,
+    canAuthenticated: canSysAdmin || canTenantAdmin || canCustomerUser,
   };
 }
