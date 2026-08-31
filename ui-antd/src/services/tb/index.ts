@@ -11,6 +11,7 @@
  */
 
 export * from './auth';
+export * from './customer';
 export * from './device';
 export * from './attributes';
 export { setTbLanguage, tbHttp } from './http';

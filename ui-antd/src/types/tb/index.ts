@@ -13,6 +13,7 @@
  */
 
 export * from './alarm';
+export * from './customer';
 export * from './device';
 export * from './entity';
 export * from './page';

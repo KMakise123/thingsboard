@@ -85,20 +85,3 @@ export interface Tenant
   email?: string;
   additionalInfo?: Record<string, unknown>;
 }
-
-/** Customer summary — device rows carry customerId/customerTitle only. */
-export interface Customer
-  extends BaseData<EntityIdOf<EntityType.CUSTOMER>>,
-    HasTenantIdAndCustomer,
-    HasVersion {
-  title: string;
-  country?: string;
-  state?: string;
-  city?: string;
-  address?: string;
-  address2?: string;
-  zip?: string;
-  phone?: string;
-  email?: string;
-  additionalInfo?: Record<string, unknown>;
-}

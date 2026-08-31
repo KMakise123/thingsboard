@@ -32,6 +32,7 @@ import {
   getTimeseries,
   saveEntityAttributes,
 } from './attributes';
+import { getCustomers } from './customer';
 import {
   assignDevicesToCustomer,
   deleteDevice,
@@ -275,6 +276,29 @@ describe('attributes transport endpoints', () => {
       endTs: 2000,
       agg: 'AVG',
       interval: 60000,
+    });
+  });
+});
+
+describe('customer transport endpoints', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    get.mockResolvedValue(undefined as never);
+  });
+
+  it('paged list hits /api/customers with explicit sort (assign picker source)', async () => {
+    await getCustomers({
+      page: 0,
+      pageSize: 20,
+      textSearch: 'acme',
+      sortOrder: { property: 'title', direction: 'ASC' },
+    });
+    expect(get).toHaveBeenCalledWith('/api/customers', {
+      pageSize: 20,
+      page: 0,
+      textSearch: 'acme',
+      sortProperty: 'title',
+      sortOrder: 'ASC',
     });
   });
 });
