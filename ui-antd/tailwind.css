@@ -1,3 +1,14 @@
 @import "tailwindcss/index.css";
 
+/*
+ * The default Tailwind color palette is disabled (ADR 0007): every color in
+ * the app comes from the antd token layer (src/theme/brand). Tailwind
+ * remains for layout/spacing utilities only. Do not use color utility
+ * classes such as `bg-blue-500` — grep the tree for `-(bg|text|border|ring)-`
+ * color names before adding any class.
+ */
+@theme {
+  --color-*: initial;
+}
+
 @source "./src";
