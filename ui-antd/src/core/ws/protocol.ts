@@ -149,6 +149,7 @@ export interface UnreadSubCmd extends WebsocketCmd {
 
 export type UnsubscribeCmd =
   | (AttributesSubscriptionCmd & { unsubscribe: true })
+  | (TimeseriesSubscriptionCmd & { unsubscribe: true })
   | { cmdId: number; type: WsCmdType.ENTITY_DATA_UNSUBSCRIBE }
   | { cmdId: number; type: WsCmdType.ENTITY_COUNT_UNSUBSCRIBE }
   | { cmdId: number; type: WsCmdType.ALARM_DATA_UNSUBSCRIBE }

@@ -45,6 +45,7 @@ import {
   parseServerMessage,
   type SubscriptionUpdateMsg,
   type TimeseriesSubscriptionCmd,
+  type UnsubscribeCmd,
   WsCmdType,
   type WsServerMessage,
 } from './protocol';
@@ -259,7 +260,7 @@ export function createWsManager(options: WsManagerOptions): WsManager {
   }
 
   const records = new Map<number, WsRecord>();
-  const queue: Array<AnySubCmd | { cmdId: number; type: WsCmdType }> = [];
+  const queue: Array<AnySubCmd | UnsubscribeCmd> = [];
 
   let socket: WebSocket | null = null;
   let pendingAuthCmd: { cmdId: 0; type: WsCmdType.AUTH; token: string } | null =
@@ -286,7 +287,7 @@ export function createWsManager(options: WsManagerOptions): WsManager {
     notify(record);
   };
 
-  const enqueueCmd = (cmd: AnySubCmd | { cmdId: number; type: WsCmdType }) => {
+  const enqueueCmd = (cmd: AnySubCmd | UnsubscribeCmd) => {
     queue.push(cmd);
   };
 
@@ -590,20 +591,18 @@ export function createWsManager(options: WsManagerOptions): WsManager {
     scheduleReconnect(delay);
   };
 
-  const makeUnsubscribeCmd = (
-    record: WsRecord,
-  ): { cmdId: number; type: WsCmdType } => {
+  const makeUnsubscribeCmd = (record: WsRecord): UnsubscribeCmd => {
     switch (record.kind) {
       case 'attributes':
         return {
           ...record.cmd,
           unsubscribe: true,
-        } as AttributesSubscriptionCmd;
+        } as AttributesSubscriptionCmd & { unsubscribe: true };
       case 'latest-telemetry':
         return {
           ...record.cmd,
           unsubscribe: true,
-        } as TimeseriesSubscriptionCmd;
+        } as TimeseriesSubscriptionCmd & { unsubscribe: true };
       case 'entity-data':
         return { cmdId: record.cmdId, type: WsCmdType.ENTITY_DATA_UNSUBSCRIBE };
       case 'alarm-data':

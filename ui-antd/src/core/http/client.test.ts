@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { tokenStore } from '../auth/token-store';
+import type { UnauthorizedEvent } from './client';
 import { createTbHttpClient, createTokenRefresher } from './client';
 
 /** JWT factory with valid iat/exp so the token store accepts it. */
@@ -28,7 +29,9 @@ function jsonResponse(status: number, body: unknown): Response {
 describe('tb http client', () => {
   let calls: Call[];
   let responses: Array<Response | ((call: Call) => Response)>;
-  let onUnauthorized: ReturnType<typeof vi.fn>;
+  let onUnauthorized: ReturnType<
+    typeof vi.fn<(event: UnauthorizedEvent) => void>
+  >;
   let client: ReturnType<typeof createTbHttpClient>;
 
   beforeEach(() => {
@@ -265,7 +268,7 @@ describe('tb http client', () => {
     vi.useFakeTimers();
     try {
       const never = new Promise<Response>(() => {});
-      responses.push(never as Response);
+      responses.push(never as unknown as Response);
       const promise = client.request('/api/devices');
       const assertion = expect(promise).rejects.toMatchObject({
         status: 0,

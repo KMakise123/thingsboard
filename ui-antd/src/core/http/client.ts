@@ -373,12 +373,14 @@ export function createTbHttpClient(
 
   return {
     request,
-    get: (path, query) => request<T>(path, { method: 'GET', query }),
-    post: (path, body, query) =>
-      request<T>(path, { method: 'POST', body, query }),
-    put: (path, body, query) =>
-      request<T>(path, { method: 'PUT', body, query }),
-    delete: (path, query) => request<T>(path, { method: 'DELETE', query }),
+    get: <T2>(path: string, query?: QueryParams) =>
+      request<T2>(path, { method: 'GET', query }),
+    post: <T2>(path: string, body?: unknown, query?: QueryParams) =>
+      request<T2>(path, { method: 'POST', body, query }),
+    put: <T2>(path: string, body?: unknown, query?: QueryParams) =>
+      request<T2>(path, { method: 'PUT', body, query }),
+    delete: <T2>(path: string, query?: QueryParams) =>
+      request<T2>(path, { method: 'DELETE', query }),
   };
 }
 

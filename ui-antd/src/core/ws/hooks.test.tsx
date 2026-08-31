@@ -130,7 +130,11 @@ describe('ws hooks', () => {
           entityId: { entityType: EntityType.DEVICE, id: 'd1' },
           scope: scope as never,
         }),
-      { initialProps: { scope: 'SERVER_SCOPE' as const } },
+      {
+        initialProps: {
+          scope: 'SERVER_SCOPE' as 'SERVER_SCOPE' | 'SHARED_SCOPE',
+        },
+      },
     );
     await flush();
     const ws = FakeWebSocket.instances[0];

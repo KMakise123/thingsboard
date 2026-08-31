@@ -45,7 +45,10 @@ class FakeWebSocket {
     this.onclose?.({ code, reason });
   }
 
-  frames(): Array<{ authCmd?: unknown; cmds: unknown[] }> {
+  frames(): Array<{
+    authCmd?: unknown;
+    cmds: Array<{ cmdId: number; type: string }>;
+  }> {
     return this.sent.map((raw) => JSON.parse(raw));
   }
 }
@@ -366,7 +369,7 @@ describe('ws manager', () => {
       .filter((f) => f.cmds.some((c) => c.type === WsCmdType.ENTITY_DATA));
     // same cmdId re-sent with the new page (update semantics, no resubscribe)
     const ids = updateFrames.map(
-      (f) => f.cmds.find((c) => c.type === WsCmdType.ENTITY_DATA).cmdId,
+      (f) => f.cmds.find((c) => c.type === WsCmdType.ENTITY_DATA)?.cmdId,
     );
     expect(new Set(ids).size).toBe(1);
 

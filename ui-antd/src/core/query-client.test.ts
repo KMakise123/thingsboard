@@ -99,7 +99,7 @@ describe('tb query client retry policy', () => {
       },
       mutationKey: ['m'],
     });
-    await expect(mutation.execute()).rejects.toBeTruthy();
+    await expect(mutation.execute(undefined)).rejects.toBeTruthy();
     expect(onError).toHaveBeenCalledWith(
       expect.objectContaining({ status: 403, errorCode: 20 }),
     );
