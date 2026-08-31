@@ -184,7 +184,9 @@ export default defineConfig({
    */
   headScripts: [
     // 解决首次加载时白屏的问题
-    { src: join(PUBLIC_PATH, 'scripts/loading.js'), async: true },
+    // Template string, not node:path.join: join('/', 'scripts/...') yields
+    // backslash separators on Windows and breaks the URL.
+    { src: `${PUBLIC_PATH}scripts/loading.js`, async: true },
   ],
 
   //================ pro 插件配置 =================
