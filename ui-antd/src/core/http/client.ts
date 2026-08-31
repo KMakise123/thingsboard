@@ -25,7 +25,7 @@
 import { tokenStore } from '../auth/token-store';
 import {
   networkServerError,
-  ServerError,
+  type ServerError,
   ServerErrorError,
   serverErrorFromResponse,
 } from './server-error';
@@ -54,7 +54,10 @@ export interface TbHttpClientOptions {
   random?: () => number;
 }
 
-export type QueryParams = Record<string, string | number | boolean | undefined | null>;
+export type QueryParams = Record<
+  string,
+  string | number | boolean | undefined | null
+>;
 
 export interface RequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
@@ -69,8 +72,16 @@ export interface RequestOptions {
 export interface TbHttpClient {
   request<T = unknown>(path: string, options?: RequestOptions): Promise<T>;
   get<T = unknown>(path: string, query?: QueryParams): Promise<T>;
-  post<T = unknown>(path: string, body?: unknown, query?: QueryParams): Promise<T>;
-  put<T = unknown>(path: string, body?: unknown, query?: QueryParams): Promise<T>;
+  post<T = unknown>(
+    path: string,
+    body?: unknown,
+    query?: QueryParams,
+  ): Promise<T>;
+  put<T = unknown>(
+    path: string,
+    body?: unknown,
+    query?: QueryParams,
+  ): Promise<T>;
   delete<T = unknown>(path: string, query?: QueryParams): Promise<T>;
 }
 
@@ -98,13 +109,16 @@ interface RefreshSuccess {
   refreshToken: string;
 }
 
-export function createTbHttpClient(options: TbHttpClientOptions = {}): TbHttpClient {
+export function createTbHttpClient(
+  options: TbHttpClientOptions = {},
+): TbHttpClient {
   const {
     baseUrl = '',
     timeoutMs = DEFAULT_TIMEOUT_MS,
     maxRateLimitRetries = DEFAULT_MAX_429_RETRIES,
     rateLimitBaseDelayMs = DEFAULT_429_BASE_DELAY_MS,
-    language = () => typeof navigator !== 'undefined' ? navigator.language : 'en',
+    language = () =>
+      typeof navigator !== 'undefined' ? navigator.language : 'en',
     onUnauthorized,
     fetchImpl = (...args) => fetch(...args),
     random = Math.random,
@@ -113,7 +127,10 @@ export function createTbHttpClient(options: TbHttpClientOptions = {}): TbHttpCli
   const doFetch: typeof fetch = (input, init) => fetchImpl(input, init);
 
   /** Plain fetch with per-attempt timeout; rejects AbortError-style on timeout. */
-  const fetchWithTimeout = async (url: string, init: RequestInit): Promise<Response> => {
+  const fetchWithTimeout = async (
+    url: string,
+    init: RequestInit,
+  ): Promise<Response> => {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     const abortRace = new Promise<never>((_, reject) => {
@@ -124,7 +141,10 @@ export function createTbHttpClient(options: TbHttpClientOptions = {}): TbHttpCli
       });
     });
     try {
-      return await Promise.race([doFetch(url, { ...init, signal: controller.signal }), abortRace]);
+      return await Promise.race([
+        doFetch(url, { ...init, signal: controller.signal }),
+        abortRace,
+      ]);
     } finally {
       clearTimeout(timer);
     }
@@ -175,7 +195,9 @@ export function createTbHttpClient(options: TbHttpClientOptions = {}): TbHttpCli
     return refreshInFlight;
   };
 
-  const toServerError = async (response: Response): Promise<ServerErrorError> => {
+  const toServerError = async (
+    response: Response,
+  ): Promise<ServerErrorError> => {
     let raw: unknown;
     try {
       raw = await response.text();
@@ -200,13 +222,21 @@ export function createTbHttpClient(options: TbHttpClientOptions = {}): TbHttpCli
     return qs ? `${url}?${qs}` : url;
   };
 
-  const buildInit = (requestOptions: RequestOptions, exempt: boolean): RequestInit => {
+  const buildInit = (
+    requestOptions: RequestOptions,
+    exempt: boolean,
+  ): RequestInit => {
     const headers = new Headers(requestOptions.headers);
     headers.set('Accept-Language', language());
     const { body } = requestOptions;
     let serializedBody: BodyInit | undefined;
     if (body !== undefined && body !== null) {
-      if (typeof body === 'string' || body instanceof FormData || body instanceof Blob || body instanceof URLSearchParams) {
+      if (
+        typeof body === 'string' ||
+        body instanceof FormData ||
+        body instanceof Blob ||
+        body instanceof URLSearchParams
+      ) {
         serializedBody = body;
       } else {
         headers.set('Content-Type', 'application/json');
@@ -219,7 +249,10 @@ export function createTbHttpClient(options: TbHttpClientOptions = {}): TbHttpCli
         headers.set('Authorization', `Bearer ${token}`);
       }
     }
-    const init: RequestInit = { method: requestOptions.method ?? 'GET', headers };
+    const init: RequestInit = {
+      method: requestOptions.method ?? 'GET',
+      headers,
+    };
     if (serializedBody !== undefined) {
       init.body = serializedBody;
     }
@@ -241,7 +274,10 @@ export function createTbHttpClient(options: TbHttpClientOptions = {}): TbHttpCli
     }
   };
 
-  const request = async <T>(path: string, requestOptions: RequestOptions = {}): Promise<T> => {
+  const request = async <T>(
+    path: string,
+    requestOptions: RequestOptions = {},
+  ): Promise<T> => {
     const exempt = requestOptions.authExempt === true || isAuthExempt(path);
     const url = buildUrl(path, requestOptions.query);
     let replayedAfterRefresh = false;
@@ -250,7 +286,10 @@ export function createTbHttpClient(options: TbHttpClientOptions = {}): TbHttpCli
     for (;;) {
       let response: Response;
       try {
-        response = await fetchWithTimeout(url, buildInit(requestOptions, exempt));
+        response = await fetchWithTimeout(
+          url,
+          buildInit(requestOptions, exempt),
+        );
       } catch (reason) {
         throw new ServerErrorError(networkServerError(reason));
       }
@@ -283,8 +322,10 @@ export function createTbHttpClient(options: TbHttpClientOptions = {}): TbHttpCli
   return {
     request,
     get: (path, query) => request<T>(path, { method: 'GET', query }),
-    post: (path, body, query) => request<T>(path, { method: 'POST', body, query }),
-    put: (path, body, query) => request<T>(path, { method: 'PUT', body, query }),
+    post: (path, body, query) =>
+      request<T>(path, { method: 'POST', body, query }),
+    put: (path, body, query) =>
+      request<T>(path, { method: 'PUT', body, query }),
     delete: (path, query) => request<T>(path, { method: 'DELETE', query }),
   };
 }

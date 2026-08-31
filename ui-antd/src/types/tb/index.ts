@@ -12,9 +12,9 @@
  *   - Page indexes are 0-based on the server.
  */
 
+export * from './alarm';
+export * from './device';
 export * from './entity';
 export * from './page';
-export * from './device';
-export * from './user';
 export * from './telemetry';
-export * from './alarm';
+export * from './user';

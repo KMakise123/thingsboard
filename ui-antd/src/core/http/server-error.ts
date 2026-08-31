@@ -78,8 +78,10 @@ const ERROR_CODE_KEYS: Record<number, string> = {
   [ThingsboardErrorCode.TOO_MANY_REQUESTS]: 'tb.error.tooManyRequests',
   [ThingsboardErrorCode.TOO_MANY_UPDATES]: 'tb.error.tooManyUpdates',
   [ThingsboardErrorCode.VERSION_CONFLICT]: 'tb.error.versionConflict',
-  [ThingsboardErrorCode.SUBSCRIPTION_VIOLATION]: 'tb.error.subscriptionViolation',
-  [ThingsboardErrorCode.ENTITIES_LIMIT_EXCEEDED]: 'tb.error.entitiesLimitExceeded',
+  [ThingsboardErrorCode.SUBSCRIPTION_VIOLATION]:
+    'tb.error.subscriptionViolation',
+  [ThingsboardErrorCode.ENTITIES_LIMIT_EXCEEDED]:
+    'tb.error.entitiesLimitExceeded',
   [ThingsboardErrorCode.PASSWORD_VIOLATION]: 'tb.error.passwordViolation',
   [ThingsboardErrorCode.DATABASE]: 'tb.error.server',
 };
@@ -139,7 +141,8 @@ export function serverErrorFromResponse(
   }
 
   const status = response.status;
-  const errorCode = typeof parsed.errorCode === 'number' ? parsed.errorCode : undefined;
+  const errorCode =
+    typeof parsed.errorCode === 'number' ? parsed.errorCode : undefined;
   const titleKey =
     errorCode !== undefined && ERROR_CODE_KEYS[errorCode]
       ? ERROR_CODE_KEYS[errorCode]
@@ -151,7 +154,8 @@ export function serverErrorFromResponse(
     errorCode,
     detail: typeof detail === 'string' ? detail : '',
     titleKey,
-    timestamp: typeof parsed.timestamp === 'number' ? parsed.timestamp : undefined,
+    timestamp:
+      typeof parsed.timestamp === 'number' ? parsed.timestamp : undefined,
   };
 }
 

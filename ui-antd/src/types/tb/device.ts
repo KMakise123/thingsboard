@@ -33,7 +33,9 @@ export enum DeviceProfileType {
  */
 export interface DeviceData {
   configuration: Record<string, unknown> & { type?: string };
-  transportConfiguration: Record<string, unknown> & { type?: DeviceTransportType };
+  transportConfiguration: Record<string, unknown> & {
+    type?: DeviceTransportType;
+  };
 }
 
 /** GET /api/device — full device entity (also the POST /api/device body). */
@@ -142,8 +144,16 @@ export interface BulkImportResult {
 /** Connectivity-check payload — GET /api/device-connectivity/{deviceId}. */
 export interface PublishTelemetryCommand {
   http?: { http?: string; https?: string };
-  mqtt: { mqtt?: string; mqtts?: string | Array<string>; docker?: { mqtt?: string; mqtts?: string | Array<string> } };
-  coap: { coap?: string; coaps?: string; docker?: { coap?: string; coaps?: string } };
+  mqtt: {
+    mqtt?: string;
+    mqtts?: string | Array<string>;
+    docker?: { mqtt?: string; mqtts?: string | Array<string> };
+  };
+  coap: {
+    coap?: string;
+    coaps?: string;
+    docker?: { coap?: string; coaps?: string };
+  };
   lwm2m?: string;
   snmp?: string;
 }

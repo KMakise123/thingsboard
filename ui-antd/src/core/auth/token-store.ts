@@ -82,7 +82,9 @@ export interface TokenStore {
 
 export function createTokenStore(storage: TokenStorage): TokenStore {
   const keyFor = (kind: TokenKind) =>
-    kind === 'jwt' ? TOKEN_STORAGE_KEYS.jwtToken : TOKEN_STORAGE_KEYS.refreshToken;
+    kind === 'jwt'
+      ? TOKEN_STORAGE_KEYS.jwtToken
+      : TOKEN_STORAGE_KEYS.refreshToken;
   const expirationKeyFor = (kind: TokenKind) =>
     kind === 'jwt'
       ? TOKEN_STORAGE_KEYS.jwtTokenExpiration
@@ -111,7 +113,10 @@ export function createTokenStore(storage: TokenStorage): TokenStore {
     getToken: () => storage.getItem(TOKEN_STORAGE_KEYS.jwtToken),
     getRefreshToken: () => storage.getItem(TOKEN_STORAGE_KEYS.refreshToken),
     setTokens(jwtToken: string, refreshToken: string): void {
-      if (!storeToken('jwt', jwtToken) || !storeToken('refresh', refreshToken)) {
+      if (
+        !storeToken('jwt', jwtToken) ||
+        !storeToken('refresh', refreshToken)
+      ) {
         // Reject the whole pair — a half-stored session is worse than none.
         throw new Error('Invalid token pair: missing or non-positive ttl');
       }

@@ -5,7 +5,10 @@ import { createTokenStore, TOKEN_STORAGE_KEYS } from './token-store';
 /** Base64url JWT factory — mirrors backend-issued shape { sub, iat, exp }. */
 function makeJwt(payload: Record<string, unknown>): string {
   const enc = (obj: unknown) =>
-    btoa(JSON.stringify(obj)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    btoa(JSON.stringify(obj))
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
   return `${enc({ alg: 'HS512', typ: 'JWT' })}.${enc(payload)}.${'sig'}`;
 }
 
@@ -46,8 +49,12 @@ describe('token-store', () => {
     expect(storage.get('jwt_token')).toBe(jwt);
     expect(storage.get('refresh_token')).toBe(refresh);
     // ui-ngx semantics: expiration = store-time + (exp - iat) * 1000
-    expect(Number(storage.get('jwt_token_expiration'))).toBe(Date.now() + 600_000);
-    expect(Number(storage.get('refresh_token_expiration'))).toBe(Date.now() + 604_800_000);
+    expect(Number(storage.get('jwt_token_expiration'))).toBe(
+      Date.now() + 600_000,
+    );
+    expect(Number(storage.get('refresh_token_expiration'))).toBe(
+      Date.now() + 604_800_000,
+    );
   });
 
   it('rejects tokens without a positive ttl (no partial writes)', () => {
@@ -109,14 +116,22 @@ describe('token-store', () => {
 
   it('decodeJwt exposes claims for authority checks', () => {
     const iat = Math.floor(Date.now() / 1000);
-    const jwt = makeJwt({ sub: 'tenant@tb', userId: 'uuid-1', scopes: ['TENANT_ADMIN'], iat, exp: iat + 60 });
+    const jwt = makeJwt({
+      sub: 'tenant@tb',
+      userId: 'uuid-1',
+      scopes: ['TENANT_ADMIN'],
+      iat,
+      exp: iat + 60,
+    });
     store.setTokens(jwt, jwt);
     expect(store.decodeTokenClaims()).toMatchObject({
       sub: 'tenant@tb',
       userId: 'uuid-1',
       scopes: ['TENANT_ADMIN'],
     });
-    expect(store.decodeTokenClaims('refresh')).toMatchObject({ sub: 'tenant@tb' });
+    expect(store.decodeTokenClaims('refresh')).toMatchObject({
+      sub: 'tenant@tb',
+    });
   });
 
   it('decodeJwt returns null for garbage', () => {

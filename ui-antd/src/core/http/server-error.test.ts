@@ -45,16 +45,25 @@ describe('serverErrorFromResponse', () => {
   });
 
   it('falls back to status tier when errorCode is unknown', () => {
-    expect(serverErrorFromResponse(res(403), { message: 'no', errorCode: 20 }).titleKey).toBe(
-      'tb.error.forbidden',
+    expect(
+      serverErrorFromResponse(res(403), { message: 'no', errorCode: 20 })
+        .titleKey,
+    ).toBe('tb.error.forbidden');
+    expect(serverErrorFromResponse(res(404), { message: 'no' }).titleKey).toBe(
+      'tb.error.notFound',
     );
-    expect(serverErrorFromResponse(res(404), { message: 'no' }).titleKey).toBe('tb.error.notFound');
     expect(serverErrorFromResponse(res(429), { message: 'no' }).titleKey).toBe(
       'tb.error.tooManyRequests',
     );
-    expect(serverErrorFromResponse(res(400), { message: 'no' }).titleKey).toBe('tb.error.badRequest');
-    expect(serverErrorFromResponse(res(502), { message: 'no' }).titleKey).toBe('tb.error.server');
-    expect(serverErrorFromResponse(res(500), {}).titleKey).toBe('tb.error.server');
+    expect(serverErrorFromResponse(res(400), { message: 'no' }).titleKey).toBe(
+      'tb.error.badRequest',
+    );
+    expect(serverErrorFromResponse(res(502), { message: 'no' }).titleKey).toBe(
+      'tb.error.server',
+    );
+    expect(serverErrorFromResponse(res(500), {}).titleKey).toBe(
+      'tb.error.server',
+    );
   });
 
   it('empty body on 4xx yields empty detail (UI decides)', () => {
@@ -85,6 +94,9 @@ describe('titleKeyFor error-code tiers', () => {
     [45, 'tb.error.passwordViolation'],
     [46, 'tb.error.server'],
   ])('errorCode %d → %s', (code, key) => {
-    expect(serverErrorFromResponse(res(400), { message: 'x', errorCode: code }).titleKey).toBe(key);
+    expect(
+      serverErrorFromResponse(res(400), { message: 'x', errorCode: code })
+        .titleKey,
+    ).toBe(key);
   });
 });

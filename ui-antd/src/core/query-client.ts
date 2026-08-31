@@ -37,7 +37,10 @@ function isServerError(error: unknown): error is ServerErrorError {
  * Default retry predicate: never 4xx; up to 2 retries for 5xx/network.
  * (v5 semantics: a function `retry` has no built-in cap — cap it here.)
  */
-export function tbRetryPredicate(failureCount: number, error: unknown): boolean {
+export function tbRetryPredicate(
+  failureCount: number,
+  error: unknown,
+): boolean {
   if (failureCount >= 2) {
     return false;
   }
@@ -51,7 +54,9 @@ export function tbRetryPredicate(failureCount: number, error: unknown): boolean 
   return true;
 }
 
-export function createTbQueryClient(options: TbQueryClientOptions = {}): QueryClient {
+export function createTbQueryClient(
+  options: TbQueryClientOptions = {},
+): QueryClient {
   const emit = (error: unknown) => {
     if (isServerError(error)) {
       options.onError?.(error);

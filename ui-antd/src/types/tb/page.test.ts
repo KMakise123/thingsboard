@@ -1,18 +1,22 @@
-import { describe, expect, it } from 'vitest';
-import { expectTypeOf } from 'vitest';
-
-import type { PageData, PageLink } from './page';
-import { emptyPageData, pageLinkToQuery } from './page';
+import { describe, expect, expectTypeOf, it } from 'vitest';
 import type { DeviceCredentialsValue } from './device';
 import { DeviceCredentialsType } from './device';
+import type { PageData, PageLink } from './page';
+import { emptyPageData, pageLinkToQuery } from './page';
 
 describe('pageLinkToQuery', () => {
   it('serializes page and pageSize', () => {
-    expect(pageLinkToQuery({ page: 0, pageSize: 10 })).toBe('pageSize=10&page=0');
+    expect(pageLinkToQuery({ page: 0, pageSize: 10 })).toBe(
+      'pageSize=10&page=0',
+    );
   });
 
   it('trims and encodes textSearch', () => {
-    const q = pageLinkToQuery({ page: 2, pageSize: 20, textSearch: '  dev one ' });
+    const q = pageLinkToQuery({
+      page: 2,
+      pageSize: 20,
+      textSearch: '  dev one ',
+    });
     expect(q).toBe('pageSize=20&page=2&textSearch=dev+one');
   });
 
@@ -27,7 +31,9 @@ describe('pageLinkToQuery', () => {
       pageSize: 10,
       sortOrder: { property: 'createdTime', direction: 'DESC' },
     });
-    expect(q).toBe('pageSize=10&page=0&sortProperty=createdTime&sortOrder=DESC');
+    expect(q).toBe(
+      'pageSize=10&page=0&sortProperty=createdTime&sortOrder=DESC',
+    );
   });
 });
 
@@ -44,13 +50,18 @@ describe('emptyPageData', () => {
 
 describe('type contracts (compile-time)', () => {
   it('PageData is generic over rows', () => {
-    expectTypeOf<PageData<number>>().toEqualTypeOf<{ data: number[]; totalPages: number; totalElements: number; hasNext: boolean }>();
+    expectTypeOf<PageData<number>>().toEqualTypeOf<{
+      data: number[];
+      totalPages: number;
+      totalElements: number;
+      hasNext: boolean;
+    }>();
   });
 
   it('PageLink accepts optional sort', () => {
-    expectTypeOf<PageLink>().toHaveProperty('sortOrder').toEqualTypeOf<
-      PageLink['sortOrder']
-    >();
+    expectTypeOf<PageLink>()
+      .toHaveProperty('sortOrder')
+      .toEqualTypeOf<PageLink['sortOrder']>();
   });
 
   it('credentials value discriminates on credentialsType', () => {

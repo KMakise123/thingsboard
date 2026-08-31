@@ -84,7 +84,9 @@ describe('tb query client retry policy', () => {
         },
       }),
     ).rejects.toBeTruthy();
-    expect(onError).toHaveBeenCalledWith(expect.objectContaining({ status: 500 }));
+    expect(onError).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 500 }),
+    );
   });
 
   it('routes mutation errors through the global onError hook', async () => {
@@ -98,6 +100,8 @@ describe('tb query client retry policy', () => {
       mutationKey: ['m'],
     });
     await expect(mutation.execute()).rejects.toBeTruthy();
-    expect(onError).toHaveBeenCalledWith(expect.objectContaining({ status: 403, errorCode: 20 }));
+    expect(onError).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 403, errorCode: 20 }),
+    );
   });
 });

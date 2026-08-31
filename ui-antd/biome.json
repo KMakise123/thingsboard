@@ -58,9 +58,7 @@
   },
   "overrides": [
     {
-      "includes": [
-        "src/core/**"
-      ],
+      "includes": ["src/core/**"],
       "linter": {
         "rules": {
           "style": {
@@ -69,9 +67,7 @@
               "options": {
                 "patterns": [
                   {
-                    "group": [
-                      "@/pages/**"
-                    ],
+                    "group": ["@/pages/**"],
                     "message": "src/core is the bottom layer: it must not import @/pages/**, @/access or @/models (issue #8 layering)."
                   }
                 ],
@@ -86,9 +82,7 @@
       }
     },
     {
-      "includes": [
-        "src/widgets/**"
-      ],
+      "includes": ["src/widgets/**"],
       "linter": {
         "rules": {
           "style": {
@@ -97,9 +91,7 @@
               "options": {
                 "patterns": [
                   {
-                    "group": [
-                      "@/pages/**"
-                    ],
+                    "group": ["@/pages/**"],
                     "message": "src/widgets must not import @/pages/** (issue #8 layering); compose widgets upward in pages."
                   }
                 ]
