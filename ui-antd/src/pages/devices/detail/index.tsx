@@ -29,6 +29,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
 import AlarmsPanel from '@/components/devices/detail/AlarmsPanel';
 import AttributesPanel from '@/components/devices/detail/AttributesPanel';
+import EventsPanel from '@/components/devices/detail/EventsPanel';
 import LatestTelemetryPanel from '@/components/devices/detail/LatestTelemetryPanel';
 import { serverErrorText } from '@/components/devices/server-error-text';
 import { getDeviceInfoById } from '@/services/tb/device';
@@ -295,6 +296,19 @@ function buildTabItems({
       }),
       children: device ? (
         <AlarmsPanel deviceId={device.id.id} readOnly={readOnly} />
+      ) : null,
+    },
+    {
+      key: 'events',
+      label: formatMessage({
+        id: 'pages.devices.detail.tabEvents',
+        defaultMessage: 'Events',
+      }),
+      children: device ? (
+        <EventsPanel
+          deviceId={device.id.id}
+          tenantId={device.tenantId?.id ?? ''}
+        />
       ) : null,
     },
   ];

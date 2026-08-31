@@ -161,4 +161,18 @@ export default {
   'pages.devices.detail.alarmComment.severityChanged':
     'Severity changed from {from} to {to}',
   'pages.devices.detail.alarmComment.commentDeleted': 'Comment was deleted',
+
+  // events tab
+  'pages.devices.detail.eventCreatedTime': 'Created time',
+  'pages.devices.detail.eventType': 'Type',
+  'pages.devices.detail.eventMessage': 'Message',
+  'pages.devices.detail.eventLoadFailed': 'Failed to load events',
+  'pages.devices.detail.eventEmpty': 'No events',
+  'pages.devices.detail.eventTypeOption.ERROR': 'Error',
+  'pages.devices.detail.eventTypeOption.LC_EVENT': 'Lifecycle event',
+  'pages.devices.detail.eventTypeOption.STATS': 'Statistics',
+  'pages.devices.detail.eventTypeOption.DEBUG_RULE_NODE': 'Rule node debug',
+  'pages.devices.detail.eventTypeOption.DEBUG_RULE_CHAIN': 'Rule chain debug',
+  'pages.devices.detail.eventTypeOption.DEBUG_CALCULATED_FIELD':
+    'Calculated field debug',
 };

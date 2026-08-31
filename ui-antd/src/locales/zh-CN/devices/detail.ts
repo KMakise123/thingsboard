@@ -158,4 +158,17 @@ export default {
   'pages.devices.detail.alarmComment.severityChanged':
     '严重级别由 {from} 变更为 {to}',
   'pages.devices.detail.alarmComment.commentDeleted': '评论已删除',
+
+  // events tab
+  'pages.devices.detail.eventCreatedTime': '创建时间',
+  'pages.devices.detail.eventType': '类型',
+  'pages.devices.detail.eventMessage': '消息',
+  'pages.devices.detail.eventLoadFailed': '事件加载失败',
+  'pages.devices.detail.eventEmpty': '暂无事件',
+  'pages.devices.detail.eventTypeOption.ERROR': '错误',
+  'pages.devices.detail.eventTypeOption.LC_EVENT': '生命周期事件',
+  'pages.devices.detail.eventTypeOption.STATS': '统计',
+  'pages.devices.detail.eventTypeOption.DEBUG_RULE_NODE': '规则节点调试',
+  'pages.devices.detail.eventTypeOption.DEBUG_RULE_CHAIN': '规则链调试',
+  'pages.devices.detail.eventTypeOption.DEBUG_CALCULATED_FIELD': '计算字段调试',
 };

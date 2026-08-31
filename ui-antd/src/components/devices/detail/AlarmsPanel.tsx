@@ -32,7 +32,7 @@ import {
   deleteAlarm,
   getEntityAlarms,
 } from '@/services/tb/alarm';
-import { EntityType, type AlarmData } from '@/types/tb';
+import { type AlarmData, EntityType } from '@/types/tb';
 import AlarmDetailsModal from './AlarmDetailsModal';
 import {
   ALARM_SEVERITY_TAG,
