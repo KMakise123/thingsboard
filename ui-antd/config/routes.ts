@@ -1,51 +1,37 @@
+/**
+ * Single source of truth for menus and permissions (issue #8).
+ *
+ * Route conventions:
+ * - `name` is the menu i18n key suffix: route name `login` renders the
+ *   `menu.login` message from src/locales. Omit `name` for hidden routes.
+ * - `access` must match a key returned by src/access.ts, which mirrors the
+ *   backend Authority enum (SYS_ADMIN / TENANT_ADMIN / CUSTOMER_USER).
+ * - Real business routes are appended by the page waves; keep this file
+ *   declarative only (no imports of page internals).
+ *
+ * Current content is the minimal runnable skeleton: login + placeholder home.
+ */
 export default [
   {
     path: '/user',
     layout: false,
     routes: [
       {
-        name: '登录',
+        name: 'login',
         path: '/user/login',
         component: './user/login',
       },
     ],
   },
   {
-    path: '/welcome',
-    name: '欢迎',
-    icon: 'smile',
-    component: './Welcome',
-  },
-  {
-    path: '/admin',
-    name: '管理页',
-    icon: 'crown',
-    access: 'canAdmin',
-    routes: [
-      {
-        path: '/admin',
-        redirect: '/admin/sub-page',
-      },
-      {
-        path: '/admin/sub-page',
-        name: '二级管理页',
-        component: './Admin',
-      },
-    ],
-  },
-  {
-    name: '查询表格',
-    icon: 'table',
-    path: '/list',
-    component: './table-list',
-  },
-  {
+    name: 'home',
+    icon: 'home',
     path: '/',
-    redirect: '/welcome',
+    component: './home',
   },
   {
     component: './exception/404',
     layout: false,
-    path: './*',
+    path: '*',
   },
 ];

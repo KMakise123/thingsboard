@@ -4,40 +4,31 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mockReplace = vi.fn();
 const mockHistory = {
   location: {
-    pathname: '/welcome',
+    pathname: '/',
     search: '',
     hash: '',
   },
   replace: mockReplace,
 };
 
-const mockQueryCurrentUser = vi.fn();
+const mockRequest = vi.fn();
 
 vi.mock('@umijs/max', () => ({
   history: mockHistory,
   Link: ({ children }: any) => children,
-}));
-
-vi.mock('@/services/ant-design-pro/api', () => ({
-  currentUser: mockQueryCurrentUser,
+  request: mockRequest,
 }));
 
 vi.mock('@/components', () => ({
   AvatarDropdown: () => null,
-  DocLink: () => null,
   ErrorBoundary: ({ children }: any) => children,
   Footer: () => null,
   LangDropdown: () => null,
   OfflineBanner: () => null,
-  VersionDropdown: () => null,
 }));
 
 vi.mock('@ant-design/pro-components', () => ({
   SettingDrawer: () => null,
-}));
-
-vi.mock('@ant-design/icons', () => ({
-  LinkOutlined: () => null,
 }));
 
 vi.mock('./requestErrorConfig', () => ({
@@ -52,7 +43,7 @@ describe('app getInitialState', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockHistory.location = {
-      pathname: '/welcome',
+      pathname: '/',
       search: '',
       hash: '',
     };
@@ -60,16 +51,17 @@ describe('app getInitialState', () => {
 
   it('should fetch currentUser when not on login page', async () => {
     const { getInitialState } = await import('./app');
-    mockQueryCurrentUser.mockResolvedValue({
-      data: {
-        name: 'Test User',
-        access: 'admin',
-      },
+    mockRequest.mockResolvedValue({
+      name: 'Test User',
+      access: 'admin',
     });
 
     const state = await getInitialState();
 
-    expect(mockQueryCurrentUser).toHaveBeenCalled();
+    expect(mockRequest).toHaveBeenCalledWith(
+      '/api/auth/user',
+      expect.objectContaining({ skipErrorHandler: true }),
+    );
     expect(state.currentUser).toEqual({
       name: 'Test User',
       access: 'admin',
@@ -80,7 +72,7 @@ describe('app getInitialState', () => {
 
   it('should redirect to login when currentUser fetch fails (401)', async () => {
     const { getInitialState } = await import('./app');
-    mockQueryCurrentUser.mockRejectedValue(new Error('401 Unauthorized'));
+    mockRequest.mockRejectedValue(new Error('401 Unauthorized'));
 
     const state = await getInitialState();
 
@@ -100,7 +92,7 @@ describe('app getInitialState', () => {
 
     const state = await getInitialState();
 
-    expect(mockQueryCurrentUser).not.toHaveBeenCalled();
+    expect(mockRequest).not.toHaveBeenCalled();
     expect(state.currentUser).toBeUndefined();
     expect(state.fetchUserInfo).toBeDefined();
   });
@@ -108,24 +100,22 @@ describe('app getInitialState', () => {
   it('should encode redirect path correctly on 401', async () => {
     const { getInitialState } = await import('./app');
     mockHistory.location = {
-      pathname: '/admin/users',
+      pathname: '/devices',
       search: '?page=2',
       hash: '#section',
     };
-    mockQueryCurrentUser.mockRejectedValue(new Error('401'));
+    mockRequest.mockRejectedValue(new Error('401'));
 
     await getInitialState();
 
     expect(mockReplace).toHaveBeenCalledWith(
-      `/user/login?redirect=${encodeURIComponent('/admin/users?page=2#section')}`,
+      `/user/login?redirect=${encodeURIComponent('/devices?page=2#section')}`,
     );
   });
 
   it('should include default settings in initial state', async () => {
     const { getInitialState } = await import('./app');
-    mockQueryCurrentUser.mockResolvedValue({
-      data: { name: 'User' },
-    });
+    mockRequest.mockResolvedValue({ name: 'User' });
 
     const state = await getInitialState();
 
@@ -134,9 +124,7 @@ describe('app getInitialState', () => {
 
   it('fetchUserInfo should return user data on success', async () => {
     const { getInitialState } = await import('./app');
-    mockQueryCurrentUser.mockResolvedValue({
-      data: { name: 'Fetched User', access: 'user' },
-    });
+    mockRequest.mockResolvedValue({ name: 'Fetched User', access: 'user' });
 
     const state = await getInitialState();
 

@@ -15,6 +15,7 @@ import {
 import {
   FormattedMessage,
   Helmet,
+  request,
   SelectLang,
   useIntl,
   useModel,
@@ -23,9 +24,26 @@ import { Alert, App, Button, Tabs } from 'antd';
 import { createStyles } from 'antd-style';
 import React, { startTransition, useState } from 'react';
 import { Footer } from '@/components';
-import { login } from '@/services/ant-design-pro/api';
-import { getFakeCaptcha } from '@/services/ant-design-pro/login';
 import Settings from '../../../../config/defaultSettings';
+
+/**
+ * TEMP(auth wave): local service stubs kept the page compiling after the
+ * scaffold openapi services were removed. The whole login family is
+ * rewritten in the next wave against the real /api/auth endpoints.
+ */
+const login = async (body: API.LoginParams) =>
+  request<API.LoginResult>('/api/auth/login', {
+    method: 'POST',
+    data: body,
+    skipErrorHandler: true,
+  });
+
+const getFakeCaptcha = async (params: { phone?: string }) =>
+  request<{ code?: number }>('/api/login/captcha', {
+    method: 'GET',
+    params,
+    skipErrorHandler: true,
+  });
 
 /**
  * Validate redirect URL to prevent open redirect attacks.
