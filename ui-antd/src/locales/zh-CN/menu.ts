@@ -6,4 +6,6 @@
 export default {
   'menu.home': '首页',
   'menu.login': '登录',
+  'menu.devices': '设备',
+  'menu.devices.detail': '设备详情',
 };

@@ -1,393 +1,168 @@
-import { LockOutlined, MobileOutlined, UserOutlined } from '@ant-design/icons';
+import { LockOutlined, MailOutlined } from '@ant-design/icons';
+import { Helmet, history, useIntl, useModel } from '@umijs/max';
+import { Alert, App, Button, Form, Input } from 'antd';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  LoginForm,
-  ProFormCaptcha,
-  ProFormCheckbox,
-  ProFormText,
-} from '@ant-design/pro-components';
-import {
-  FormattedMessage,
-  Helmet,
-  request,
-  SelectLang,
-  useIntl,
-  useModel,
-} from '@umijs/max';
-import { Alert, App, Button, Tabs } from 'antd';
-import { createStyles } from 'antd-style';
-import React, { startTransition, useState } from 'react';
-import { Footer } from '@/components';
+  isCredentialsExpired,
+  type ServerError,
+  ThingsboardErrorCode,
+} from '@/core/http/server-error';
+import { getCurrentUser, login } from '@/services/tb';
 import { brand } from '@/theme/brand';
-import Settings from '../../../../config/defaultSettings';
+
+import { AuthShell } from '../components/auth-shell';
+import {
+  getQueryParam,
+  getSafeRedirectUrl,
+  roleDefaultPath,
+  toServerError,
+} from '../utils';
+
+interface LoginFormValues {
+  username: string;
+  password: string;
+}
 
 /**
- * TEMP(auth wave): local service stubs kept the page compiling after the
- * scaffold openapi services were removed. The whole login family is
- * rewritten in the next wave against the real /api/auth endpoints.
+ * /user/login — password sign-in (ui-ngx LoginComponent parity: email
+ * username, credentials-expired redirect with resetToken, password-violation
+ * hint, verbatim server error passthrough).
  */
-const login = async (body: API.LoginParams) =>
-  request<API.LoginResult>('/api/auth/login', {
-    method: 'POST',
-    data: body,
-    skipErrorHandler: true,
-  });
-
-const getFakeCaptcha = async (params: { phone?: string }) =>
-  request<{ code?: number }>('/api/login/captcha', {
-    method: 'GET',
-    params,
-    skipErrorHandler: true,
-  });
-
-/**
- * Validate redirect URL to prevent open redirect attacks.
- * Only allow same-origin relative paths starting with '/'.
- */
-const getSafeRedirectUrl = (redirect: string | null): string => {
-  if (!redirect?.startsWith('/')) return '/';
-
-  if (redirect.startsWith('//')) return '/';
-
-  try {
-    const parsed = new URL(redirect, window.location.origin);
-    if (parsed.origin !== window.location.origin) return '/';
-    return `${parsed.pathname}${parsed.search}${parsed.hash}`;
-  } catch {
-    return '/';
-  }
-};
-
-const useStyles = createStyles(({ token }) => {
-  return {
-    lang: {
-      width: 42,
-      height: 42,
-      lineHeight: '42px',
-      position: 'fixed',
-      right: 16,
-      borderRadius: token.borderRadius,
-      ':hover': {
-        backgroundColor: token.colorBgTextHover,
-      },
-    },
-    container: {
-      display: 'flex',
-      flexDirection: 'column',
-      height: '100vh',
-      overflow: 'auto',
-      // Brand seam (issue #8): login background comes from src/theme/brand;
-      // without one, fall back to token-derived styling — no inline hex.
-      ...(brand.assets.loginBackground
-        ? {
-            backgroundImage: `url(${brand.assets.loginBackground})`,
-            backgroundSize: '100% 100%',
-          }
-        : {
-            background: `linear-gradient(150deg, ${token.colorPrimaryBg} 0%, ${token.colorBgContainer} 55%, ${token.colorPrimaryBgHover} 100%)`,
-          }),
-    },
-  };
-});
-
-const Lang = () => {
-  const { styles } = useStyles();
-
-  return (
-    <div className={styles.lang} data-lang>
-      {SelectLang && <SelectLang />}
-    </div>
-  );
-};
-
-const LoginMessage: React.FC<{
-  content: string;
-}> = ({ content }) => {
-  return (
-    <Alert
-      style={{
-        marginBottom: 24,
-      }}
-      title={content}
-      type="error"
-      showIcon
-    />
-  );
-};
-
 const Login: React.FC = () => {
-  const [userLoginState, setUserLoginState] = useState<API.LoginResult>({});
-  const [type, setType] = useState<string>('account');
-  const { initialState, setInitialState } = useModel('@@initialState');
-  const { styles } = useStyles();
+  const [submitting, setSubmitting] = useState(false);
+  const [loginError, setLoginError] = useState<ServerError | null>(null);
+  const [passwordViolation, setPasswordViolation] = useState(false);
   const { message } = App.useApp();
-  const intl = useIntl();
+  const { formatMessage } = useIntl();
+  const { initialState, setInitialState } = useModel('@@initialState');
 
-  const fetchUserInfo = async () => {
-    const userInfo = await initialState?.fetchUserInfo?.();
-    if (userInfo) {
-      startTransition(() => {
-        setInitialState((s) => ({
-          ...s,
-          currentUser: userInfo,
-        }));
-      });
+  // Mount-time check only: a live session visiting /login goes straight to
+  // the role landing page (spec §3.1). A ref keeps post-login
+  // setInitialState from re-triggering the redirect and clobbering a
+  // ?redirect= return URL.
+  const mountedUser = useRef(initialState?.currentUser);
+  useEffect(() => {
+    if (mountedUser.current) {
+      history.replace(roleDefaultPath(mountedUser.current));
     }
-  };
+  }, []);
 
-  const handleSubmit = async (values: API.LoginParams) => {
+  const handleFinish = async (values: LoginFormValues) => {
+    setSubmitting(true);
+    setLoginError(null);
+    setPasswordViolation(false);
     try {
-      // 登录
-      const msg = await login({ ...values, type });
-      if (msg.status === 'ok') {
-        const defaultLoginSuccessMessage = intl.formatMessage({
-          id: 'pages.login.success',
-          defaultMessage: '登录成功！',
-        });
-        message.success(defaultLoginSuccessMessage);
-        await fetchUserInfo();
-        const urlParams = new URL(window.location.href).searchParams;
-        const redirectUrl = getSafeRedirectUrl(urlParams.get('redirect'));
-        window.location.href = redirectUrl;
+      await login({ username: values.username, password: values.password });
+      const user = await getCurrentUser();
+      setInitialState((s) => ({ ...s, currentUser: user }));
+      message.success(formatMessage({ id: 'pages.login.success' }));
+      const redirect = getSafeRedirectUrl(getQueryParam('redirect'));
+      history.replace(redirect ?? roleDefaultPath(user));
+    } catch (reason) {
+      const error = toServerError(reason);
+      if (isCredentialsExpired(error)) {
+        const suffix = error.resetToken
+          ? `?resetToken=${encodeURIComponent(error.resetToken)}`
+          : '';
+        history.replace(`/user/reset-expired-password${suffix}`);
         return;
       }
-      // 如果失败去设置用户错误信息
-      setUserLoginState(msg);
-    } catch {
-      const defaultLoginFailureMessage = intl.formatMessage({
-        id: 'pages.login.failure',
-        defaultMessage: '登录失败，请重试！',
-      });
-      message.error(defaultLoginFailureMessage);
+      if (error.errorCode === ThingsboardErrorCode.PASSWORD_VIOLATION) {
+        setPasswordViolation(true);
+      }
+      setLoginError(error);
+    } finally {
+      setSubmitting(false);
     }
   };
-  const { status, type: loginType } = userLoginState;
 
   return (
-    <div className={styles.container}>
+    <AuthShell
+      subTitle={formatMessage({ id: 'pages.layouts.userLayout.title' })}
+    >
       <Helmet>
-        <title>
-          {intl.formatMessage({
-            id: 'menu.login',
-            defaultMessage: '登录页',
-          })}
-          {Settings.title && ` - ${Settings.title}`}
-        </title>
+        <title>{`${formatMessage({ id: 'menu.login' })} - ${brand.assets.appName}`}</title>
       </Helmet>
-      <Lang />
-      <div
-        style={{
-          flex: '1',
-          padding: '32px 0',
-        }}
+      <Form<LoginFormValues>
+        layout="vertical"
+        requiredMark={false}
+        onFinish={handleFinish}
+        autoComplete="on"
       >
-        <LoginForm
-          contentStyle={{
-            minWidth: 280,
-            maxWidth: '75vw',
-          }}
-          logo={<img alt="logo" src={brand.assets.logo} />}
-          title={brand.assets.appName}
-          subTitle={intl.formatMessage({
-            id: 'pages.layouts.userLayout.title',
-          })}
-          initialValues={{
-            autoLogin: true,
-          }}
-          onFinish={async (values) => {
-            await handleSubmit(values as API.LoginParams);
-          }}
-        >
-          <Tabs
-            activeKey={type}
-            onChange={setType}
-            centered
-            items={[
-              {
-                key: 'account',
-                label: intl.formatMessage({
-                  id: 'pages.login.accountLogin.tab',
-                  defaultMessage: '账户密码登录',
-                }),
-              },
-              {
-                key: 'mobile',
-                label: intl.formatMessage({
-                  id: 'pages.login.phoneLogin.tab',
-                  defaultMessage: '手机号登录',
-                }),
-              },
-            ]}
+        {loginError && (
+          <Alert
+            type="error"
+            showIcon
+            style={{ marginBottom: 16 }}
+            title={formatMessage({ id: loginError.titleKey })}
+            description={loginError.detail || undefined}
           />
-
-          {status === 'error' && loginType === 'account' && (
-            <LoginMessage
-              content={intl.formatMessage({
-                id: 'pages.login.accountLogin.errorMessage',
-                defaultMessage: '账户或密码错误(admin/ant.design)',
-              })}
-            />
-          )}
-          {type === 'account' && (
-            <>
-              <ProFormText
-                name="username"
-                fieldProps={{
-                  size: 'large',
-                  prefix: <UserOutlined />,
-                }}
-                placeholder={intl.formatMessage({
-                  id: 'pages.login.username.placeholder',
-                  defaultMessage: '用户名: admin or user',
-                })}
-                rules={[
-                  {
-                    required: true,
-                    message: (
-                      <FormattedMessage
-                        id="pages.login.username.required"
-                        defaultMessage="请输入用户名!"
-                      />
-                    ),
-                  },
-                ]}
-              />
-              <ProFormText.Password
-                name="password"
-                fieldProps={{
-                  size: 'large',
-                  prefix: <LockOutlined />,
-                }}
-                placeholder={intl.formatMessage({
-                  id: 'pages.login.password.placeholder',
-                  defaultMessage: '密码: ant.design',
-                })}
-                rules={[
-                  {
-                    required: true,
-                    message: (
-                      <FormattedMessage
-                        id="pages.login.password.required"
-                        defaultMessage="请输入密码！"
-                      />
-                    ),
-                  },
-                ]}
-              />
-            </>
-          )}
-
-          {status === 'error' && loginType === 'mobile' && (
-            <LoginMessage content="验证码错误" />
-          )}
-          {type === 'mobile' && (
-            <>
-              <ProFormText
-                fieldProps={{
-                  size: 'large',
-                  prefix: <MobileOutlined />,
-                }}
-                name="mobile"
-                placeholder={intl.formatMessage({
-                  id: 'pages.login.phoneNumber.placeholder',
-                  defaultMessage: '手机号',
-                })}
-                rules={[
-                  {
-                    required: true,
-                    message: (
-                      <FormattedMessage
-                        id="pages.login.phoneNumber.required"
-                        defaultMessage="请输入手机号！"
-                      />
-                    ),
-                  },
-                  {
-                    pattern: /^1\d{10}$/,
-                    message: (
-                      <FormattedMessage
-                        id="pages.login.phoneNumber.invalid"
-                        defaultMessage="手机号格式错误！"
-                      />
-                    ),
-                  },
-                ]}
-              />
-              <ProFormCaptcha
-                fieldProps={{
-                  size: 'large',
-                  prefix: <LockOutlined />,
-                }}
-                captchaProps={{
-                  size: 'large',
-                }}
-                placeholder={intl.formatMessage({
-                  id: 'pages.login.captcha.placeholder',
-                  defaultMessage: '请输入验证码',
-                })}
-                captchaTextRender={(timing, count) => {
-                  if (timing) {
-                    return `${count} ${intl.formatMessage({
-                      id: 'pages.getCaptchaSecondText',
-                      defaultMessage: '获取验证码',
-                    })}`;
-                  }
-                  return intl.formatMessage({
-                    id: 'pages.login.phoneLogin.getVerificationCode',
-                    defaultMessage: '获取验证码',
-                  });
-                }}
-                name="captcha"
-                rules={[
-                  {
-                    required: true,
-                    message: (
-                      <FormattedMessage
-                        id="pages.login.captcha.required"
-                        defaultMessage="请输入验证码！"
-                      />
-                    ),
-                  },
-                ]}
-                onGetCaptcha={async (phone) => {
-                  const result = await getFakeCaptcha({
-                    phone,
-                  });
-                  if (!result) {
-                    return;
-                  }
-                  message.success('获取验证码成功！验证码为：1234');
-                }}
-              />
-            </>
-          )}
-          <div
-            style={{
-              marginBottom: 24,
-            }}
+        )}
+        <Form.Item
+          name="username"
+          rules={[
+            {
+              required: true,
+              message: formatMessage({ id: 'pages.login.username.required' }),
+            },
+            {
+              type: 'email',
+              message: formatMessage({ id: 'pages.login.username.invalid' }),
+            },
+          ]}
+        >
+          <Input
+            size="large"
+            prefix={<MailOutlined />}
+            placeholder={formatMessage({
+              id: 'pages.login.username.placeholder',
+            })}
+            autoComplete="email"
+            autoFocus
+          />
+        </Form.Item>
+        <Form.Item
+          name="password"
+          rules={[
+            {
+              required: true,
+              message: formatMessage({ id: 'pages.login.password.required' }),
+            },
+          ]}
+        >
+          <Input.Password
+            size="large"
+            prefix={<LockOutlined />}
+            placeholder={formatMessage({
+              id: 'pages.login.password.placeholder',
+            })}
+            autoComplete="current-password"
+          />
+        </Form.Item>
+        <Button
+          type="primary"
+          htmlType="submit"
+          size="large"
+          block
+          loading={submitting}
+        >
+          {formatMessage({ id: 'pages.login.submit' })}
+        </Button>
+        <div style={{ textAlign: 'right', marginTop: 8 }}>
+          <Button
+            type="link"
+            style={{ padding: 0 }}
+            onClick={() => history.push('/user/forgot-password')}
           >
-            <ProFormCheckbox noStyle name="autoLogin">
-              <FormattedMessage
-                id="pages.login.rememberMe"
-                defaultMessage="自动登录"
-              />
-            </ProFormCheckbox>
-            <Button
-              type="link"
-              style={{
-                float: 'right',
-                padding: 0,
-              }}
-            >
-              <FormattedMessage
-                id="pages.login.forgotPassword"
-                defaultMessage="忘记密码"
-              />
-            </Button>
-          </div>
-        </LoginForm>
-      </div>
-      <Footer />
-    </div>
+            {formatMessage({
+              id: passwordViolation
+                ? 'pages.login.resetPasswordAction'
+                : 'pages.login.forgotPassword',
+            })}
+          </Button>
+        </div>
+      </Form>
+    </AuthShell>
   );
 };
 
