@@ -27,6 +27,7 @@ import {
 } from 'antd';
 import { useCallback, useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
+import AlarmsPanel from '@/components/devices/detail/AlarmsPanel';
 import AttributesPanel from '@/components/devices/detail/AttributesPanel';
 import LatestTelemetryPanel from '@/components/devices/detail/LatestTelemetryPanel';
 import { serverErrorText } from '@/components/devices/server-error-text';
@@ -284,6 +285,16 @@ function buildTabItems({
       }),
       children: device ? (
         <LatestTelemetryPanel deviceId={device.id.id} />
+      ) : null,
+    },
+    {
+      key: 'alarms',
+      label: formatMessage({
+        id: 'pages.devices.detail.tabAlarms',
+        defaultMessage: 'Alarms',
+      }),
+      children: device ? (
+        <AlarmsPanel deviceId={device.id.id} readOnly={readOnly} />
       ) : null,
     },
   ];
