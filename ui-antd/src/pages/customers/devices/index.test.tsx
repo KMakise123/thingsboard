@@ -40,6 +40,10 @@ const servicesMock = vi.hoisted(() => ({
   getCustomerDevices: vi.fn(),
   deleteDevice: vi.fn(),
   unassignDeviceFromCustomer: vi.fn(),
+  // DeviceCredentialsModal / CheckConnectivityModal deps (consumed modals).
+  getDeviceCredentials: vi.fn(),
+  saveDeviceCredentials: vi.fn(),
+  getDeviceConnectivity: vi.fn(),
 }));
 
 vi.mock('@/services/tb/customer', () => ({
@@ -110,6 +114,12 @@ describe('customer devices scope page', () => {
     servicesMock.getCustomerDevices.mockResolvedValue(PAGE);
     servicesMock.deleteDevice.mockResolvedValue(undefined);
     servicesMock.unassignDeviceFromCustomer.mockResolvedValue(undefined);
+    servicesMock.getDeviceCredentials.mockResolvedValue({
+      credentialsType: 'ACCESS_TOKEN',
+      accessToken: 'token-1',
+    });
+    servicesMock.saveDeviceCredentials.mockResolvedValue({});
+    servicesMock.getDeviceConnectivity.mockResolvedValue({});
   });
 
   afterEach(() => {
@@ -149,6 +159,43 @@ describe('customer devices scope page', () => {
       expect(servicesMock.unassignDeviceFromCustomer).toHaveBeenCalledWith(
         'dev-1',
       );
+    });
+  });
+
+  it('opens the shared credentials modal from the row menu', async () => {
+    renderPage();
+    await screen.findByText('scope-dev-a');
+
+    fireEvent.click(
+      document.querySelector('.ant-dropdown-trigger') as HTMLElement,
+    );
+    // Menu item reuses the devices list copy (devices locale untouched).
+    fireEvent.click(await screen.findByText('管理凭证'));
+
+    // The modal mounts and fetches the row device's credentials.
+    const titleNode = await screen.findByText('设备凭证', {
+      selector: '.ant-modal-title',
+    });
+    expect(titleNode.closest('.ant-modal')).not.toBeNull();
+    await waitFor(() => {
+      expect(servicesMock.getDeviceCredentials).toHaveBeenCalledWith('dev-1');
+    });
+  });
+
+  it('opens the shared check-connectivity modal from the row menu', async () => {
+    renderPage();
+    await screen.findByText('scope-dev-a');
+
+    fireEvent.click(
+      document.querySelector('.ant-dropdown-trigger') as HTMLElement,
+    );
+    fireEvent.click(await screen.findByText('检查连接'));
+
+    expect(
+      await screen.findByText('检查连接', { selector: '.ant-modal-title' }),
+    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(servicesMock.getDeviceConnectivity).toHaveBeenCalledWith('dev-1');
     });
   });
 

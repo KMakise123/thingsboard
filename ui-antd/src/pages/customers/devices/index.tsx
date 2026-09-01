@@ -30,6 +30,8 @@ import {
 import dayjs from 'dayjs';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { CheckConnectivityModal } from '@/components/devices/CheckConnectivityModal';
+import { DeviceCredentialsModal } from '@/components/devices/DeviceCredentialsModal';
 import { serverErrorText } from '@/components/entities/server-error-text';
 import { BatchProgressModal } from '@/pages/devices/list/BatchProgressModal';
 import { useBatchRun } from '@/pages/devices/list/use-batch-run';
@@ -118,6 +120,13 @@ export default function CustomerDevicesPage() {
 
   const batch = useBatchRun();
   const [batchOpen, setBatchOpen] = useState(false);
+
+  // Row-action dialogs shared with the tenant devices list (consumed
+  // as-is; the page is TA-only so credentials are never read-only).
+  const [credentialsDevice, setCredentialsDevice] = useState<DeviceInfo | null>(
+    null,
+  );
+  const [connectivityDeviceId, setConnectivityDeviceId] = useState<string>();
 
   const deleteOneMutation = useMutation({
     mutationFn: (deviceId: string) => deleteDevice(deviceId),
@@ -318,6 +327,22 @@ export default function CustomerDevicesPage() {
             menu={{
               items: [
                 {
+                  key: 'credentials',
+                  label: formatMessage({
+                    id: 'pages.devices.list.actionCredentials',
+                    defaultMessage: 'Manage credentials',
+                  }),
+                  onClick: () => setCredentialsDevice(record),
+                },
+                {
+                  key: 'connectivity',
+                  label: formatMessage({
+                    id: 'pages.devices.list.actionConnectivity',
+                    defaultMessage: 'Check connectivity',
+                  }),
+                  onClick: () => setConnectivityDeviceId(record.id.id),
+                },
+                {
                   key: 'unassign',
                   label: formatMessage({
                     id: 'pages.customers.devices.actionUnassign',
@@ -488,6 +513,17 @@ export default function CustomerDevicesPage() {
           setBatchOpen(false);
           batch.reset();
         }}
+      />
+      <DeviceCredentialsModal
+        open={!!credentialsDevice}
+        device={credentialsDevice}
+        readOnly={false}
+        onClose={() => setCredentialsDevice(null)}
+      />
+      <CheckConnectivityModal
+        open={!!connectivityDeviceId}
+        deviceId={connectivityDeviceId}
+        onClose={() => setConnectivityDeviceId(undefined)}
       />
     </CustomerScopePageShell>
   );
