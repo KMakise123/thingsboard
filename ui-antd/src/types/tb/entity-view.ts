@@ -62,9 +62,3 @@ export interface EntityViewInfo extends EntityView {
  */
 export type EntityViewWrite = Omit<EntityView, 'id' | 'createdTime'> &
   Partial<Pick<EntityView, 'id' | 'createdTime'>>;
-
-/** Entity list filter for the entity-view selector (POST /api/entityViews). */
-export interface EntityViewSearchQuery {
-  entityFilter: Record<string, unknown>;
-  entityViewTypes?: Array<string>;
-}

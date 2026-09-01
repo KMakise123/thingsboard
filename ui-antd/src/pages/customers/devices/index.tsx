@@ -258,8 +258,11 @@ export default function CustomerDevicesPage() {
         width: 170,
         sorter: true,
         sortOrder: sortOrderFor('createdTime'),
-        render: (_, record) =>
-          dayjs(record.createdTime).format('YYYY-MM-DD HH:mm:ss'),
+        render: (_, record) => (
+          <span className="tabular-nums">
+            {dayjs(record.createdTime).format('YYYY-MM-DD HH:mm:ss')}
+          </span>
+        ),
       },
       {
         title: formatMessage({
