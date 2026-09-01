@@ -56,8 +56,8 @@ import { AssetImportModal } from '@/components/assets/AssetImportModal';
 import { AssignCustomerModal } from '@/components/entities/AssignCustomerModal';
 import { serverErrorText } from '@/components/entities/server-error-text';
 import PageContainer from '@/components/layout/page-container';
-import { BatchProgressModal } from '@/pages/devices/list/BatchProgressModal';
-import { useBatchRun } from '@/pages/devices/list/use-batch-run';
+import { BatchProgressModal } from '@/components/shared/BatchProgressModal';
+import { useBatchRun } from '@/components/shared/use-batch-run';
 import {
   assignAssetToCustomer,
   deleteAsset,

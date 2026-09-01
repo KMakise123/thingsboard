@@ -47,7 +47,7 @@ import RelationsPanel from '@/components/entities/detail/RelationsPanel';
 import VersionControlPanel from '@/components/entities/detail/VersionControlPanel';
 import { serverErrorText } from '@/components/entities/server-error-text';
 import PageContainer from '@/components/layout/page-container';
-import { useAuthority } from '@/pages/devices/list/use-authority';
+import { useAuthority } from '@/components/shared/use-authority';
 import { getCustomerById, saveCustomer } from '@/services/tb/customer';
 import type { Customer } from '@/types/tb';
 import { AttributeScope, EntityType } from '@/types/tb';

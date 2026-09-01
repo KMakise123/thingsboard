@@ -33,8 +33,8 @@ import { useIntl } from 'react-intl';
 import { CheckConnectivityModal } from '@/components/devices/CheckConnectivityModal';
 import { DeviceCredentialsModal } from '@/components/devices/DeviceCredentialsModal';
 import { serverErrorText } from '@/components/entities/server-error-text';
-import { BatchProgressModal } from '@/pages/devices/list/BatchProgressModal';
-import { useBatchRun } from '@/pages/devices/list/use-batch-run';
+import { BatchProgressModal } from '@/components/shared/BatchProgressModal';
+import { useBatchRun } from '@/components/shared/use-batch-run';
 import {
   deleteDevice,
   getCustomerDevices,

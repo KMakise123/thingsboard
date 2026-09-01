@@ -50,6 +50,9 @@ import { DeviceWizardModal } from '@/components/devices/DeviceWizardModal';
 import { AssignCustomerModal } from '@/components/entities/AssignCustomerModal';
 import { serverErrorText } from '@/components/entities/server-error-text';
 import PageContainer from '@/components/layout/page-container';
+import { BatchProgressModal } from '@/components/shared/BatchProgressModal';
+import { useAuthority } from '@/components/shared/use-authority';
+import { useBatchRun } from '@/components/shared/use-batch-run';
 import {
   assignDeviceToCustomer,
   deleteDevice,
@@ -59,14 +62,11 @@ import {
   unassignDeviceFromCustomer,
 } from '@/services/tb/device';
 import type { DeviceInfo } from '@/types/tb';
-import { BatchProgressModal } from './BatchProgressModal';
 import {
   toDeviceListFilter,
   toPageLink,
   useDeviceListUrlState,
 } from './url-state';
-import { useAuthority } from './use-authority';
-import { useBatchRun } from './use-batch-run';
 
 const DEVICES_QUERY_KEY = ['devices', 'list'] as const;
 
