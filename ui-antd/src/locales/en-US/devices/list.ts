@@ -28,6 +28,7 @@ export default {
   'pages.devices.list.import': 'Import device',
   'pages.devices.list.refresh': 'Refresh',
   'pages.devices.list.selectedCount': '{count} selected',
+  'pages.devices.list.total': '{count} total',
   'pages.devices.list.batchDelete': 'Delete selected',
   'pages.devices.list.batchAssign': 'Assign to customer',
   'pages.devices.list.batchUnassign': 'Unassign from customer',

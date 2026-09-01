@@ -28,6 +28,7 @@ export default {
   'pages.devices.list.import': '导入设备',
   'pages.devices.list.refresh': '刷新',
   'pages.devices.list.selectedCount': '已选 {count} 项',
+  'pages.devices.list.total': '共 {count} 个',
   'pages.devices.list.batchDelete': '删除所选',
   'pages.devices.list.batchAssign': '分配客户',
   'pages.devices.list.batchUnassign': '取消分配客户',
