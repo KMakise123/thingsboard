@@ -27,9 +27,11 @@ import {
 } from 'antd';
 import { useCallback, useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
+import AlarmRulesPanel from '@/components/devices/detail/AlarmRulesPanel';
 import AlarmsPanel from '@/components/devices/detail/AlarmsPanel';
 import AttributesPanel from '@/components/devices/detail/AttributesPanel';
 import AuditLogsPanel from '@/components/devices/detail/AuditLogsPanel';
+import CalculatedFieldsPanel from '@/components/devices/detail/CalculatedFieldsPanel';
 import EventsPanel from '@/components/devices/detail/EventsPanel';
 import LatestTelemetryPanel from '@/components/devices/detail/LatestTelemetryPanel';
 import RelationsPanel from '@/components/devices/detail/RelationsPanel';
@@ -290,6 +292,31 @@ function buildTabItems({
         <LatestTelemetryPanel deviceId={device.id.id} />
       ) : null,
     },
+    // TA-only pair, same slot as ui-ngx device-tabs.
+    ...(!readOnly
+      ? [
+          {
+            key: 'calculated-fields' as const,
+            label: formatMessage({
+              id: 'pages.devices.detail.tabCalculatedFields',
+              defaultMessage: 'Calculated fields',
+            }),
+            children: device ? (
+              <CalculatedFieldsPanel deviceEntityId={device.id} />
+            ) : null,
+          },
+          {
+            key: 'alarm-rules' as const,
+            label: formatMessage({
+              id: 'pages.devices.detail.tabAlarmRules',
+              defaultMessage: 'Alarm rules',
+            }),
+            children: device ? (
+              <AlarmRulesPanel deviceEntityId={device.id} />
+            ) : null,
+          },
+        ]
+      : []),
     {
       key: 'alarms',
       label: formatMessage({
@@ -332,9 +359,5 @@ function buildTabItems({
       children: device ? <AuditLogsPanel entityId={device.id} /> : null,
     },
   ];
-  if (readOnly) {
-    return items;
-  }
-  // TA-only tabs are appended as their panels land (each commit wires one).
   return items;
 }
