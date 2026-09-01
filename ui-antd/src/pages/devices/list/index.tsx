@@ -504,8 +504,12 @@ export default function DevicesListPage() {
             size="small"
             icon={<SafetyOutlined />}
             title={formatMessage({
-              id: 'pages.devices.list.actionCredentials',
-              defaultMessage: 'Manage credentials',
+              id: readOnly
+                ? 'pages.devices.list.actionViewCredentials'
+                : 'pages.devices.list.actionCredentials',
+              defaultMessage: readOnly
+                ? 'View credentials'
+                : 'Manage credentials',
             })}
             onClick={() => setCredentialsDevice(record)}
           />,

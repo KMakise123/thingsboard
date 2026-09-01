@@ -38,6 +38,7 @@ export default {
   'pages.devices.list.actionAssign': '分配给客户',
   'pages.devices.list.actionUnassign': '取消分配客户',
   'pages.devices.list.actionCredentials': '管理凭证',
+  'pages.devices.list.actionViewCredentials': '查看凭证',
   'pages.devices.list.actionConnectivity': '检查连接',
   'pages.devices.list.moreActions': '更多操作',
 

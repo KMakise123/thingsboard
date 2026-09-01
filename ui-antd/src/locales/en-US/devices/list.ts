@@ -38,6 +38,7 @@ export default {
   'pages.devices.list.actionAssign': 'Assign to customer',
   'pages.devices.list.actionUnassign': 'Unassign from customer',
   'pages.devices.list.actionCredentials': 'Manage credentials',
+  'pages.devices.list.actionViewCredentials': 'View credentials',
   'pages.devices.list.actionConnectivity': 'Check connectivity',
   'pages.devices.list.moreActions': 'More actions',
 

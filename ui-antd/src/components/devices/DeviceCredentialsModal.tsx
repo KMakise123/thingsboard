@@ -159,16 +159,19 @@ export function DeviceCredentialsModal({
       onCancel={onClose}
       footer={
         <div className="flex items-center justify-between">
-          <Button
-            danger
-            disabled={readOnly || !credentials}
-            onClick={() => setResetOpen(true)}
-          >
-            {formatMessage({
-              id: 'pages.devices.list.credentialsReset',
-              defaultMessage: 'Reset credentials',
-            })}
-          </Button>
+          {/* Reset is a write operation: hidden for read-only (CU) users. */}
+          {!readOnly && (
+            <Button
+              danger
+              disabled={!credentials}
+              onClick={() => setResetOpen(true)}
+            >
+              {formatMessage({
+                id: 'pages.devices.list.credentialsReset',
+                defaultMessage: 'Reset credentials',
+              })}
+            </Button>
+          )}
           <div className="flex gap-2">
             <Button onClick={onClose}>
               {formatMessage({
