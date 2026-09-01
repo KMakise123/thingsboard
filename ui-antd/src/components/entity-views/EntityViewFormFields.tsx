@@ -12,6 +12,7 @@
 import { useQuery } from '@tanstack/react-query';
 import {
   AutoComplete,
+  type AutoCompleteProps,
   Col,
   Collapse,
   DatePicker,
@@ -247,17 +248,22 @@ export default function EntityViewFormFields() {
 /**
  * Free-tag type input (ui-ngx entity-subtype-autocomplete allows creating a
  * new type on the fly): suggestions from the server, arbitrary text legal.
+ * The remaining props (value/onChange/id from Form.Item) MUST reach the
+ * AutoComplete — dropping them silently unlinks the field from the form
+ * state and every submit fails the required-type validation.
  */
 function AutoCompleteTypeInput({
   options,
+  ...rest
 }: {
   options: Array<{ label: string; value: string }>;
-}) {
+} & AutoCompleteProps) {
   const { formatMessage } = useIntl();
   return (
     // antd AutoComplete is the Input+dropdown hybrid: typing an unseen type
     // stays in the field instead of being rejected like a plain Select.
     <AutoComplete
+      {...rest}
       options={options}
       placeholder={formatMessage({
         id: 'pages.entityViews.form.typePlaceholder',
