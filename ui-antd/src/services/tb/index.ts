@@ -14,4 +14,6 @@ export * from './auth';
 export * from './customer';
 export * from './device';
 export * from './attributes';
+export * from './alarm-rules';
+export * from './calculated-fields';
 export { setTbLanguage, setTbUnauthorizedHandler, tbHttp } from './http';
