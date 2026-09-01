@@ -20,9 +20,14 @@ function listLocaleFiles(dir, prefix = '') {
   const files = [];
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     if (entry.isDirectory()) {
-      files.push(...listLocaleFiles(join(dir, entry.name), `${prefix}${entry.name}/`));
+      files.push(
+        ...listLocaleFiles(join(dir, entry.name), `${prefix}${entry.name}/`),
+      );
     } else if (entry.name.endsWith('.ts')) {
-      files.push({ name: `${prefix}${entry.name}`, path: join(dir, entry.name) });
+      files.push({
+        name: `${prefix}${entry.name}`,
+        path: join(dir, entry.name),
+      });
     }
   }
   return files;
@@ -40,7 +45,9 @@ function extractKeys(source) {
 
 function readLocaleFiles(locale) {
   const dir = join(localesDir, locale);
-  const files = listLocaleFiles(dir).sort((a, b) => a.name.localeCompare(b.name));
+  const files = listLocaleFiles(dir).sort((a, b) =>
+    a.name.localeCompare(b.name),
+  );
   const perFile = new Map();
   for (const file of files) {
     perFile.set(file.name, extractKeys(readFileSync(file.path, 'utf8')));
