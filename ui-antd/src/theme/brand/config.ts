@@ -51,10 +51,23 @@ export interface BrandAssets {
   loginBackground?: string;
 }
 
+/**
+ * ProLayout `token.pageContainer` chrome values (ADR 0008). Declared here so
+ * a rebrand adjusts one file; config/defaultSettings.ts is the only consumer
+ * and no page may hardcode a pro token.
+ */
+export interface BrandPageContainerTokens {
+  /** Vertical padding of the page-container content area (px). */
+  paddingBlockPageContainerContent: number;
+  /** Horizontal padding of the page-container content area (px). */
+  paddingInlinePageContainerContent: number;
+}
+
 export interface BrandConfig {
   seedTokens: BrandSeedTokens;
   chartPalette: ChartPalette;
   assets: BrandAssets;
+  pageContainer: BrandPageContainerTokens;
 }
 
 export const brand: BrandConfig = {
@@ -88,5 +101,11 @@ export const brand: BrandConfig = {
     appName: 'ThingsBoard',
     logo: '/logo.svg',
     favicon: '/favicon.ico',
+  },
+  // pro page-container chrome (ADR 0008): pro's effective defaults, made
+  // explicit so they are rebrandable from this single file.
+  pageContainer: {
+    paddingBlockPageContainerContent: 24,
+    paddingInlinePageContainerContent: 24,
   },
 };

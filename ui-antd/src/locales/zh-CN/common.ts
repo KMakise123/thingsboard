@@ -54,4 +54,12 @@ export default {
   'pages.home.sysPending.title': 'sys 域页面建设中',
   'pages.home.sysPending.description':
     '系统管理员域页面（租户管理、租户配置、系统设置等）于 M3 里程碑交付。当前可通过 API 或旧版界面执行系统管理操作。',
+
+  // Page-container back guard (src/components/layout/page-container.tsx,
+  // ADR 0008) — shared by every entity detail page.
+  'pages.common.unsavedTitle': '未保存的更改',
+  'pages.common.unsavedText':
+    '当前页面有未保存的更改，确定离开吗？离开后更改将丢失。',
+  'pages.common.unsavedLeave': '离开',
+  'pages.common.cancel': '取消',
 };

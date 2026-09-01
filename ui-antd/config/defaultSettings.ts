@@ -20,8 +20,14 @@ const Settings: ProLayoutProps & {
   logo: brand.assets.logo,
   iconfontUrl: '',
   token: {
-    // ProLayout token entries must derive from src/theme/brand when used.
+    // Page-container chrome, single-sourced from the brand seam (ADR 0008).
     // https://procomponents.ant.design/components/layout
+    pageContainer: {
+      paddingBlockPageContainerContent:
+        brand.pageContainer.paddingBlockPageContainerContent,
+      paddingInlinePageContainerContent:
+        brand.pageContainer.paddingInlinePageContainerContent,
+    },
   },
 };
 

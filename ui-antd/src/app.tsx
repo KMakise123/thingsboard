@@ -161,6 +161,11 @@ export const layout: RunTimeLayoutConfig = ({ initialState }) => {
     // Replace ProLayout's default ErrorBoundary with our offline-aware
     // version, so chunk load errors show friendly messages.
     ErrorBoundary,
+    // Breadcrumbs are rendered by the page-container wrapper (ADR 0008).
+    // ProLayout's pipeline must stay off: its RouteContext props would
+    // override per-page values and evaluate before a page can supply the
+    // entity name for dynamic segments.
+    breadcrumbRender: false,
     menuHeaderRender: undefined,
     // Custom 403 (spec §3.2) — umi's default is Chinese-only scaffolding.
     unAccessible: <Forbidden />,
