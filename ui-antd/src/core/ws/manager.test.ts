@@ -4,6 +4,10 @@ import { createWsManager, type WsManager } from './manager';
 import { WsCmdType } from './protocol';
 
 class FakeWebSocket {
+  static CONNECTING = 0;
+  static OPEN = 1;
+  static CLOSING = 2;
+  static CLOSED = 3;
   static instances: FakeWebSocket[] = [];
   static get last(): FakeWebSocket {
     return FakeWebSocket.instances[FakeWebSocket.instances.length - 1];
@@ -127,6 +131,28 @@ describe('ws manager', () => {
       token: 'jwt-token',
     });
     expect(ensureToken).toHaveBeenCalled();
+  });
+
+  it('does not open a second socket while the first is still CONNECTING', async () => {
+    // Direct-landing race (acceptance, 2026-09-01): the first subscription
+    // starts the connect; a REST-seed-driven second subscription arrives
+    // while that socket is still CONNECTING. The second open must not
+    // orphan the in-flight socket (whose send would then hit a replaced
+    // CONNECTING socket and silently drop every queued command).
+    const m = create();
+    m.subscribeAlarmData({ query: { entityFilter: { type: 'singleEntity' } } });
+    await flush(); // token resolved → socket #1 exists, still CONNECTING
+    m.subscribeAttributes({
+      entityId: { entityType: EntityType.DEVICE, id: 'd1' },
+    });
+    await flush(); // pre-fix this opened a second socket
+    FakeWebSocket.last.serverOpen();
+    const types = FakeWebSocket.last
+      .frames()
+      .flatMap((f) => f.cmds.map((c) => c.type));
+    expect(FakeWebSocket.instances.length).toBe(1);
+    expect(types).toContain(WsCmdType.ALARM_DATA);
+    expect(types).toContain(WsCmdType.ATTRIBUTES);
   });
 
   it('AUTH failure refreshes, reconnects, resubscribes; second failure abandons', async () => {

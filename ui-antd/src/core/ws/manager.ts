@@ -313,7 +313,15 @@ export function createWsManager(options: WsManagerOptions): WsManager {
   };
 
   const publishCommands = () => {
-    while (isOpened && socket && queue.length > 0) {
+    // OPEN guard: after a CONNECTING socket was replaced (or mid-open), a
+    // blind send would throw InvalidStateError and silently drop every
+    // command that was just spliced out of the queue.
+    while (
+      isOpened &&
+      socket &&
+      socket.readyState === WebSocketCtor.OPEN &&
+      queue.length > 0
+    ) {
       const wrapper: CmdsWrapper = { cmds: queue.splice(0, maxCmdsPerFrame) };
       if (pendingAuthCmd) {
         wrapper.authCmd = pendingAuthCmd;
@@ -345,10 +353,18 @@ export function createWsManager(options: WsManagerOptions): WsManager {
     if (!isActive || isOpened || isOpening) {
       return;
     }
+    // A socket that is still CONNECTING owns the in-flight open: opening
+    // another one here would orphan it and re-assign `socket` mid-flight,
+    // so commands meant for the first connection would send into a
+    // CONNECTING socket and vanish.
+    if (socket && socket.readyState === WebSocketCtor.CONNECTING) {
+      return;
+    }
     isOpening = true;
     ensureToken(false)
       .then((token) => {
-        isOpening = false;
+        // isOpening stays true until onopen/handleClose flips it: that is
+        // exactly the "connect in flight" window we must not re-enter.
         if (!token) {
           abandon('no-token');
           return;

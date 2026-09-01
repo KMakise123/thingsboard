@@ -28,9 +28,20 @@ export interface AlarmDataQueryWire {
       direction: 'ASC' | 'DESC';
     };
     statusList?: Array<AlarmSearchStatus>;
+    /**
+     * Realtime window the server's per-entity alarm subscription streams
+     * inside (subscription startTs = now - timeWindow). Must be present and
+     * positive: TbAlarmDataSubCtx reads it unconditionally.
+     */
+    timeWindow?: number;
   };
   entityFields: Array<EntityKeyWire>;
   alarmFields: Array<EntityKeyWire>;
+  /**
+   * Server iterates this unconditionally when creating value subscriptions
+   * (NPE on null) — always send an array, empty for the alarms table.
+   */
+  latestValues: Array<EntityKeyWire>;
 }
 
 /** Fields the alarms table + details dialog need from every alarm row. */
@@ -58,8 +69,25 @@ const ENTITY_FIELDS: Array<EntityKeyWire> = [
 ];
 
 /**
+ * The server's alarm realtime window: it scopes (a) the initial snapshot
+ * query (created_time >= now - window), (b) which alarm events are pushed
+ * and (c) the periodic refresh task that guarantees the ≤5s freshness
+ * acceptance. A large window keeps all three semantics equivalent to "full
+ * history + live tail"; too small silently hides everything older than the
+ * window (DefaultAlarmQueryRepository builds a startTime filter from it).
+ */
+const ALARM_SUBSCRIPTION_TIME_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
+
+/**
  * Build the ALARM_DATA query for one entity (singleEntity filter pre-fills
  * the entity-scoped tab, exactly the ui-ngx alarm-table datasource shape).
+ *
+ * Backend contract notes (TbAlarmDataSubCtx, verified against the running
+ * server): the sort key must be ALARM_FIELD createdTime — the server only
+ * maps that one back to an entity-field sort, any other key is passed into
+ * the alarm SQL and kills the subscription with a bad-grammar error. And
+ * pageLink.timeWindow must be a positive number while latestValues must be
+ * an array (never null/undefined) — both are dereferenced unconditionally.
  */
 export function buildAlarmDataQuery(
   entityId: EntityId,
@@ -72,9 +100,10 @@ export function buildAlarmDataQuery(
     pageSize: options.pageSize ?? 100,
     page: 0,
     sortOrder: {
-      key: { type: 'ENTITY_FIELD', key: 'createdTime' },
+      key: { type: 'ALARM_FIELD', key: 'createdTime' },
       direction: 'DESC',
     },
+    timeWindow: ALARM_SUBSCRIPTION_TIME_WINDOW_MS,
   };
   if (options.statusList?.length) {
     pageLink.statusList = options.statusList;
@@ -84,6 +113,7 @@ export function buildAlarmDataQuery(
     pageLink,
     entityFields: ENTITY_FIELDS,
     alarmFields: ALARM_FIELDS,
+    latestValues: [],
   };
 }
 

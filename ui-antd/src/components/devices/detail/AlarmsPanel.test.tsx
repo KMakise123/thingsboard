@@ -94,14 +94,23 @@ describe('buildAlarmDataQuery', () => {
       page: 0,
       statusList: ['ACTIVE'],
       sortOrder: {
-        key: { type: 'ENTITY_FIELD', key: 'createdTime' },
+        // Backend contract (TbAlarmDataSubCtx): ALARM_FIELD createdTime is the
+        // supported alarm sort — an ENTITY_FIELD sort key is passed through to
+        // the alarm SQL and fails the subscription with bad grammar.
+        key: { type: 'ALARM_FIELD', key: 'createdTime' },
         direction: 'DESC',
       },
+      // Backend contract: the per-entity alarm subscription derives its
+      // startTs from pageLink.timeWindow (NPE when null).
+      timeWindow: expect.any(Number),
     });
     expect(query.alarmFields.some((field) => field.key === 'severity')).toBe(
       true,
     );
     expect(query.entityFields.some((field) => field.key === 'name')).toBe(true);
+    // Backend contract: latestValues must be an array (never null) — the
+    // server iterates it unconditionally when creating value subscriptions.
+    expect(query.latestValues).toEqual([]);
   });
 });
 
