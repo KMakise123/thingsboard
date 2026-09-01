@@ -43,7 +43,10 @@ function renderPanel() {
     <QueryClientProvider client={queryClient}>
       <AntdApp>
         <RawIntlProvider value={intl}>
-          <VersionControlPanel deviceEntityId={deviceEntityId} />
+          <VersionControlPanel
+            entityId={deviceEntityId}
+            entityType={EntityType.DEVICE}
+          />
         </RawIntlProvider>
       </AntdApp>
     </QueryClientProvider>,

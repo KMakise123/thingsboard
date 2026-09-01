@@ -12,6 +12,8 @@ import { createIntl, RawIntlProvider } from 'react-intl';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import zhDetail from '@/locales/zh-CN/devices/detail';
 
+import { EntityType } from '@/types/tb';
+
 import LatestTelemetryPanel, {
   latestTelemetrySeed,
 } from './LatestTelemetryPanel';
@@ -49,7 +51,9 @@ function renderPanel() {
     <QueryClientProvider client={queryClient}>
       <AntdApp>
         <RawIntlProvider value={intl}>
-          <LatestTelemetryPanel deviceId="dev-1" />
+          <LatestTelemetryPanel
+            entityId={{ entityType: EntityType.DEVICE, id: 'dev-1' }}
+          />
         </RawIntlProvider>
       </AntdApp>
     </QueryClientProvider>,

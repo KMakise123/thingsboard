@@ -73,7 +73,10 @@ function renderPanel(readOnly = false) {
     <QueryClientProvider client={queryClient}>
       <AntdApp>
         <RawIntlProvider value={intl}>
-          <AlarmsPanel deviceId="dev-1" readOnly={readOnly} />
+          <AlarmsPanel
+            entityId={{ entityType: EntityType.DEVICE, id: 'dev-1' }}
+            readOnly={readOnly}
+          />
         </RawIntlProvider>
       </AntdApp>
     </QueryClientProvider>,

@@ -15,7 +15,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { Alert, App, Button, Form, Modal, Spin, Typography } from 'antd';
 import { useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
-
+import { serverErrorText } from '@/components/entities/server-error-text';
 import {
   getDeviceCredentials,
   saveDeviceCredentials,
@@ -25,7 +25,6 @@ import {
   DeviceCredentialsType,
   type DeviceInfo,
 } from '@/types/tb';
-
 import {
   credentialCopyEntries,
   credentialsToFormValue,
@@ -36,7 +35,6 @@ import {
   type CredentialsFlatValue,
   DeviceCredentialsFields,
 } from './DeviceCredentialsFields';
-import { serverErrorText } from './server-error-text';
 import { useCopy } from './use-copy';
 
 export interface DeviceCredentialsModalProps {

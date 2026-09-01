@@ -27,18 +27,23 @@ import {
 } from 'antd';
 import { useCallback, useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
-import AlarmRulesPanel from '@/components/devices/detail/AlarmRulesPanel';
-import AlarmsPanel from '@/components/devices/detail/AlarmsPanel';
-import AttributesPanel from '@/components/devices/detail/AttributesPanel';
-import AuditLogsPanel from '@/components/devices/detail/AuditLogsPanel';
-import CalculatedFieldsPanel from '@/components/devices/detail/CalculatedFieldsPanel';
 import EventsPanel from '@/components/devices/detail/EventsPanel';
-import LatestTelemetryPanel from '@/components/devices/detail/LatestTelemetryPanel';
-import RelationsPanel from '@/components/devices/detail/RelationsPanel';
-import VersionControlPanel from '@/components/devices/detail/VersionControlPanel';
-import { serverErrorText } from '@/components/devices/server-error-text';
+import AlarmRulesPanel from '@/components/entities/detail/AlarmRulesPanel';
+import AlarmsPanel from '@/components/entities/detail/AlarmsPanel';
+import AttributesPanel from '@/components/entities/detail/AttributesPanel';
+import AuditLogsPanel from '@/components/entities/detail/AuditLogsPanel';
+import CalculatedFieldsPanel from '@/components/entities/detail/CalculatedFieldsPanel';
+import {
+  assembleDetailTabs,
+  type DetailTabEntry,
+} from '@/components/entities/detail/detail-tabs';
+import LatestTelemetryPanel from '@/components/entities/detail/LatestTelemetryPanel';
+import RelationsPanel from '@/components/entities/detail/RelationsPanel';
+import VersionControlPanel from '@/components/entities/detail/VersionControlPanel';
+import { serverErrorText } from '@/components/entities/server-error-text';
 import { getDeviceInfoById } from '@/services/tb/device';
 import type { DeviceInfo } from '@/types/tb';
+import { EntityType } from '@/types/tb';
 import DetailsTab from './DetailsTab';
 import {
   type DetailTab,
@@ -248,8 +253,10 @@ export default function DeviceDetailPage() {
 }
 
 /**
- * Tab registry. The three TA-only tabs disappear for CU exactly like
- * ui-ngx's device-tabs template (@if authority === TENANT_ADMIN).
+ * Device tab registry (M2 shared shape): ordered entries, TA-only tabs
+ * marked — they drop out for CU exactly like ui-ngx's device-tabs template
+ * (@if authority === TENANT_ADMIN). The 10-tab order, TA-only set and
+ * per-tab props are unchanged from the M1 inline buildTabItems.
  */
 function buildTabItems({
   formatMessage,
@@ -265,26 +272,23 @@ function buildTabItems({
   editing: boolean;
   onEditingChange: (editing: boolean) => void;
   onDirtyChange: (dirty: boolean) => void;
-}) {
-  const items: Array<{
-    key: DetailTab;
-    label: string;
-    children: React.ReactNode;
-  }> = [
+}): ReturnType<typeof assembleDetailTabs> {
+  const entries: Array<DetailTabEntry> = [
     {
       key: 'details',
       label: formatMessage({
         id: 'pages.devices.detail.tabDetails',
         defaultMessage: 'Details',
       }),
-      children: device ? (
-        <DetailsTab
-          device={device}
-          editing={editing && !readOnly}
-          onEditingChange={onEditingChange}
-          onDirtyChange={onDirtyChange}
-        />
-      ) : null,
+      render: () =>
+        device ? (
+          <DetailsTab
+            device={device}
+            editing={editing && !readOnly}
+            onEditingChange={onEditingChange}
+            onDirtyChange={onDirtyChange}
+          />
+        ) : null,
     },
     {
       key: 'attributes',
@@ -292,9 +296,10 @@ function buildTabItems({
         id: 'pages.devices.detail.tabAttributes',
         defaultMessage: 'Attributes',
       }),
-      children: device ? (
-        <AttributesPanel deviceId={device.id.id} readOnly={readOnly} />
-      ) : null,
+      render: () =>
+        device ? (
+          <AttributesPanel entityId={device.id} readOnly={readOnly} />
+        ) : null,
     },
     {
       key: 'latest-telemetry',
@@ -302,44 +307,39 @@ function buildTabItems({
         id: 'pages.devices.detail.tabLatestTelemetry',
         defaultMessage: 'Latest telemetry',
       }),
-      children: device ? (
-        <LatestTelemetryPanel deviceId={device.id.id} />
-      ) : null,
+      render: () =>
+        device ? <LatestTelemetryPanel entityId={device.id} /> : null,
     },
     // TA-only pair, same slot as ui-ngx device-tabs.
-    ...(!readOnly
-      ? [
-          {
-            key: 'calculated-fields' as const,
-            label: formatMessage({
-              id: 'pages.devices.detail.tabCalculatedFields',
-              defaultMessage: 'Calculated fields',
-            }),
-            children: device ? (
-              <CalculatedFieldsPanel deviceEntityId={device.id} />
-            ) : null,
-          },
-          {
-            key: 'alarm-rules' as const,
-            label: formatMessage({
-              id: 'pages.devices.detail.tabAlarmRules',
-              defaultMessage: 'Alarm rules',
-            }),
-            children: device ? (
-              <AlarmRulesPanel deviceEntityId={device.id} />
-            ) : null,
-          },
-        ]
-      : []),
+    {
+      key: 'calculated-fields',
+      taOnly: true,
+      label: formatMessage({
+        id: 'pages.devices.detail.tabCalculatedFields',
+        defaultMessage: 'Calculated fields',
+      }),
+      render: () =>
+        device ? <CalculatedFieldsPanel entityId={device.id} /> : null,
+    },
+    {
+      key: 'alarm-rules',
+      taOnly: true,
+      label: formatMessage({
+        id: 'pages.devices.detail.tabAlarmRules',
+        defaultMessage: 'Alarm rules',
+      }),
+      render: () => (device ? <AlarmRulesPanel entityId={device.id} /> : null),
+    },
     {
       key: 'alarms',
       label: formatMessage({
         id: 'pages.devices.detail.tabAlarms',
         defaultMessage: 'Alarms',
       }),
-      children: device ? (
-        <AlarmsPanel deviceId={device.id.id} readOnly={readOnly} />
-      ) : null,
+      render: () =>
+        device ? (
+          <AlarmsPanel entityId={device.id} readOnly={readOnly} />
+        ) : null,
     },
     {
       key: 'events',
@@ -347,12 +347,13 @@ function buildTabItems({
         id: 'pages.devices.detail.tabEvents',
         defaultMessage: 'Events',
       }),
-      children: device ? (
-        <EventsPanel
-          deviceId={device.id.id}
-          tenantId={device.tenantId?.id ?? ''}
-        />
-      ) : null,
+      render: () =>
+        device ? (
+          <EventsPanel
+            deviceId={device.id.id}
+            tenantId={device.tenantId?.id ?? ''}
+          />
+        ) : null,
     },
     {
       key: 'relations',
@@ -360,9 +361,10 @@ function buildTabItems({
         id: 'pages.devices.detail.tabRelations',
         defaultMessage: 'Relations',
       }),
-      children: device ? (
-        <RelationsPanel deviceEntityId={device.id} readOnly={readOnly} />
-      ) : null,
+      render: () =>
+        device ? (
+          <RelationsPanel entityId={device.id} readOnly={readOnly} />
+        ) : null,
     },
     {
       key: 'audit-logs',
@@ -370,23 +372,24 @@ function buildTabItems({
         id: 'pages.devices.detail.tabAuditLogs',
         defaultMessage: 'Audit logs',
       }),
-      children: device ? <AuditLogsPanel entityId={device.id} /> : null,
+      render: () => (device ? <AuditLogsPanel entityId={device.id} /> : null),
     },
     // TA-only, same slot as ui-ngx device-tabs.
-    ...(!readOnly
-      ? [
-          {
-            key: 'version-control' as const,
-            label: formatMessage({
-              id: 'pages.devices.detail.tabVersionControl',
-              defaultMessage: 'Version control',
-            }),
-            children: device ? (
-              <VersionControlPanel deviceEntityId={device.id} />
-            ) : null,
-          },
-        ]
-      : []),
+    {
+      key: 'version-control',
+      taOnly: true,
+      label: formatMessage({
+        id: 'pages.devices.detail.tabVersionControl',
+        defaultMessage: 'Version control',
+      }),
+      render: () =>
+        device ? (
+          <VersionControlPanel
+            entityId={device.id}
+            entityType={EntityType.DEVICE}
+          />
+        ) : null,
+    },
   ];
-  return items;
+  return assembleDetailTabs(entries, readOnly);
 }

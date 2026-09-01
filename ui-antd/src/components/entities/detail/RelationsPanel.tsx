@@ -18,7 +18,7 @@ import {
 } from 'antd';
 import { useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { serverErrorText } from '@/components/devices/server-error-text';
+import { serverErrorText } from '@/components/entities/server-error-text';
 import {
   deleteRelation,
   type EntityRelationInfo,
@@ -43,10 +43,10 @@ const FILTER_ENTITY_TYPES: Array<EntityType> = [
 ];
 
 export default function RelationsPanel({
-  deviceEntityId,
+  entityId,
   readOnly,
 }: {
-  deviceEntityId: EntityId;
+  entityId: EntityId;
   readOnly: boolean;
 }) {
   const { formatMessage } = useIntl();
@@ -58,18 +58,18 @@ export default function RelationsPanel({
   const [selectedKeys, setSelectedKeys] = useState<Array<string>>([]);
   const [addOpen, setAddOpen] = useState(false);
 
-  const queryKey = ['relations', deviceEntityId.id, direction];
+  const queryKey = ['relations', entityId.id, direction];
   const relationsQuery = useQuery({
     queryKey,
     queryFn: () =>
       direction === 'FROM'
-        ? findRelationInfosByFrom(deviceEntityId)
-        : findRelationInfosByTo(deviceEntityId),
+        ? findRelationInfosByFrom(entityId)
+        : findRelationInfosByTo(entityId),
   });
 
   const invalidate = () =>
     queryClient.invalidateQueries({
-      queryKey: ['relations', deviceEntityId.id],
+      queryKey: ['relations', entityId.id],
     });
 
   const saveMutation = useMutation({
@@ -363,7 +363,7 @@ export default function RelationsPanel({
 
       <RelationEditModal
         open={addOpen}
-        deviceEntityId={deviceEntityId}
+        entityId={entityId}
         saving={saveMutation.isPending}
         onClose={() => setAddOpen(false)}
         onCommit={async (relation) => {

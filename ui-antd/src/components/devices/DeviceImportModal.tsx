@@ -29,10 +29,9 @@ import {
 } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-
+import { serverErrorText } from '@/components/entities/server-error-text';
 import { importDevices } from '@/services/tb/device';
 import type { BulkImportResult, CsvDelimiter } from '@/types/tb';
-
 import {
   buildColumnDrafts,
   type ColumnMappingDraft,
@@ -42,7 +41,6 @@ import {
   parseCsv,
   toBulkImportRequest,
 } from './csv-import';
-import { serverErrorText } from './server-error-text';
 
 const STEP_FILE = 0;
 const STEP_CONFIG = 1;

@@ -37,13 +37,13 @@ export interface RelationDraft {
 
 export default function RelationEditModal({
   open,
-  deviceEntityId,
+  entityId,
   onClose,
   onCommit,
   saving,
 }: {
   open: boolean;
-  deviceEntityId: EntityId;
+  entityId: EntityId;
   onClose: () => void;
   onCommit: (relation: EntityRelation) => Promise<void>;
   saving: boolean;
@@ -82,8 +82,8 @@ export default function RelationEditModal({
     const relation: EntityRelation = {
       type: draft.relationType.trim(),
       typeGroup: 'COMMON',
-      from: draft.direction === 'FROM' ? deviceEntityId : otherEnd,
-      to: draft.direction === 'FROM' ? otherEnd : deviceEntityId,
+      from: draft.direction === 'FROM' ? entityId : otherEnd,
+      to: draft.direction === 'FROM' ? otherEnd : entityId,
     };
     await onCommit(relation);
   };

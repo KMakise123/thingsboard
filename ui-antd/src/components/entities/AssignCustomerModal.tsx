@@ -2,6 +2,9 @@
  * Assign-to-customer dialog (assign-to-customer-dialog parity): a debounced
  * server-side customer search feeding a Select, the public customer filtered
  * out. Emits the chosen customer; the caller owns the fan-out + toasts.
+ *
+ * Entity-agnostic since M2 (devices + assets assign flows share it):
+ * `entityCount` only drives the hint copy — callers own entity semantics.
  */
 import { useQuery } from '@tanstack/react-query';
 import { Alert, Form, Modal, Select } from 'antd';
@@ -13,8 +16,8 @@ import type { Customer } from '@/types/tb';
 
 export interface AssignCustomerModalProps {
   open: boolean;
-  /** How many devices the assignment covers (drives the hint text). */
-  deviceCount: number;
+  /** How many entities the assignment covers (drives the hint text). */
+  entityCount: number;
   onClose: () => void;
   onConfirm: (customer: Customer) => void;
   /** Passthrough for the fan-out running state (keeps the dialog open). */
@@ -23,7 +26,7 @@ export interface AssignCustomerModalProps {
 
 export function AssignCustomerModal({
   open,
-  deviceCount,
+  entityCount,
   onClose,
   onConfirm,
   confirmLoading = false,
@@ -72,7 +75,7 @@ export function AssignCustomerModal({
     if (!customer) {
       setValidationError(
         formatMessage({
-          id: 'pages.devices.list.customerRequired',
+          id: 'pages.entities.customerRequired',
           defaultMessage: 'Customer is required.',
         }),
       );
@@ -86,18 +89,18 @@ export function AssignCustomerModal({
     <Modal
       open={open}
       title={formatMessage({
-        id: 'pages.devices.list.assignTitle',
-        defaultMessage: 'Assign devices',
+        id: 'pages.entities.assignTitle',
+        defaultMessage: 'Assign to customer',
       })}
       destroyOnHidden
       onCancel={onClose}
       confirmLoading={confirmLoading}
       okText={formatMessage({
-        id: 'pages.devices.list.assignConfirm',
+        id: 'pages.entities.assignConfirm',
         defaultMessage: 'Assign',
       })}
       cancelText={formatMessage({
-        id: 'pages.devices.list.cancel',
+        id: 'pages.entities.cancel',
         defaultMessage: 'Cancel',
       })}
       onOk={confirm}
@@ -107,26 +110,26 @@ export function AssignCustomerModal({
         type="info"
         showIcon
         title={
-          deviceCount === 1
+          entityCount === 1
             ? formatMessage({
-                id: 'pages.devices.list.assignOneText',
+                id: 'pages.entities.assignOneText',
                 defaultMessage:
-                  'The device will be assigned to the selected customer.',
+                  'The entity will be assigned to the selected customer.',
               })
             : formatMessage(
                 {
-                  id: 'pages.devices.list.assignText',
+                  id: 'pages.entities.assignText',
                   defaultMessage:
-                    '{count, plural, =1 {1 device} other {# devices}} will be assigned to the selected customer.',
+                    '{count, plural, =1 {1 entity} other {# entities}} will be assigned to the selected customer.',
                 },
-                { count: deviceCount },
+                { count: entityCount },
               )
         }
       />
       <Form layout="vertical">
         <Form.Item
           label={formatMessage({
-            id: 'pages.devices.list.customerColumn',
+            id: 'pages.entities.customerColumn',
             defaultMessage: 'Customer',
           })}
           validateStatus={validationError ? 'error' : undefined}
@@ -139,7 +142,7 @@ export function AssignCustomerModal({
             loading={customersQuery.isPending}
             value={selectedId}
             placeholder={formatMessage({
-              id: 'pages.devices.list.customerPlaceholder',
+              id: 'pages.entities.customerPlaceholder',
               defaultMessage: 'Search and select a customer',
             })}
             options={options}

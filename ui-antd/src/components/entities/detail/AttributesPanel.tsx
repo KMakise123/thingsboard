@@ -1,6 +1,7 @@
 /**
  * Attributes tab panel (spec 3.3 `attributes`): CLIENT / SERVER / SHARED
- * scope switch with live updates.
+ * scope switch with live updates. Entity-agnostic since M2 (assets /
+ * entity views / customers reuse it with their own EntityId).
  *
  * Data channel: REST snapshot seeds the table (getAttributes), then the
  * core/ws attributes subscription streams every change for the scope — the
@@ -8,6 +9,11 @@
  * scopes get add/edit/delete for TENANT_ADMIN (CLIENT is device-side data:
  * read-only, matching ui-ngx). Deletes confirm first; every mutation also
  * invalidates the seed query so the next resubscribe starts consistent.
+ *
+ * Domain seams (ui-ngx parity): `defaultScope` picks the initial scope
+ * (device CLIENT, customer SERVER, entity view CLIENT);
+ * `disableAttributeScopeSelection` locks the scope (ui-ngx entity-view
+ * latest tab and other single-scope embeds).
  */
 import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -25,16 +31,17 @@ import {
   Typography,
 } from 'antd';
 import dayjs from 'dayjs';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useIntl } from 'react-intl';
-import { serverErrorText } from '@/components/devices/server-error-text';
+import { serverErrorText } from '@/components/entities/server-error-text';
 import { useAttributeSubscription } from '@/core/ws/hooks';
 import {
   deleteEntityAttributes,
   getAttributes,
   saveEntityAttributes,
 } from '@/services/tb/attributes';
-import { type AttributeData, AttributeScope, EntityType } from '@/types/tb';
+import type { AttributeData, EntityId } from '@/types/tb';
+import { AttributeScope } from '@/types/tb';
 import AttributeValueModal from './AttributeValueModal';
 import {
   filterAttributeRows,
@@ -48,32 +55,30 @@ const SCOPE_OPTIONS = [
   AttributeScope.SHARED_SCOPE,
 ];
 
-export function buildAttributesSeedKey(entityId: {
-  entityType: EntityType;
-  id: string;
-}) {
+export function buildAttributesSeedKey(entityId: EntityId) {
   return ['attributes', entityId.entityType, entityId.id];
 }
 
 export default function AttributesPanel({
-  deviceId,
+  entityId,
   readOnly,
+  defaultScope = AttributeScope.CLIENT_SCOPE,
+  disableAttributeScopeSelection = false,
 }: {
-  deviceId: string;
+  /** Polymorphic entity reference (DEVICE / ASSET / ENTITY_VIEW / ...). */
+  entityId: EntityId;
   /** CU reads only (button gating, spec 3.11). */
   readOnly: boolean;
+  /** Initial scope (ui-ngx defaultAttributeScope); defaults to CLIENT. */
+  defaultScope?: AttributeScope;
+  /** Hide the scope switcher (ui-ngx disableAttributeScopeSelection). */
+  disableAttributeScopeSelection?: boolean;
 }) {
   const { formatMessage } = useIntl();
   const { message } = App.useApp();
   const queryClient = useQueryClient();
 
-  const entityId = useMemo(
-    () => ({ entityType: EntityType.DEVICE, id: deviceId }),
-    [deviceId],
-  );
-  const [scope, setScope] = useState<AttributeScope>(
-    AttributeScope.CLIENT_SCOPE,
-  );
+  const [scope, setScope] = useState<AttributeScope>(defaultScope);
   const [search, setSearch] = useState('');
   const [editing, setEditing] = useState<{
     key: string;
@@ -238,20 +243,22 @@ export default function AttributesPanel({
   return (
     <div className="flex flex-col gap-3">
       <Space wrap>
-        <Segmented
-          value={scope}
-          onChange={(next) => {
-            setScope(next as AttributeScope);
-            setSelectedKeys([]);
-          }}
-          options={SCOPE_OPTIONS.map((option) => ({
-            value: option,
-            label: formatMessage({
-              id: `pages.devices.detail.scope.${option}`,
-              defaultMessage: option,
-            }),
-          }))}
-        />
+        {!disableAttributeScopeSelection && (
+          <Segmented
+            value={scope}
+            onChange={(next) => {
+              setScope(next as AttributeScope);
+              setSelectedKeys([]);
+            }}
+            options={SCOPE_OPTIONS.map((option) => ({
+              value: option,
+              label: formatMessage({
+                id: `pages.devices.detail.scope.${option}`,
+                defaultMessage: option,
+              }),
+            }))}
+          />
+        )}
         <Input.Search
           allowClear
           className="w-56"

@@ -43,12 +43,12 @@ import {
 import dayjs from 'dayjs';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { AssignCustomerModal } from '@/components/devices/AssignCustomerModal';
 import { CheckConnectivityModal } from '@/components/devices/CheckConnectivityModal';
 import { DeviceCredentialsModal } from '@/components/devices/DeviceCredentialsModal';
 import { DeviceImportModal } from '@/components/devices/DeviceImportModal';
 import { DeviceWizardModal } from '@/components/devices/DeviceWizardModal';
-import { serverErrorText } from '@/components/devices/server-error-text';
+import { AssignCustomerModal } from '@/components/entities/AssignCustomerModal';
+import { serverErrorText } from '@/components/entities/server-error-text';
 import {
   assignDeviceToCustomer,
   deleteDevice,
@@ -833,7 +833,7 @@ export default function DevicesListPage() {
       />
       <AssignCustomerModal
         open={assignTargets.length > 0}
-        deviceCount={assignTargets.length}
+        entityCount={assignTargets.length}
         onClose={() => setAssignTargets([])}
         onConfirm={(customer) => void runAssign(customer.id.id)}
       />

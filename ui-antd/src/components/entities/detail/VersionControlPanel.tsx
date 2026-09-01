@@ -36,7 +36,7 @@ import {
 import dayjs from 'dayjs';
 import { useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { serverErrorText } from '@/components/devices/server-error-text';
+import { serverErrorText } from '@/components/entities/server-error-text';
 import type {
   BranchInfo,
   EntityDataDiff,
@@ -59,7 +59,7 @@ import {
   saveAutoCommitSettings,
   saveEntitiesVersion,
 } from '@/services/tb/version-control';
-import { type EntityId, EntityType } from '@/types/tb';
+import type { EntityId, EntityType } from '@/types/tb';
 
 type DiffStatus = 'CHANGED' | 'ADDED' | 'REMOVED' | 'SAME';
 
@@ -133,9 +133,16 @@ const formatCellValue = (value: unknown): string =>
   value === undefined ? '—' : String(value);
 
 export default function VersionControlPanel({
-  deviceEntityId,
+  entityId,
+  entityType,
 }: {
-  deviceEntityId: EntityId;
+  /** Polymorphic entity reference (DEVICE / ASSET / ENTITY_VIEW / ...). */
+  entityId: EntityId;
+  /**
+   * Domain of the entity — keys the tenant-wide auto-commit settings entry
+   * (one branch/flags config per entity type, ui-ngx parity).
+   */
+  entityType: EntityType;
 }) {
   const { formatMessage } = useIntl();
 
@@ -177,13 +184,15 @@ export default function VersionControlPanel({
       />
     );
   }
-  return <VersionControlContent deviceEntityId={deviceEntityId} />;
+  return <VersionControlContent entityId={entityId} entityType={entityType} />;
 }
 
 function VersionControlContent({
-  deviceEntityId,
+  entityId,
+  entityType,
 }: {
-  deviceEntityId: EntityId;
+  entityId: EntityId;
+  entityType: EntityType;
 }) {
   const { formatMessage } = useIntl();
   const queryClient = useQueryClient();
@@ -214,9 +223,9 @@ function VersionControlContent({
   }, [branch, branches]);
 
   const versionsQuery = useQuery({
-    queryKey: ['vc-versions', deviceEntityId.id, branch, page, pageSize],
+    queryKey: ['vc-versions', entityId.id, branch, page, pageSize],
     queryFn: () =>
-      listEntityVersions(deviceEntityId.entityType, deviceEntityId.id, branch, {
+      listEntityVersions(entityId.entityType, entityId.id, branch, {
         pageSize,
         page: page - 1,
         sortOrder: { property: 'timestamp', direction: 'DESC' },
@@ -371,26 +380,26 @@ function VersionControlContent({
         }}
       />
 
-      <AutoCommitCard branches={branches} />
+      <AutoCommitCard branches={branches} entityType={entityType} />
 
       <CommitModal
         open={commitOpen}
         branch={branch}
         branches={branches}
-        deviceEntityId={deviceEntityId}
+        entityId={entityId}
         onClose={() => setCommitOpen(false)}
         onCommitted={invalidateVersions}
       />
 
       <DiffModal
         version={diffVersion}
-        deviceEntityId={deviceEntityId}
+        entityId={entityId}
         onClose={() => setDiffVersion(null)}
       />
 
       <RestoreModal
         version={restoreVersion}
-        deviceEntityId={deviceEntityId}
+        entityId={entityId}
         onClose={() => setRestoreVersion(null)}
       />
     </Flex>
@@ -429,14 +438,14 @@ function CommitModal({
   open,
   branch,
   branches,
-  deviceEntityId,
+  entityId,
   onClose,
   onCommitted,
 }: {
   open: boolean;
   branch: string;
   branches: Array<BranchInfo>;
-  deviceEntityId: EntityId;
+  entityId: EntityId;
   onClose: () => void;
   onCommitted: () => void;
 }) {
@@ -463,7 +472,7 @@ function CommitModal({
         type: 'SINGLE_ENTITY',
         branch: values.branch,
         versionName: values.versionName,
-        entityId: deviceEntityId,
+        entityId: entityId,
         config: {
           saveCredentials: values.saveCredentials,
           saveAttributes: values.saveAttributes,
@@ -599,22 +608,22 @@ function CommitModal({
 /** Compare-with-current diff, rendered as a changed-fields table. */
 function DiffModal({
   version,
-  deviceEntityId,
+  entityId,
   onClose,
 }: {
   version: EntityVersion | null;
-  deviceEntityId: EntityId;
+  entityId: EntityId;
   onClose: () => void;
 }) {
   const { formatMessage } = useIntl();
   const [showAll, setShowAll] = useState(false);
 
   const diffQuery = useQuery({
-    queryKey: ['vc-diff', deviceEntityId.id, version?.id],
+    queryKey: ['vc-diff', entityId.id, version?.id],
     queryFn: () =>
       compareEntityDataToVersion(
-        deviceEntityId.entityType,
-        deviceEntityId.id,
+        entityId.entityType,
+        entityId.id,
         version?.id as string,
       ),
     enabled: !!version,
@@ -795,11 +804,11 @@ const RESTORE_FLAGS: Array<{
 /** Restore dialog: per-family checkboxes gated by the version's data flags. */
 function RestoreModal({
   version,
-  deviceEntityId,
+  entityId,
   onClose,
 }: {
   version: EntityVersion | null;
-  deviceEntityId: EntityId;
+  entityId: EntityId;
   onClose: () => void;
 }) {
   const { formatMessage } = useIntl();
@@ -808,8 +817,8 @@ function RestoreModal({
   const [form] = Form.useForm<RestoreFormValues>();
 
   const infoQuery = useQuery({
-    queryKey: ['vc-info', deviceEntityId.id, version?.id],
-    queryFn: () => getEntityDataInfo(version?.id as string, deviceEntityId),
+    queryKey: ['vc-info', entityId.id, version?.id],
+    queryFn: () => getEntityDataInfo(version?.id as string, entityId),
     enabled: !!version,
   });
   const info: EntityDataInfo | undefined = infoQuery.data;
@@ -830,7 +839,7 @@ function RestoreModal({
       const requestId = await loadEntitiesVersion({
         type: 'SINGLE_ENTITY',
         versionId: version?.id as string,
-        externalEntityId: deviceEntityId,
+        externalEntityId: entityId,
         config: values,
       });
       return awaitVersionLoadResult(requestId);
@@ -956,11 +965,17 @@ interface AutoCommitFormValues {
 }
 
 /**
- * Auto-commit settings for DEVICE (the tenant-wide store keeps other entity
- * types' entries; this card only reads/writes its own DEVICE entry, and
- * deletes the whole settings object once the map would be empty).
+ * Auto-commit settings for the panel's entity type (the tenant-wide store
+ * keeps other entity types' entries; this card only reads/writes its own
+ * entry, and deletes the whole settings object once the map would be empty).
  */
-function AutoCommitCard({ branches }: { branches: Array<BranchInfo> }) {
+function AutoCommitCard({
+  branches,
+  entityType,
+}: {
+  branches: Array<BranchInfo>;
+  entityType: EntityType;
+}) {
   const { formatMessage } = useIntl();
   const { message } = App.useApp();
   const queryClient = useQueryClient();
@@ -971,22 +986,22 @@ function AutoCommitCard({ branches }: { branches: Array<BranchInfo> }) {
     queryFn: getAutoCommitSettings,
   });
   const settings = settingsQuery.data ?? {};
-  const deviceEntry = settings[EntityType.DEVICE];
+  const domainEntry = settings[entityType];
 
   useEffect(() => {
     form.setFieldsValue({
-      enabled: !!deviceEntry,
-      branch: deviceEntry?.branch,
-      saveCredentials: deviceEntry?.saveCredentials ?? true,
-      saveAttributes: deviceEntry?.saveAttributes ?? true,
-      saveRelations: deviceEntry?.saveRelations ?? true,
-      saveCalculatedFields: deviceEntry?.saveCalculatedFields ?? true,
+      enabled: !!domainEntry,
+      branch: domainEntry?.branch,
+      saveCredentials: domainEntry?.saveCredentials ?? true,
+      saveAttributes: domainEntry?.saveAttributes ?? true,
+      saveRelations: domainEntry?.saveRelations ?? true,
+      saveCalculatedFields: domainEntry?.saveCalculatedFields ?? true,
     });
-  }, [deviceEntry, form]);
+  }, [domainEntry, form]);
 
   const saveMutation = useMutation({
     mutationFn: async (values: AutoCommitFormValues) => {
-      const { [EntityType.DEVICE]: _removed, ...others } = settings;
+      const { [entityType]: _removed, ...others } = settings;
       if (!values.enabled) {
         if (Object.keys(others).length > 0) {
           return saveAutoCommitSettings(others);
@@ -995,7 +1010,7 @@ function AutoCommitCard({ branches }: { branches: Array<BranchInfo> }) {
       }
       return saveAutoCommitSettings({
         ...others,
-        [EntityType.DEVICE]: {
+        [entityType]: {
           branch: values.branch,
           saveCredentials: values.saveCredentials,
           saveAttributes: values.saveAttributes,

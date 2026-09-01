@@ -11,6 +11,8 @@ import { createIntl, RawIntlProvider } from 'react-intl';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import zhDetail from '@/locales/zh-CN/devices/detail';
 
+import { EntityType } from '@/types/tb';
+
 import AttributesPanel from './AttributesPanel';
 
 const servicesMock = vi.hoisted(() => ({
@@ -36,7 +38,10 @@ function renderPanel(readOnly = false) {
     <QueryClientProvider client={queryClient}>
       <AntdApp>
         <RawIntlProvider value={intl}>
-          <AttributesPanel deviceId="dev-1" readOnly={readOnly} />
+          <AttributesPanel
+            entityId={{ entityType: EntityType.DEVICE, id: 'dev-1' }}
+            readOnly={readOnly}
+          />
         </RawIntlProvider>
       </AntdApp>
     </QueryClientProvider>,

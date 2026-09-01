@@ -3,6 +3,11 @@
  * the core/ws latest-telemetry subscription seeded from the REST snapshot
  * (getLatestTelemetry). Clicking a key opens the history line-chart dialog.
  * Telemetry is device-written data: no add/edit surface here.
+ *
+ * Entity-agnostic since M2 (assets / entity views / customers reuse it with
+ * their own EntityId). `disableAddTelemetry` is the ui-ngx entity-view seam
+ * (latest tab): reserved for the day an add-telemetry surface exists — the
+ * panel has none today, so the flag is accepted and documented only.
  */
 import { LineChartOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
@@ -10,10 +15,10 @@ import { Alert, Button, Input, Space, Table, Tag, Typography } from 'antd';
 import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { serverErrorText } from '@/components/devices/server-error-text';
+import { serverErrorText } from '@/components/entities/server-error-text';
 import { useLatestTelemetrySubscription } from '@/core/ws/hooks';
 import { getLatestTelemetry } from '@/services/tb/attributes';
-import { type AttributeData, EntityType } from '@/types/tb';
+import type { AttributeData, EntityId } from '@/types/tb';
 import {
   filterAttributeRows,
   formatAttributeValue,
@@ -33,21 +38,23 @@ export function latestTelemetrySeed(
 }
 
 export default function LatestTelemetryPanel({
-  deviceId,
+  entityId,
+  disableAddTelemetry: _disableAddTelemetry,
 }: {
-  deviceId: string;
+  /** Polymorphic entity reference (DEVICE / ASSET / ENTITY_VIEW / ...). */
+  entityId: EntityId;
+  /**
+   * ui-ngx entity-view seam. No add-telemetry surface exists in v1 yet, so
+   * the flag is currently a no-op kept for parity when one lands.
+   */
+  disableAddTelemetry?: boolean;
 }) {
   const { formatMessage } = useIntl();
   const [search, setSearch] = useState('');
   const [historyKey, setHistoryKey] = useState<string | null>(null);
 
-  const entityId = useMemo(
-    () => ({ entityType: EntityType.DEVICE, id: deviceId }),
-    [deviceId],
-  );
-
   const seedQuery = useQuery({
-    queryKey: ['latest-telemetry', deviceId],
+    queryKey: ['latest-telemetry', entityId.entityType, entityId.id],
     queryFn: () => getLatestTelemetry(entityId),
   });
   const seed = useMemo(
@@ -178,7 +185,7 @@ export default function LatestTelemetryPanel({
 
       <TimeseriesHistoryModal
         open={!!historyKey}
-        deviceId={deviceId}
+        entityId={entityId}
         telemetryKey={historyKey}
         onClose={() => setHistoryKey(null)}
       />

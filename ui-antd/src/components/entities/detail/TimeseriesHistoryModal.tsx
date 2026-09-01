@@ -20,7 +20,7 @@ import {
   CHART_THEME_NAME,
   getEChartsLocale,
 } from '@/theme/charts';
-import { AggregationType, EntityType } from '@/types/tb';
+import { AggregationType, type EntityId } from '@/types/tb';
 import {
   CUSTOM_TIMEWINDOW_ID,
   computeAggregationInterval,
@@ -42,12 +42,13 @@ const AGG_OPTIONS = [
 
 export default function TimeseriesHistoryModal({
   open,
-  deviceId,
+  entityId,
   telemetryKey,
   onClose,
 }: {
   open: boolean;
-  deviceId: string;
+  /** Polymorphic entity reference (DEVICE / ASSET / ENTITY_VIEW / ...). */
+  entityId: EntityId;
   telemetryKey: string | null;
   onClose: () => void;
 }) {
@@ -83,7 +84,8 @@ export default function TimeseriesHistoryModal({
   const historyQuery = useQuery({
     queryKey: [
       'timeseries-history',
-      deviceId,
+      entityId.entityType,
+      entityId.id,
       telemetryKey,
       range?.[0],
       range?.[1],
@@ -92,21 +94,18 @@ export default function TimeseriesHistoryModal({
     queryFn: async () => {
       const [startTs, endTs] = range as [number, number];
       const windowMs = endTs - startTs;
-      return getTimeseries(
-        { entityType: EntityType.DEVICE, id: deviceId },
-        {
-          keys: [telemetryKey as string],
-          startTs,
-          endTs,
-          orderBy: 'ASC',
-          limit: 10_000,
-          agg,
-          interval:
-            agg === AggregationType.NONE
-              ? undefined
-              : computeAggregationInterval(windowMs),
-        },
-      );
+      return getTimeseries(entityId, {
+        keys: [telemetryKey as string],
+        startTs,
+        endTs,
+        orderBy: 'ASC',
+        limit: 10_000,
+        agg,
+        interval:
+          agg === AggregationType.NONE
+            ? undefined
+            : computeAggregationInterval(windowMs),
+      });
     },
     enabled: open && !!telemetryKey && !!range,
   });

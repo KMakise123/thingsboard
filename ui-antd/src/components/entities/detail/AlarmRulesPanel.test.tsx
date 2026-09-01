@@ -34,7 +34,7 @@ vi.mock('@/services/tb/attributes', () => ({
 
 const intl = createIntl({ locale: 'zh-CN', messages: zhDetail });
 
-const deviceEntityId = { entityType: EntityType.DEVICE, id: 'dev-1' };
+const entityId = { entityType: EntityType.DEVICE, id: 'dev-1' };
 
 function renderPanel() {
   const queryClient = new QueryClient({
@@ -44,7 +44,7 @@ function renderPanel() {
     <QueryClientProvider client={queryClient}>
       <AntdApp>
         <RawIntlProvider value={intl}>
-          <AlarmRulesPanel deviceEntityId={deviceEntityId} />
+          <AlarmRulesPanel entityId={entityId} />
         </RawIntlProvider>
       </AntdApp>
     </QueryClientProvider>,
@@ -59,7 +59,7 @@ describe('alarm rules panel', () => {
         {
           id: { entityType: 'CALCULATED_FIELD', id: 'r-1' },
           createdTime: 1_700_000_000_000,
-          entityId: deviceEntityId,
+          entityId: entityId,
           type: 'ALARM',
           name: 'High temperature',
           debugMode: false,

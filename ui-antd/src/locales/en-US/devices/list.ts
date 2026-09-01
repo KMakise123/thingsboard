@@ -53,11 +53,6 @@ export default {
     'Be careful, after the confirmation all selected devices will be removed and all related data will become unrecoverable.',
 
   // ---- batch ----
-  'pages.devices.list.assignTitle': 'Assign devices',
-  'pages.devices.list.assignText':
-    '{count, plural, =1 {1 device} other {# devices}} will be assigned to the selected customer.',
-  'pages.devices.list.assignOneText':
-    'The device will be assigned to the selected customer.',
   'pages.devices.list.unassignManyTitle':
     'Are you sure you want to unassign {count, plural, =1 {1 device} other {# devices}}?',
   'pages.devices.list.unassignManyText':
@@ -66,10 +61,6 @@ export default {
     "Are you sure you want to unassign the device '{name}'?",
   'pages.devices.list.unassignText':
     'After the confirmation the device will be unassigned and will not be accessible by the customer.',
-  'pages.devices.list.customerPlaceholder': 'Search and select a customer',
-  'pages.devices.list.customerRequired': 'Customer is required.',
-  'pages.devices.list.customerColumn': 'Customer',
-  'pages.devices.list.assignConfirm': 'Assign',
   'pages.devices.list.batchRunning': 'Processing {done}/{total}…',
   'pages.devices.list.batchResult': '{ok} succeeded, {fail} failed.',
   'pages.devices.list.batchFailures': 'Failure details',

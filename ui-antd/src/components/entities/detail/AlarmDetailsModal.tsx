@@ -19,7 +19,7 @@ import {
 import dayjs from 'dayjs';
 import { useState } from 'react';
 import { useIntl } from 'react-intl';
-import { serverErrorText } from '@/components/devices/server-error-text';
+import { serverErrorText } from '@/components/entities/server-error-text';
 import {
   ackAlarm,
   clearAlarm,

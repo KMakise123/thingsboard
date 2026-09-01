@@ -27,7 +27,7 @@ import {
 import dayjs from 'dayjs';
 import { useState } from 'react';
 import { useIntl } from 'react-intl';
-import { serverErrorText } from '@/components/devices/server-error-text';
+import { serverErrorText } from '@/components/entities/server-error-text';
 import {
   type AlarmRuleDefinition,
   alarmRuleSeverities,
@@ -104,11 +104,7 @@ function basicAlarmConfiguration(
   };
 }
 
-export default function AlarmRulesPanel({
-  deviceEntityId,
-}: {
-  deviceEntityId: EntityId;
-}) {
+export default function AlarmRulesPanel({ entityId }: { entityId: EntityId }) {
   const { formatMessage } = useIntl();
   const { message } = App.useApp();
   const queryClient = useQueryClient();
@@ -117,16 +113,16 @@ export default function AlarmRulesPanel({
   const [form] = Form.useForm<RuleFormValues>();
 
   const rulesQuery = useQuery({
-    queryKey: ['alarm-rules', deviceEntityId.id],
+    queryKey: ['alarm-rules', entityId.id],
     queryFn: () =>
-      getAlarmRulesByEntityId(deviceEntityId, {
+      getAlarmRulesByEntityId(entityId, {
         pageSize: 100,
         page: 0,
         sortOrder: { property: 'createdTime', direction: 'DESC' },
       }),
   });
 
-  const keysInventory = useEntityKeys(deviceEntityId);
+  const keysInventory = useEntityKeys(entityId);
   const keyOptions = [
     ...(keysInventory.data?.telemetry ?? []).map((key) => ({
       value: key,
@@ -188,12 +184,12 @@ export default function AlarmRulesPanel({
     }
     const argumentKey = values.argumentKey as string;
     saveMutation.mutate({
-      entityId: deviceEntityId,
+      entityId: entityId,
       type: 'ALARM',
       name: values.name,
       debugMode: values.debugMode,
       configuration: basicAlarmConfiguration(
-        deviceEntityId,
+        entityId,
         values.severity as AlarmSeverity,
         argumentKey,
         keysInventory.data?.telemetry.includes(argumentKey)

@@ -22,9 +22,9 @@ import {
   Typography,
 } from 'antd';
 import dayjs from 'dayjs';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useIntl } from 'react-intl';
-import { serverErrorText } from '@/components/devices/server-error-text';
+import { serverErrorText } from '@/components/entities/server-error-text';
 import {
   type AlarmSearchStatus,
   ackAlarm,
@@ -32,7 +32,7 @@ import {
   deleteAlarm,
   getEntityAlarms,
 } from '@/services/tb/alarm';
-import { type AlarmData, EntityType } from '@/types/tb';
+import type { AlarmData, EntityId } from '@/types/tb';
 import AlarmDetailsModal from './AlarmDetailsModal';
 import {
   ALARM_SEVERITY_TAG,
@@ -58,20 +58,17 @@ const STATUS_FILTERS: Array<{
 const ALARMS_SEED_KEY = ['alarms'] as const;
 
 export default function AlarmsPanel({
-  deviceId,
+  entityId,
   readOnly,
 }: {
-  deviceId: string;
+  /** Polymorphic entity reference (DEVICE / ASSET / ENTITY_VIEW / ...). */
+  entityId: EntityId;
   readOnly: boolean;
 }) {
   const { formatMessage } = useIntl();
   const { message, modal } = App.useApp();
   const queryClient = useQueryClient();
 
-  const entityId = useMemo(
-    () => ({ entityType: EntityType.DEVICE, id: deviceId }),
-    [deviceId],
-  );
   const [statusFilter, setStatusFilter] = useState<StatusFilterId>('any');
   const [selectedIds, setSelectedIds] = useState<Array<string>>([]);
   const [detailsAlarm, setDetailsAlarm] = useState<AlarmRow | null>(null);
@@ -81,7 +78,12 @@ export default function AlarmsPanel({
   )?.list;
 
   const seedQuery = useQuery({
-    queryKey: [...ALARMS_SEED_KEY, deviceId, statusFilter],
+    queryKey: [
+      ...ALARMS_SEED_KEY,
+      entityId.entityType,
+      entityId.id,
+      statusFilter,
+    ],
     queryFn: () =>
       getEntityAlarms(
         entityId,

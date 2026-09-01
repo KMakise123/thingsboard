@@ -8,7 +8,7 @@ import { Alert, Input, Space, Table, Tag, Typography } from 'antd';
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { serverErrorText } from '@/components/devices/server-error-text';
+import { serverErrorText } from '@/components/entities/server-error-text';
 import type { AuditActionType, AuditLog } from '@/services/tb/audit-log';
 import { getAuditLogsByEntityId } from '@/services/tb/audit-log';
 import type { EntityId } from '@/types/tb';

@@ -16,9 +16,13 @@ import { App as AntdApp } from 'antd';
 import React from 'react';
 import { createIntl, RawIntlProvider } from 'react-intl';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import zhCommon from '@/locales/zh-CN/common';
 import zhDevices from '@/locales/zh-CN/devices/list';
 
-const intl = createIntl({ locale: 'zh-CN', messages: zhDevices });
+const intl = createIntl({
+  locale: 'zh-CN',
+  messages: { ...zhCommon, ...zhDevices },
+});
 
 import { EntityType } from '@/types/tb';
 
@@ -356,7 +360,7 @@ describe('devices list page', () => {
       expect(customerServiceMock.getCustomers).toHaveBeenCalled();
     });
     // The assign dialog is open.
-    await screen.findByText('分配设备');
+    await screen.findByText('指派给客户');
 
     // Scope to the dialog: the toolbar profile filter is also a Select.
     const selector = document.querySelector('.ant-modal .ant-select');

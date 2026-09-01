@@ -26,18 +26,18 @@ vi.mock('@/services/tb/relations', () => servicesMock);
 
 const intl = createIntl({ locale: 'zh-CN', messages: zhDetail });
 
-const deviceEntityId = { entityType: EntityType.DEVICE, id: 'dev-1' };
+const entityId = { entityType: EntityType.DEVICE, id: 'dev-1' };
 
 const FROM_ROWS = [
   {
-    from: deviceEntityId,
+    from: entityId,
     to: { entityType: EntityType.ASSET, id: 'a-1' },
     type: 'Contains',
     typeGroup: 'COMMON' as const,
     toName: '锅炉房',
   },
   {
-    from: deviceEntityId,
+    from: entityId,
     to: { entityType: EntityType.CUSTOMER, id: 'c-1' },
     type: 'Manages',
     typeGroup: 'COMMON' as const,
@@ -53,7 +53,7 @@ function renderPanel(readOnly = false) {
     <QueryClientProvider client={queryClient}>
       <AntdApp>
         <RawIntlProvider value={intl}>
-          <RelationsPanel deviceEntityId={deviceEntityId} readOnly={readOnly} />
+          <RelationsPanel entityId={entityId} readOnly={readOnly} />
         </RawIntlProvider>
       </AntdApp>
     </QueryClientProvider>,
@@ -72,9 +72,7 @@ describe('relations panel', () => {
     renderPanel();
     expect(await screen.findByText('Contains')).toBeTruthy();
     expect(screen.getByText('锅炉房')).toBeTruthy();
-    expect(servicesMock.findRelationInfosByFrom).toHaveBeenCalledWith(
-      deviceEntityId,
-    );
+    expect(servicesMock.findRelationInfosByFrom).toHaveBeenCalledWith(entityId);
   });
 
   it('switching direction re-reads the TO endpoint', async () => {
@@ -82,9 +80,7 @@ describe('relations panel', () => {
     await screen.findByText('Contains');
     fireEvent.click(screen.getByText('指向本设备'));
     await waitFor(() =>
-      expect(servicesMock.findRelationInfosByTo).toHaveBeenCalledWith(
-        deviceEntityId,
-      ),
+      expect(servicesMock.findRelationInfosByTo).toHaveBeenCalledWith(entityId),
     );
   });
 

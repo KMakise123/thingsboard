@@ -27,7 +27,7 @@ import {
 import dayjs from 'dayjs';
 import { useState } from 'react';
 import { useIntl } from 'react-intl';
-import { serverErrorText } from '@/components/devices/server-error-text';
+import { serverErrorText } from '@/components/entities/server-error-text';
 import {
   type CalculatedField,
   type CalculatedFieldType,
@@ -85,9 +85,9 @@ function simpleConfiguration(
 }
 
 export default function CalculatedFieldsPanel({
-  deviceEntityId,
+  entityId,
 }: {
-  deviceEntityId: EntityId;
+  entityId: EntityId;
 }) {
   const { formatMessage } = useIntl();
   const { message } = App.useApp();
@@ -97,16 +97,16 @@ export default function CalculatedFieldsPanel({
   const [form] = Form.useForm<CfFormValues>();
 
   const fieldsQuery = useQuery({
-    queryKey: ['calculated-fields', deviceEntityId.id],
+    queryKey: ['calculated-fields', entityId.id],
     queryFn: () =>
-      getCalculatedFieldsByEntityId(deviceEntityId, {
+      getCalculatedFieldsByEntityId(entityId, {
         pageSize: 100,
         page: 0,
         sortOrder: { property: 'createdTime', direction: 'DESC' },
       }),
   });
 
-  const keysInventory = useEntityKeys(deviceEntityId);
+  const keysInventory = useEntityKeys(entityId);
   const keyOptions = [
     ...(keysInventory.data?.telemetry ?? []).map((key) => ({
       value: key,
@@ -172,12 +172,12 @@ export default function CalculatedFieldsPanel({
     }
     const argumentKey = values.argumentKey as string;
     saveMutation.mutate({
-      entityId: deviceEntityId,
+      entityId: entityId,
       type: 'SIMPLE',
       name: values.name,
       debugMode: values.debugMode,
       configuration: simpleConfiguration(
-        deviceEntityId,
+        entityId,
         argumentKey,
         keysInventory.data?.telemetry.includes(argumentKey)
           ? 'TS_LATEST'
