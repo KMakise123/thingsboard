@@ -9,6 +9,7 @@ import {
   type EntitySubtype,
   type EntityView,
   type EntityViewInfo,
+  type EntityViewWrite,
   type PageData,
   type PageLink,
   pageLinkToQueryParams,
@@ -63,7 +64,7 @@ export async function getEntityViewInfoById(
 
 /** POST /api/entityView (create and update). */
 export async function saveEntityView(
-  entityView: EntityView,
+  entityView: EntityViewWrite,
 ): Promise<EntityView> {
   return tbHttp.post<EntityView>('/api/entityView', entityView);
 }

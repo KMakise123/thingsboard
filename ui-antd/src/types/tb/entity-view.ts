@@ -55,6 +55,14 @@ export interface EntityViewInfo extends EntityView {
   customerIsPublic: boolean;
 }
 
+/**
+ * POST /api/entityView body. Create posts the form fields only (server
+ * assigns id/createdTime — ui-ngx saves the form-merged entity, which for a
+ * new view carries no id); update spreads the loaded entity back in.
+ */
+export type EntityViewWrite = Omit<EntityView, 'id' | 'createdTime'> &
+  Partial<Pick<EntityView, 'id' | 'createdTime'>>;
+
 /** Entity list filter for the entity-view selector (POST /api/entityViews). */
 export interface EntityViewSearchQuery {
   entityFilter: Record<string, unknown>;
