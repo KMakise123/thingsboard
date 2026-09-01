@@ -7,10 +7,13 @@
  * bookmark restore). Asset deltas: no active state (AssetInfo has no
  * online/offline concept and the assetInfos endpoints accept no `active`
  * parameter), no credentials/connectivity actions (assets have none), and
- * the row action set follows ui-ngx: edit dialog / assign to customer /
- * unassign / delete, plus CSV import. Batch operations fan out per entity
- * through the shared runner (no bulk endpoints upstream — BCR C-1; the
- * switch point to real bulk APIs is the per-item task lambda below).
+ * the row action set follows ui-ngx: edit dialog / make-public + assign
+ * (unassigned) / unassign (assigned, not public) / make-private (public —
+ * its action IS the unassign call) / delete, plus CSV import and the
+ * tenant-scope customerIsPublic column (ui-ngx checkBoxCell). Batch
+ * operations fan out per entity through the shared runner (no bulk
+ * endpoints upstream — BCR C-1; the switch point to real bulk APIs is the
+ * per-item task lambda below).
  *
  * Tenant admins get the full action set; customer users a read-only view
  * over their customer's assets (spec §2 CU principle 3).
@@ -37,12 +40,12 @@ import {
   Alert,
   App,
   Button,
+  Checkbox,
   Dropdown,
   Input,
   Select,
   Space,
   type TableProps,
-  Tag,
   Typography,
 } from 'antd';
 import dayjs from 'dayjs';
@@ -61,6 +64,7 @@ import {
   getAssetProfiles,
   getCustomerAssets,
   getTenantAssets,
+  makeAssetPublic,
   unassignAssetFromCustomer,
 } from '@/services/tb/asset';
 import type { AssetInfo } from '@/types/tb';
@@ -288,6 +292,51 @@ export default function AssetsListPage() {
     });
   };
 
+  const makePublicMutation = useMutation({
+    mutationFn: (assetId: string) => makeAssetPublic(assetId),
+    onSuccess: () => {
+      void message.success(
+        formatMessage({
+          id: 'pages.assets.list.toastMadePublic',
+          defaultMessage: 'Asset is now public.',
+        }),
+      );
+      void invalidate();
+    },
+    onError: (error) => {
+      void message.error(serverErrorText(error));
+    },
+  });
+
+  // ui-ngx makePublic: explicit confirm, then POST to the public-customer
+  // endpoint (RECON §6 — making it private again is the unassign flow).
+  const confirmMakePublic = (asset: AssetInfo) => {
+    modal.confirm({
+      title: formatMessage(
+        {
+          id: 'pages.assets.list.makePublicTitle',
+          defaultMessage:
+            "Are you sure you want to make the asset '{name}' public?",
+        },
+        { name: asset.name },
+      ),
+      content: formatMessage({
+        id: 'pages.assets.list.makePublicText',
+        defaultMessage:
+          'After the confirmation the asset and all its data will be made public and accessible by others.',
+      }),
+      okText: formatMessage({
+        id: 'pages.assets.list.actionMakePublic',
+        defaultMessage: 'Make asset public',
+      }),
+      cancelText: formatMessage({
+        id: 'pages.assets.list.cancel',
+        defaultMessage: 'Cancel',
+      }),
+      onOk: () => makePublicMutation.mutateAsync(asset.id.id),
+    });
+  };
+
   const confirmUnassign = (targets: Array<AssetInfo>) => {
     if (targets.length === 0) {
       return;
@@ -427,22 +476,22 @@ export default function AssetsListPage() {
         dataIndex: 'customerTitle',
         sorter: true,
         sortOrder: sortOrderFor('customerTitle'),
-        render: (_, record) =>
-          record.customerTitle ? (
-            <Space size={4}>
-              <span>{record.customerTitle}</span>
-              {record.customerIsPublic ? (
-                <Tag color="blue">
-                  {formatMessage({
-                    id: 'pages.assets.list.public',
-                    defaultMessage: 'Public',
-                  })}
-                </Tag>
-              ) : null}
-            </Space>
-          ) : (
-            '-'
-          ),
+        render: (_, record) => record.customerTitle || '-',
+      });
+      // Public flag as its own column, tenant scope only (ui-ngx
+      // checkBoxCell at assets-table-config L174-176; AntD-ized as a
+      // disabled checkbox — it is a read-only boolean, not an action).
+      cols.push({
+        title: formatMessage({
+          id: 'pages.assets.list.publicColumn',
+          defaultMessage: 'Public',
+        }),
+        dataIndex: 'customerIsPublic',
+        width: 80,
+        align: 'center',
+        render: (_, record) => (
+          <Checkbox checked={record.customerIsPublic} disabled />
+        ),
       });
     }
     cols.push({
@@ -473,18 +522,39 @@ export default function AssetsListPage() {
               trigger={['click']}
               menu={{
                 items: [
+                  // ui-ngx cellAction semantics (assets-table-config
+                  // L203-228): unassigned -> make-public + assign; assigned
+                  // and not public -> unassign; assigned and public ->
+                  // make-private, whose action IS the unassign call.
                   ...(hasCustomer(record)
                     ? [
-                        {
-                          key: 'unassign',
-                          label: formatMessage({
-                            id: 'pages.assets.list.actionUnassign',
-                            defaultMessage: 'Unassign from customer',
-                          }),
-                          onClick: () => confirmUnassign([record]),
-                        },
+                        record.customerIsPublic
+                          ? {
+                              key: 'make-private',
+                              label: formatMessage({
+                                id: 'pages.assets.list.actionMakePrivate',
+                                defaultMessage: 'Make asset private',
+                              }),
+                              onClick: () => confirmUnassign([record]),
+                            }
+                          : {
+                              key: 'unassign',
+                              label: formatMessage({
+                                id: 'pages.assets.list.actionUnassign',
+                                defaultMessage: 'Unassign from customer',
+                              }),
+                              onClick: () => confirmUnassign([record]),
+                            },
                       ]
                     : [
+                        {
+                          key: 'make-public',
+                          label: formatMessage({
+                            id: 'pages.assets.list.actionMakePublic',
+                            defaultMessage: 'Make asset public',
+                          }),
+                          onClick: () => confirmMakePublic(record),
+                        },
                         {
                           key: 'assign',
                           label: formatMessage({

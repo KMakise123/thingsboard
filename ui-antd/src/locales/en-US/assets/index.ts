@@ -13,7 +13,6 @@ export default {
   'pages.assets.list.label': 'Label',
   'pages.assets.list.createdTime': 'Created time',
   'pages.assets.list.customer': 'Customer',
-  'pages.assets.list.public': 'Public',
   'pages.assets.list.empty': 'No assets',
   'pages.assets.list.loadFailed': 'Failed to load assets',
 
@@ -32,6 +31,13 @@ export default {
   'pages.assets.list.actionDelete': 'Delete',
   'pages.assets.list.actionAssign': 'Assign to customer',
   'pages.assets.list.actionUnassign': 'Unassign from customer',
+  'pages.assets.list.actionMakePublic': 'Make asset public',
+  'pages.assets.list.actionMakePrivate': 'Make asset private',
+  'pages.assets.list.publicColumn': 'Public',
+  'pages.assets.list.makePublicTitle':
+    "Are you sure you want to make the asset '{name}' public?",
+  'pages.assets.list.makePublicText':
+    'After the confirmation the asset and all its data will be made public and accessible by others.',
 
   // ---- list: confirmations & toasts ----
   'pages.assets.list.cancel': 'Cancel',
@@ -54,6 +60,7 @@ export default {
   'pages.assets.list.toastDeleted': 'Asset deleted.',
   'pages.assets.list.toastAssigned': 'Assets assigned to the customer.',
   'pages.assets.list.toastUnassigned': 'Assets unassigned from the customer.',
+  'pages.assets.list.toastMadePublic': 'Asset is now public.',
   'pages.assets.list.toastImported': 'Import finished.',
   'pages.assets.list.batchResult': '{ok} succeeded, {fail} failed.',
 

@@ -27,6 +27,7 @@ import {
   getCustomerAssets,
   getTenantAssets,
   importAssets,
+  makeAssetPublic,
   saveAsset,
   unassignAssetFromCustomer,
 } from './asset';
@@ -95,6 +96,11 @@ describe('asset transport endpoints', () => {
 
     await unassignAssetFromCustomer('a-1');
     expect(del).toHaveBeenCalledWith('/api/customer/asset/a-1');
+  });
+
+  it('pins make-public on the public-customer endpoint', async () => {
+    await makeAssetPublic('a-1');
+    expect(post).toHaveBeenCalledWith('/api/customer/public/asset/a-1');
   });
 
   it('reads filter sources and runs the selector/import posts', async () => {

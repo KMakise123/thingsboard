@@ -13,7 +13,6 @@ export default {
   'pages.assets.list.label': '标签',
   'pages.assets.list.createdTime': '创建时间',
   'pages.assets.list.customer': '客户',
-  'pages.assets.list.public': '公开',
   'pages.assets.list.empty': '暂无资产',
   'pages.assets.list.loadFailed': '加载资产列表失败',
 
@@ -32,6 +31,12 @@ export default {
   'pages.assets.list.actionDelete': '删除',
   'pages.assets.list.actionAssign': '分配给客户',
   'pages.assets.list.actionUnassign': '从客户取消分配',
+  'pages.assets.list.actionMakePublic': '将资产设为公开',
+  'pages.assets.list.actionMakePrivate': '将资产设为私有',
+  'pages.assets.list.publicColumn': '公开',
+  'pages.assets.list.makePublicTitle': '确定要将资产“{name}”设为公开吗？',
+  'pages.assets.list.makePublicText':
+    '确认后，该资产及其所有数据将被设为公开，可被其他人访问。',
 
   // ---- list: confirmations & toasts ----
   'pages.assets.list.cancel': '取消',
@@ -49,6 +54,7 @@ export default {
   'pages.assets.list.toastDeleted': '资产已删除。',
   'pages.assets.list.toastAssigned': '资产已分配给客户。',
   'pages.assets.list.toastUnassigned': '资产已从客户取消分配。',
+  'pages.assets.list.toastMadePublic': '资产已设为公开。',
   'pages.assets.list.toastImported': '导入完成。',
   'pages.assets.list.batchResult': '成功 {ok} 个，失败 {fail} 个。',
 

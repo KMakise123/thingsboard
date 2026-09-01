@@ -91,6 +91,16 @@ export async function unassignAssetFromCustomer(assetId: string): Promise<void> 
   await tbHttp.delete(`/api/customer/asset/${assetId}`);
 }
 
+/**
+ * POST /api/customer/public/asset/{assetId} — make the asset public
+ * (ui-ngx makeAssetPublic). Making it private again is the unassign flow:
+ * ui-ngx wires its make-private action onto unassignAssetFromCustomer, and
+ * the public customer loses access the same way.
+ */
+export async function makeAssetPublic(assetId: string): Promise<Asset> {
+  return tbHttp.post<Asset>(`/api/customer/public/asset/${assetId}`);
+}
+
 /** GET /api/asset/types — profile type names for legacy filters. */
 export async function getAssetTypes(): Promise<Array<EntitySubtype>> {
   return tbHttp.get<Array<EntitySubtype>>('/api/asset/types');
