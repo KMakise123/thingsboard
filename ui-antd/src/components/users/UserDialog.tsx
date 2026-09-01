@@ -116,10 +116,16 @@ export function UserDialog({ open, user, onClose, onSaved }: UserDialogProps) {
   });
 
   // Edit mode: resolve the assigned customer's title for the disabled select.
+  // Users without a customer (tenant admins) carry the NULL_UUID — fetching
+  // that id only produces a 404 noise toast, so gate it like the prefill does.
   const assignedCustomerQuery = useQuery({
     queryKey: ['customers', 'user-dialog-assigned', user?.customerId?.id],
     queryFn: () => getCustomerById(user?.customerId?.id as string),
-    enabled: open && editing && !!user?.customerId?.id,
+    enabled:
+      open &&
+      editing &&
+      !!user?.customerId?.id &&
+      user.customerId.id !== NULL_UUID,
   });
 
   const saveMutation = useMutation({
