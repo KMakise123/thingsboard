@@ -13,15 +13,27 @@
  * Until that fetch resolves the gated group renders as a disabled loading
  * item; edit/delete are always available (delete hidden for the session user
  * itself, same guard as ui-ngx's deleteEnabled).
+ *
+ * Reopen semantics: the page-level mutations invalidate ['users'], which
+ * marks the disabled detail queries invalidated WITHOUT refetching them
+ * (enabled: false — react-query never refetches those automatically, and
+ * the observer's `isStale` is pinned false for disabled queries). So the
+ * open trigger reads the query STORE state (getQueryState) instead: fetch
+ * when there is no data, the entry is invalidated, or it is older than
+ * DETAIL_STALE_MS — otherwise a toggle (e.g. disable account) would keep
+ * rendering the previous state until a full page reload.
  */
 import { MoreOutlined } from '@ant-design/icons';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { MenuProps } from 'antd';
 import { Button, Dropdown } from 'antd';
 import { useIntl } from 'react-intl';
 import { getUserById } from '@/services/tb/user';
 import type { User } from '@/types/tb';
 import { useAuthority } from './use-authority';
+
+/** How long a lazily fetched row detail is reused before a refresh. */
+const DETAIL_STALE_MS = 15_000;
 
 export interface UserRowMenuProps {
   user: User;
@@ -47,13 +59,14 @@ export function UserRowMenu({
 }: UserRowMenuProps) {
   const { formatMessage } = useIntl();
   const { userId: sessionUserId } = useAuthority();
+  const queryClient = useQueryClient();
   const isSelf = user.id.id === sessionUserId;
 
   const detailQuery = useQuery({
     queryKey: ['users', 'detail', user.id.id],
     queryFn: () => getUserById(user.id.id),
     enabled: false,
-    staleTime: 15_000,
+    staleTime: DETAIL_STALE_MS,
   });
 
   const detail = detailQuery.data;
@@ -137,7 +150,17 @@ export function UserRowMenu({
       trigger={['click']}
       menu={{ items }}
       onOpenChange={(next) => {
-        if (next && !detail && !detailQuery.isFetching) {
+        if (!next || detailQuery.isFetching) {
+          return;
+        }
+        const state = queryClient.getQueryState([
+          'users',
+          'detail',
+          user.id.id,
+        ]);
+        const expired =
+          !!state?.data && Date.now() - state.dataUpdatedAt > DETAIL_STALE_MS;
+        if (!state?.data || state.isInvalidated || expired) {
           void detailQuery.refetch();
         }
       }}
