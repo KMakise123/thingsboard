@@ -57,21 +57,28 @@ export default function TimeseriesHistoryModal({
   const [agg, setAgg] = useState<AggregationType>(AggregationType.NONE);
   const [chartNode, setChartNode] = useState<HTMLDivElement | null>(null);
   const chart = useRef<echarts.ECharts | null>(null);
+  /** The portal node the chart instance is currently bound to. */
+  const boundNode = useRef<HTMLDivElement | null>(null);
 
   // Frozen per open + (preset, custom-range) selection: recomputing
   // `presetRange` every render would shift the queryKey (now-based
   // timestamps) on every render and re-fetch forever, while never
   // recomputing would serve a stale window on re-open. Recomputing on the
   // open flip gives one fresh window per dialog visit.
-  const range = useMemo<[number, number] | null>(
-    () =>
-      presetId === CUSTOM_TIMEWINDOW_ID && customRange
-        ? [customRange[0].valueOf(), customRange[1].valueOf()]
-        : presetRange(presetId),
-    // biome-ignore lint/correctness/useExhaustiveDependencies: `open` is an
-    // intentional extra dep — one fresh now-based window per dialog visit.
-    [open, presetId, customRange],
-  );
+  // Frozen per open + (preset, custom-range) selection: recomputing
+  // `presetRange` every render would shift the queryKey (now-based
+  // timestamps) on every render and re-fetch forever, while never
+  // recomputing would serve a stale window on re-open. `open` participates
+  // in the memo (null while closed) so each dialog visit gets one fresh
+  // now-based window.
+  const range = useMemo<[number, number] | null>(() => {
+    if (!open) {
+      return null;
+    }
+    return presetId === CUSTOM_TIMEWINDOW_ID && customRange
+      ? [customRange[0].valueOf(), customRange[1].valueOf()]
+      : presetRange(presetId);
+  }, [open, presetId, customRange]);
 
   const historyQuery = useQuery({
     queryKey: [
@@ -127,6 +134,7 @@ export default function TimeseriesHistoryModal({
         renderer: 'canvas',
       });
     }
+    boundNode.current = chartNode;
     const observer = new ResizeObserver(() => chart.current?.resize());
     observer.observe(chartNode);
     return () => {
@@ -153,8 +161,15 @@ export default function TimeseriesHistoryModal({
     }))
     .filter((point) => Number.isFinite(point.value));
 
+  // Repaint on data/effect changes. `chartNode` is a deliberate dependency:
+  // the portal content mounts a commit AFTER `open` flips, and the ref
+  // callback reports the fresh node through state — the guard below lets
+  // this effect skip until the chart is actually bound to that node.
   useEffect(() => {
-    if (!open || !chart.current) {
+    if (!open || !chartNode || !chart.current) {
+      return;
+    }
+    if (boundNode.current !== chartNode) {
       return;
     }
     if (points.length === 0) {
@@ -183,9 +198,6 @@ export default function TimeseriesHistoryModal({
         },
       ],
     });
-    // biome-ignore lint/correctness/useExhaustiveDependencies: `chartNode` is
-    // an intentional extra dep — repaint right after the chart binds to the
-    // freshly mounted portal node.
   }, [open, points, telemetryKey, presetId, chartNode]);
 
   return (
