@@ -9,9 +9,9 @@
  * credentials columns (ui-ngx asset import, BulkImportColumnType subset;
  * openapi snapshot L16926).
  */
-import type { BulkImportRequest, CsvDelimiter } from '@/types/tb';
 
 import type { ParsedCsv } from '@/components/devices/csv-import';
+import type { BulkImportRequest, CsvDelimiter } from '@/types/tb';
 
 export {
   CSV_DELIMITERS,

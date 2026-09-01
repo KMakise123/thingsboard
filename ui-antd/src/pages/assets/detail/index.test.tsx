@@ -186,9 +186,7 @@ describe('asset detail page', () => {
     await waitFor(() => expect(saveButton()).not.toBeDisabled());
     fireEvent.click(saveButton());
 
-    await waitFor(() =>
-      expect(assetServiceMock.saveAsset).toHaveBeenCalled(),
-    );
+    await waitFor(() => expect(assetServiceMock.saveAsset).toHaveBeenCalled());
     const payload = assetServiceMock.saveAsset.mock.calls[0][0];
     expect(payload.name).toBe('m2-test-asset-renamed');
     expect(payload.assetProfileId).toEqual({
@@ -228,9 +226,7 @@ describe('asset detail page', () => {
   it('shows no unassign action while the asset has no customer', async () => {
     renderPage();
     await screen.findAllByText('m2-test-asset-alpha');
-    expect(
-      screen.queryByRole('button', { name: /从客户取消分配/ }),
-    ).toBeNull();
+    expect(screen.queryByRole('button', { name: /从客户取消分配/ })).toBeNull();
   });
 
   it('unassigns the asset from its customer after confirmation', async () => {
@@ -291,9 +287,9 @@ describe('asset detail page', () => {
     // lives in the shared PageContainer wrapper, ADR 0008 — generic copy;
     // its copy comes from pages.common, not the domain file).
     fireEvent.click(screen.getByRole('button', { name: 'back' }));
-    expect(
-      (await screen.findAllByText('未保存的更改')).length,
-    ).toBeGreaterThan(0);
+    expect((await screen.findAllByText('未保存的更改')).length).toBeGreaterThan(
+      0,
+    );
     expect(historyMock.push).not.toHaveBeenCalled();
   });
 });
