@@ -185,4 +185,22 @@ describe('device detail page', () => {
       0,
     );
   });
+
+  it('confirms before leaving via the back button with unsaved edits', async () => {
+    renderPage();
+    await screen.findAllByText('m1-test-detail-alpha');
+    fireEvent.click(editButton());
+    const nameInput = await screen.findByDisplayValue('m1-test-detail-alpha');
+    fireEvent.change(nameInput, {
+      target: { value: 'm1-test-detail-dirty' },
+    });
+    const save = await screen.findByRole('button', { name: '保 存' });
+    await waitFor(() => expect(save).not.toBeDisabled());
+    // The back arrow must be guarded the same way as tab switches.
+    fireEvent.click(screen.getByTitle('返回设备列表'));
+    expect((await screen.findAllByText('未保存的修改')).length).toBeGreaterThan(
+      0,
+    );
+    expect(historyMock.push).not.toHaveBeenCalled();
+  });
 });

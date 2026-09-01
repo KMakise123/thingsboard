@@ -158,7 +158,13 @@ export default function DeviceDetailPage() {
             <Button
               type="text"
               icon={<ArrowLeftOutlined />}
-              onClick={() => history.push('/devices')}
+              onClick={() => {
+                if (dirty) {
+                  confirmDiscard(() => history.push('/devices'));
+                  return;
+                }
+                history.push('/devices');
+              }}
               title={formatMessage({
                 id: 'pages.devices.detail.back',
                 defaultMessage: 'Back to devices',
