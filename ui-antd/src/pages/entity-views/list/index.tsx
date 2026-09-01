@@ -44,7 +44,6 @@ import PageContainer from '@/components/layout/page-container';
 import {
   assignEntityViewToCustomer,
   deleteEntityView,
-  getCustomerEntityViews,
   getEntityViewTypes,
   getTenantEntityViews,
   makeEntityViewPublic,
