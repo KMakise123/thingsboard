@@ -60,9 +60,20 @@ export function formatAttributeValue(value: unknown): string {
   return String(value);
 }
 
-/** Render hint: numeric telemetry wants tabular figures (spec 3.11). */
+/**
+ * Render hint: numeric telemetry wants tabular figures (spec 3.11).
+ * Values arrive as JSON strings over both the REST snapshot and the WS
+ * channel, so numeric *strings* must count as numeric too — otherwise the
+ * tabular-nums hint never applies in practice.
+ */
 export function isNumericValue(value: unknown): boolean {
-  return typeof value === 'number';
+  if (typeof value === 'number') {
+    return true;
+  }
+  if (typeof value === 'string' && value.trim() !== '') {
+    return Number.isFinite(Number(value));
+  }
+  return false;
 }
 
 /** Sort + client-side key filter (WS-backed table has no server pageLink). */
