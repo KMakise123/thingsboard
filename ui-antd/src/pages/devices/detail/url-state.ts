@@ -22,6 +22,17 @@ export const DETAIL_TABS = [
 
 export type DetailTab = (typeof DETAIL_TABS)[number];
 
+/** Tabs that exist only for TENANT_ADMIN (hidden for CU like ui-ngx). */
+export const TA_ONLY_DETAIL_TABS: ReadonlySet<DetailTab> = new Set([
+  'calculated-fields',
+  'alarm-rules',
+  'version-control',
+] as const);
+
+export function isTaOnlyDetailTab(tab: DetailTab): boolean {
+  return TA_ONLY_DETAIL_TABS.has(tab);
+}
+
 export const DETAIL_TAB_URL_KEY = 'tab';
 
 const DEFAULT_TAB: DetailTab = 'details';

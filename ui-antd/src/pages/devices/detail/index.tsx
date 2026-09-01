@@ -35,11 +35,16 @@ import CalculatedFieldsPanel from '@/components/devices/detail/CalculatedFieldsP
 import EventsPanel from '@/components/devices/detail/EventsPanel';
 import LatestTelemetryPanel from '@/components/devices/detail/LatestTelemetryPanel';
 import RelationsPanel from '@/components/devices/detail/RelationsPanel';
+import VersionControlPanel from '@/components/devices/detail/VersionControlPanel';
 import { serverErrorText } from '@/components/devices/server-error-text';
 import { getDeviceInfoById } from '@/services/tb/device';
 import type { DeviceInfo } from '@/types/tb';
 import DetailsTab from './DetailsTab';
-import { type DetailTab, useDetailTabUrlState } from './url-state';
+import {
+  type DetailTab,
+  isTaOnlyDetailTab,
+  useDetailTabUrlState,
+} from './url-state';
 import { useAuthority } from './use-authority';
 
 export default function DeviceDetailPage() {
@@ -48,7 +53,10 @@ export default function DeviceDetailPage() {
   const { modal } = App.useApp();
   const { authority } = useAuthority();
   const readOnly = authority !== 'TENANT_ADMIN';
-  const { tab, setTab } = useDetailTabUrlState();
+  const { tab: requestedTab, setTab } = useDetailTabUrlState();
+  // CU never sees the three TA-only tabs, even via a hand-typed ?tab= URL.
+  const tab =
+    readOnly && isTaOnlyDetailTab(requestedTab) ? 'details' : requestedTab;
 
   const [editing, setEditing] = useState(false);
   const [dirty, setDirty] = useState(false);
@@ -358,6 +366,21 @@ function buildTabItems({
       }),
       children: device ? <AuditLogsPanel entityId={device.id} /> : null,
     },
+    // TA-only, same slot as ui-ngx device-tabs.
+    ...(!readOnly
+      ? [
+          {
+            key: 'version-control' as const,
+            label: formatMessage({
+              id: 'pages.devices.detail.tabVersionControl',
+              defaultMessage: 'Version control',
+            }),
+            children: device ? (
+              <VersionControlPanel deviceEntityId={device.id} />
+            ) : null,
+          },
+        ]
+      : []),
   ];
   return items;
 }

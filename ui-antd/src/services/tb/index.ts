@@ -13,6 +13,7 @@
 export * from './auth';
 export * from './customer';
 export * from './device';
+export * from './version-control';
 export * from './attributes';
 export * from './alarm-rules';
 export * from './calculated-fields';
