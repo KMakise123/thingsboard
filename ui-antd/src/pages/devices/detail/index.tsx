@@ -12,7 +12,7 @@
  * never rendered (spec principle 3).
  */
 import { EditOutlined } from '@ant-design/icons';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { history, useParams } from '@umijs/max';
 import {
   Alert,
@@ -42,7 +42,10 @@ import RelationsPanel from '@/components/entities/detail/RelationsPanel';
 import VersionControlPanel from '@/components/entities/detail/VersionControlPanel';
 import { serverErrorText } from '@/components/entities/server-error-text';
 import PageContainer from '@/components/layout/page-container';
-import { getDeviceInfoById } from '@/services/tb/device';
+import {
+  getDeviceInfoById,
+  unassignDeviceFromCustomer,
+} from '@/services/tb/device';
 import type { DeviceInfo } from '@/types/tb';
 import { EntityType } from '@/types/tb';
 import DetailsTab from './DetailsTab';
@@ -56,7 +59,8 @@ import { useAuthority } from './use-authority';
 export default function DeviceDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { formatMessage } = useIntl();
-  const { modal } = App.useApp();
+  const { message, modal } = App.useApp();
+  const queryClient = useQueryClient();
   const { authority } = useAuthority();
   const readOnly = authority !== 'TENANT_ADMIN';
   const { tab: requestedTab, setTab } = useDetailTabUrlState();
@@ -142,6 +146,62 @@ export default function DeviceDetailPage() {
     }
   };
 
+  // M2 customer-domain seam (spec 3.5「详情页内取消分配」): the header
+  // unassign entry for an assigned device, ui-ngx device.component parity.
+  // Labels reuse the devices list keys — the devices locale is not this
+  // change's ownership.
+  const assignedCustomerId =
+    device?.customerId && device.customerId.id !== NULL_CUSTOMER_UUID
+      ? device.customerId.id
+      : undefined;
+  const unassignMutation = useMutation({
+    mutationFn: (deviceId: string) => unassignDeviceFromCustomer(deviceId),
+    onSuccess: () => {
+      void message.success(
+        formatMessage({
+          id: 'pages.devices.list.toastUnassigned',
+          defaultMessage: 'Devices unassigned from the customer.',
+        }),
+      );
+      void queryClient.invalidateQueries({
+        queryKey: ['device', 'detail'],
+      });
+    },
+    onError: (error) => {
+      void message.error(serverErrorText(error));
+    },
+  });
+
+  const confirmUnassign = () => {
+    if (!device || !assignedCustomerId) {
+      return;
+    }
+    modal.confirm({
+      title: formatMessage(
+        {
+          id: 'pages.devices.list.unassignTitle',
+          defaultMessage:
+            "Are you sure you want to unassign the device '{name}'?",
+        },
+        { name: device.name },
+      ),
+      content: formatMessage({
+        id: 'pages.devices.list.unassignText',
+        defaultMessage:
+          'After the confirmation the device will be unassigned and will not be accessible by the customer.',
+      }),
+      okText: formatMessage({
+        id: 'pages.devices.list.actionUnassign',
+        defaultMessage: 'Unassign from customer',
+      }),
+      cancelText: formatMessage({
+        id: 'pages.devices.list.cancel',
+        defaultMessage: 'Cancel',
+      }),
+      onOk: () => unassignMutation.mutateAsync(device.id.id),
+    });
+  };
+
   const tabItems = buildTabItems({
     formatMessage,
     device,
@@ -176,19 +236,29 @@ export default function DeviceDetailPage() {
       }
       extra={
         !readOnly && (
-          <Button
-            icon={<EditOutlined />}
-            onClick={toggleEdit}
-            danger={editing && dirty}
-            disabled={!device}
-          >
-            {formatMessage({
-              id: editing
-                ? 'pages.devices.detail.cancelEdit'
-                : 'pages.devices.detail.edit',
-              defaultMessage: editing ? 'Cancel edit' : 'Edit',
-            })}
-          </Button>
+          <Space>
+            {assignedCustomerId && (
+              <Button danger onClick={confirmUnassign}>
+                {formatMessage({
+                  id: 'pages.devices.list.actionUnassign',
+                  defaultMessage: 'Unassign from customer',
+                })}
+              </Button>
+            )}
+            <Button
+              icon={<EditOutlined />}
+              onClick={toggleEdit}
+              danger={editing && dirty}
+              disabled={!device}
+            >
+              {formatMessage({
+                id: editing
+                  ? 'pages.devices.detail.cancelEdit'
+                  : 'pages.devices.detail.edit',
+                defaultMessage: editing ? 'Cancel edit' : 'Edit',
+              })}
+            </Button>
+          </Space>
         )
       }
       // The wrapper guards this against unsaved changes (dirty).
@@ -382,3 +452,6 @@ function buildTabItems({
   ];
   return assembleDetailTabs(entries, readOnly);
 }
+
+/** TB's null-customer UUID (EntityId.NULL_UUID). */
+const NULL_CUSTOMER_UUID = '13814000-1dd2-11b2-8080-808080808080';
