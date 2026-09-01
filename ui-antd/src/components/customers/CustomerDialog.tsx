@@ -44,7 +44,12 @@ export function CustomerDialog({
   }, [open, customer, form]);
 
   const save = async () => {
-    const values = await form.validateFields();
+    // Failed validation rejects — expected control flow, swallow it (the
+    // field errors render inline).
+    const values = await form.validateFields().catch(() => undefined);
+    if (!values) {
+      return;
+    }
     try {
       const saved = await saveCustomer(formValuesToCustomer(values, customer));
       void message.success(
