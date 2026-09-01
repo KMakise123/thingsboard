@@ -44,6 +44,15 @@ export default {
   'pages.entityViews.list.makePrivateText':
     '确认后，实体视图及其所有数据将设为私有，其他人将无法访问。',
 
+  // ---- batch ----
+  'pages.entityViews.list.selectedCount': '已选 {count} 项',
+  'pages.entityViews.list.batchAssign': '分配客户',
+  'pages.entityViews.list.batchUnassign': '取消分配客户',
+  'pages.entityViews.list.unassignManyTitle':
+    '确定要取消分配 {count} 个实体视图吗？',
+  'pages.entityViews.list.unassignManyText':
+    '确认后所有选中的实体视图将被取消分配，客户将无法访问。',
+
   // ---- toasts ----
   'pages.entityViews.list.toastDeleted': '实体视图已删除。',
   'pages.entityViews.list.toastAssigned': '实体视图已分配给客户。',

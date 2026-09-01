@@ -9,9 +9,11 @@
  * entity views have no profile and no active concept (RECON §2).
  *
  * Row actions mirror ui-ngx tenant scope: edit (dialog), make public,
- * assign to customer, unassign / make private, delete — all tenant-admin
- * only; customer users (hand-typed URL) get the read-only view. Row click
- * opens the detail page.
+ * assign to customer, unassign / make private, delete — plus the group
+ * actions (batch assign / batch unassign via row selection, the ui-ngx
+ * group-action set fanned out over the single-entity endpoints). All
+ * tenant-admin only; customer users (hand-typed URL) get the read-only
+ * view. Row click opens the detail page.
  */
 import { MoreOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
@@ -31,6 +33,7 @@ import {
   Dropdown,
   Input,
   Select,
+  Space,
   type TableProps,
   Typography,
 } from 'antd';
@@ -41,6 +44,8 @@ import { AssignCustomerModal } from '@/components/entities/AssignCustomerModal';
 import { serverErrorText } from '@/components/entities/server-error-text';
 import EntityViewDialog from '@/components/entity-views/EntityViewDialog';
 import PageContainer from '@/components/layout/page-container';
+import { BatchProgressModal } from '@/pages/devices/list/BatchProgressModal';
+import { useBatchRun } from '@/pages/devices/list/use-batch-run';
 import {
   assignEntityViewToCustomer,
   deleteEntityView,
@@ -138,6 +143,16 @@ export default function EntityViewsListPage() {
   const [editingView, setEditingView] = useState<EntityViewInfo | null>(null);
   const [assignTargets, setAssignTargets] = useState<Array<EntityViewInfo>>([]);
 
+  // ---- selection & batch fan-out (ui-ngx group actions; no bulk endpoint
+  // upstream, so assign/unassign fan out over the single-entity endpoints
+  // with visible progress — same as the device list, BCR C-1)
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const selectedViews = entityViews.filter((view) =>
+    selectedRowKeys.includes(view.id.id),
+  );
+  const batch = useBatchRun();
+  const [batchOpen, setBatchOpen] = useState(false);
+
   const deleteMutation = useMutation({
     mutationFn: (entityViewId: string) => deleteEntityView(entityViewId),
     onSuccess: () => {
@@ -147,29 +162,6 @@ export default function EntityViewsListPage() {
           defaultMessage: 'Entity view deleted.',
         }),
       );
-      void invalidate();
-    },
-    onError: (error) => {
-      void message.error(serverErrorText(error));
-    },
-  });
-
-  const assignMutation = useMutation({
-    mutationFn: ({
-      customerId,
-      entityViewId,
-    }: {
-      customerId: string;
-      entityViewId: string;
-    }) => assignEntityViewToCustomer(customerId, entityViewId),
-    onSuccess: () => {
-      void message.success(
-        formatMessage({
-          id: 'pages.entityViews.list.toastAssigned',
-          defaultMessage: 'Entity views assigned to the customer.',
-        }),
-      );
-      setAssignTargets([]);
       void invalidate();
     },
     onError: (error) => {
@@ -306,6 +298,92 @@ export default function EntityViewsListPage() {
         defaultMessage: 'Cancel',
       }),
       onOk: () => deleteMutation.mutateAsync(entityView.id.id),
+    });
+  };
+
+  /** Fan-out assign (single row or selection) with visible progress. */
+  const runAssign = async (customerId: string) => {
+    if (assignTargets.length === 0) {
+      return;
+    }
+    const targets = assignTargets;
+    setAssignTargets([]);
+    setBatchOpen(true);
+    const summary = await batch.run(
+      targets,
+      (view) => view.name,
+      (view) => assignEntityViewToCustomer(customerId, view.id.id),
+    );
+    setSelectedRowKeys([]);
+    void invalidate();
+    void message.success(
+      formatMessage({
+        id: 'pages.entityViews.list.toastAssigned',
+        defaultMessage: 'Entity views assigned to the customer.',
+      }),
+    );
+    if (summary.failed > 0) {
+      void message.warning(
+        formatMessage({
+          id: 'pages.devices.list.batchResult',
+          defaultMessage: '{ok} succeeded, {fail} failed.',
+        }),
+      );
+    }
+  };
+
+  /** Fan-out unassign over the selection after a confirmation. */
+  const confirmUnassignSelected = () => {
+    const assigned = selectedViews.filter(hasCustomer);
+    if (assigned.length === 0) {
+      return;
+    }
+    modal.confirm({
+      title: formatMessage(
+        {
+          id: 'pages.entityViews.list.unassignManyTitle',
+          defaultMessage:
+            'Are you sure you want to unassign {count, plural, =1 {1 entity view} other {# entity views}}?',
+        },
+        { count: assigned.length },
+      ),
+      content: formatMessage({
+        id: 'pages.entityViews.list.unassignManyText',
+        defaultMessage:
+          'After the confirmation all selected entity views will be unassigned and will not be accessible by the customer.',
+      }),
+      okText: formatMessage({
+        id: 'pages.entityViews.list.actionUnassign',
+        defaultMessage: 'Unassign from customer',
+      }),
+      cancelText: formatMessage({
+        id: 'pages.entityViews.list.cancel',
+        defaultMessage: 'Cancel',
+      }),
+      onOk: async () => {
+        setBatchOpen(true);
+        const summary = await batch.run(
+          assigned,
+          (view) => view.name,
+          (view) => unassignEntityViewFromCustomer(view.id.id),
+        );
+        setSelectedRowKeys([]);
+        void invalidate();
+        void message.success(
+          formatMessage({
+            id: 'pages.entityViews.list.toastUnassigned',
+            defaultMessage: 'Entity view unassigned.',
+          }),
+        );
+        if (summary.failed > 0) {
+          void message.warning(
+            formatMessage({
+              id: 'pages.devices.list.batchResult',
+              defaultMessage: '{ok} succeeded, {fail} failed.',
+            }),
+          );
+        }
+      },
     });
   };
 
@@ -535,19 +613,49 @@ export default function EntityViewsListPage() {
           </Button>
           <div className="flex-1" />
           {!readOnly && (
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={() => {
-                setEditingView(null);
-                setDialogOpen(true);
-              }}
-            >
-              {formatMessage({
-                id: 'pages.entityViews.list.add',
-                defaultMessage: 'Add entity view',
-              })}
-            </Button>
+            <Space>
+              {selectedViews.length > 0 && (
+                <>
+                  <Typography.Text type="secondary">
+                    {formatMessage(
+                      {
+                        id: 'pages.entityViews.list.selectedCount',
+                        defaultMessage: '{count} selected',
+                      },
+                      { count: selectedViews.length },
+                    )}
+                  </Typography.Text>
+                  <Button onClick={() => setAssignTargets(selectedViews)}>
+                    {formatMessage({
+                      id: 'pages.entityViews.list.batchAssign',
+                      defaultMessage: 'Assign to customer',
+                    })}
+                  </Button>
+                  <Button
+                    disabled={selectedViews.every((view) => !hasCustomer(view))}
+                    onClick={confirmUnassignSelected}
+                  >
+                    {formatMessage({
+                      id: 'pages.entityViews.list.batchUnassign',
+                      defaultMessage: 'Unassign from customer',
+                    })}
+                  </Button>
+                </>
+              )}
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() => {
+                  setEditingView(null);
+                  setDialogOpen(true);
+                }}
+              >
+                {formatMessage({
+                  id: 'pages.entityViews.list.add',
+                  defaultMessage: 'Add entity view',
+                })}
+              </Button>
+            </Space>
           )}
         </div>
       }
@@ -566,6 +674,10 @@ export default function EntityViewsListPage() {
 
       <ProTable<EntityViewInfo>
         rowKey={(record) => record.id.id}
+        // The page renders its own selection toolbar; silence ProTable's
+        // built-in "N selected" alert bar.
+        tableAlertRender={false}
+        tableAlertOptionRender={false}
         columns={columns}
         dataSource={entityViews}
         loading={entityViewsQuery.isPending}
@@ -597,6 +709,14 @@ export default function EntityViewsListPage() {
             defaultMessage: 'No entity views found',
           }),
         }}
+        rowSelection={
+          readOnly
+            ? undefined
+            : {
+                selectedRowKeys,
+                onChange: (keys) => setSelectedRowKeys(keys),
+              }
+        }
       />
 
       <EntityViewDialog
@@ -612,14 +732,14 @@ export default function EntityViewsListPage() {
         open={assignTargets.length > 0}
         entityCount={assignTargets.length}
         onClose={() => setAssignTargets([])}
-        onConfirm={(customer) => {
-          const targets = assignTargets;
-          if (targets.length > 0) {
-            assignMutation.mutate({
-              customerId: customer.id.id,
-              entityViewId: targets[0].id.id,
-            });
-          }
+        onConfirm={(customer) => void runAssign(customer.id.id)}
+      />
+      <BatchProgressModal
+        open={batchOpen}
+        state={batch.state}
+        onClose={() => {
+          setBatchOpen(false);
+          batch.reset();
         }}
       />
     </PageContainer>

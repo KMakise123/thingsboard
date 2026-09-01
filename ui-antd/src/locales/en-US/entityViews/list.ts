@@ -46,6 +46,15 @@ export default {
   'pages.entityViews.list.makePrivateText':
     "After the confirmation the entity view and all its data will be made private and won't be accessible by others.",
 
+  // ---- batch ----
+  'pages.entityViews.list.selectedCount': '{count} selected',
+  'pages.entityViews.list.batchAssign': 'Assign to customer',
+  'pages.entityViews.list.batchUnassign': 'Unassign from customer',
+  'pages.entityViews.list.unassignManyTitle':
+    'Are you sure you want to unassign {count, plural, =1 {1 entity view} other {# entity views}}?',
+  'pages.entityViews.list.unassignManyText':
+    'After the confirmation all selected entity views will be unassigned and will not be accessible by the customer.',
+
   // ---- toasts ----
   'pages.entityViews.list.toastDeleted': 'Entity view deleted.',
   'pages.entityViews.list.toastAssigned':

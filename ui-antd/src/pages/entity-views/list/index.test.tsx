@@ -242,6 +242,103 @@ describe('entity-view list page', () => {
     );
   });
 
+  it('fans batch assign out per entity view through the customer modal', async () => {
+    customerServiceMock.getCustomers.mockResolvedValue({
+      data: [
+        {
+          id: { entityType: EntityType.CUSTOMER, id: 'cust-1' },
+          createdTime: 1,
+          title: 'Acme',
+          additionalInfo: {},
+        },
+      ],
+      totalElements: 1,
+    });
+    renderPage();
+    await screen.findByText('free-view');
+
+    const checkboxes = document.querySelectorAll(
+      '.ant-table-tbody .ant-table-selection-column .ant-checkbox-input',
+    );
+    expect(checkboxes.length).toBeGreaterThan(2);
+    fireEvent.click(checkboxes[0] as HTMLElement);
+    // Let the first selection land before the next (both compute from state).
+    await waitFor(() => {
+      expect(screen.getByText('已选 1 项')).toBeTruthy();
+    });
+    fireEvent.click(checkboxes[1] as HTMLElement);
+    await waitFor(() => {
+      expect(screen.getByText('已选 2 项')).toBeTruthy();
+    });
+    fireEvent.click(screen.getByRole('button', { name: '分配客户' }));
+
+    await waitFor(() =>
+      expect(customerServiceMock.getCustomers).toHaveBeenCalled(),
+    );
+    await screen.findByText('指派给客户');
+    const selector = document.querySelector('.ant-modal .ant-select');
+    fireEvent.mouseDown(selector as HTMLElement);
+    fireEvent.click(
+      await screen.findByText('Acme', {
+        selector: '.ant-select-item-option-content',
+      }),
+    );
+    const dialog = document.querySelector('.ant-modal') as HTMLElement;
+    fireEvent.click(within(dialog).getByRole('button', { name: '分 配' }));
+
+    await waitFor(() => {
+      expect(servicesMock.assignEntityViewToCustomer).toHaveBeenCalledTimes(2);
+    });
+    expect(servicesMock.assignEntityViewToCustomer).toHaveBeenCalledWith(
+      'cust-1',
+      'ev-1',
+    );
+    expect(servicesMock.assignEntityViewToCustomer).toHaveBeenCalledWith(
+      'cust-1',
+      'ev-2',
+    );
+  });
+
+  it('confirms and fans batch unassign out over the assigned selection', async () => {
+    renderPage();
+    await screen.findByText('free-view');
+
+    const checkboxes = document.querySelectorAll(
+      '.ant-table-tbody .ant-table-selection-column .ant-checkbox-input',
+    );
+    // Rows ev-2 and ev-3 are customer-assigned.
+    fireEvent.click(checkboxes[1] as HTMLElement);
+    fireEvent.click(checkboxes[2] as HTMLElement);
+    await waitFor(() => {
+      expect(screen.getByText('已选 2 项')).toBeTruthy();
+    });
+    fireEvent.click(screen.getByRole('button', { name: '取消分配客户' }));
+
+    const confirm = await waitFor(() => {
+      const node = document.querySelector('.ant-modal-confirm');
+      expect(node).not.toBeNull();
+      return node as HTMLElement;
+    });
+    expect(
+      within(confirm).getAllByText(/确定要取消分配 2 个实体视图吗？/),
+    ).not.toHaveLength(0);
+    fireEvent.click(
+      within(confirm).getByRole('button', { name: '取消分配客户' }),
+    );
+
+    await waitFor(() => {
+      expect(servicesMock.unassignEntityViewFromCustomer).toHaveBeenCalledTimes(
+        2,
+      );
+    });
+    expect(servicesMock.unassignEntityViewFromCustomer).toHaveBeenCalledWith(
+      'ev-2',
+    );
+    expect(servicesMock.unassignEntityViewFromCustomer).toHaveBeenCalledWith(
+      'ev-3',
+    );
+  });
+
   it('hides every action entry for a customer user', async () => {
     tokenStoreMock.decodeTokenClaims.mockReturnValue({
       scopes: ['CUSTOMER_USER'],
@@ -255,7 +352,11 @@ describe('entity-view list page', () => {
         .queryAllByRole('button')
         .filter((button) => button.querySelector('.anticon-more')),
     ).toHaveLength(0);
-    // The customer/public columns collapse for CU.
+    // The customer/public columns collapse for CU and there is no
+    // selection column (no batch surface at all).
     expect(screen.queryByText('客户')).toBeNull();
+    expect(
+      document.querySelectorAll('.ant-table-selection-column'),
+    ).toHaveLength(0);
   });
 });
