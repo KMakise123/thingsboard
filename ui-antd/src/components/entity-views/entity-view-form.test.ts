@@ -83,6 +83,18 @@ describe('entityViewToFormNumbers / buildEntityViewPayload', () => {
     });
   });
 
+  it('treats TB zero timestamps (unset window) as unset on backfill', () => {
+    // TB persists an omitted start/end as 0; dayjs(0) would render
+    // 1970-01-01 in the pickers (ui-ngx backfills null for the falsy 0).
+    const numbers = entityViewToFormNumbers({
+      ...BASE_ENTITY_VIEW,
+      startTimeMs: 0,
+      endTimeMs: 0,
+    });
+    expect(numbers.startTimeMs).toBeUndefined();
+    expect(numbers.endTimeMs).toBeUndefined();
+  });
+
   it('create payload omits server-assigned fields and normalizes keys', () => {
     const numbers = {
       ...emptyFormNumbers(),

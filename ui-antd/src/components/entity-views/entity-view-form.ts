@@ -92,8 +92,10 @@ export function entityViewToFormNumbers(
     sharedAttributes: keys.attributes.sh,
     serverAttributes: keys.attributes.ss,
     timeseriesKeys: keys.timeseries,
-    startTimeMs: entityView.startTimeMs,
-    endTimeMs: entityView.endTimeMs,
+    // TB persists an omitted start/end as 0 — backfill it as unset so the
+    // pickers stay empty instead of showing 1970-01-01 (ui-ngx parity).
+    startTimeMs: entityView.startTimeMs || undefined,
+    endTimeMs: entityView.endTimeMs || undefined,
     description: info.description ?? '',
   };
 }
