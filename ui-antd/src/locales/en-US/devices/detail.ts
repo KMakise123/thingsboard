@@ -4,7 +4,6 @@
  */
 export default {
   // header + shell
-  'pages.devices.detail.back': 'Back to devices',
   'pages.devices.detail.active': 'Active',
   'pages.devices.detail.inactive': 'Inactive',
   'pages.devices.detail.edit': 'Edit',

@@ -15,10 +15,15 @@ import PageContainer, { buildBreadcrumbItems } from './page-container';
 const historyMock = vi.hoisted(() => ({ push: vi.fn() }));
 
 let mockMatches: Array<{ route: { name?: string }; pathname: string }> = [];
+let mockClientRoutes: Array<{
+  name?: string;
+  path?: string;
+}> = [];
 
 vi.mock('@umijs/max', () => ({
   history: historyMock,
   useSelectedRoutes: () => mockMatches,
+  useAppData: () => ({ clientRoutes: mockClientRoutes }),
 }));
 
 vi.mock('@ant-design/pro-components', () => ({
@@ -80,31 +85,38 @@ function renderWrapper(ui: React.ReactElement) {
   );
 }
 
-const deviceChain = [
-  { route: { name: 'devices' }, pathname: '/devices' },
+// Detail routes are flat siblings of their list route, so matchRoutes only
+// yields the layout + the leaf (verified against the real shell, M2).
+const deviceDetailMatches = [
+  { route: {}, pathname: '/' },
   { route: { name: 'devices.detail' }, pathname: '/devices/dev-1' },
 ];
+const deviceMenuRoutes = [{ name: 'devices', path: '/devices' }];
 
 describe('PageContainer wrapper', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockMatches = [];
+    mockClientRoutes = [];
   });
 
   it('passes an explicit title through', () => {
-    mockMatches = deviceChain;
+    mockMatches = deviceDetailMatches;
+    mockClientRoutes = deviceMenuRoutes;
     renderWrapper(<PageContainer title="My device">content</PageContainer>);
     expect(screen.getByTestId('title').textContent).toBe('My device');
   });
 
   it('falls back to the leaf route menu label for the title', () => {
-    mockMatches = deviceChain;
+    mockMatches = deviceDetailMatches;
+    mockClientRoutes = deviceMenuRoutes;
     renderWrapper(<PageContainer>content</PageContainer>);
     expect(screen.getByTestId('title').textContent).toBe('设备详情');
   });
 
   it('renders parents from the route tree and the leaf from breadcrumbLabel', () => {
-    mockMatches = deviceChain;
+    mockMatches = deviceDetailMatches;
+    mockClientRoutes = deviceMenuRoutes;
     renderWrapper(
       <PageContainer breadcrumbLabel="m1-test-detail-alpha">
         content
@@ -123,27 +135,40 @@ describe('PageContainer wrapper', () => {
   });
 
   it('falls back to the leaf menu label without breadcrumbLabel', () => {
-    mockMatches = deviceChain;
+    mockMatches = deviceDetailMatches;
+    mockClientRoutes = deviceMenuRoutes;
     renderWrapper(<PageContainer>content</PageContainer>);
     const crumbs = screen.getByTestId('crumbs');
     expect(crumbs.textContent).toContain('设备详情');
   });
 
   it('renders nothing for single-entry chains', () => {
-    mockMatches = [{ route: { name: 'devices' }, pathname: '/devices' }];
+    mockMatches = [
+      { route: {}, pathname: '/' },
+      { route: { name: 'devices' }, pathname: '/devices' },
+    ];
     renderWrapper(<PageContainer>content</PageContainer>);
     expect(screen.getByTestId('crumbs').children).toHaveLength(0);
   });
 
   it('keeps crumbs short enough at the builder level too', () => {
-    const items = buildBreadcrumbItems(deviceChain, intl.formatMessage, 'X');
+    const routeIndex = new Map([
+      ['devices', { name: 'devices', path: '/devices' }],
+    ]);
+    const items = buildBreadcrumbItems(
+      deviceDetailMatches,
+      routeIndex,
+      intl.formatMessage,
+      'X',
+    );
     expect(items).toHaveLength(2);
     expect(items[0]).toMatchObject({ title: '设备', href: '/devices' });
-    expect(items[1]).toMatchObject({ title: 'X', href: undefined });
+    expect(items[1]).toMatchObject({ title: 'X' });
   });
 
   it('fires onBack immediately when clean', () => {
-    mockMatches = deviceChain;
+    mockMatches = deviceDetailMatches;
+    mockClientRoutes = deviceMenuRoutes;
     const onBack = vi.fn();
     renderWrapper(<PageContainer onBack={onBack}>content</PageContainer>);
     fireEvent.click(screen.getByTestId('back'));
@@ -151,7 +176,8 @@ describe('PageContainer wrapper', () => {
   });
 
   it('guards onBack behind an unsaved-changes confirm when dirty', async () => {
-    mockMatches = deviceChain;
+    mockMatches = deviceDetailMatches;
+    mockClientRoutes = deviceMenuRoutes;
     const onBack = vi.fn();
     renderWrapper(
       <PageContainer onBack={onBack} dirty>

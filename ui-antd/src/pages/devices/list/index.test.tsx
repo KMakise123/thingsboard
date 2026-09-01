@@ -24,6 +24,11 @@ const intl = createIntl({
   messages: { ...zhCommon, ...zhDevices },
 });
 
+vi.mock('@umijs/max', () => ({
+  useSelectedRoutes: () => [],
+  useAppData: () => ({ clientRoutes: [] }),
+}));
+
 import { EntityType } from '@/types/tb';
 
 import DevicesListPage from './index';
@@ -83,7 +88,19 @@ vi.mock('@ant-design/pro-components', async () => {
       {...rest}
     />
   );
-  return { ProTable };
+  return {
+    ProTable,
+    // Thin passthrough: the page header (ADR 0008) renders extra + children.
+    PageContainer: (props: {
+      extra?: React.ReactNode;
+      children?: React.ReactNode;
+    }) => (
+      <div>
+        {props.extra}
+        {props.children}
+      </div>
+    ),
+  };
 });
 
 const NULL_CUSTOMER = {

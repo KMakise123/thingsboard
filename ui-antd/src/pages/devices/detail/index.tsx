@@ -11,7 +11,7 @@
  * alarm-rules / version-control tabs, no editing). Editor entry points are
  * never rendered (spec principle 3).
  */
-import { ArrowLeftOutlined, EditOutlined } from '@ant-design/icons';
+import { EditOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import { history, useParams } from '@umijs/max';
 import {
@@ -41,6 +41,7 @@ import LatestTelemetryPanel from '@/components/entities/detail/LatestTelemetryPa
 import RelationsPanel from '@/components/entities/detail/RelationsPanel';
 import VersionControlPanel from '@/components/entities/detail/VersionControlPanel';
 import { serverErrorText } from '@/components/entities/server-error-text';
+import PageContainer from '@/components/layout/page-container';
 import { getDeviceInfoById } from '@/services/tb/device';
 import type { DeviceInfo } from '@/types/tb';
 import { EntityType } from '@/types/tb';
@@ -156,72 +157,60 @@ export default function DeviceDetailPage() {
   });
 
   return (
-    <div className="flex flex-col gap-3">
-      <Card>
-        <Space orientation="vertical" size={4} className="w-full">
-          <Space align="center">
-            <Button
-              type="text"
-              icon={<ArrowLeftOutlined />}
-              onClick={() => {
-                if (dirty) {
-                  confirmDiscard(() => history.push('/devices'));
-                  return;
-                }
-                history.push('/devices');
-              }}
-              title={formatMessage({
-                id: 'pages.devices.detail.back',
-                defaultMessage: 'Back to devices',
+    <PageContainer
+      title={device?.name ?? id}
+      // Dynamic breadcrumb segment: the entity's real name, same fallback
+      // as the title (ADR 0008).
+      breadcrumbLabel={device?.name ?? id}
+      tags={
+        device ? (
+          <Tag color={device.active ? 'success' : 'error'}>
+            {formatMessage({
+              id: device.active
+                ? 'pages.devices.detail.active'
+                : 'pages.devices.detail.inactive',
+              defaultMessage: device.active ? 'Active' : 'Inactive',
+            })}
+          </Tag>
+        ) : undefined
+      }
+      extra={
+        !readOnly && (
+          <Button
+            icon={<EditOutlined />}
+            onClick={toggleEdit}
+            danger={editing && dirty}
+            disabled={!device}
+          >
+            {formatMessage({
+              id: editing
+                ? 'pages.devices.detail.cancelEdit'
+                : 'pages.devices.detail.edit',
+              defaultMessage: editing ? 'Cancel edit' : 'Edit',
+            })}
+          </Button>
+        )
+      }
+      // The wrapper guards this against unsaved changes (dirty).
+      onBack={() => history.push('/devices')}
+      dirty={dirty}
+      content={
+        <Space size={16} wrap>
+          {device?.label ? (
+            <Typography.Text type="secondary">{device.label}</Typography.Text>
+          ) : null}
+          {device && (
+            <Typography.Text type="secondary">
+              {formatMessage({
+                id: 'pages.devices.detail.profile',
+                defaultMessage: 'Device profile',
               })}
-            />
-            <Typography.Title level={4} className="!mb-0">
-              {device?.name ?? id}
-            </Typography.Title>
-            {device && (
-              <Tag color={device.active ? 'success' : 'error'}>
-                {formatMessage({
-                  id: device.active
-                    ? 'pages.devices.detail.active'
-                    : 'pages.devices.detail.inactive',
-                  defaultMessage: device.active ? 'Active' : 'Inactive',
-                })}
-              </Tag>
-            )}
-            <div className="flex-1" />
-            {!readOnly && (
-              <Button
-                icon={<EditOutlined />}
-                onClick={toggleEdit}
-                danger={editing && dirty}
-                disabled={!device}
-              >
-                {formatMessage({
-                  id: editing
-                    ? 'pages.devices.detail.cancelEdit'
-                    : 'pages.devices.detail.edit',
-                  defaultMessage: editing ? 'Cancel edit' : 'Edit',
-                })}
-              </Button>
-            )}
-          </Space>
-          <Space size={16} wrap>
-            {device?.label ? (
-              <Typography.Text type="secondary">{device.label}</Typography.Text>
-            ) : null}
-            {device && (
-              <Typography.Text type="secondary">
-                {formatMessage({
-                  id: 'pages.devices.detail.profile',
-                  defaultMessage: 'Device profile',
-                })}
-                : {device.deviceProfileName}
-              </Typography.Text>
-            )}
-          </Space>
+              : {device.deviceProfileName}
+            </Typography.Text>
+          )}
         </Space>
-      </Card>
-
+      }
+    >
       <Card>
         {deviceQuery.isPending && (
           <div className="flex justify-center py-10">
@@ -248,7 +237,7 @@ export default function DeviceDetailPage() {
           />
         )}
       </Card>
-    </div>
+    </PageContainer>
   );
 }
 

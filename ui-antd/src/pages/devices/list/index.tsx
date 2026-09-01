@@ -49,6 +49,7 @@ import { DeviceImportModal } from '@/components/devices/DeviceImportModal';
 import { DeviceWizardModal } from '@/components/devices/DeviceWizardModal';
 import { AssignCustomerModal } from '@/components/entities/AssignCustomerModal';
 import { serverErrorText } from '@/components/entities/server-error-text';
+import PageContainer from '@/components/layout/page-container';
 import {
   assignDeviceToCustomer,
   deleteDevice,
@@ -610,143 +611,146 @@ export default function DevicesListPage() {
   const assignedSelected = selectedDevices.filter(hasCustomer);
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-center gap-3">
-        <Input.Search
-          allowClear
-          className="w-64"
-          value={searchInput}
-          onChange={(event) => setSearchInput(event.target.value)}
-          placeholder={formatMessage({
-            id: 'pages.devices.list.search',
-            defaultMessage: 'Search devices',
-          })}
-        />
-        <Select
-          allowClear
-          showSearch
-          className="w-56"
-          filterOption={false}
-          onSearch={setProfileFilterSearch}
-          loading={profileOptionsQuery.isPending}
-          value={urlState.deviceProfileId}
-          placeholder={formatMessage({
-            id: 'pages.devices.list.profilePlaceholder',
-            defaultMessage: 'All device profiles',
-          })}
-          options={(profileOptionsQuery.data?.data ?? []).map((profile) => ({
-            label: profile.name,
-            value: profile.id.id,
-          }))}
-          onChange={(value) =>
-            patch({ deviceProfileId: value ?? undefined, page: 1 })
-          }
-        />
-        <Segmented
-          value={urlState.active ?? 'any'}
-          onChange={(value) =>
-            patch({
-              active: value === 'any' ? undefined : (value as 'true' | 'false'),
-              page: 1,
-            })
-          }
-          options={[
-            {
-              label: formatMessage({
-                id: 'pages.devices.list.stateAny',
-                defaultMessage: 'Any state',
-              }),
-              value: 'any',
-            },
-            {
-              label: formatMessage({
-                id: 'pages.devices.list.active',
-                defaultMessage: 'Active',
-              }),
-              value: 'true',
-            },
-            {
-              label: formatMessage({
-                id: 'pages.devices.list.inactive',
-                defaultMessage: 'Inactive',
-              }),
-              value: 'false',
-            },
-          ]}
-        />
-        <Button
-          icon={<ReloadOutlined />}
-          onClick={() => void devicesQuery.refetch()}
-        >
-          {formatMessage({
-            id: 'pages.devices.list.refresh',
-            defaultMessage: 'Refresh',
-          })}
-        </Button>
-        <div className="flex-1" />
-        {!readOnly && (
-          <Space>
-            {selectedDevices.length > 0 && (
-              <>
-                <Typography.Text type="secondary">
-                  {formatMessage(
-                    {
-                      id: 'pages.devices.list.selectedCount',
-                      defaultMessage: '{count} selected',
-                    },
-                    { count: selectedDevices.length },
-                  )}
-                </Typography.Text>
-                <Button
-                  danger
-                  icon={<DeleteOutlined />}
-                  onClick={confirmDeleteSelected}
-                >
-                  {formatMessage({
-                    id: 'pages.devices.list.batchDelete',
-                    defaultMessage: 'Delete selected',
-                  })}
-                </Button>
-                <Button onClick={() => setAssignTargets(selectedDevices)}>
-                  {formatMessage({
-                    id: 'pages.devices.list.batchAssign',
-                    defaultMessage: 'Assign to customer',
-                  })}
-                </Button>
-                <Button
-                  disabled={assignedSelected.length === 0}
-                  onClick={() => confirmUnassign(assignedSelected)}
-                >
-                  {formatMessage({
-                    id: 'pages.devices.list.batchUnassign',
-                    defaultMessage: 'Unassign from customer',
-                  })}
-                </Button>
-              </>
-            )}
-            <Button
-              icon={<DownloadOutlined />}
-              onClick={() => setImportOpen(true)}
-            >
-              {formatMessage({
-                id: 'pages.devices.list.import',
-                defaultMessage: 'Import device',
-              })}
-            </Button>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={() => setWizardOpen(true)}
-            >
-              {formatMessage({
-                id: 'pages.devices.list.add',
-                defaultMessage: 'Add new device',
-              })}
-            </Button>
-          </Space>
-        )}
-      </div>
-
+    <PageContainer
+      extra={
+        <div className="flex flex-wrap items-center gap-3">
+          <Input.Search
+            allowClear
+            className="w-64"
+            value={searchInput}
+            onChange={(event) => setSearchInput(event.target.value)}
+            placeholder={formatMessage({
+              id: 'pages.devices.list.search',
+              defaultMessage: 'Search devices',
+            })}
+          />
+          <Select
+            allowClear
+            showSearch
+            className="w-56"
+            filterOption={false}
+            onSearch={setProfileFilterSearch}
+            loading={profileOptionsQuery.isPending}
+            value={urlState.deviceProfileId}
+            placeholder={formatMessage({
+              id: 'pages.devices.list.profilePlaceholder',
+              defaultMessage: 'All device profiles',
+            })}
+            options={(profileOptionsQuery.data?.data ?? []).map((profile) => ({
+              label: profile.name,
+              value: profile.id.id,
+            }))}
+            onChange={(value) =>
+              patch({ deviceProfileId: value ?? undefined, page: 1 })
+            }
+          />
+          <Segmented
+            value={urlState.active ?? 'any'}
+            onChange={(value) =>
+              patch({
+                active:
+                  value === 'any' ? undefined : (value as 'true' | 'false'),
+                page: 1,
+              })
+            }
+            options={[
+              {
+                label: formatMessage({
+                  id: 'pages.devices.list.stateAny',
+                  defaultMessage: 'Any state',
+                }),
+                value: 'any',
+              },
+              {
+                label: formatMessage({
+                  id: 'pages.devices.list.active',
+                  defaultMessage: 'Active',
+                }),
+                value: 'true',
+              },
+              {
+                label: formatMessage({
+                  id: 'pages.devices.list.inactive',
+                  defaultMessage: 'Inactive',
+                }),
+                value: 'false',
+              },
+            ]}
+          />
+          <Button
+            icon={<ReloadOutlined />}
+            onClick={() => void devicesQuery.refetch()}
+          >
+            {formatMessage({
+              id: 'pages.devices.list.refresh',
+              defaultMessage: 'Refresh',
+            })}
+          </Button>
+          <div className="flex-1" />
+          {!readOnly && (
+            <Space>
+              {selectedDevices.length > 0 && (
+                <>
+                  <Typography.Text type="secondary">
+                    {formatMessage(
+                      {
+                        id: 'pages.devices.list.selectedCount',
+                        defaultMessage: '{count} selected',
+                      },
+                      { count: selectedDevices.length },
+                    )}
+                  </Typography.Text>
+                  <Button
+                    danger
+                    icon={<DeleteOutlined />}
+                    onClick={confirmDeleteSelected}
+                  >
+                    {formatMessage({
+                      id: 'pages.devices.list.batchDelete',
+                      defaultMessage: 'Delete selected',
+                    })}
+                  </Button>
+                  <Button onClick={() => setAssignTargets(selectedDevices)}>
+                    {formatMessage({
+                      id: 'pages.devices.list.batchAssign',
+                      defaultMessage: 'Assign to customer',
+                    })}
+                  </Button>
+                  <Button
+                    disabled={assignedSelected.length === 0}
+                    onClick={() => confirmUnassign(assignedSelected)}
+                  >
+                    {formatMessage({
+                      id: 'pages.devices.list.batchUnassign',
+                      defaultMessage: 'Unassign from customer',
+                    })}
+                  </Button>
+                </>
+              )}
+              <Button
+                icon={<DownloadOutlined />}
+                onClick={() => setImportOpen(true)}
+              >
+                {formatMessage({
+                  id: 'pages.devices.list.import',
+                  defaultMessage: 'Import device',
+                })}
+              </Button>
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() => setWizardOpen(true)}
+              >
+                {formatMessage({
+                  id: 'pages.devices.list.add',
+                  defaultMessage: 'Add new device',
+                })}
+              </Button>
+            </Space>
+          )}
+        </div>
+      }
+    >
       {devicesQuery.isError && (
         <Alert
           type="error"
@@ -845,7 +849,7 @@ export default function DevicesListPage() {
           batch.reset();
         }}
       />
-    </div>
+    </PageContainer>
   );
 }
 

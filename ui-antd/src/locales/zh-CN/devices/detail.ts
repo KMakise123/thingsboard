@@ -4,7 +4,6 @@
  */
 export default {
   // header + shell
-  'pages.devices.detail.back': '返回设备列表',
   'pages.devices.detail.active': '在线',
   'pages.devices.detail.inactive': '离线',
   'pages.devices.detail.edit': '编辑',
