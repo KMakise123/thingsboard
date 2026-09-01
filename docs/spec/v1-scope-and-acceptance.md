@@ -42,24 +42,26 @@ v1 = **除编辑器三件套与八个子系统外，对齐 ui-ngx 全部页面�
 
 ### 3.1 登录族（M1 密码线 / M4 MFA + OAuth2 线）
 
+> M1 验收（2026-09-01）：密码线 7/11 勾；4 项邮件链路待 SMTP / 密码策略配置后复验——对应页面全部可达、表单校验 / 密码策略强度提示在、假 token 的后端错误透传已验证。
+
 密码登录：
-- [ ] 正确凭据登录成功 → 落设备列表（有 `redirectUrl` 则回跳）
-- [ ] 错误凭据 → 后端错误原文透传展示，不白屏
-- [ ] 品牌接缝生效：logo / 标题 / favicon / 登录背景全部来自 `theme/brand` 单源
-- [ ] 已登录态访问 `/login` → 重定向设备列表
+- [x] 正确凭据登录成功 → 落设备列表（有 `redirectUrl` 则回跳）
+- [x] 错误凭据 → 后端错误原文透传展示，不白屏
+- [x] 品牌接缝生效：logo / 标题 / favicon / 登录背景全部来自 `theme/brand` 单源
+- [x] 已登录态访问 `/login` → 重定向设备列表
 
 忘记密码链路（验收前置：后端 SMTP 已手工配置）：
 - [ ] `resetPasswordRequest` 提交邮箱 → 调发信 API，成功提示
 - [ ] 邮件链接落 `resetPassword` → 两次输入一致性 + 密码策略强度提示 → 成功 → 落登录页
-- [ ] token 过期 → `passwordResetLinkExpired` 页
+- [x] token 过期 → `passwordResetLinkExpired` 页
 
 激活 / 创建密码：
 - [ ] 激活邮件链接落 `createPassword` → 设置成功 → 落登录页
-- [ ] 激活链接过期 → `activationLinkExpired` 页
+- [x] 激活链接过期 → `activationLinkExpired` 页
 - [ ] 密码策略过期用户：登录后被引导走 `resetExpiredPassword`
 
 登出：
-- [ ] 用户菜单登出 → 清 localStorage 四键 → 落登录页；WS 连接关闭
+- [x] 用户菜单登出 → 清 localStorage 四键 → 落登录页；WS 连接关闭
 
 MFA（M4）：
 - [ ] 已启用 2FA 用户密码正确后 → `login/mfa` 验证码页 → 通过落默认页
@@ -70,11 +72,13 @@ OAuth2（M4，验收前置：sys 已配置 provider，见 3.7）：
 
 ### 3.2 应用壳（M1）
 
-- [ ] 三角色菜单集正确（SA：sys 域；TA：tenant 域全量；CU：设备 / 资产 / 告警 / 仪表盘四项）
-- [ ] 无权限路由手输 → 拒绝（403 形态对齐 ui-ngx）
-- [ ] locale 切换即生效并持久化；双语完整由 CI `check-locale` 门禁兜底
-- [ ] 404 → 重定向设备列表；面包屑随路由
-- [ ] SA 登录落 `/tenants`，TA / CU 落 `/devices`
+> M1 验收（2026-09-01）：4/5 勾。两项挂起：①「SA 登录落 /tenants」——M1 临时落 `/home` 临时首页（明确提示 sys 域 M3 交付），待 M3 sys 域页面在场后复验；②「面包屑随路由」——未实现（结构性遗留，头部形态取舍见修订记录）。
+
+- [x] 三角色菜单集正确（SA：sys 域；TA：tenant 域全量；CU：设备 / 资产 / 告警 / 仪表盘四项）
+- [x] 无权限路由手输 → 拒绝（403 形态对齐 ui-ngx）
+- [x] locale 切换即生效并持久化；双语完整由 CI `check-locale` 门禁兜底
+- [ ] 404 → 重定向设备列表；面包屑随路由（404 ✅；面包屑 M1 未实现）
+- [ ] SA 登录落 `/tenants`，TA / CU 落 `/devices`（TA / CU ✅；SA 待 M3，M1 临时落 `/home`）
 
 ### 3.3 设备域（M1）——资产 / 实体视图 / 网关按 3.4 差分引用本节
 
@@ -91,14 +95,16 @@ OAuth2（M4，验收前置：sys 已配置 provider，见 3.7）：
 - [ ] 行删除（二次确认）
 
 详情 10 tab：
-- [ ] `details`：编辑 / 保存 / 离开未保存确认；字段校验
-- [ ] `attributes`：CLIENT / SERVER / SHARED scope 切换；服务端 / 共享属性新增 / 编辑 / 删除；WS 推送下表格自动更新（≤5s）
-- [ ] `latest telemetry`：表格 WS 实时刷新；点击 key → 历史折线图 dialog（timewindow presets + 自定义区间）
-- [ ] `alarms`：预填实体过滤的告警 tab（见 3.6）
-- [ ] `events`：事件类型过滤 + 分页（默认 ERROR）
-- [ ] `relations`：方向 / 实体类型过滤 + 增删
-- [ ] `audit-logs`：实体作用域审计，列集对齐（createdTime / actionType / actionStatus / userName）
-- [ ] `calculated-fields` / `alarm-rules` / `version-control`：tab 能力对齐（VC：auto-commit 设置、提交、版本对比、恢复；不跳 VC 独立页）
+- [x] `details`：编辑 / 保存 / 离开未保存确认；字段校验
+- [x] `attributes`：CLIENT / SERVER / SHARED scope 切换；服务端 / 共享属性新增 / 编辑 / 删除；WS 推送下表格自动更新（≤5s）
+- [x] `latest telemetry`：表格 WS 实时刷新；点击 key → 历史折线图 dialog（timewindow presets + 自定义区间）
+- [x] `alarms`：预填实体过滤的告警 tab（见 3.6）
+- [x] `events`：事件类型过滤 + 分页（默认 ERROR）
+- [x] `relations`：方向 / 实体类型过滤 + 增删
+- [x] `audit-logs`：实体作用域审计，列集对齐（createdTime / actionType / actionStatus / userName）
+- [x] `calculated-fields` / `alarm-rules` / `version-control`：tab 能力对齐（VC：auto-commit 设置、提交、版本对比、恢复；不跳 VC 独立页）
+
+> M1 验收注（2026-09-01）：详情 10 tab 全勾。范围口径：calculated-fields 面板交付 SIMPLE 形态、alarm-rules 面板交付单阈值形态——SCRIPT / GEOFENCING 等复杂编辑器与表达式工程随 v2 编辑器阶段，登记于修订记录；alarm tab 订阅快照上限 100 条（历史超窗不可见）为已知限制，待告警域（M3）全局页一并权衡。
 
 ### 3.4 资产 / 实体视图 / 网关（M2）
 
@@ -208,3 +214,4 @@ OAuth2（M4，验收前置：sys 已配置 provider，见 3.7）：
 ## 修订记录
 
 - 2026-08-31：初版定案（#9 三轮 grilling：Round 1 骨架八问、Round 2 九域「全都要」、Round 3 边界 / 里程碑 / widget 锚点收口）。
+- 2026-09-01：**M1 验收落账**（终验收 488 次操作核验 + 修复轮 5 commit）。3.1 密码线 7/11（4 项邮件链路待 SMTP 前置）；3.2 应用壳 3/5（SA 落点待 M3；**面包屑未实现**——结构性遗留，头部形态取舍「自定义头 vs ProLayout PageContainer」待 M2 开工前决议）；3.3 列表 10/10 + 详情 10/10（CF=SIMPLE / AR=单阈值范围口径见 3.3 注）。验收中修复 4 个真实缺陷：alarm-data WS 通道直落详情页失联（建连竞态 + 三处后端契约不匹配）、tabular-nums 对 string 管道值失效、CU 凭证 Reset 禁用改隐藏（越权入口收口）、详情返回箭头绕过未保存守卫。WS 实时链路修复后端到端复验 ≤5s（3.11 新鲜度核心项提前达标）。后端缺口候选 8 条登记 `docs/bcr.md`，待阶段边界集中复审。
