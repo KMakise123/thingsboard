@@ -14,9 +14,9 @@ import {
 import { App as AntdApp } from 'antd';
 import React from 'react';
 import { createIntl, RawIntlProvider } from 'react-intl';
-import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
-import zhCustomers from '@/locales/zh-CN/customers';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import zhCommon from '@/locales/zh-CN/common';
+import zhCustomers from '@/locales/zh-CN/customers';
 import zhDevicesList from '@/locales/zh-CN/devices/list';
 
 const intl = createIntl({
@@ -143,9 +143,7 @@ describe('customer devices scope page', () => {
       /确定要取消分配设备“scope-dev-a”吗？/,
     );
     expect(confirm.length).toBeGreaterThan(0);
-    fireEvent.click(
-      screen.getByRole('button', { name: /从该客户取消分配/ }),
-    );
+    fireEvent.click(screen.getByRole('button', { name: /从该客户取消分配/ }));
 
     await waitFor(() => {
       expect(servicesMock.unassignDeviceFromCustomer).toHaveBeenCalledWith(
@@ -172,9 +170,7 @@ describe('customer devices scope page', () => {
     });
 
     fireEvent.click(screen.getByRole('button', { name: '取消分配所选设备' }));
-    const confirm = await screen.findAllByText(
-      /确定要取消分配 2 台设备吗？/,
-    );
+    const confirm = await screen.findAllByText(/确定要取消分配 2 台设备吗？/);
     expect(confirm.length).toBeGreaterThan(0);
     fireEvent.click(
       within(document.body).getByRole('button', {
@@ -204,9 +200,7 @@ describe('customer devices scope page', () => {
     expect(
       (await screen.findAllByText(/确定要删除设备“scope-dev-a”吗？/)).length,
     ).toBeGreaterThan(0);
-    fireEvent.click(
-      screen.getByRole('button', { name: /删\s*除/ }),
-    );
+    fireEvent.click(screen.getByRole('button', { name: /删\s*除/ }));
     await waitFor(() => {
       expect(servicesMock.deleteDevice).toHaveBeenCalledWith('dev-1');
     });

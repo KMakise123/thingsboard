@@ -8,8 +8,8 @@ import { App as AntdApp } from 'antd';
 import React from 'react';
 import { createIntl, RawIntlProvider } from 'react-intl';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import zhCustomers from '@/locales/zh-CN/customers';
 import zhCommon from '@/locales/zh-CN/common';
+import zhCustomers from '@/locales/zh-CN/customers';
 import zhDevicesList from '@/locales/zh-CN/devices/list';
 
 const intl = createIntl({

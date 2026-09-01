@@ -15,8 +15,8 @@ import { App as AntdApp } from 'antd';
 import React from 'react';
 import { createIntl, RawIntlProvider } from 'react-intl';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import zhCustomers from '@/locales/zh-CN/customers';
 import zhCommon from '@/locales/zh-CN/common';
+import zhCustomers from '@/locales/zh-CN/customers';
 
 const intl = createIntl({
   locale: 'zh-CN',
@@ -84,7 +84,10 @@ function user(id: string, email: string, extra: Record<string, unknown> = {}) {
 }
 
 const PAGE = {
-  data: [user('user-1', 'cu@thingsboard.org'), user('user-2', 'cu2@thingsboard.org')],
+  data: [
+    user('user-1', 'cu@thingsboard.org'),
+    user('user-2', 'cu2@thingsboard.org'),
+  ],
   totalElements: 2,
   totalPages: 1,
   hasNext: false,
@@ -126,9 +129,7 @@ describe('customer users scope page', () => {
   it('loads the customer-scoped user list', async () => {
     renderPage();
 
-    expect(
-      await screen.findByText('cu@thingsboard.org'),
-    ).toBeInTheDocument();
+    expect(await screen.findByText('cu@thingsboard.org')).toBeInTheDocument();
     expect(servicesMock.getCustomerUsers).toHaveBeenCalledWith('cust-1', {
       pageSize: 10,
       page: 0,

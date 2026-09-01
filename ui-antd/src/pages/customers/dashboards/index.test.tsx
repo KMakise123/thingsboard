@@ -16,8 +16,8 @@ import { App as AntdApp } from 'antd';
 import React from 'react';
 import { createIntl, RawIntlProvider } from 'react-intl';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import zhCustomers from '@/locales/zh-CN/customers';
 import zhCommon from '@/locales/zh-CN/common';
+import zhCustomers from '@/locales/zh-CN/customers';
 
 const intl = createIntl({
   locale: 'zh-CN',
@@ -130,14 +130,15 @@ describe('customer dashboards scope page', () => {
     renderPage();
 
     expect(await screen.findByText('客户驾驶舱')).toBeInTheDocument();
-    expect(
-      customerServiceMock.getCustomerDashboards,
-    ).toHaveBeenCalledWith('cust-1', {
-      pageSize: 10,
-      page: 0,
-      textSearch: undefined,
-      sortOrder: { property: 'createdTime', direction: 'DESC' },
-    });
+    expect(customerServiceMock.getCustomerDashboards).toHaveBeenCalledWith(
+      'cust-1',
+      {
+        pageSize: 10,
+        page: 0,
+        textSearch: undefined,
+        sortOrder: { property: 'createdTime', direction: 'DESC' },
+      },
+    );
   });
 
   it('assigns a tenant dashboard picked from the server-searched list', async () => {
@@ -157,9 +158,7 @@ describe('customer dashboards scope page', () => {
         selector: '.ant-select-item-option-content',
       }),
     );
-    fireEvent.click(
-      within(modal).getByRole('button', { name: /分\s*配/ }),
-    );
+    fireEvent.click(within(modal).getByRole('button', { name: /分\s*配/ }));
 
     await waitFor(() => {
       expect(
