@@ -126,9 +126,7 @@ describe('customer detail page', () => {
   it('renders the header from the customer and defaults to the attributes tab', async () => {
     renderPage();
 
-    expect(
-      (await screen.findAllByText('工厂 A')).length,
-    ).toBeGreaterThan(0);
+    expect((await screen.findAllByText('工厂 A')).length).toBeGreaterThan(0);
     expect(servicesMock.getCustomerById).toHaveBeenCalledWith('cust-1');
     expect(screen.getByRole('tab', { selected: true }).textContent).toContain(
       '属性',
@@ -141,9 +139,7 @@ describe('customer detail page', () => {
     renderPage();
     await screen.findAllByText('工厂 A');
 
-    const labels = screen
-      .getAllByRole('tab')
-      .map((node) => node.textContent);
+    const labels = screen.getAllByRole('tab').map((node) => node.textContent);
     expect(labels).toEqual([
       '属性',
       '最新遥测',

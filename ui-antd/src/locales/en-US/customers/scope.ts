@@ -110,6 +110,9 @@ export default {
   'pages.customers.dashboards.columnTitle': 'Dashboard title',
   'pages.customers.dashboards.actionAssign': 'Assign dashboard',
   'pages.customers.dashboards.assignTitle': 'Assign dashboard to customer',
+  'pages.customers.dashboards.assignHint':
+    'Pick a tenant dashboard to assign to this customer.',
+  'pages.customers.dashboards.dashboardRequired': 'Dashboard is required.',
   'pages.customers.dashboards.dashboardPlaceholder':
     'Search and select a dashboard',
   'pages.customers.dashboards.assign': 'Assign',

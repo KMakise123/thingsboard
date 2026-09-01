@@ -98,6 +98,8 @@ export default {
   'pages.customers.dashboards.columnTitle': '仪表盘名称',
   'pages.customers.dashboards.actionAssign': '指派仪表盘',
   'pages.customers.dashboards.assignTitle': '指派仪表盘给客户',
+  'pages.customers.dashboards.assignHint': '选择一个租户仪表盘指派给该客户。',
+  'pages.customers.dashboards.dashboardRequired': '请选择仪表盘。',
   'pages.customers.dashboards.dashboardPlaceholder': '搜索并选择仪表盘',
   'pages.customers.dashboards.assign': '分配',
   'pages.customers.dashboards.cancel': '取消',

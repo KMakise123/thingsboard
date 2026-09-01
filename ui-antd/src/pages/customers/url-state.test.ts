@@ -4,13 +4,12 @@
  * constants (default attributes, TA-only trio, serialize omission).
  */
 import { describe, expect, it } from 'vitest';
-
-import { createListUrlState } from './list-url-state';
 import {
   DETAIL_TABS,
-  TA_ONLY_DETAIL_TABS,
   isTaOnlyDetailTab,
+  TA_ONLY_DETAIL_TABS,
 } from './detail/url-state';
+import { createListUrlState } from './list-url-state';
 
 const listState = createListUrlState({
   sortProperty: 'createdTime',
@@ -30,7 +29,9 @@ describe('customer list url state', () => {
 
   it('restores filters, page and sort from a bookmarked URL', () => {
     expect(
-      listState.parse('?page=3&pageSize=50&sortProperty=title&sortOrder=ASC&textSearch=工厂'),
+      listState.parse(
+        '?page=3&pageSize=50&sortProperty=title&sortOrder=ASC&textSearch=工厂',
+      ),
     ).toEqual({
       page: 3,
       pageSize: 50,
