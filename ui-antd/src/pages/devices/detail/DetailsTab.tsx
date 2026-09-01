@@ -104,8 +104,7 @@ export default function DetailsTab({
   // Dirty is only meaningful while editing: the read-only display form can
   // transiently diverge from the baseline (e.g. profile select not yet
   // loaded) and must never trip the unsaved-changes guard.
-  const dirty =
-    editing && !!values && isDeviceDetailsDirty(values, device);
+  const dirty = editing && !!values && isDeviceDetailsDirty(values, device);
   useEffect(() => {
     onDirtyChange(dirty);
   }, [dirty, onDirtyChange]);

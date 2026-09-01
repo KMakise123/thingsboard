@@ -68,6 +68,8 @@ export default function TimeseriesHistoryModal({
       presetId === CUSTOM_TIMEWINDOW_ID && customRange
         ? [customRange[0].valueOf(), customRange[1].valueOf()]
         : presetRange(presetId),
+    // biome-ignore lint/correctness/useExhaustiveDependencies: `open` is an
+    // intentional extra dep — one fresh now-based window per dialog visit.
     [open, presetId, customRange],
   );
 
@@ -181,6 +183,9 @@ export default function TimeseriesHistoryModal({
         },
       ],
     });
+    // biome-ignore lint/correctness/useExhaustiveDependencies: `chartNode` is
+    // an intentional extra dep — repaint right after the chart binds to the
+    // freshly mounted portal node.
   }, [open, points, telemetryKey, presetId, chartNode]);
 
   return (
