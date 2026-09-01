@@ -1,8 +1,13 @@
 /**
- * 实体视图域（M2 stub 种子，实体视图域 agent 扩展）.
+ * 实体视图域（M2）locale 聚合：form（dialog 与详情页头共用）/ list / detail。
  * Keep zh-CN/en-US key-for-key identical (check-locale gate).
  */
+import detail from './detail';
+import form from './form';
+import list from './list';
+
 export default {
-  'pages.entityViews.list.title': '实体视图',
-  'pages.entityViews.detail.title': '实体视图详情',
+  ...form,
+  ...list,
+  ...detail,
 };

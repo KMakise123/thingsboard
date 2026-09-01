@@ -1,8 +1,14 @@
 /**
- * Entity-view domain (M2 stub seed; extended by the entity-view agent).
+ * Entity-view domain (M2) locale aggregate: form (shared by the dialog and
+ * the detail-page header form) / list / detail.
  * Keep zh-CN/en-US key-for-key identical (check-locale gate).
  */
+import detail from './detail';
+import form from './form';
+import list from './list';
+
 export default {
-  'pages.entityViews.list.title': 'Entity views',
-  'pages.entityViews.detail.title': 'Entity view detail',
+  ...form,
+  ...list,
+  ...detail,
 };

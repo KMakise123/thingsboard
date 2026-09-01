@@ -4,8 +4,10 @@
  * compare and the startTimeMs/endTimeMs interlock (day clamp + same-day
  * h:m:s clamp + exact-ms validator rule).
  */
-import { describe, expect, it } from 'vitest';
+
 import dayjs from 'dayjs';
+import { describe, expect, it } from 'vitest';
+import type { EntityView } from '@/types/tb';
 import { EntityType } from '@/types/tb';
 import {
   buildEntityViewPayload,
@@ -22,7 +24,7 @@ import {
   startDisabledTime,
 } from './entity-view-form';
 
-const BASE_ENTITY_VIEW = {
+const BASE_ENTITY_VIEW: EntityView = {
   id: { entityType: EntityType.ENTITY_VIEW, id: 'ev-1' },
   createdTime: 1_700_000_000_000,
   version: 3,
@@ -140,7 +142,7 @@ describe('isEntityViewFormDirty', () => {
     ).toBe(true);
     expect(
       isEntityViewFormDirty(
-        { ...baseline, endTimeMs: baseline.endTimeMs + 1 },
+        { ...baseline, endTimeMs: (baseline.endTimeMs ?? 0) + 1 },
         baseline,
       ),
     ).toBe(true);
@@ -161,19 +163,19 @@ describe('time-range interlock', () => {
 
   it('day clamp blocks out-of-window days only', () => {
     const end = dayjs('2026-05-10T08:30:00');
-    expect(isStartDateDisabled(dayjs('2026-05-11T00:00:00'), end.valueOf())).toBe(
-      true,
-    );
-    expect(isStartDateDisabled(dayjs('2026-05-10T23:59:00'), end.valueOf())).toBe(
-      false,
-    );
+    expect(
+      isStartDateDisabled(dayjs('2026-05-11T00:00:00'), end.valueOf()),
+    ).toBe(true);
+    expect(
+      isStartDateDisabled(dayjs('2026-05-10T23:59:00'), end.valueOf()),
+    ).toBe(false);
     const start = dayjs('2026-05-10T08:30:00');
-    expect(isEndDateDisabled(dayjs('2026-05-09T12:00:00'), start.valueOf())).toBe(
-      true,
-    );
-    expect(isEndDateDisabled(dayjs('2026-05-10T00:00:00'), start.valueOf())).toBe(
-      false,
-    );
+    expect(
+      isEndDateDisabled(dayjs('2026-05-09T12:00:00'), start.valueOf()),
+    ).toBe(true);
+    expect(
+      isEndDateDisabled(dayjs('2026-05-10T00:00:00'), start.valueOf()),
+    ).toBe(false);
     expect(isStartDateDisabled(dayjs('2026-01-01T00:00:00'), undefined)).toBe(
       false,
     );

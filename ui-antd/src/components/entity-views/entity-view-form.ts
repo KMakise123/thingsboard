@@ -211,10 +211,7 @@ export function hasTimeRangeConflict(
 }
 
 /** Day-granularity clamp for the start picker: nothing after end's day. */
-export function isStartDateDisabled(
-  day: Dayjs,
-  endMs?: EpochMillis,
-): boolean {
+export function isStartDateDisabled(day: Dayjs, endMs?: EpochMillis): boolean {
   return endMs !== undefined ? day.isAfter(dayjs(endMs), 'day') : false;
 }
 
