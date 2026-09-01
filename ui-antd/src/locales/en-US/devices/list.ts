@@ -193,6 +193,7 @@ export default {
   'pages.devices.list.importHeader': 'First line contains column names',
   'pages.devices.list.importUpdate':
     'Update existing devices (attributes / telemetry)',
+  'pages.devices.list.importStart': 'Import',
   'pages.devices.list.importColumn': 'Column {index}',
   'pages.devices.list.importColumnType': 'Column type',
   'pages.devices.list.importColumnKey': 'Attribute/telemetry key',

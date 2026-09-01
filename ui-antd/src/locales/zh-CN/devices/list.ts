@@ -168,6 +168,7 @@ export default {
   'pages.devices.list.importDelimiter': 'CSV 分隔符',
   'pages.devices.list.importHeader': '第一行包含列名',
   'pages.devices.list.importUpdate': '更新已有设备（属性 / 遥测）',
+  'pages.devices.list.importStart': '导入',
   'pages.devices.list.importColumn': '列 {index}',
   'pages.devices.list.importColumnType': '列类型',
   'pages.devices.list.importColumnKey': '属性/遥测键',
