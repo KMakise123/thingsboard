@@ -1,0 +1,21 @@
+# Line-ending policy: this repo is authored on Windows but gated by biome
+# format checks (LF) and CI on ubuntu. Force LF for all frontend/docs trees
+# so checkout byte order never drifts with a machine's core.autocrlf.
+# Upstream ThingsBoard java tree is intentionally NOT matched — leave its
+# historical endings alone to avoid renormalization noise.
+
+ui-antd/** text=auto eol=lf
+docs/** text=auto eol=lf
+*.md text=auto eol=lf
+
+# Binary assets — never normalize.
+ui-antd/**/*.png binary
+ui-antd/**/*.ico binary
+ui-antd/**/*.jpg binary
+ui-antd/**/*.jpeg binary
+ui-antd/**/*.gif binary
+ui-antd/**/*.webp binary
+ui-antd/**/*.woff binary
+ui-antd/**/*.woff2 binary
+ui-antd/**/*.ttf binary
+ui-antd/public/favicon.ico binary
