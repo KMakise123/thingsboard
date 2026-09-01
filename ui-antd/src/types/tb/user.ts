@@ -55,6 +55,17 @@ export interface AuthUser {
   [claim: string]: unknown;
 }
 
+/**
+ * GET /api/user/{userId}/activationLinkInfo — the activation/password-create
+ * link plus TTL. ui-ngx's "reset password" row action = showing this link
+ * (the backend has no resetPassword endpoint for admins; spec §3.5).
+ */
+export interface UserActivationLink {
+  value?: string;
+  /** Link time-to-live in milliseconds. */
+  ttlMs?: number;
+}
+
 /** POST /api/auth/login body + response. */
 export interface LoginRequest {
   username: string;

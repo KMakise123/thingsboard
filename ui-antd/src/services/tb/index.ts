@@ -11,8 +11,11 @@
  */
 
 export * from './auth';
+export * from './asset';
 export * from './customer';
 export * from './device';
+export * from './entity-view';
+export * from './user';
 export * from './version-control';
 export * from './attributes';
 export * from './alarm-rules';
