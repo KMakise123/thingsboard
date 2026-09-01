@@ -337,7 +337,7 @@ export default {
   'pages.devices.detail.vcSaveCalculatedFields': 'Export calculated fields',
   'pages.devices.detail.vcCommitDone':
     'Version created (added {added}, modified {modified}, removed {removed}).',
-  'pages.devices.detail.vcNoBranches': 'No branches found',
+  'pages.devices.detail.vcDefaultBranch': 'default',
   'pages.devices.detail.vcEmpty': 'No versions',
   'pages.devices.detail.vcLoadFailed': 'Version control is unavailable',
   'pages.devices.detail.vcRepoNotConfigured':

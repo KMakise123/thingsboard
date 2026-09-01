@@ -325,7 +325,7 @@ export default {
   'pages.devices.detail.vcSaveCalculatedFields': '导出计算字段',
   'pages.devices.detail.vcCommitDone':
     '版本已创建（新增 {added}，修改 {modified}，删除 {removed}）。',
-  'pages.devices.detail.vcNoBranches': '未找到分支',
+  'pages.devices.detail.vcDefaultBranch': '默认',
   'pages.devices.detail.vcEmpty': '暂无版本',
   'pages.devices.detail.vcLoadFailed': '版本控制不可用',
   'pages.devices.detail.vcRepoNotConfigured':

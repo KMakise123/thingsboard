@@ -11,7 +11,6 @@
  * settings belong to the v2 settings pages) instead of dead forms.
  */
 import {
-  BranchesOutlined,
   CloudUploadOutlined,
   DiffOutlined,
   HistoryOutlined,
@@ -20,6 +19,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Alert,
   App,
+  AutoComplete,
   Button,
   Card,
   Checkbox,
@@ -27,7 +27,6 @@ import {
   Form,
   Input,
   Modal,
-  Select,
   Space,
   Spin,
   Table,
@@ -305,22 +304,22 @@ function VersionControlContent({
   return (
     <Flex vertical gap={16}>
       <Space wrap align="center">
-        <Select
+        <AutoComplete
           value={branch || undefined}
           onChange={(next) => {
-            setBranch(next);
+            setBranch(next ?? '');
             setPage(1);
           }}
           style={{ minWidth: 200 }}
-          loading={branchesQuery.isPending}
-          suffixIcon={<BranchesOutlined />}
           options={branches.map((entry: BranchInfo) => ({
             value: entry.name,
-            label: entry.name,
+            label: entry.default
+              ? `${entry.name} (${formatMessage({ id: 'pages.devices.detail.vcDefaultBranch', defaultMessage: 'default' })})`
+              : entry.name,
           }))}
-          notFoundContent={formatMessage({
-            id: 'pages.devices.detail.vcNoBranches',
-            defaultMessage: 'No branches found',
+          placeholder={formatMessage({
+            id: 'pages.devices.detail.vcBranch',
+            defaultMessage: 'Branch',
           })}
         />
         <div className="flex-1" />
@@ -372,10 +371,7 @@ function VersionControlContent({
         }}
       />
 
-      <AutoCommitCard
-        branches={branches}
-        branchLoading={branchesQuery.isPending}
-      />
+      <AutoCommitCard branches={branches} />
 
       <CommitModal
         open={commitOpen}
@@ -537,6 +533,7 @@ function CommitModal({
           rules={[
             {
               required: true,
+              whitespace: true,
               message: formatMessage({
                 id: 'pages.devices.detail.vcBranchRequired',
                 defaultMessage: 'Branch is required.',
@@ -544,10 +541,12 @@ function CommitModal({
             },
           ]}
         >
-          <Select
+          <AutoComplete
             options={branches.map((entry: BranchInfo) => ({
               value: entry.name,
-              label: entry.name,
+              label: entry.default
+                ? `${entry.name} (${formatMessage({ id: 'pages.devices.detail.vcDefaultBranch', defaultMessage: 'default' })})`
+                : entry.name,
             }))}
           />
         </Form.Item>
@@ -961,13 +960,7 @@ interface AutoCommitFormValues {
  * types' entries; this card only reads/writes its own DEVICE entry, and
  * deletes the whole settings object once the map would be empty).
  */
-function AutoCommitCard({
-  branches,
-  branchLoading,
-}: {
-  branches: Array<BranchInfo>;
-  branchLoading: boolean;
-}) {
+function AutoCommitCard({ branches }: { branches: Array<BranchInfo> }) {
   const { formatMessage } = useIntl();
   const { message } = App.useApp();
   const queryClient = useQueryClient();
@@ -1068,9 +1061,8 @@ function AutoCommitCard({
               })}
               className="!mb-0"
             >
-              <Select
+              <AutoComplete
                 allowClear
-                loading={branchLoading}
                 style={{ maxWidth: 240 }}
                 placeholder={formatMessage({
                   id: 'pages.devices.detail.vcAutoCommitDefaultBranch',
