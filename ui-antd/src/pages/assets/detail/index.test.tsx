@@ -226,7 +226,7 @@ describe('asset detail page', () => {
   it('shows no unassign action while the asset has no customer', async () => {
     renderPage();
     await screen.findAllByText('m2-test-asset-alpha');
-    expect(screen.queryByRole('button', { name: /从客户取消分配/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /取消分配客户/ })).toBeNull();
   });
 
   it('unassigns the asset from its customer after confirmation', async () => {
@@ -238,7 +238,7 @@ describe('asset detail page', () => {
     assetServiceMock.getAssetInfoById.mockResolvedValue(assigned);
     renderPage();
     fireEvent.click(
-      await screen.findByRole('button', { name: /从客户取消分配/ }),
+      await screen.findByRole('button', { name: /取消分配客户/ }),
     );
 
     const confirm = await waitFor(() => {
@@ -247,7 +247,7 @@ describe('asset detail page', () => {
       return node as HTMLElement;
     });
     fireEvent.click(
-      within(confirm).getByRole('button', { name: /从客户取消分配/ }),
+      within(confirm).getByRole('button', { name: /取消分配客户/ }),
     );
     await waitFor(() => {
       expect(assetServiceMock.unassignAssetFromCustomer).toHaveBeenCalledWith(

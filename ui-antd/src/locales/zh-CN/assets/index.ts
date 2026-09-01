@@ -128,7 +128,7 @@ export default {
   'pages.assets.detail.saveFailed': '保存资产失败：{reason}',
 
   // ---- detail: header actions ----
-  'pages.assets.detail.actionUnassign': '从客户取消分配',
+  'pages.assets.detail.actionUnassign': '取消分配客户',
   'pages.assets.detail.unassignTitle': '确定要从客户取消分配资产“{name}”吗？',
   'pages.assets.detail.unassignText':
     '确认后资产将被取消分配，客户将无法访问。',
