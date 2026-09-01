@@ -25,6 +25,7 @@ import {
   getEntityViewInfoById,
   getEntityViewTypes,
   getTenantEntityViews,
+  makeEntityViewPublic,
   saveEntityView,
   unassignEntityViewFromCustomer,
 } from './entity-view';
@@ -93,6 +94,11 @@ describe('entity-view transport endpoints', () => {
 
     await unassignEntityViewFromCustomer('ev-1');
     expect(del).toHaveBeenCalledWith('/api/customer/entityView/ev-1');
+  });
+
+  it('pins make-public on the public-customer endpoint', async () => {
+    await makeEntityViewPublic('ev-1');
+    expect(post).toHaveBeenCalledWith('/api/customer/public/entityView/ev-1');
   });
 
   it('reads the type filter source', async () => {

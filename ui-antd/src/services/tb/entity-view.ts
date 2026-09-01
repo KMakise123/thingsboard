@@ -90,6 +90,15 @@ export async function unassignEntityViewFromCustomer(
   await tbHttp.delete(`/api/customer/entityView/${entityViewId}`);
 }
 
+/** POST /api/customer/public/entityView/{entityViewId} (ui-ngx make-public). */
+export async function makeEntityViewPublic(
+  entityViewId: string,
+): Promise<EntityView> {
+  return tbHttp.post<EntityView>(
+    `/api/customer/public/entityView/${entityViewId}`,
+  );
+}
+
 /** GET /api/entityView/types — type names for filters. */
 export async function getEntityViewTypes(): Promise<Array<EntitySubtype>> {
   return tbHttp.get<Array<EntitySubtype>>('/api/entityView/types');
