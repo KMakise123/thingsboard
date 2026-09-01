@@ -404,7 +404,9 @@ function buildTabItems({
         defaultMessage: 'Audit logs',
       }),
       render: () =>
-        customer ? <AuditLogsPanel entityId={customer.id} /> : null,
+        customer ? (
+          <AuditLogsPanel entityId={customer.id} customerId={customer.id.id} />
+        ) : null,
     },
     {
       key: 'version-control',

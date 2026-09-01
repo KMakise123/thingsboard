@@ -74,20 +74,38 @@ export interface AuditLog
   actionFailureDetails?: string;
 }
 
-/** Entity-scoped audit page read (spec 3.3 audit-logs tab). */
-export async function getAuditLogsByEntityId(
-  entityId: EntityId,
-  pageLink: PageLink,
-): Promise<PageData<AuditLog>> {
-  const params: QueryParams = {
+function auditLogParams(pageLink: PageLink): QueryParams {
+  return {
     pageSize: pageLink.pageSize,
     page: pageLink.page,
     textSearch: pageLink.textSearch,
     sortProperty: pageLink.sortOrder?.property,
     sortOrder: pageLink.sortOrder?.direction,
   };
+}
+
+/** Entity-scoped audit page read (spec 3.3 audit-logs tab). */
+export async function getAuditLogsByEntityId(
+  entityId: EntityId,
+  pageLink: PageLink,
+): Promise<PageData<AuditLog>> {
   return tbHttp.get<PageData<AuditLog>>(
     `/api/audit/logs/entity/${entityId.entityType}/${entityId.id}`,
-    params,
+    auditLogParams(pageLink),
+  );
+}
+
+/**
+ * Customer-scoped audit page read (ui-ngx auditLogMode=CUSTOMER, customer
+ * tabs): every entity inside the customer's scope, not just the customer
+ * entity itself.
+ */
+export async function getAuditLogsByCustomerId(
+  customerId: string,
+  pageLink: PageLink,
+): Promise<PageData<AuditLog>> {
+  return tbHttp.get<PageData<AuditLog>>(
+    `/api/audit/logs/customer/${customerId}`,
+    auditLogParams(pageLink),
   );
 }

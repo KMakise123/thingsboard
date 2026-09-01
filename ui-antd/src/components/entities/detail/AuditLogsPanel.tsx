@@ -2,6 +2,10 @@
  * Audit-logs tab panel (spec 3.3 `audit-logs`): entity-scoped read with the
  * ui-ngx column set — createdTime / actionType / actionStatus / userName —
  * plus the action payload as an expandable row. Server-side pagination.
+ *
+ * `customerId` switches to the ui-ngx CUSTOMER audit mode (customer tabs):
+ * the read covers every entity inside the customer scope, not just the
+ * customer entity itself.
  */
 import { useQuery } from '@tanstack/react-query';
 import { Alert, Input, Space, Table, Tag, Typography } from 'antd';
@@ -10,12 +14,22 @@ import { useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { serverErrorText } from '@/components/entities/server-error-text';
 import type { AuditActionType, AuditLog } from '@/services/tb/audit-log';
-import { getAuditLogsByEntityId } from '@/services/tb/audit-log';
-import type { EntityId } from '@/types/tb';
+import {
+  getAuditLogsByCustomerId,
+  getAuditLogsByEntityId,
+} from '@/services/tb/audit-log';
+import type { EntityId, PageLink } from '@/types/tb';
 
 const SEARCH_DEBOUNCE_MS = 400;
 
-export default function AuditLogsPanel({ entityId }: { entityId: EntityId }) {
+export default function AuditLogsPanel({
+  entityId,
+  customerId,
+}: {
+  entityId: EntityId;
+  /** Present on the customer detail page — switches to CUSTOMER mode. */
+  customerId?: string;
+}) {
   const { formatMessage } = useIntl();
   const [searchInput, setSearchInput] = useState('');
   const [searchCommitted, setSearchCommitted] = useState('');
@@ -32,14 +46,24 @@ export default function AuditLogsPanel({ entityId }: { entityId: EntityId }) {
   }, [searchInput]);
 
   const logsQuery = useQuery({
-    queryKey: ['audit-logs', entityId.id, searchCommitted, page, pageSize],
-    queryFn: () =>
-      getAuditLogsByEntityId(entityId, {
+    queryKey: [
+      'audit-logs',
+      customerId ?? entityId.id,
+      searchCommitted,
+      page,
+      pageSize,
+    ],
+    queryFn: () => {
+      const pageLink: PageLink = {
         pageSize,
         page: page - 1,
         textSearch: searchCommitted || undefined,
         sortOrder: { property: 'createdTime', direction: 'DESC' },
-      }),
+      };
+      return customerId
+        ? getAuditLogsByCustomerId(customerId, pageLink)
+        : getAuditLogsByEntityId(entityId, pageLink);
+    },
     placeholderData: (previous) => previous,
   });
 

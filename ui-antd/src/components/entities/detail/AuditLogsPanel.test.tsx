@@ -15,6 +15,7 @@ import AuditLogsPanel from './AuditLogsPanel';
 
 const servicesMock = vi.hoisted(() => ({
   getAuditLogsByEntityId: vi.fn(),
+  getAuditLogsByCustomerId: vi.fn(),
 }));
 
 vi.mock('@/services/tb/audit-log', () => servicesMock);
@@ -23,7 +24,9 @@ const intl = createIntl({ locale: 'zh-CN', messages: zhDetail });
 
 const entityId = { entityType: EntityType.DEVICE, id: 'dev-1' };
 
-function renderPanel() {
+function renderPanel(
+  props: Partial<React.ComponentProps<typeof AuditLogsPanel>> = {},
+) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
@@ -31,7 +34,7 @@ function renderPanel() {
     <QueryClientProvider client={queryClient}>
       <AntdApp>
         <RawIntlProvider value={intl}>
-          <AuditLogsPanel entityId={entityId} />
+          <AuditLogsPanel entityId={entityId} {...props} />
         </RawIntlProvider>
       </AntdApp>
     </QueryClientProvider>,
@@ -93,5 +96,28 @@ describe('audit logs panel', () => {
     });
     renderPanel();
     expect(await screen.findByText('暂无审计日志')).toBeTruthy();
+  });
+
+  it('switches to the customer-scope read when customerId is present', async () => {
+    servicesMock.getAuditLogsByCustomerId.mockResolvedValue({
+      data: [
+        {
+          id: { entityType: 'AUDIT_LOG', id: 'l-2' },
+          createdTime: 1_700_000_000_000,
+          actionType: 'LOGIN',
+          actionStatus: 'SUCCESS',
+          userName: 'cu@thingsboard.org',
+        },
+      ],
+      totalElements: 1,
+      totalPages: 1,
+    });
+    renderPanel({ customerId: 'cust-1' });
+    await screen.findByText('cu@thingsboard.org');
+    expect(servicesMock.getAuditLogsByCustomerId).toHaveBeenCalledWith(
+      'cust-1',
+      expect.objectContaining({ page: 0, pageSize: 10 }),
+    );
+    expect(servicesMock.getAuditLogsByEntityId).not.toHaveBeenCalled();
   });
 });
