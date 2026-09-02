@@ -91,6 +91,16 @@ export interface Oauth2ClientRegistrationTemplate {
   comment?: string;
 }
 
+/**
+ * POST /api/noauth/oauth2Clients row — login-page button data. `url` is the
+ * backend-relative authorize path the button navigates to natively.
+ */
+export interface Oauth2ClientLoginInfo {
+  name: string;
+  icon?: string;
+  url: string;
+}
+
 export interface Domain extends BaseData<DomainEntityId> {
   name: string;
   oauth2Enabled: boolean;

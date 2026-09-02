@@ -8,7 +8,13 @@
  */
 
 import { tokenStore } from '@/core/auth/token-store';
-import type { LoginRequest, LoginResponse, User } from '@/types/tb';
+import type {
+  LoginRequest,
+  LoginResponse,
+  User,
+} from '@/types/tb';
+import type { Oauth2ClientLoginInfo } from '@/types/tb/oauth2';
+import type { TwoFaProviderInfo, TwoFaProviderType } from '@/types/tb/two-fa';
 
 import { tbHttp } from './http';
 
@@ -99,4 +105,59 @@ export async function activate(
 /** GET /api/noauth/userPasswordPolicy — strength hints for password forms. */
 export async function getUserPasswordPolicy(): Promise<UserPasswordPolicy> {
   return tbHttp.get<UserPasswordPolicy>('/api/noauth/userPasswordPolicy');
+}
+
+/**
+ * GET /api/auth/2fa/providers — provider choice cards for the MFA login step
+ * (callers hold the PRE_VERIFICATION_TOKEN; `contact` is masked server-side).
+ */
+export async function getTwoFaLoginProviders(): Promise<TwoFaProviderInfo[]> {
+  return tbHttp.get<TwoFaProviderInfo[]>('/api/auth/2fa/providers');
+}
+
+/** POST /api/auth/2fa/verification/send?providerType= — sends a code (rate limited). */
+export async function sendTwoFaVerificationCode(
+  providerType: TwoFaProviderType,
+): Promise<void> {
+  await tbHttp.post('/api/auth/2fa/verification/send', undefined, { providerType });
+}
+
+/**
+ * POST /api/auth/2fa/verification/check?providerType=&verificationCode= —
+ * success responds with the REGULAR token pair.
+ *
+ * Same side effect as login: the returned pair is the usable session, so it
+ * is stored here (callers just redirect on resolve; 400 = wrong code,
+ * 429 = rate limited).
+ */
+export async function checkTwoFaVerificationCode(
+  providerType: TwoFaProviderType,
+  verificationCode: string,
+): Promise<LoginResponse> {
+  const response = await tbHttp.post<LoginResponse>(
+    '/api/auth/2fa/verification/check',
+    undefined,
+    { providerType, verificationCode },
+  );
+  tokenStore.setTokens(response.token, response.refreshToken);
+  return response;
+}
+
+/**
+ * POST /api/noauth/oauth2Clients?platform=WEB — login-page OAuth2 buttons.
+ *
+ * Deliberate deviation from the transport norm: a failed call resolves to []
+ * instead of throwing — the login page must render with the OAuth2 section
+ * silently absent when the platform has no clients (ui-ngx parity).
+ */
+export async function getOauth2Clients(): Promise<Oauth2ClientLoginInfo[]> {
+  try {
+    return await tbHttp.post<Oauth2ClientLoginInfo[]>(
+      '/api/noauth/oauth2Clients',
+      undefined,
+      { platform: 'WEB' },
+    );
+  } catch {
+    return [];
+  }
 }
