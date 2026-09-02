@@ -33,6 +33,13 @@ export interface ExpandedDatasource {
   entityName?: string;
   dataKeys: Datasource['dataKeys'];
   latestDataKeys?: Datasource['latestDataKeys'];
+  /**
+   * datasource-level data filter, resolved from `configuration.filters` by
+   * `filterId` (M5 W2 increment on the W1 contract, lead-approved): key
+   * filters applied server-side on top of the entity filter (anchor:
+   * firmware entities_table / html_value_card fw_state filters).
+   */
+  filter?: DashboardFilter;
   /** alarm widgets only. */
   alarmSource?: AlarmSource;
   /** alarm filter descriptor: inline object or `configuration.filters` id. */
@@ -42,6 +49,7 @@ export interface ExpandedDatasource {
 function expandDatasource(
   datasource: Datasource,
   aliases: AliasResolution,
+  filters?: Record<string, DashboardFilter>,
 ): ExpandedDatasource {
   const type: DatasourceType =
     datasource.type === 'function' ? 'entity' : datasource.type;
@@ -56,6 +64,10 @@ function expandDatasource(
     entityName: entities[0]?.name ?? entities[0]?.label,
     dataKeys: datasource.dataKeys ?? [],
     latestDataKeys: datasource.latestDataKeys,
+    filter:
+      typeof datasource.filterId === 'string' && datasource.filterId
+        ? filters?.[datasource.filterId]
+        : undefined,
   };
 }
 
@@ -91,6 +103,6 @@ export function expandWidgetDatasources(
     ];
   }
   return (config?.datasources ?? []).map((datasource) =>
-    expandDatasource(datasource, aliases),
+    expandDatasource(datasource, aliases, filters),
   );
 }

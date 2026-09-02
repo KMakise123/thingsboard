@@ -97,4 +97,55 @@ describe('expandWidgetDatasources', () => {
     );
     expect(result[0].alarmFilter).toMatchObject({ filter: 'Severe only' });
   });
+
+  // M5 W2 increment on the W1 contract (lead-approved): datasource-level
+  // filterId → resolved DashboardFilter passthrough (anchor: firmware
+  // entities_table / html_value_card fw_state filters).
+  it('resolves a datasource filterId through configuration.filters', () => {
+    const filters = {
+      'fw-filter': {
+        id: 'fw-filter',
+        filter: 'WaitingDevicesFilter',
+        keyFilters: [
+          { key: { type: 'TIME_SERIES', key: 'fw_state' } },
+        ],
+      },
+    };
+    const result = expandWidgetDatasources(
+      widget({
+        datasources: [
+          {
+            type: 'entity',
+            entityAliasId: 'devices',
+            filterId: 'fw-filter',
+            dataKeys: [{ name: 'current_fw_title', type: 'timeseries' }],
+          },
+          { type: 'entity', entityAliasId: 'devices', dataKeys: [] },
+        ],
+      }),
+      aliases,
+      filters,
+    );
+    expect(result[0].filter).toMatchObject({ filter: 'WaitingDevicesFilter' });
+    // no filterId → no filter descriptor
+    expect(result[1].filter).toBeUndefined();
+  });
+
+  it('degrades a datasource filterId missing from configuration.filters', () => {
+    const result = expandWidgetDatasources(
+      widget({
+        datasources: [
+          {
+            type: 'entity',
+            entityAliasId: 'devices',
+            filterId: 'ghost-filter',
+            dataKeys: [],
+          },
+        ],
+      }),
+      aliases,
+      {},
+    );
+    expect(result[0].filter).toBeUndefined();
+  });
 });
