@@ -155,3 +155,79 @@ export async function getWidgetTypeByFqn(
 ): Promise<WidgetTypeDigest> {
   return tbHttp.get<WidgetTypeDigest>('/api/widgetType', { fqn });
 }
+
+// ---------------------------------------------------------------------------
+// Entity query (alias resolution transport)
+// ---------------------------------------------------------------------------
+
+/** Requested entity columns (name/label) for alias resolution reads. */
+export interface EntityFieldKey {
+  type: 'ENTITY_FIELD';
+  key: string;
+}
+
+/** Row of POST /api/entitiesQuery/find (projected fields under `latest`). */
+export interface EntityDataLite {
+  entityId: { entityType: string; id: string };
+  latest?: {
+    ENTITY_FIELD?: Record<string, { ts: number; value: string } | undefined>;
+  };
+}
+
+/** PageLink subset accepted by the entity query endpoint. */
+export interface EntityQueryPageLink {
+  pageSize: number;
+  page: number;
+}
+
+/**
+ * POST /api/entitiesQuery/find — filter-driven entity query backing the
+ * alias resolver (entityType / deviceType / relationsQuery / apiUsageState
+ * filters). Same endpoint ui-ngx entity.service.findEntityDataByQuery uses.
+ */
+export async function findEntitiesByFilter(
+  entityFilter: Record<string, unknown>,
+  pageLink: EntityQueryPageLink,
+  entityFields: EntityFieldKey[] = [
+    { type: 'ENTITY_FIELD', key: 'name' },
+    { type: 'ENTITY_FIELD', key: 'label' },
+  ],
+): Promise<{ data: EntityDataLite[]; hasNext: boolean }> {
+  return tbHttp.post<{ data: EntityDataLite[]; hasNext: boolean }>(
+    '/api/entitiesQuery/find',
+    { entityFilter, pageLink, entityFields },
+  );
+}
+
+/**
+ * Follow `hasNext` until the filter is exhausted (aliases can match more
+ * entities than one page holds). Safety cap guards against server-side
+ * pagination anomalies.
+ */
+export const ALIAS_QUERY_PAGE_SIZE = 500;
+export const ALIAS_QUERY_MAX_ENTITIES = 5000;
+
+export async function findAllEntitiesByFilter(
+  entityFilter: Record<string, unknown>,
+): Promise<EntityDataLite[]> {
+  const rows: EntityDataLite[] = [];
+  let page = 0;
+  let hasNext = true;
+  while (hasNext) {
+    const result = await findEntitiesByFilter(entityFilter, {
+      pageSize: ALIAS_QUERY_PAGE_SIZE,
+      page,
+    });
+    rows.push(...(result.data ?? []));
+    hasNext = result.hasNext;
+    page += 1;
+    if (rows.length >= ALIAS_QUERY_MAX_ENTITIES) {
+      console.warn(
+        '[dashboard] alias entity query hit the safety cap of ' +
+          `${ALIAS_QUERY_MAX_ENTITIES} entities; truncating`,
+      );
+      break;
+    }
+  }
+  return rows;
+}
