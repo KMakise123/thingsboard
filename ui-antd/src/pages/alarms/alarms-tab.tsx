@@ -17,6 +17,7 @@ import {
   Alert,
   App,
   Button,
+  DatePicker,
   Input,
   Select,
   Space,
@@ -24,6 +25,7 @@ import {
   Tag,
   Typography,
 } from 'antd';
+import dayjs from 'dayjs';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { useAlarmColumns } from '@/components/alarms/alarm-columns';
@@ -158,9 +160,17 @@ export default function AlarmsTab({
 
   // ---- data: REST seed + dual-channel WS stream ----
   const assigneeId = state.assigneeId === 'me' ? myUserId : state.assigneeId;
-  const timeWindowMs = TIMEWINDOW_PRESETS.find(
+  // Timewindow mapping, identical on both channels: a preset rides the
+  // sliding timeWindow, a fixed custom range rides startTs/endTs (the WS
+  // builder expresses it as startTs + width — the backend derives
+  // endTs = startTs + timeWindow), for-all-time sends neither.
+  const presetMs = TIMEWINDOW_PRESETS.find(
     (preset) => preset.id === state.tw,
   )?.ms;
+  const customRange =
+    state.tw === 'custom' && state.twStart && state.twEnd
+      ? { start: state.twStart, end: state.twEnd }
+      : undefined;
   const wsFilter: GlobalAlarmFilter = {
     statusList: state.statusList,
     severityList: state.severityList,
@@ -168,7 +178,9 @@ export default function AlarmsTab({
     assigneeId,
     searchPropagatedAlarms: state.searchPropagatedAlarms,
     textSearch: state.textSearch || undefined,
-    timeWindowMs,
+    timeWindowMs: presetMs,
+    startTs: customRange?.start,
+    endTs: customRange?.end,
   };
 
   const seedQuery = useQuery({
@@ -180,6 +192,8 @@ export default function AlarmsTab({
       state.typeList.join(','),
       assigneeId ?? '',
       state.textSearch,
+      state.tw,
+      customRange ? `${customRange.start}-${customRange.end}` : '',
     ],
     queryFn: () =>
       getAlarms(
@@ -188,6 +202,14 @@ export default function AlarmsTab({
           severityList: state.severityList,
           typeList: state.typeList,
           assigneeId,
+          // REST has no sliding timeWindow — presets pin startTime at fetch
+          // time (endTime = now is implied by the endpoint).
+          startTime: customRange
+            ? customRange.start
+            : presetMs
+              ? Date.now() - presetMs
+              : undefined,
+          endTime: customRange?.end,
         },
         {
           pageSize: CHANNEL_PAGE_SIZE,
@@ -477,10 +499,35 @@ export default function AlarmsTab({
                   defaultMessage: preset.id,
                 }),
               })),
+              {
+                value: 'custom',
+                label: formatMessage({
+                  id: 'pages.alarms.twCustom',
+                  defaultMessage: 'Custom',
+                }),
+              },
             ]}
             onChange={(value) => patchFilter({ tw: value })}
           />
         </Space.Compact>
+        {state.tw === 'custom' && (
+          <DatePicker.RangePicker
+            showTime
+            value={
+              state.twStart && state.twEnd
+                ? [dayjs(state.twStart), dayjs(state.twEnd)]
+                : null
+            }
+            onChange={(values) => {
+              if (values?.[0] && values[1]) {
+                patchFilter({
+                  twStart: values[0].valueOf(),
+                  twEnd: values[1].valueOf(),
+                });
+              }
+            }}
+          />
+        )}
         <Switch
           checked={state.searchPropagatedAlarms}
           onChange={(checked) =>

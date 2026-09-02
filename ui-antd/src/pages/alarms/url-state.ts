@@ -46,6 +46,9 @@ export const TIMEWINDOW_PRESETS = [
 
 export type TimewindowPresetId = (typeof TIMEWINDOW_PRESETS)[number]['id'];
 
+/** Timewindow selection: preset sliding window / fixed custom range / all. */
+export type TimewindowSelection = TimewindowPresetId | 'all' | 'custom';
+
 const ALARM_STATUSES: ReadonlyArray<AlarmSearchStatus> = [
   'ACTIVE',
   'UNACK',
@@ -68,7 +71,10 @@ export interface AlarmsPageUrlState {
   assigneeId?: string;
   searchPropagatedAlarms: boolean;
   textSearch: string;
-  tw: TimewindowPresetId | 'all';
+  tw: TimewindowSelection;
+  /** Fixed custom range (epoch ms); only meaningful when tw === 'custom'. */
+  twStart?: number;
+  twEnd?: number;
   // ---- alarm-rules tab (server-paginated list) ----
   rulePage: number;
   rulePageSize: number;
@@ -138,6 +144,14 @@ export function parseAlarmsPageUrlState(search: string): AlarmsPageUrlState {
   const severityList = parseList(params.get('severity')).filter((value) =>
     (ALARM_SEVERITIES as Array<string>).includes(value),
   ) as Array<AlarmSeverity>;
+  const twStart = Number(params.get('twStart'));
+  const twEnd = Number(params.get('twEnd'));
+  const customRangeValid =
+    tw === 'custom' &&
+    Number.isFinite(twStart) &&
+    Number.isFinite(twEnd) &&
+    twStart > 0 &&
+    twEnd > twStart;
   return {
     tab,
     page: clampPage(params.get('page')),
@@ -148,9 +162,14 @@ export function parseAlarmsPageUrlState(search: string): AlarmsPageUrlState {
     assigneeId: params.get('assigneeId') || undefined,
     searchPropagatedAlarms: params.get('propagated') === '1',
     textSearch: params.get('textSearch') ?? '',
-    tw: (TIMEWINDOW_PRESETS.some((preset) => preset.id === tw) ? tw : 'all') as
-      | TimewindowPresetId
-      | 'all',
+    // A 'custom' selection without a valid range falls back to all-time.
+    tw: (customRangeValid ||
+    tw === 'all' ||
+    TIMEWINDOW_PRESETS.some((preset) => preset.id === tw)
+      ? tw
+      : 'all') as TimewindowSelection,
+    twStart: customRangeValid ? twStart : undefined,
+    twEnd: customRangeValid ? twEnd : undefined,
     rulePage: clampPage(params.get('rulePage')),
     rulePageSize: clampPageSize(params.get('rulePageSize')),
     ruleSortProperty:
@@ -203,6 +222,10 @@ export function serializeAlarmsPageUrlState(state: AlarmsPageUrlState): string {
   }
   if (state.tw !== DEFAULT_STATE.tw) {
     params.set('tw', state.tw);
+  }
+  if (state.tw === 'custom' && state.twStart && state.twEnd) {
+    params.set('twStart', String(state.twStart));
+    params.set('twEnd', String(state.twEnd));
   }
   if (state.rulePage !== DEFAULT_STATE.rulePage) {
     params.set('rulePage', String(state.rulePage));

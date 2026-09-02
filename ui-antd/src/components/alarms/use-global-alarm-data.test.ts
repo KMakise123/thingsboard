@@ -73,6 +73,35 @@ describe('buildGlobalAlarmDataQuery', () => {
     expect(query.pageLink).not.toHaveProperty('textSearch');
     expect(query.pageLink.searchPropagatedAlarms).toBe(false);
   });
+
+  it('maps a preset onto the sliding timeWindow without startTs', () => {
+    const query = buildGlobalAlarmDataQuery(EntityType.DEVICE, {
+      statusList: ['ACTIVE'],
+      severityList: [],
+      typeList: [],
+      searchPropagatedAlarms: false,
+      timeWindowMs: 7 * 86_400_000,
+    }) as { pageLink: Record<string, unknown> };
+    expect(query.pageLink.timeWindow).toBe(7 * 86_400_000);
+    expect(query.pageLink).not.toHaveProperty('startTs');
+  });
+
+  it('maps the fixed custom range onto startTs + width (backend: endTs = startTs + timeWindow)', () => {
+    const start = 1_700_000_000_000;
+    const end = 1_700_086_400_000;
+    const query = buildGlobalAlarmDataQuery(EntityType.DEVICE, {
+      statusList: [],
+      severityList: [],
+      typeList: [],
+      searchPropagatedAlarms: false,
+      startTs: start,
+      endTs: end,
+    }) as { pageLink: Record<string, unknown> };
+    expect(query.pageLink.startTs).toBe(start);
+    // Positive timeWindow contract holds; endTs = startTs + timeWindow = end.
+    expect(query.pageLink.timeWindow).toBe(end - start);
+    expect(query.pageLink.timeWindow).toBeGreaterThan(0);
+  });
 });
 
 describe('mergeAlarmChannels', () => {

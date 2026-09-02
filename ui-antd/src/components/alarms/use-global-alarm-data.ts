@@ -35,8 +35,20 @@ export interface GlobalAlarmFilter {
   assigneeId?: string;
   searchPropagatedAlarms: boolean;
   textSearch?: string;
-  /** Preset realtime window; undefined = for-all-time. */
+  /**
+   * Preset sliding window; undefined = for-all-time (or the fixed range
+   * below taking over the window mapping).
+   */
   timeWindowMs?: number;
+  /**
+   * Fixed custom range [startTs, endTs]. The backend derives the alarm
+   * window as endTs = startTs + timeWindow when both are set
+   * (DefaultAlarmQueryRepository), so the range is expressed as
+   * startTs = start, timeWindow = end - start — which also keeps the
+   * M1-verified positive-timeWindow contract intact.
+   */
+  startTs?: number;
+  endTs?: number;
 }
 
 /** Backend needs a positive timeWindow; "for all time" uses a 20y window. */
@@ -53,6 +65,11 @@ export function buildGlobalAlarmDataQuery(
   filter: GlobalAlarmFilter,
   options: { pageSize?: number } = {},
 ): Record<string, unknown> {
+  const customRange =
+    filter.startTs &&
+    filter.endTs &&
+    filter.startTs > 0 &&
+    filter.endTs > filter.startTs;
   const pageLink: Record<string, unknown> = {
     pageSize: options.pageSize ?? 100,
     page: 0,
@@ -60,9 +77,17 @@ export function buildGlobalAlarmDataQuery(
       key: { type: 'ALARM_FIELD', key: 'createdTime' },
       direction: 'DESC',
     },
-    timeWindow: filter.timeWindowMs ?? ALL_TIME_WINDOW_MS,
+    // Fixed range [start, end] → startTs + width; otherwise the sliding
+    // window (preset length or for-all-time). timeWindow stays positive in
+    // every branch (backend dereferences it unconditionally).
+    timeWindow: customRange
+      ? (filter.endTs as number) - (filter.startTs as number)
+      : (filter.timeWindowMs ?? ALL_TIME_WINDOW_MS),
     searchPropagatedAlarms: filter.searchPropagatedAlarms,
   };
+  if (customRange) {
+    pageLink.startTs = filter.startTs;
+  }
   if (filter.textSearch) {
     pageLink.textSearch = filter.textSearch;
   }
@@ -130,6 +155,8 @@ function filterToKey(filter: GlobalAlarmFilter): string {
     filter.searchPropagatedAlarms ? '1' : '0',
     filter.textSearch ?? '',
     filter.timeWindowMs?.toString() ?? 'all',
+    filter.startTs?.toString() ?? '',
+    filter.endTs?.toString() ?? '',
   ].join('|');
 }
 

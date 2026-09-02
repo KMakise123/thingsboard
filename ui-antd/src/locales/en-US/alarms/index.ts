@@ -26,6 +26,7 @@ export default {
   'pages.alarms.wsStatus': 'Live updates',
   'pages.alarms.refresh': 'Refresh',
   'pages.alarms.twAll': 'For all time',
+  'pages.alarms.twCustom': 'Custom',
   'pages.alarms.tw.5m': 'Last 5 minutes',
   'pages.alarms.tw.15m': 'Last 15 minutes',
   'pages.alarms.tw.30m': 'Last 30 minutes',

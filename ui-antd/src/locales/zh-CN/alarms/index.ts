@@ -29,6 +29,7 @@ export default {
   'pages.alarms.wsStatus': '实时更新',
   'pages.alarms.refresh': '刷新',
   'pages.alarms.twAll': '所有时间',
+  'pages.alarms.twCustom': '自定义',
   'pages.alarms.tw.5m': '最近 5 分钟',
   'pages.alarms.tw.15m': '最近 15 分钟',
   'pages.alarms.tw.30m': '最近 30 分钟',
