@@ -246,30 +246,33 @@ export default [
     icon: 'setting',
     path: '/settings',
     access: 'canSysAdmin',
-    redirect: '/settings/general',
     routes: [
+      // Child names stay relative: umi nests them under the parent name, so
+      // the menu id is menu.settings.general (etc.). A parent redirect would
+      // make umi render the whole subtree as EmptyRoute (blank page).
+      { path: '/settings', redirect: '/settings/general' },
       {
-        name: 'settings.general',
+        name: 'general',
         path: '/settings/general',
         component: './settings/general',
       },
       {
-        name: 'settings.outgoingMail',
+        name: 'outgoingMail',
         path: '/settings/outgoing-mail',
         component: './settings/outgoing-mail',
       },
       {
-        name: 'settings.twoFa',
+        name: 'twoFa',
         path: '/settings/two-fa',
         component: './settings/two-fa',
       },
       {
-        name: 'settings.oauth2',
+        name: 'oauth2',
         path: '/settings/oauth2',
         component: './settings/oauth2',
       },
       {
-        name: 'settings.auditLogs',
+        name: 'auditLogs',
         path: '/settings/audit-logs',
         component: './settings/audit-logs',
       },
