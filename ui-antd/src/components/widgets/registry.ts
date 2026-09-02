@@ -62,10 +62,14 @@ export const WIDGET_REGISTRY: Record<string, WidgetRegistryEntry> = {
     component: lazy(() => import('./alarms-table')),
     meta: { label: 'Alarms table' },
   },
-  'system.map': pendingEntry({ label: 'Map' }),
-  'system.input_widgets.update_multiple_attributes': pendingEntry({
-    label: 'Update multiple attributes',
-  }),
+  'system.map': {
+    component: lazy(() => import('./map')),
+    meta: { label: 'Map' },
+  },
+  'system.input_widgets.update_multiple_attributes': {
+    component: lazy(() => import('./update-multiple-attributes')),
+    meta: { label: 'Update multiple attributes' },
+  },
   'system.analogue_gauges.radial_gauge': pendingEntry({
     label: 'Radial gauge',
   }),
