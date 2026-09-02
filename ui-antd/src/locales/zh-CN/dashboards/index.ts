@@ -12,6 +12,18 @@ export default {
   'dashboards.widget.missing': '组件不存在或已被移除',
   'dashboards.widget.pending': '组件开发中，即将提供',
 
+  // ---- 页面 / 工具栏 ----
+  'dashboards.page.loading': '仪表盘加载中…',
+  'dashboards.page.emptyConfiguration': '该仪表盘暂无配置',
+  'dashboards.page.emptyState': '该页面暂无布局',
+  'dashboards.page.noWidgets': '该仪表盘暂无组件',
+  'dashboards.page.aliasError': '部分数据源解析失败',
+  'dashboards.list.placeholder': '仪表盘列表将由 dash-list 批次交付',
+  'dashboards.toolbar.dashboardSelect': '仪表盘',
+  'dashboards.toolbar.export': '导出仪表盘',
+  'dashboards.toolbar.fullscreen': '全屏',
+  'dashboards.toolbar.exitFullscreen': '退出全屏',
+
   // ---- 全局 timewindow 选择器 ----
   'dashboards.tw.tabRealtime': '实时',
   'dashboards.tw.tabHistory': '历史',

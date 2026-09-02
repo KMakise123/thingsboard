@@ -12,6 +12,20 @@ export default {
   'dashboards.widget.missing': 'Widget not found or has been removed',
   'dashboards.widget.pending': 'Widget is on its way',
 
+  // ---- page / toolbar ----
+  'dashboards.page.loading': 'Loading dashboard…',
+  'dashboards.page.emptyConfiguration':
+    'This dashboard has no configuration yet',
+  'dashboards.page.emptyState': 'This page has no layout yet',
+  'dashboards.page.noWidgets': 'This dashboard has no widgets yet',
+  'dashboards.page.aliasError': 'Some data sources failed to resolve',
+  'dashboards.list.placeholder':
+    'The dashboards list lands with the dash-list wave',
+  'dashboards.toolbar.dashboardSelect': 'Dashboards',
+  'dashboards.toolbar.export': 'Export dashboard',
+  'dashboards.toolbar.fullscreen': 'Fullscreen',
+  'dashboards.toolbar.exitFullscreen': 'Exit fullscreen',
+
   // ---- global timewindow picker ----
   'dashboards.tw.tabRealtime': 'Realtime',
   'dashboards.tw.tabHistory': 'History',

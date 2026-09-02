@@ -12,6 +12,7 @@ vi.mock('@/services/tb/dashboard', () => ({
 
 const states: Record<string, DashboardState> = {
   default: { name: 'Devices', root: true, layouts: {} },
+  // biome-ignore lint/suspicious/noTemplateCurlyInString: TB state names carry `${entityName}` templates verbatim on the wire
   map: { name: 'Map of ${entityName}', layouts: {} },
 };
 
