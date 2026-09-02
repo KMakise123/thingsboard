@@ -16,6 +16,9 @@ import type { BaseData, EntityIdOf, EntityType, HasVersion } from './entity';
 import type { Timewindow } from './timewindow';
 import type { Widget, WidgetLayout } from './widget';
 
+/** Widget-side types re-exported so dashboard consumers need one import. */
+export type { Widget, WidgetLayout };
+
 /** Customer entry in `assignedCustomers` (openapi ShortCustomerInfo). */
 export interface ShortCustomerInfo {
   customerId?: EntityIdOf<EntityType.CUSTOMER>;
