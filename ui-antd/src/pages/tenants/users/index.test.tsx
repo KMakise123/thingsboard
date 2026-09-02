@@ -11,10 +11,10 @@ import { App as AntdApp } from 'antd';
 import React from 'react';
 import { createIntl, RawIntlProvider } from 'react-intl';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { ServerErrorError } from '@/core/http/server-error';
 import zhTenants from '@/locales/zh-CN/tenants';
 import zhUsers from '@/locales/zh-CN/users';
-import { ServerErrorError } from '@/core/http/server-error';
-import { Authority, EntityType } from '@/types/tb';
+import { Authority, type User, EntityType } from '@/types/tb';
 
 const intl = createIntl({
   locale: 'zh-CN',
@@ -103,7 +103,7 @@ import TenantUsersPage from './index';
 
 function user(id: string, email: string, extra: Record<string, unknown> = {}) {
   return {
-    id: { entityType: EntityType.USER, id },
+    id: { entityType: 'USER', id },
     createdTime: 1_700_000_000_000,
     email,
     authority: Authority.TENANT_ADMIN,
@@ -111,7 +111,7 @@ function user(id: string, email: string, extra: Record<string, unknown> = {}) {
     lastName: '',
     additionalInfo: { userActivated: true, userCredentialsEnabled: true },
     ...extra,
-  };
+  } as unknown as User;
 }
 
 const TENANT_PAGE = {
@@ -194,9 +194,10 @@ describe('tenant-admins scope page', () => {
       token: 'jwt-1',
       refreshToken: 'refresh-1',
     });
-    const authMock =
-      await vi.importMock<Record<string, vi.Mock>>('@/services/tb/auth');
-    authMock.getCurrentUser.mockResolvedValue(user('ta-1', 'admin@acme.io'));
+    const getCurrentUser = vi.mocked(
+      (await import('@/services/tb/auth')).getCurrentUser,
+    );
+    getCurrentUser.mockResolvedValue(user('ta-1', 'admin@acme.io'));
     renderPage();
     await screen.findByText('admin@acme.io');
 
