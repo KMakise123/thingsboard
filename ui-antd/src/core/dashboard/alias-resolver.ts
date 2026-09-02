@@ -71,9 +71,7 @@ function stateEntityOf(
 ): { entityType: string; id: string } | null {
   const rawParam = filter.stateEntityParamName;
   const paramName =
-    typeof rawParam === 'string' && rawParam.length > 0
-      ? rawParam
-      : 'entityId';
+    typeof rawParam === 'string' && rawParam.length > 0 ? rawParam : 'entityId';
   const raw = stateParams?.[paramName] ?? stateParams?.entityId;
   if (isEntityIdLike(raw)) {
     return raw;
