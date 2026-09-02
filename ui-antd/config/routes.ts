@@ -299,6 +299,7 @@ export default [
     name: 'account',
     path: '/account',
     access: 'canAuthenticated',
+    hideInMenu: true,
     routes: [
       { path: '/account', redirect: '/account/profile' },
       {
