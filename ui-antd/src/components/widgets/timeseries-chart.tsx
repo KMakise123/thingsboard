@@ -101,18 +101,28 @@ interface WidgetUnits {
 }
 
 /** Numeric points of one wire series, clipped to the resolved window. */
-function numericPoints(
+export function numericPoints(
   points: Array<TsValue> | undefined,
   window: ResolvedTimewindow,
+  /** injection point for tests (streaming upper bound). */
+  nowMs: number = Date.now(),
 ): Array<{ ts: number; value: number }> {
   return (points ?? [])
+    .filter((point) => point.value !== null && point.value !== undefined)
     .map((point) => ({ ts: point.ts, value: Number(point.value) }))
-    .filter(
-      (point) =>
-        Number.isFinite(point.value) &&
-        point.ts >= window.startTs &&
-        point.ts <= window.endTs,
-    );
+    .filter((point) => {
+      if (!Number.isFinite(point.value) || point.ts < window.startTs) {
+        return false;
+      }
+      // streaming (realtime) windows keep the subscription right edge at
+      // "now" — the resolved endTs was frozen at subscribe time and would
+      // filter out every streamed point that arrived after it (live defect:
+      // charts received WS updates but never showed them)
+      const upper = window.streaming
+        ? Math.max(window.endTs, nowMs)
+        : window.endTs;
+      return point.ts <= upper;
+    });
 }
 
 function collectLatestKeys(

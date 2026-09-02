@@ -257,6 +257,11 @@ describe('time_series_chart (anchor: thermostats Temperature)', () => {
       entityType: 'DEVICE',
       entityList: ['therm-1'],
     });
+    // the backend TsDataHandler NPEs when an ENTITY_DATA+tsCmd query carries
+    // no latestValues array (live 2026-09-03: charts silently got errorCode 1)
+    expect(params.query?.latestValues).toEqual([
+      { type: 'ATTRIBUTE', key: 'temperatureAlarmThreshold' },
+    ]);
     expect(params.tsCmd).toMatchObject({
       keys: ['temperature'],
       agg: 'AVG',

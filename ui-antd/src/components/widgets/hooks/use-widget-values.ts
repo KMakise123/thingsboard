@@ -14,6 +14,7 @@ import type { ExpandedDatasource } from '@/core/dashboard/datasources';
 import { getDefaultWsManager } from '@/core/ws';
 import type { AttributeData } from '@/types/tb';
 import { toEntityListFilters } from './entity-filter';
+import { toWireKeyFilters } from './key-filters';
 
 /** label/name of the first dataKey (the value placeholder binding). */
 function valueBindingOf(datasource: ExpandedDatasource): string {
@@ -103,7 +104,7 @@ export function useWidgetValues(
       }
       // entityCount: one cmd per entityType group under the datasource filters
       const groups = toEntityListFilters(job.datasource.entities);
-      const keyFilters = job.datasource.filter?.keyFilters;
+      const keyFilters = toWireKeyFilters(job.datasource.filter?.keyFilters);
       const countSubs = groups.map((group) => {
         // keyFilters ride the wire EntityCountQuery (structural passthrough)
         const query: { entityFilter: Record<string, unknown> } & Record<

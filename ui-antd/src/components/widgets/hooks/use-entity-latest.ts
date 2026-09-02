@@ -20,6 +20,7 @@ import {
   toEntityListFilters,
   WIDGET_ENTITY_PAGE_SIZE,
 } from './entity-filter';
+import { toWireKeyFilters } from './key-filters';
 
 /** One latest-values row: which datasource it belongs to + the wire row. */
 export interface EntityLatestEntry {
@@ -78,7 +79,7 @@ export function useEntityLatestData(datasources: Array<ExpandedDatasource>): {
 
     const subscriptions = jobs.map((job) => {
       const latestValues = dataKeysToLatestValues(job.datasource);
-      const keyFilters = job.datasource.filter?.keyFilters;
+      const keyFilters = toWireKeyFilters(job.datasource.filter?.keyFilters);
       return manager.subscribeEntityData({
         query: {
           entityFilter: job.group as unknown as Record<string, unknown>,
@@ -95,9 +96,7 @@ export function useEntityLatestData(datasources: Array<ExpandedDatasource>): {
             { type: 'ENTITY_FIELD', key: 'label' },
           ],
           latestValues,
-          ...(Array.isArray(keyFilters) && keyFilters.length > 0
-            ? { keyFilters }
-            : {}),
+          ...(keyFilters.length > 0 ? { keyFilters } : {}),
         },
       });
     });

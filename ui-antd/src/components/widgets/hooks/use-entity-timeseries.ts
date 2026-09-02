@@ -122,6 +122,10 @@ export function useEntityTimeseries(
         query: {
           entityFilter: group as unknown as Record<string, unknown>,
           pageLink: { pageSize: WIDGET_ENTITY_PAGE_SIZE, page: 0 },
+          // backend contract: TsDataHandler reads getLatestValues() on every
+          // ENTITY_DATA cmd — null (absent) NPEs the handler and the
+          // subscription is rejected with errorCode 1 (never streams)
+          latestValues: latestCmd ? latestCmd.keys : [],
         },
         tsCmd,
         historyCmd,
