@@ -77,10 +77,7 @@ describe('token-store', () => {
   it('stores an MFA interim pair (null refresh) and drops a stale refresh session', () => {
     const iat = Math.floor(Date.now() / 1000);
     const refresh = makeJwt({ sub: 'a', iat, exp: iat + 3600 });
-    store.setTokens(
-      makeJwt({ sub: 'a', iat, exp: iat + 600 }),
-      refresh,
-    );
+    store.setTokens(makeJwt({ sub: 'a', iat, exp: iat + 600 }), refresh);
     // The interim MFA pairs ship with refreshToken: null (no ttl to derive).
     const interim = makeJwt({
       sub: 'tenant@tb',

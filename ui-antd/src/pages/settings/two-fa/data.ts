@@ -170,20 +170,27 @@ export function toTwoFaSettingsPayload(
   const rateLimit = enable
     ? `${rest.verificationCodeCheckRateLimitNumber}:${rest.verificationCodeCheckRateLimitTime}`
     : undefined;
-  const filterType = rest.enforcedUsersFilter.type;
+  // The filter block unmounts when enforce is off, so callers reading
+  // validateFields() output lose it — fall back to the all-users default.
+  const filter =
+    rest.enforcedUsersFilter ??
+    ({
+      type: 'ALL_USERS',
+    } as TwoFaFormValues['enforcedUsersFilter']);
+  const filterType = filter.type;
   let enforcedUsersFilter: PlatformTwoFaSettings['enforcedUsersFilter'];
   if (filterType === 'TENANT_ADMINISTRATORS') {
     enforcedUsersFilter =
-      rest.enforcedUsersFilter.filterByTenants === true
+      filter.filterByTenants === true
         ? {
             type: filterType,
-            tenantsIds: rest.enforcedUsersFilter.tenantsIds ?? [],
+            tenantsIds: filter.tenantsIds ?? [],
             tenantProfilesIds: undefined,
           }
         : {
             type: filterType,
             tenantsIds: undefined,
-            tenantProfilesIds: rest.enforcedUsersFilter.tenantProfilesIds ?? [],
+            tenantProfilesIds: filter.tenantProfilesIds ?? [],
           };
   } else {
     enforcedUsersFilter = { type: filterType };

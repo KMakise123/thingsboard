@@ -30,7 +30,10 @@ import { useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
 import SettingsCard from '@/components/settings/SettingsCard';
 import { getTwoFaSettings, saveTwoFaSettings } from '@/services/tb/two-fa';
-import type { TwoFaProviderType } from '@/types/tb/two-fa';
+import type {
+  PlatformTwoFaSettings,
+  TwoFaProviderType,
+} from '@/types/tb/two-fa';
 import {
   anyProviderEnabled,
   backupCodeSwitchDisabled,
@@ -77,8 +80,11 @@ export default function SettingsTwoFaPage() {
   }, [snapshot, settingsQuery.isSuccess]);
 
   const saveMutation = useMutation({
-    mutationFn: (formValues: TwoFaFormValues) =>
-      saveTwoFaSettings(toTwoFaSettingsPayload(formValues)),
+    // onFinish hands over the WIRE payload already (single toTwoFaSettingsPayload
+    // pass — running the transform twice strips every provider: the wire
+    // shape carries no `enable` flag, so the second pass filters all of them
+    // out and each save wiped the server config).
+    mutationFn: (payload: PlatformTwoFaSettings) => saveTwoFaSettings(payload),
     onSuccess: (saved) => {
       void message.success(
         formatMessage({
@@ -127,7 +133,16 @@ export default function SettingsTwoFaPage() {
             allFields.some((field) => (field.errors ?? []).length > 0),
           )
         }
-        onFinish={(formValues) => saveMutation.mutate(formValues)}
+        // Read the whole store, not just validateFields() output — the
+        // enforce-filter fields unmount when enforcement is off, and the
+        // Segmented's filterByTenants flag has no Form.Item at all.
+        onFinish={() =>
+          saveMutation.mutate(
+            toTwoFaSettingsPayload(
+              form.getFieldsValue(true) as TwoFaFormValues,
+            ),
+          )
+        }
       >
         <Card size="small" className="mb-4">
           <Form.Item
