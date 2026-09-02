@@ -16,6 +16,8 @@ import {
   DownloadOutlined,
   MoreOutlined,
   ReloadOutlined,
+  UserAddOutlined,
+  UserDeleteOutlined,
 } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
@@ -33,6 +35,7 @@ import {
   Checkbox,
   Dropdown,
   Input,
+  Space,
   type TableProps,
   Typography,
 } from 'antd';
@@ -41,17 +44,26 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { serverErrorText } from '@/components/entities/server-error-text';
 import PageContainer from '@/components/layout/page-container';
+import { BatchProgressModal } from '@/components/shared/BatchProgressModal';
 import { useAuthority } from '@/components/shared/use-authority';
+import { useBatchRun } from '@/components/shared/use-batch-run';
 import { getCustomerDashboards } from '@/services/tb/customer';
 import {
+  addDashboardCustomers,
   deleteDashboard,
   getTenantDashboards,
   makeDashboardPrivate,
   makeDashboardPublic,
+  removeDashboardCustomers,
+  updateDashboardCustomers,
 } from '@/services/tb/dashboard';
 import type { DashboardInfo } from '@/types/tb/dashboard';
 import { ImportDashboardModal } from './ImportDashboardModal';
 import { exportDashboardToFile } from './import-export';
+import {
+  type ManageCustomersActionType,
+  ManageDashboardCustomersDialog,
+} from './ManageDashboardCustomersDialog';
 import { listUrlState } from './url-state';
 
 const DASHBOARDS_QUERY_KEY = ['dashboards', 'list'] as const;
@@ -143,6 +155,12 @@ export default function DashboardsListPage() {
   const invalidate = () =>
     queryClient.invalidateQueries({ queryKey: DASHBOARDS_QUERY_KEY });
 
+  // ---- selection (tenant scope only; batch assign/unassign)
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const selectedDashboards = dashboards.filter((dashboard) =>
+    selectedRowKeys.includes(dashboard.id.id),
+  );
+
   // ---- row operations
   const deleteMutation = useMutation({
     mutationFn: (dashboardId: string) => deleteDashboard(dashboardId),
@@ -228,6 +246,83 @@ export default function DashboardsListPage() {
         ),
       );
     }
+  };
+
+  // ---- manage assigned customers (single row + batch) ----
+  const [manageTarget, setManageTarget] = useState<{
+    actionType: ManageCustomersActionType;
+    dashboards: Array<DashboardInfo>;
+    assignedCustomerIds: Array<string>;
+  }>();
+  const batch = useBatchRun();
+  const [batchOpen, setBatchOpen] = useState(false);
+
+  const reportBatchSummary = (summary: { ok: number; failed: number }) => {
+    if (summary.failed > 0) {
+      void message.warning(
+        formatMessage(
+          {
+            id: 'dashboards.list.batchResult',
+            defaultMessage: '{ok} succeeded, {fail} failed.',
+          },
+          { ok: summary.ok, fail: summary.failed },
+        ),
+      );
+    } else {
+      void message.success(
+        formatMessage({
+          id: 'dashboards.list.toastManaged',
+          defaultMessage: 'Assigned customers updated.',
+        }),
+      );
+    }
+  };
+
+  const runManageCustomers = (customerIds: Array<string>) => {
+    const target = manageTarget;
+    if (!target || customerIds.length === 0) {
+      return;
+    }
+    setManageTarget(undefined);
+    const endpoint = (dashboardId: string) => {
+      switch (target.actionType) {
+        case 'assign':
+          return addDashboardCustomers(dashboardId, customerIds);
+        case 'unassign':
+          return removeDashboardCustomers(dashboardId, customerIds);
+        default:
+          return updateDashboardCustomers(dashboardId, customerIds);
+      }
+    };
+    if (target.dashboards.length === 1) {
+      // Single dashboard: one call, ui-ngx forkJoin of a single task.
+      endpoint(target.dashboards[0].id.id)
+        .then(() => {
+          void message.success(
+            formatMessage({
+              id: 'dashboards.list.toastManaged',
+              defaultMessage: 'Assigned customers updated.',
+            }),
+          );
+          void invalidate();
+        })
+        .catch((error) => {
+          void message.error(serverErrorText(error));
+        });
+      return;
+    }
+    // Batch: visible per-dashboard fan-out (forkJoin parity with progress).
+    void (async () => {
+      setBatchOpen(true);
+      const summary = await batch.run(
+        target.dashboards,
+        (dashboard) => dashboard.title,
+        (dashboard) => endpoint(dashboard.id.id),
+      );
+      setSelectedRowKeys([]);
+      void invalidate();
+      reportBatchSummary(summary);
+    })();
   };
 
   // NOTE on confirm close behaviour: antd keeps a confirm open (loading)
@@ -418,6 +513,21 @@ export default function DashboardsListPage() {
                       onClick: () => confirmMakePublic(record),
                     },
                 {
+                  key: 'manage-customers',
+                  label: formatMessage({
+                    id: 'dashboards.list.actionManageCustomers',
+                    defaultMessage: 'Manage assigned customers',
+                  }),
+                  onClick: () =>
+                    setManageTarget({
+                      actionType: 'manage',
+                      dashboards: [record],
+                      assignedCustomerIds: (record.assignedCustomers ?? [])
+                        .map((info) => info.customerId?.id)
+                        .filter((id): id is string => !!id),
+                    }),
+                },
+                {
                   key: 'delete',
                   danger: true,
                   label: formatMessage({
@@ -507,6 +617,49 @@ export default function DashboardsListPage() {
               })}
             </Button>
           )}
+          {!readOnly && selectedDashboards.length > 0 && (
+            <Space>
+              <Typography.Text type="secondary">
+                {formatMessage(
+                  {
+                    id: 'dashboards.list.selectedCount',
+                    defaultMessage: '{count} selected',
+                  },
+                  { count: selectedDashboards.length },
+                )}
+              </Typography.Text>
+              <Button
+                icon={<UserAddOutlined />}
+                onClick={() =>
+                  setManageTarget({
+                    actionType: 'assign',
+                    dashboards: selectedDashboards,
+                    assignedCustomerIds: [],
+                  })
+                }
+              >
+                {formatMessage({
+                  id: 'dashboards.list.batchAssign',
+                  defaultMessage: 'Assign dashboards',
+                })}
+              </Button>
+              <Button
+                icon={<UserDeleteOutlined />}
+                onClick={() =>
+                  setManageTarget({
+                    actionType: 'unassign',
+                    dashboards: selectedDashboards,
+                    assignedCustomerIds: [],
+                  })
+                }
+              >
+                {formatMessage({
+                  id: 'dashboards.list.batchUnassign',
+                  defaultMessage: 'Unassign dashboards',
+                })}
+              </Button>
+            </Space>
+          )}
         </div>
       }
     >
@@ -550,6 +703,31 @@ export default function DashboardsListPage() {
             id: 'dashboards.list.empty',
             defaultMessage: 'No dashboards',
           }),
+        }}
+        rowSelection={
+          readOnly
+            ? undefined
+            : {
+                selectedRowKeys,
+                onChange: (keys) => setSelectedRowKeys(keys),
+              }
+        }
+      />
+
+      <ManageDashboardCustomersDialog
+        open={!!manageTarget}
+        actionType={manageTarget?.actionType ?? 'manage'}
+        dashboardCount={manageTarget?.dashboards.length ?? 0}
+        assignedCustomerIds={manageTarget?.assignedCustomerIds}
+        onClose={() => setManageTarget(undefined)}
+        onConfirm={runManageCustomers}
+      />
+      <BatchProgressModal
+        open={batchOpen}
+        state={batch.state}
+        onClose={() => {
+          setBatchOpen(false);
+          batch.reset();
         }}
       />
 

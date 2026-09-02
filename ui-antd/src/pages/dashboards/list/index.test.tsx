@@ -42,10 +42,14 @@ const dashboardServiceMock = vi.hoisted(() => ({
   makeDashboardPrivate: vi.fn(),
   exportDashboard: vi.fn(),
   saveDashboard: vi.fn(),
+  updateDashboardCustomers: vi.fn(),
+  addDashboardCustomers: vi.fn(),
+  removeDashboardCustomers: vi.fn(),
 }));
 
 const customerServiceMock = vi.hoisted(() => ({
   getCustomerDashboards: vi.fn(),
+  getCustomers: vi.fn(),
 }));
 
 const tokenStoreMock = vi.hoisted(() => ({
@@ -163,6 +167,30 @@ describe('dashboards list page (tenant admin)', () => {
     dashboardServiceMock.saveDashboard.mockResolvedValue(
       dashboard('dash-new', 'Imported Dashboard'),
     );
+    dashboardServiceMock.updateDashboardCustomers.mockResolvedValue(
+      dashboard('dash-1', 'Thermostats'),
+    );
+    dashboardServiceMock.addDashboardCustomers.mockResolvedValue(
+      dashboard('dash-1', 'Thermostats'),
+    );
+    dashboardServiceMock.removeDashboardCustomers.mockResolvedValue(
+      dashboard('dash-1', 'Thermostats'),
+    );
+    customerServiceMock.getCustomers.mockResolvedValue({
+      data: [
+        {
+          id: { entityType: EntityType.CUSTOMER, id: 'cust-1' },
+          title: '工厂 A',
+          additionalInfo: {},
+        },
+        {
+          id: { entityType: EntityType.CUSTOMER, id: 'cust-2' },
+          title: '工厂 B',
+          additionalInfo: {},
+        },
+      ],
+      totalElements: 2,
+    });
     customerServiceMock.getCustomerDashboards.mockResolvedValue({
       data: [],
       totalElements: 0,
@@ -183,11 +211,19 @@ describe('dashboards list page (tenant admin)', () => {
       textSearch: undefined,
       sortOrder: { property: 'createdTime', direction: 'DESC' },
     });
-    // Assigned customers text (non-public titles) + public checkbox.
+    // Assigned customers text (non-public titles) + public checkbox (the
+    // public flag cells carry no aria-label, unlike the row selection).
     expect(screen.getByText('工厂 A')).toBeInTheDocument();
-    const checkboxes = screen.getAllByRole('checkbox');
-    expect(checkboxes[0]).toBeChecked();
-    expect(checkboxes[1]).not.toBeChecked();
+    const publicCheckboxes = screen
+      .getAllByRole('checkbox')
+      .filter(
+        (checkbox) =>
+          !/select/i.test(
+            (checkbox as HTMLInputElement).getAttribute('aria-label') ?? '',
+          ),
+      );
+    expect(publicCheckboxes[0]).toBeChecked();
+    expect(publicCheckboxes[1]).not.toBeChecked();
   });
 
   it('opens the readonly view from the title link', async () => {
@@ -381,6 +417,98 @@ describe('dashboards list page (tenant admin)', () => {
       await screen.findByText(/缺少 title 或 configuration/),
     ).toBeInTheDocument();
     expect(dashboardServiceMock.saveDashboard).not.toHaveBeenCalled();
+  });
+
+  it('opens manage-assigned-customers preselected and updates the full set', async () => {
+    renderPage();
+    await screen.findByText('Thermostats');
+
+    await openRowMenu('Thermostats');
+    fireEvent.click(
+      await screen.findByText('管理已分配的客户', {
+        selector: '.ant-dropdown-menu-title-content',
+      }),
+    );
+
+    // The manage dialog is preselected with the row's assigned customer ids
+    // (non-public 工厂 A + the Public customer, ui-ngx parity).
+    const dialog = await waitFor(() => {
+      const node = [...document.querySelectorAll('.ant-modal')].find(
+        (modal) =>
+          getComputedStyle(modal).display !== 'none' &&
+          (modal as HTMLElement).innerText.includes('已分配的客户'),
+      );
+      expect(node).toBeDefined();
+      return node as HTMLElement;
+    });
+    const selector = within(dialog).getByRole('combobox');
+    fireEvent.mouseDown(selector);
+    fireEvent.click(
+      await screen.findByText('工厂 B', {
+        selector: '.ant-select-item-option-content',
+      }),
+    );
+    fireEvent.click(within(dialog).getByRole('button', { name: /更\s*新/ }));
+
+    await waitFor(() => {
+      expect(
+        dashboardServiceMock.updateDashboardCustomers,
+      ).toHaveBeenCalledWith('dash-1', ['cust-1', 'pub-cust', 'cust-2']);
+    });
+  });
+
+  it('fans the batch unassign out over the selected dashboards', async () => {
+    renderPage();
+    await screen.findByText('Thermostats');
+
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Select row 1' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Select row 2' }));
+    fireEvent.click(screen.getByRole('button', { name: /取消分配仪表盘/ }));
+
+    // No preselection for a batch: pick a customer then confirm (the OK
+    // lives in the dialog modal — the toolbar button shares the label).
+    const batchDialog = await waitFor(() => {
+      const node = [...document.querySelectorAll('.ant-modal')].find(
+        (modal) =>
+          getComputedStyle(modal).display !== 'none' &&
+          (modal as HTMLElement).innerText.includes('取消分配仪表盘的客户'),
+      );
+      expect(node).toBeDefined();
+      return node as HTMLElement;
+    });
+    const selector = within(batchDialog).getByRole('combobox');
+    fireEvent.mouseDown(selector);
+    fireEvent.click(
+      await screen.findByText('工厂 A', {
+        selector: '.ant-select-item-option-content',
+      }),
+    );
+    const dialog = await waitFor(() => {
+      const node = [...document.querySelectorAll('.ant-modal')].find(
+        (modal) =>
+          getComputedStyle(modal).display !== 'none' &&
+          (modal as HTMLElement).innerText.includes('取消分配仪表盘的客户'),
+      );
+      expect(node).toBeDefined();
+      return node as HTMLElement;
+    });
+    fireEvent.click(
+      within(dialog).getByRole('button', { name: /取\s*消\s*分\s*配/ }),
+    );
+
+    await waitFor(() => {
+      expect(
+        dashboardServiceMock.removeDashboardCustomers,
+      ).toHaveBeenCalledTimes(2);
+    });
+    expect(dashboardServiceMock.removeDashboardCustomers).toHaveBeenCalledWith(
+      'dash-1',
+      ['cust-1'],
+    );
+    expect(dashboardServiceMock.removeDashboardCustomers).toHaveBeenCalledWith(
+      'dash-2',
+      ['cust-1'],
+    );
   });
 });
 

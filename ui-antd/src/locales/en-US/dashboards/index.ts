@@ -95,6 +95,31 @@ export default {
   'dashboards.list.importFailed': 'Failed to import the dashboard: {error}',
   'dashboards.list.toastImported': "Dashboard '{title}' has been imported.",
 
+  // ---- W3 unit 3 manage customers + batch ----
+  'dashboards.list.actionManageCustomers': 'Manage assigned customers',
+  'dashboards.list.batchAssign': 'Assign dashboards',
+  'dashboards.list.batchUnassign': 'Unassign dashboards',
+  'dashboards.list.manageTitle.assign': 'Assign dashboards to customers',
+  'dashboards.list.manageTitle.manage': 'Manage assigned customers',
+  'dashboards.list.manageTitle.unassign': 'Unassign dashboards from customers',
+  'dashboards.list.manageLabel.assign':
+    'Please select the customers to assign the dashboards',
+  'dashboards.list.manageLabel.manage': 'Assigned customers',
+  'dashboards.list.manageLabel.unassign':
+    'Please select the customers to unassign from the dashboards',
+  'dashboards.list.manageOk.assign': 'Assign',
+  'dashboards.list.manageOk.manage': 'Update',
+  'dashboards.list.manageOk.unassign': 'Unassign',
+  'dashboards.list.manageCustomerPlaceholder': 'Search and select customers',
+  'dashboards.list.manageCustomerRequired':
+    'Please select at least one customer.',
+  'dashboards.list.manageHint.manage':
+    'The dashboard will be assigned to exactly the selected customer set.',
+  'dashboards.list.manageHint.batch':
+    'The action applies to {count} dashboard(s).',
+  'dashboards.list.toastManaged': 'Assigned customers updated.',
+  'dashboards.list.batchResult': '{ok} succeeded, {fail} failed.',
+
   // ---- global timewindow picker ----
   'dashboards.tw.tabRealtime': 'Realtime',
   'dashboards.tw.tabHistory': 'History',

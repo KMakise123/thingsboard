@@ -90,6 +90,27 @@ export default {
   'dashboards.list.importFailed': '导入仪表盘失败：{error}',
   'dashboards.list.toastImported': '仪表盘“{title}”已导入。',
 
+  // ---- W3 ③ 管理已分配客户 + 批量 ----
+  'dashboards.list.actionManageCustomers': '管理已分配的客户',
+  'dashboards.list.batchAssign': '分配仪表盘',
+  'dashboards.list.batchUnassign': '取消分配仪表盘',
+  'dashboards.list.manageTitle.assign': '分配仪表盘给客户',
+  'dashboards.list.manageTitle.manage': '管理已分配的客户',
+  'dashboards.list.manageTitle.unassign': '取消分配仪表盘的客户',
+  'dashboards.list.manageLabel.assign': '请选择要分配仪表盘的客户',
+  'dashboards.list.manageLabel.manage': '已分配的客户',
+  'dashboards.list.manageLabel.unassign': '请选择要取消分配仪表盘的客户',
+  'dashboards.list.manageOk.assign': '分 配',
+  'dashboards.list.manageOk.manage': '更 新',
+  'dashboards.list.manageOk.unassign': '取 消 分 配',
+  'dashboards.list.manageCustomerPlaceholder': '搜索并选择客户',
+  'dashboards.list.manageCustomerRequired': '请至少选择一个客户。',
+  'dashboards.list.manageHint.manage':
+    '仪表盘将只分配给所选客户集合（更新全集）。',
+  'dashboards.list.manageHint.batch': '该操作将应用到 {count} 个仪表盘。',
+  'dashboards.list.toastManaged': '已更新仪表盘的分配客户。',
+  'dashboards.list.batchResult': '成功 {ok} 个，失败 {fail} 个。',
+
   // ---- 全局 timewindow 选择器 ----
   'dashboards.tw.tabRealtime': '实时',
   'dashboards.tw.tabHistory': '历史',
