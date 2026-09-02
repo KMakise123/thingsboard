@@ -92,4 +92,58 @@ export default {
   'pages.settings.mail.sendTestMail': 'Send test mail',
   'pages.settings.mail.toastTestMailSent': 'Test mail has been sent!',
   'pages.settings.mail.testMailFailed': 'Failed to send the test mail.',
+
+  'pages.settings.twoFa.title': 'Two-factor authentication',
+  'pages.settings.twoFa.toastSaved': 'Two-factor auth settings saved.',
+  'pages.settings.twoFa.force2fa': 'Enforce two-factor authentication',
+  'pages.settings.twoFa.enforceFor': 'Enforce for',
+  'pages.settings.twoFa.allUsers': 'All users',
+  'pages.settings.twoFa.tenantAdministrators': 'Tenant administrators',
+  'pages.settings.twoFa.systemAdministrators': 'System administrators',
+  'pages.settings.twoFa.tenants': 'Tenants',
+  'pages.settings.twoFa.tenantProfiles': 'Tenant profiles',
+  'pages.settings.twoFa.idListHint': 'Leave empty to apply to all.',
+  'pages.settings.twoFa.idListPlaceholder': 'Enter UUIDs separated by commas',
+  'pages.settings.twoFa.verificationLimitations': 'Verification limitations',
+  'pages.settings.twoFa.maxVerificationFailures':
+    'Max verification failures before user lockout',
+  'pages.settings.twoFa.totalAllowedTime':
+    'Total allowed time for verification (sec)',
+  'pages.settings.twoFa.totalAllowedTimeRequired':
+    'Total allowed time is required.',
+  'pages.settings.twoFa.totalAllowedTimeMin':
+    'The minimum allowed total time is 60 sec.',
+  'pages.settings.twoFa.minSendPeriod':
+    'Min verification code send period (sec)',
+  'pages.settings.twoFa.minSendPeriodRequired': 'Min send period is required.',
+  'pages.settings.twoFa.minSendPeriodMin': 'The minimum period is 5 sec.',
+  'pages.settings.twoFa.verificationCodeCheckRateLimit':
+    'Verification code check rate limit',
+  'pages.settings.twoFa.checkAttempts': 'Number of checking attempts',
+  'pages.settings.twoFa.checkAttemptsRequired':
+    'Number of checking attempts is required.',
+  'pages.settings.twoFa.withinTime': 'Within time (sec)',
+  'pages.settings.twoFa.withinTimeRequired': 'Time is required.',
+  'pages.settings.twoFa.positiveInteger': 'Must be a non-negative integer.',
+  'pages.settings.twoFa.availableProviders': 'Available providers',
+  'pages.settings.twoFa.availableProvidersRequired':
+    'At least one two-factor auth provider must be configured.',
+  'pages.settings.twoFa.provider.TOTP': 'TOTP',
+  'pages.settings.twoFa.provider.SMS': 'SMS',
+  'pages.settings.twoFa.provider.EMAIL': 'Email',
+  'pages.settings.twoFa.provider.BACKUP_CODE': 'Backup codes',
+  'pages.settings.twoFa.issuerName': 'Issuer name',
+  'pages.settings.twoFa.issuerNameRequired': 'Issuer name is required.',
+  'pages.settings.twoFa.verificationMessageTemplate':
+    'Verification message template',
+  'pages.settings.twoFa.verificationMessageTemplateRequired':
+    'Verification message template is required.',
+  'pages.settings.twoFa.verificationMessageTemplatePattern': `Verification message needs to contain pattern: ${'$'}{code}.`,
+  'pages.settings.twoFa.verificationCodeLifetime':
+    'Verification code lifetime (sec)',
+  'pages.settings.twoFa.verificationCodeLifetimeRequired':
+    'Verification code lifetime is required.',
+  'pages.settings.twoFa.numberOfCodes': 'Number of verification codes',
+  'pages.settings.twoFa.numberOfCodesRequired':
+    'Number of verification codes is required.',
 };
