@@ -24,6 +24,35 @@ export default {
   'pages.login.oauth2.signInWith': 'Sign in with {name}',
   'pages.login.oauth2.or': 'or',
 
+  // /user/mfa — MFA verification step (brief §2-B)
+  'pages.mfa.title': 'Verify your identity',
+  'pages.mfa.back': 'Back',
+  'pages.mfa.selectWay': 'Select a way to verify',
+  'pages.mfa.provider.totp': 'Authenticator app',
+  'pages.mfa.provider.sms': 'SMS',
+  'pages.mfa.provider.email': 'Email',
+  'pages.mfa.provider.backupCode': 'Backup code',
+  'pages.mfa.description.totp':
+    'Please enter the security code from your authenticator app.',
+  'pages.mfa.description.sms':
+    'A security code has been sent to your phone at {contact}.',
+  'pages.mfa.description.email':
+    'A security code has been sent to your email address at {contact}.',
+  'pages.mfa.description.backupCode': 'Please enter one of your backup codes.',
+  'pages.mfa.placeholder.totp': 'Code',
+  'pages.mfa.placeholder.sms': 'SMS code',
+  'pages.mfa.placeholder.email': 'Email code',
+  'pages.mfa.placeholder.backupCode': 'Backup code',
+  'pages.mfa.code.required': 'Verification code is required',
+  'pages.mfa.code.invalid': 'Invalid verification code format',
+  'pages.mfa.code.incorrect': 'Verification code is incorrect',
+  'pages.mfa.code.tooManyRequests':
+    'Too many requests to check the verification code',
+  'pages.mfa.continue': 'Continue',
+  'pages.mfa.resendCode': 'Resend code',
+  'pages.mfa.resendWait': 'Resend code in {time} s',
+  'pages.mfa.tryAnotherWay': 'Try another way',
+
   // /user/forgot-password (ui-ngx resetPasswordRequest)
   'pages.forgotPassword.title': 'Forgot password',
   'pages.forgotPassword.description':
