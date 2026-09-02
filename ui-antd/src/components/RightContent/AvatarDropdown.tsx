@@ -1,4 +1,8 @@
-import { LogoutOutlined } from '@ant-design/icons';
+import {
+  LogoutOutlined,
+  SafetyCertificateOutlined,
+  UserOutlined,
+} from '@ant-design/icons';
 import { history, useIntl, useModel } from '@umijs/max';
 import type { MenuProps } from 'antd';
 import { Spin } from 'antd';
@@ -13,10 +17,11 @@ type GlobalHeaderRightProps = {
 };
 
 /**
- * User menu (M1: sign-out only, locale switching lives in LangDropdown).
- * Sign-out = POST /api/auth/logout (services layer always clears the four
- * token keys) + WS socket close + back to the login page with the current
- * URL as the post-login redirect target.
+ * User menu (M4): profile / security entries into the /account family plus
+ * sign-out; locale switching lives in LangDropdown. Sign-out = POST
+ * /api/auth/logout (services layer always clears the four token keys) + WS
+ * socket close + back to the login page with the current URL as the
+ * post-login redirect target.
  */
 export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({
   children,
@@ -25,6 +30,17 @@ export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({
   const { formatMessage } = useIntl();
 
   const menuItems: MenuProps['items'] = [
+    {
+      key: 'profile',
+      icon: <UserOutlined />,
+      label: formatMessage({ id: 'menu.account.profile' }),
+    },
+    {
+      key: 'security',
+      icon: <SafetyCertificateOutlined />,
+      label: formatMessage({ id: 'menu.account.security' }),
+    },
+    { type: 'divider' },
     {
       key: 'logout',
       icon: <LogoutOutlined />,
@@ -52,6 +68,14 @@ export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({
   };
 
   const onMenuClick: MenuProps['onClick'] = (event) => {
+    if (event.key === 'profile') {
+      history.push('/account/profile');
+      return;
+    }
+    if (event.key === 'security') {
+      history.push('/account/security');
+      return;
+    }
     if (event.key === 'logout') {
       handleLogout();
     }
