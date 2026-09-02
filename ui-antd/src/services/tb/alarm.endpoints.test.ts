@@ -19,12 +19,16 @@ vi.mock('./http', () => ({
 
 import {
   ackAlarm,
+  assignAlarm,
   clearAlarm,
   deleteAlarm,
   getAlarmComments,
   getAlarmInfoById,
+  getAlarmTypes,
+  getAlarms,
   getEntityAlarms,
   saveAlarmComment,
+  unassignAlarm,
 } from './alarm';
 
 const get = vi.mocked(tbHttp.get);
@@ -89,5 +93,47 @@ describe('alarm transport endpoints', () => {
       type: 'OTHER',
       comment: { text: 'note' },
     });
+  });
+
+  it('global v2 page carries the full filter incl. assignee', async () => {
+    await getAlarms(
+      {
+        statusList: ['ACTIVE'],
+        severityList: [AlarmSeverity.MAJOR],
+        typeList: ['高温告警'],
+        assigneeId: 'u-1',
+      },
+      {
+        pageSize: 100,
+        page: 0,
+        textSearch: 'dev',
+        sortOrder: { property: 'createdTime', direction: 'DESC' },
+      },
+    );
+    expect(get).toHaveBeenCalledWith('/api/v2/alarms', {
+      pageSize: 100,
+      page: 0,
+      textSearch: 'dev',
+      sortProperty: 'createdTime',
+      sortOrder: 'DESC',
+      statusList: 'ACTIVE',
+      severityList: 'MAJOR',
+      typeList: '高温告警',
+      assigneeId: 'u-1',
+      startTime: undefined,
+      endTime: undefined,
+    });
+  });
+
+  it('alarm types + assign / unassign hit their endpoints', async () => {
+    await getAlarmTypes();
+    expect(get).toHaveBeenCalledWith('/api/alarm/types', {
+      pageSize: 100,
+      page: 0,
+    });
+    await assignAlarm('a-1', 'u-1');
+    expect(post).toHaveBeenCalledWith('/api/alarm/a-1/assign/u-1');
+    await unassignAlarm('a-1');
+    expect(del).toHaveBeenCalledWith('/api/alarm/a-1/assign');
   });
 });

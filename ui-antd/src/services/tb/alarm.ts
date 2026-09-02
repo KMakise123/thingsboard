@@ -1,5 +1,6 @@
 /**
- * Alarm transport (handwritten) — device alarms tab + alarm details dialog.
+ * Alarm transport (handwritten) — device alarms tab + alarm details dialog
+ * + global alarms page (spec 3.6).
  *
  * Base paths (V2 surface, entity-typed):
  *   GET    /api/alarm/info/{alarmId}                     AlarmInfo
@@ -7,6 +8,10 @@
  *   POST   /api/alarm/{alarmId}/clear                    clear
  *   DELETE /api/alarm/{alarmId}                          delete
  *   GET    /api/v2/alarm/{entityType}/{entityId}         entity-scoped page
+ *   GET    /api/v2/alarms                                tenant-wide page (TA + CU)
+ *   GET    /api/alarm/types                              alarm type list
+ *   POST   /api/alarm/{alarmId}/assign/{assigneeId}      assign
+ *   DELETE /api/alarm/{alarmId}/assign                   unassign
  *   GET    /api/alarm/{alarmId}/comment                  comments timeline
  *   POST   /api/alarm/{alarmId}/comment                  add comment
  *
@@ -20,6 +25,7 @@ import type {
   AlarmSeverity,
   BaseData,
   EntityId,
+  EntitySubtype,
   EntityType,
   PageData,
   PageLink,
@@ -37,6 +43,16 @@ export interface EntityAlarmsFilter {
   typeList?: Array<string>;
   startTime?: number;
   endTime?: number;
+}
+
+/**
+ * Tenant-wide filter (GET /api/v2/alarms). Note: the REST v2 endpoint has no
+ * searchPropagatedAlarms parameter — that flag only exists on the WS
+ * AlarmDataQuery page link, so the REST seed ignores it (contract gap, the
+ * live WS channel carries it).
+ */
+export interface AlarmsFilter extends EntityAlarmsFilter {
+  assigneeId?: string;
 }
 
 function listParam(values?: Array<string>): string | undefined {
@@ -70,6 +86,53 @@ export async function getEntityAlarms(
 /** GET /api/alarm/info/{alarmId} — details dialog full read. */
 export async function getAlarmInfoById(alarmId: string): Promise<AlarmInfo> {
   return tbHttp.get<AlarmInfo>(`/api/alarm/info/${alarmId}`);
+}
+
+/**
+ * GET /api/v2/alarms — tenant-wide page (server scopes TA → tenant,
+ * CU → own customer). One-way seed for the global page's WS stream.
+ */
+export async function getAlarms(
+  filter: AlarmsFilter,
+  pageLink: PageLink,
+): Promise<PageData<AlarmInfo>> {
+  const params: QueryParams = {
+    pageSize: pageLink.pageSize,
+    page: pageLink.page,
+    textSearch: pageLink.textSearch,
+    sortProperty: pageLink.sortOrder?.property,
+    sortOrder: pageLink.sortOrder?.direction,
+    statusList: listParam(filter.statusList),
+    severityList: listParam(filter.severityList),
+    typeList: listParam(filter.typeList),
+    assigneeId: filter.assigneeId,
+    startTime: filter.startTime,
+    endTime: filter.endTime,
+  };
+  return tbHttp.get<PageData<AlarmInfo>>('/api/v2/alarms', params);
+}
+
+/** GET /api/alarm/types — distinct alarm types for the typeList filter. */
+export async function getAlarmTypes(): Promise<PageData<EntitySubtype>> {
+  return tbHttp.get<PageData<EntitySubtype>>('/api/alarm/types', {
+    pageSize: 100,
+    page: 0,
+  });
+}
+
+/** POST /api/alarm/{alarmId}/assign/{assigneeId}. */
+export async function assignAlarm(
+  alarmId: string,
+  assigneeId: string,
+): Promise<AlarmInfo> {
+  return tbHttp.post<AlarmInfo>(
+    `/api/alarm/${alarmId}/assign/${assigneeId}`,
+  );
+}
+
+/** DELETE /api/alarm/{alarmId}/assign. */
+export async function unassignAlarm(alarmId: string): Promise<AlarmInfo> {
+  return tbHttp.delete<AlarmInfo>(`/api/alarm/${alarmId}/assign`);
 }
 
 /** POST /api/alarm/{alarmId}/ack. */
