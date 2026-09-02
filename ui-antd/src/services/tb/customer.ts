@@ -15,6 +15,7 @@ import {
   type PageLink,
   pageLinkToQueryParams,
 } from '@/types/tb';
+import type { DashboardInfo } from '@/types/tb/dashboard';
 
 import { tbHttp } from './http';
 
@@ -52,21 +53,15 @@ export async function getCustomerTitle(customerId: string): Promise<string> {
 }
 
 /**
- * Minimal dashboard digest for the M2 customer-scope page. The dashboards
- * domain (M5) owns the full type — replace then (RECON risk 5).
+ * GET /api/customer/{customerId}/dashboards — returns the full DashboardInfo
+ * rows since the M5 dashboards domain landed (RECON risk 5 resolution: the
+ * M2 minimal digest type is gone, pages consume types/tb/dashboard).
  */
-export interface CustomerDashboardInfo {
-  id: { entityType: 'DASHBOARD'; id: string };
-  createdTime: number;
-  title: string;
-}
-
-/** GET /api/customer/{customerId}/dashboards (legacy non-Infos shape). */
 export async function getCustomerDashboards(
   customerId: string,
   pageLink: PageLink,
-): Promise<PageData<CustomerDashboardInfo>> {
-  return tbHttp.get<PageData<CustomerDashboardInfo>>(
+): Promise<PageData<DashboardInfo>> {
+  return tbHttp.get<PageData<DashboardInfo>>(
     `/api/customer/${customerId}/dashboards`,
     pageLinkToQueryParams(pageLink),
   );
@@ -76,8 +71,8 @@ export async function getCustomerDashboards(
 export async function assignDashboardToCustomer(
   customerId: string,
   dashboardId: string,
-): Promise<CustomerDashboardInfo> {
-  return tbHttp.post<CustomerDashboardInfo>(
+): Promise<DashboardInfo> {
+  return tbHttp.post<DashboardInfo>(
     `/api/customer/${customerId}/dashboard/${dashboardId}`,
   );
 }

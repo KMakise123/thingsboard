@@ -37,11 +37,44 @@ export default {
   'dashboards.page.emptyState': '该页面暂无布局',
   'dashboards.page.noWidgets': '该仪表盘暂无组件',
   'dashboards.page.aliasError': '部分数据源解析失败',
-  'dashboards.list.placeholder': '仪表盘列表将由 dash-list 批次交付',
   'dashboards.toolbar.dashboardSelect': '仪表盘',
   'dashboards.toolbar.export': '导出仪表盘',
   'dashboards.toolbar.fullscreen': '全屏',
   'dashboards.toolbar.exitFullscreen': '退出全屏',
+
+  // ---- W3 列表页（/dashboards，recon §4；文案对齐 ui-ngx dashboard 域） ----
+  'dashboards.list.search': '搜索仪表盘',
+  'dashboards.list.refresh': '刷新',
+  'dashboards.list.createdTime': '创建时间',
+  'dashboards.list.title': '标题',
+  'dashboards.list.assignedCustomers': '已分配给客户',
+  'dashboards.list.publicColumn': '公开',
+  'dashboards.list.empty': '暂无仪表盘',
+  'dashboards.list.loadFailed': '加载仪表盘列表失败',
+  'dashboards.list.total': '共 {count} 个',
+  'dashboards.list.selectedCount': '已选 {count} 项',
+  'dashboards.list.actionExport': '导出仪表盘',
+  'dashboards.list.exportFailed': '导出仪表盘失败：{error}',
+  'dashboards.list.actionMakePublic': '公开仪表盘',
+  'dashboards.list.actionMakePrivate': '将仪表盘设为私有',
+  'dashboards.list.actionDelete': '删除',
+  'dashboards.list.makePublicTitle': '确定要将仪表盘“{title}”设为公开吗？',
+  'dashboards.list.makePublicText':
+    '确认后，该仪表盘及其所有数据将被设为公开，可被其他人访问。',
+  'dashboards.list.makePrivateTitle': '确定要将仪表盘“{title}”设为私有吗？',
+  'dashboards.list.makePrivateText':
+    '确认后仪表盘将设为私有，其他人将无法访问。',
+  'dashboards.list.publicLinkTitle': '仪表盘已公开',
+  'dashboards.list.publicLinkLabel': '公开链接',
+  'dashboards.list.publicLinkHint':
+    '匿名公开访问页归后续版本；当前仅生成并展示链接。',
+  'dashboards.list.makePublicSuccess': '仪表盘已设为公开。',
+  'dashboards.list.makePrivateSuccess': '仪表盘已设为私有。',
+  'dashboards.list.deleteTitle': '确定要删除仪表盘“{title}”吗？',
+  'dashboards.list.deleteText':
+    '请注意，确认后仪表盘及所有相关数据将无法恢复。',
+  'dashboards.list.cancel': '取消',
+  'dashboards.list.toastDeleted': '仪表盘已删除。',
 
   // ---- 全局 timewindow 选择器 ----
   'dashboards.tw.tabRealtime': '实时',

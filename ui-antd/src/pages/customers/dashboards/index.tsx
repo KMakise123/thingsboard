@@ -22,12 +22,12 @@ import { useEffect, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { CustomerDashboardAssignDialog } from '@/components/customers/CustomerDashboardAssignDialog';
 import { serverErrorText } from '@/components/entities/server-error-text';
-import type { CustomerDashboardInfo } from '@/services/tb/customer';
 import {
   assignDashboardToCustomer,
   getCustomerDashboards,
   unassignDashboardFromCustomer,
 } from '@/services/tb/customer';
+import type { DashboardInfo } from '@/types/tb/dashboard';
 import { createListUrlState } from '../list-url-state';
 import {
   CustomerScopePageShell,
@@ -93,8 +93,7 @@ export default function CustomerDashboardsPage() {
     enabled: !!customerId,
     placeholderData: keepPreviousData,
   });
-  const dashboards: Array<CustomerDashboardInfo> =
-    dashboardsQuery.data?.data ?? [];
+  const dashboards: Array<DashboardInfo> = dashboardsQuery.data?.data ?? [];
   const invalidate = () =>
     queryClient.invalidateQueries({ queryKey: SCOPE_DASHBOARDS_KEY });
 
@@ -135,7 +134,7 @@ export default function CustomerDashboardsPage() {
     },
   });
 
-  const confirmUnassign = (dashboard: CustomerDashboardInfo) => {
+  const confirmUnassign = (dashboard: DashboardInfo) => {
     modal.confirm({
       title: formatMessage(
         {
@@ -162,7 +161,7 @@ export default function CustomerDashboardsPage() {
     });
   };
 
-  const columns: ProColumns<CustomerDashboardInfo>[] = [
+  const columns: ProColumns<DashboardInfo>[] = [
     {
       title: formatMessage({
         id: 'pages.customers.dashboards.columnCreatedTime',
@@ -209,7 +208,7 @@ export default function CustomerDashboardsPage() {
     return urlState.sortDirection === 'ASC' ? 'ascend' : 'descend';
   }
 
-  const onTableChange: TableProps<CustomerDashboardInfo>['onChange'] = (
+  const onTableChange: TableProps<DashboardInfo>['onChange'] = (
     pagination,
     _filters,
     sorter,
@@ -292,7 +291,7 @@ export default function CustomerDashboardsPage() {
         />
       )}
 
-      <ProTable<CustomerDashboardInfo>
+      <ProTable<DashboardInfo>
         rowKey={(record) => record.id.id}
         columns={columns}
         dataSource={dashboards}

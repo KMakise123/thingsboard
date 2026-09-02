@@ -39,12 +39,47 @@ export default {
   'dashboards.page.emptyState': 'This page has no layout yet',
   'dashboards.page.noWidgets': 'This dashboard has no widgets yet',
   'dashboards.page.aliasError': 'Some data sources failed to resolve',
-  'dashboards.list.placeholder':
-    'The dashboards list lands with the dash-list wave',
   'dashboards.toolbar.dashboardSelect': 'Dashboards',
   'dashboards.toolbar.export': 'Export dashboard',
   'dashboards.toolbar.fullscreen': 'Fullscreen',
   'dashboards.toolbar.exitFullscreen': 'Exit fullscreen',
+
+  // ---- W3 list page (/dashboards, recon §4; wording follows ui-ngx) ----
+  'dashboards.list.search': 'Search dashboards',
+  'dashboards.list.refresh': 'Refresh',
+  'dashboards.list.createdTime': 'Created time',
+  'dashboards.list.title': 'Title',
+  'dashboards.list.assignedCustomers': 'Assigned to customers',
+  'dashboards.list.publicColumn': 'Public',
+  'dashboards.list.empty': 'No dashboards',
+  'dashboards.list.loadFailed': 'Failed to load dashboards',
+  'dashboards.list.total': '{count} total',
+  'dashboards.list.selectedCount': '{count} selected',
+  'dashboards.list.actionExport': 'Export dashboard',
+  'dashboards.list.exportFailed': 'Failed to export the dashboard: {error}',
+  'dashboards.list.actionMakePublic': 'Make dashboard public',
+  'dashboards.list.actionMakePrivate': 'Make dashboard private',
+  'dashboards.list.actionDelete': 'Delete',
+  'dashboards.list.makePublicTitle':
+    "Are you sure you want to make the dashboard '{title}' public?",
+  'dashboards.list.makePublicText':
+    'After the confirmation the dashboard and all its data will be made public and accessible by others.',
+  'dashboards.list.makePrivateTitle':
+    "Are you sure you want to make the dashboard '{title}' private?",
+  'dashboards.list.makePrivateText':
+    "After the confirmation the dashboard will be made private and won't be accessible by others.",
+  'dashboards.list.publicLinkTitle': 'Dashboard is now public',
+  'dashboards.list.publicLinkLabel': 'Public link',
+  'dashboards.list.publicLinkHint':
+    'The anonymous public page ships later; the link is generated for reference only.',
+  'dashboards.list.makePublicSuccess': 'Dashboard is now public.',
+  'dashboards.list.makePrivateSuccess': 'Dashboard is now private.',
+  'dashboards.list.deleteTitle':
+    "Are you sure you want to delete the dashboard '{title}'?",
+  'dashboards.list.deleteText':
+    'Be careful, after the confirmation the dashboard and all related data will become unrecoverable.',
+  'dashboards.list.cancel': 'Cancel',
+  'dashboards.list.toastDeleted': 'Dashboard deleted.',
 
   // ---- global timewindow picker ----
   'dashboards.tw.tabRealtime': 'Realtime',
