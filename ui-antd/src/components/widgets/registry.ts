@@ -70,9 +70,10 @@ export const WIDGET_REGISTRY: Record<string, WidgetRegistryEntry> = {
     component: lazy(() => import('./update-multiple-attributes')),
     meta: { label: 'Update multiple attributes' },
   },
-  'system.analogue_gauges.radial_gauge': pendingEntry({
-    label: 'Radial gauge',
-  }),
+  'system.analogue_gauges.radial_gauge': {
+    component: lazy(() => import('./radial-gauge')),
+    meta: { label: 'Radial gauge' },
+  },
 };
 
 /** Result of resolving an fqn through the registry + probe chain. */
