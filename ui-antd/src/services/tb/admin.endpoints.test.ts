@@ -50,9 +50,19 @@ describe('admin settings transport endpoints', () => {
   it('test mail posts the full mail settings envelope', async () => {
     const body = {
       key: 'mail',
-      jsonValue: { mailFrom: 'a@b.c', enableOauth2: false },
+      jsonValue: {
+        mailFrom: 'a@b.c',
+        enableOauth2: false,
+        smtpProtocol: 'SMTP',
+        smtpHost: 'localhost',
+        smtpPort: 25,
+        timeout: 10000,
+        enableTls: false,
+        enableProxy: false,
+        providerId: 'CUSTOM',
+      },
     };
-    await sendTestMail(body);
+    await sendTestMail(body as never);
     expect(post).toHaveBeenCalledWith('/api/admin/settings/testMail', body);
   });
 
