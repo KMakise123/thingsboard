@@ -28,13 +28,13 @@ export default {
   'pages.device-profiles.list.actionNo': 'No',
   'pages.device-profiles.list.cancel': 'Cancel',
   'pages.device-profiles.list.setDefaultTitle':
-    "Are you sure you want to make the device profile '{name}' the default?",
+    "Are you sure you want to make the device profile ''{name}'' the default?",
   'pages.device-profiles.list.setDefaultText':
     'After the confirmation the profile will be marked as default and will be used for new devices with no profile specified.',
   'pages.device-profiles.list.toastSetDefault':
     'Default device profile updated.',
   'pages.device-profiles.list.deleteTitle':
-    "Are you sure you want to delete the device profile '{name}'?",
+    "Are you sure you want to delete the device profile ''{name}''?",
   'pages.device-profiles.list.deleteManyTitle':
     'Are you sure you want to delete {count, plural, =1 {1 device profile} other {# device profiles}}?',
   'pages.device-profiles.list.deleteText':

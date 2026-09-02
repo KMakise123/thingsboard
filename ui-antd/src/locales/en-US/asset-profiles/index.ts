@@ -24,12 +24,12 @@ export default {
   'pages.asset-profiles.list.actionNo': 'No',
   'pages.asset-profiles.list.cancel': 'Cancel',
   'pages.asset-profiles.list.setDefaultTitle':
-    "Are you sure you want to make the asset profile '{name}' the default?",
+    "Are you sure you want to make the asset profile ''{name}'' the default?",
   'pages.asset-profiles.list.setDefaultText':
     'After the confirmation the asset profile will be marked as default and will be used for new assets with no profile specified.',
   'pages.asset-profiles.list.toastSetDefault': 'Default asset profile updated.',
   'pages.asset-profiles.list.deleteTitle':
-    "Are you sure you want to delete the asset profile '{name}'?",
+    "Are you sure you want to delete the asset profile ''{name}''?",
   'pages.asset-profiles.list.deleteManyTitle':
     'Are you sure you want to delete {count, plural, =1 {1 asset profile} other {# asset profiles}}?',
   'pages.asset-profiles.list.deleteText':

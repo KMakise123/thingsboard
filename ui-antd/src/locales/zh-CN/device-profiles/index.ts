@@ -30,11 +30,11 @@ export default {
   'pages.device-profiles.list.actionNo': '否',
   'pages.device-profiles.list.cancel': '取消',
   'pages.device-profiles.list.setDefaultTitle':
-    "确定要将设备配置 '{name}' 设为默认吗？",
+    '确定要将设备配置“{name}”设为默认吗？',
   'pages.device-profiles.list.setDefaultText':
     '确认后，该设备配置将被标记为默认，并将用于未指定配置的新设备。',
   'pages.device-profiles.list.toastSetDefault': '默认设备配置已更新。',
-  'pages.device-profiles.list.deleteTitle': "确定要删除设备配置 '{name}' 吗？",
+  'pages.device-profiles.list.deleteTitle': '确定要删除设备配置“{name}”吗？',
   'pages.device-profiles.list.deleteManyTitle':
     '确定要删除 {count} 个设备配置吗？',
   'pages.device-profiles.list.deleteText':

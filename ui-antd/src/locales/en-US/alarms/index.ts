@@ -73,7 +73,7 @@ export default {
   'pages.alarms.ruleSearch': 'Search alarm rules',
   'pages.alarms.ruleNoEntities': 'No entities found',
   'pages.alarms.ruleNoKeys': 'No keys found on this entity yet',
-  'pages.alarms.ruleDeleteTitle': "Delete alarm rule '{name}'?",
+  'pages.alarms.ruleDeleteTitle': "Delete alarm rule ''{name}''?",
   'pages.alarms.ruleDeleteText':
     'The rule and all related data will become unrecoverable.',
   'pages.alarms.ruleLoadFailed': 'Failed to load alarm rules',

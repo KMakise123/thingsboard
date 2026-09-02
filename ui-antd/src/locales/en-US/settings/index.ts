@@ -162,7 +162,7 @@ export default {
   'pages.settings.oauth2.toastDomainSaved': 'Domain saved.',
   'pages.settings.oauth2.toastDomainDeleted': 'Domain deleted.',
   'pages.settings.oauth2.deleteDomainTitle':
-    "Are you sure you want to delete domain '{name}'?",
+    "Are you sure you want to delete domain ''{name}''?",
   'pages.settings.oauth2.deleteDomainText':
     'Be careful, after the confirmation the domain and all related provider data will become unavailable.',
   'pages.settings.oauth2.addClient': 'Add OAuth2 client',
@@ -227,7 +227,7 @@ export default {
   'pages.settings.oauth2.toastClientSaved': 'OAuth2 client saved.',
   'pages.settings.oauth2.toastClientDeleted': 'OAuth2 client deleted.',
   'pages.settings.oauth2.deleteClientTitle':
-    "Are you sure you want to delete OAuth2 client '{name}'?",
+    "Are you sure you want to delete OAuth2 client ''{name}''?",
   'pages.settings.oauth2.deleteClientText':
     'Be careful, after the confirmation the client and all related data will become unrecoverable.',
 

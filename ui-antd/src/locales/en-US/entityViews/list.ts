@@ -30,19 +30,19 @@ export default {
 
   // ---- confirmations ----
   'pages.entityViews.list.deleteTitle':
-    "Are you sure you want to delete the entity view '{name}'?",
+    "Are you sure you want to delete the entity view ''{name}''?",
   'pages.entityViews.list.deleteText':
     'Be careful, after the confirmation the entity view and all related data will become unrecoverable.',
   'pages.entityViews.list.unassignTitle':
-    "Are you sure you want to unassign the entity view '{name}'?",
+    "Are you sure you want to unassign the entity view ''{name}''?",
   'pages.entityViews.list.unassignText':
     "After the confirmation the entity view will be unassigned and won't be accessible by the customer.",
   'pages.entityViews.list.makePublicTitle':
-    "Are you sure you want to make the entity view '{name}' public?",
+    "Are you sure you want to make the entity view ''{name}'' public?",
   'pages.entityViews.list.makePublicText':
     'After the confirmation the entity view and all its data will be made public and accessible by others.',
   'pages.entityViews.list.makePrivateTitle':
-    "Are you sure you want to make the entity view '{name}' private?",
+    "Are you sure you want to make the entity view ''{name}'' private?",
   'pages.entityViews.list.makePrivateText':
     "After the confirmation the entity view and all its data will be made private and won't be accessible by others.",
 

@@ -25,7 +25,7 @@ export default {
   'pages.customers.devices.batchUnassign': 'Unassign selected devices',
   'pages.customers.devices.actionUnassign': 'Unassign from this customer',
   'pages.customers.devices.unassignTitle':
-    "Are you sure you want to unassign the device '{name}'?",
+    "Are you sure you want to unassign the device ''{name}''?",
   'pages.customers.devices.unassignManyTitle':
     'Are you sure you want to unassign {count, plural, =1 {1 device} other {# devices}}?',
   'pages.customers.devices.unassignText':
@@ -36,7 +36,7 @@ export default {
     'Devices unassigned from the customer.',
   'pages.customers.devices.actionDelete': 'Delete',
   'pages.customers.devices.deleteTitle':
-    "Are you sure you want to delete the device '{name}'?",
+    "Are you sure you want to delete the device ''{name}''?",
   'pages.customers.devices.deleteText':
     'Be careful, after the confirmation the device and all related data will become unrecoverable.',
   'pages.customers.devices.toastDeleted': 'Device deleted.',
@@ -55,7 +55,7 @@ export default {
   'pages.customers.assets.batchUnassign': 'Unassign selected assets',
   'pages.customers.assets.actionUnassign': 'Unassign from this customer',
   'pages.customers.assets.unassignTitle':
-    "Are you sure you want to unassign the asset '{name}'?",
+    "Are you sure you want to unassign the asset ''{name}''?",
   'pages.customers.assets.unassignManyTitle':
     'Are you sure you want to unassign {count, plural, =1 {1 asset} other {# assets}}?',
   'pages.customers.assets.unassignText':
@@ -66,7 +66,7 @@ export default {
     'Assets unassigned from the customer.',
   'pages.customers.assets.actionDelete': 'Delete',
   'pages.customers.assets.deleteTitle':
-    "Are you sure you want to delete the asset '{name}'?",
+    "Are you sure you want to delete the asset ''{name}''?",
   'pages.customers.assets.deleteText':
     'Be careful, after the confirmation the asset and all related data will become unrecoverable.',
   'pages.customers.assets.toastDeleted': 'Asset deleted.',

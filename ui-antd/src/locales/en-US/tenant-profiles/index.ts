@@ -21,7 +21,7 @@ export default {
   'pages.tenantProfiles.list.actionSetDefault': 'Make default tenant profile',
   'pages.tenantProfiles.list.actionDelete': 'Delete tenant profile',
   'pages.tenantProfiles.list.deleteTitle':
-    "Are you sure you want to delete the tenant profile '{name}'?",
+    "Are you sure you want to delete the tenant profile ''{name}''?",
   'pages.tenantProfiles.list.deleteText':
     'Be careful, after the confirmation the tenant profile and all related data will become unrecoverable.',
   'pages.tenantProfiles.list.deleteManyTitle':
@@ -29,7 +29,7 @@ export default {
   'pages.tenantProfiles.list.deleteManyText':
     'Be careful, after the confirmation all selected tenant profiles will be removed and all related data will become unrecoverable.',
   'pages.tenantProfiles.list.setDefaultTitle':
-    "Are you sure you want to make the tenant profile '{name}' default?",
+    "Are you sure you want to make the tenant profile ''{name}'' default?",
   'pages.tenantProfiles.list.setDefaultText':
     'After the confirmation the tenant profile will be marked as default and used for new tenants without an explicit profile.',
   'pages.tenantProfiles.list.toastDeleted': 'Tenant profile deleted.',

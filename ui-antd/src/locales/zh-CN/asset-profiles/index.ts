@@ -26,11 +26,11 @@ export default {
   'pages.asset-profiles.list.actionNo': '否',
   'pages.asset-profiles.list.cancel': '取消',
   'pages.asset-profiles.list.setDefaultTitle':
-    "确定要将资产配置 '{name}' 设为默认吗？",
+    '确定要将资产配置“{name}”设为默认吗？',
   'pages.asset-profiles.list.setDefaultText':
     '确认后资产配置将被标记为默认，并用于未指定配置的新资产。',
   'pages.asset-profiles.list.toastSetDefault': '默认资产配置已更新。',
-  'pages.asset-profiles.list.deleteTitle': "确定要删除资产配置 '{name}' 吗？",
+  'pages.asset-profiles.list.deleteTitle': '确定要删除资产配置“{name}”吗？',
   'pages.asset-profiles.list.deleteManyTitle':
     '确定要删除 {count} 个资产配置吗？',
   'pages.asset-profiles.list.deleteText':

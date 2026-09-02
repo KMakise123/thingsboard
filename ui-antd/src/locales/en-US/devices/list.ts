@@ -44,7 +44,7 @@ export default {
 
   // ---- delete confirm ----
   'pages.devices.list.deleteTitle':
-    "Are you sure you want to delete the device '{name}'?",
+    "Are you sure you want to delete the device ''{name}''?",
   'pages.devices.list.deleteText':
     'Be careful, after the confirmation the device and all related data will become unrecoverable.',
   'pages.devices.list.deleteManyTitle':
@@ -58,7 +58,7 @@ export default {
   'pages.devices.list.unassignManyText':
     'After the confirmation all selected devices will be unassigned and will not be accessible by the customer.',
   'pages.devices.list.unassignTitle':
-    "Are you sure you want to unassign the device '{name}'?",
+    "Are you sure you want to unassign the device ''{name}''?",
   'pages.devices.list.unassignText':
     'After the confirmation the device will be unassigned and will not be accessible by the customer.',
   'pages.devices.list.batchRunning': 'Processing {done}/{total}…',

@@ -35,14 +35,14 @@ export default {
   'pages.assets.list.actionMakePrivate': 'Make asset private',
   'pages.assets.list.publicColumn': 'Public',
   'pages.assets.list.makePublicTitle':
-    "Are you sure you want to make the asset '{name}' public?",
+    "Are you sure you want to make the asset ''{name}'' public?",
   'pages.assets.list.makePublicText':
     'After the confirmation the asset and all its data will be made public and accessible by others.',
 
   // ---- list: confirmations & toasts ----
   'pages.assets.list.cancel': 'Cancel',
   'pages.assets.list.deleteTitle':
-    "Are you sure you want to delete the asset '{name}'?",
+    "Are you sure you want to delete the asset ''{name}''?",
   'pages.assets.list.deleteText':
     'Be careful, after the confirmation the asset and all related data will become unrecoverable.',
   'pages.assets.list.deleteManyTitle':
@@ -50,7 +50,7 @@ export default {
   'pages.assets.list.deleteManyText':
     'Be careful, after the confirmation all selected assets will be removed and all related data will become unrecoverable.',
   'pages.assets.list.unassignTitle':
-    "Are you sure you want to unassign the asset '{name}'?",
+    "Are you sure you want to unassign the asset ''{name}''?",
   'pages.assets.list.unassignText':
     'After the confirmation the asset will be unassigned and will not be accessible by the customer.',
   'pages.assets.list.unassignManyTitle':
@@ -138,7 +138,7 @@ export default {
   // ---- detail: header actions ----
   'pages.assets.detail.actionUnassign': 'Unassign from customer',
   'pages.assets.detail.unassignTitle':
-    "Are you sure you want to unassign the asset '{name}'?",
+    "Are you sure you want to unassign the asset ''{name}''?",
   'pages.assets.detail.unassignText':
     'After the confirmation the asset will be unassigned and will not be accessible by the customer.',
   'pages.assets.detail.toastUnassigned': 'Asset unassigned from the customer.',
