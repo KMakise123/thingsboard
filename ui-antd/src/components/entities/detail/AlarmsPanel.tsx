@@ -6,40 +6,39 @@
  * the one-way seed. New/updated alarms render as the server pushes them
  * (≤5s acceptance). Status filter chips re-issue the query on the same
  * subscription. Actions: ack / clear (single + batch), delete (single +
- * batch with confirm), details dialog — TA only (CU reads).
+ * batch with confirm), details dialog, assignee reassign — TA only (CU
+ * reads). Columns and the details dialog come from the shared alarm core in
+ * components/alarms (spec 3.6: one alarm cell/column core across the entity
+ * tab and the global page).
  */
-import { CheckOutlined, DeleteOutlined, MoreOutlined } from '@ant-design/icons';
+import { CheckOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Alert,
   App,
   Button,
-  Dropdown,
   Segmented,
   Space,
   Table,
   Tag,
   Typography,
 } from 'antd';
-import dayjs from 'dayjs';
 import { useState } from 'react';
 import { useIntl } from 'react-intl';
+import { useAlarmColumns } from '@/components/alarms/alarm-columns';
 import { serverErrorText } from '@/components/entities/server-error-text';
 import {
   type AlarmSearchStatus,
   ackAlarm,
+  assignAlarm,
   clearAlarm,
   deleteAlarm,
   getEntityAlarms,
+  unassignAlarm,
 } from '@/services/tb/alarm';
 import type { AlarmData, EntityId } from '@/types/tb';
 import AlarmDetailsModal from './AlarmDetailsModal';
-import {
-  ALARM_SEVERITY_TAG,
-  ALARM_STATUS_TAG,
-  type AlarmRow,
-  alarmAssigneeName,
-} from './alarm-format';
+import type { AlarmRow } from './alarm-format';
 import { useAlarmDataSubscription } from './use-alarm-data-subscription';
 
 type StatusFilterId = 'any' | AlarmSearchStatus;
@@ -194,137 +193,28 @@ export default function AlarmsPanel({
     });
   };
 
-  const selectedAlarms = rows.filter((row) => selectedIds.includes(row.id.id));
+  const assign = async (alarmId: string, assigneeId: string | null) => {
+    try {
+      await (assigneeId
+        ? assignAlarm(alarmId, assigneeId)
+        : unassignAlarm(alarmId));
+    } catch (error) {
+      void message.error(serverErrorText(error));
+    }
+  };
 
-  const columns = [
-    {
-      title: formatMessage({
-        id: 'pages.devices.detail.alarmCreatedTime',
-        defaultMessage: 'Created time',
-      }),
-      dataIndex: 'createdTime',
-      width: 170,
-      render: (ts: number) => dayjs(ts).format('YYYY-MM-DD HH:mm:ss'),
+  const columns = useAlarmColumns({
+    readOnly,
+    handlers: {
+      onDetails: (row) => setDetailsAlarm(row),
+      onAck: (row) => ackMutation.mutate(row.id.id),
+      onClear: (row) => clearMutation.mutate(row.id.id),
+      onDelete: (row) => confirmDelete([row]),
+      onAssign: (row, assigneeId) => void assign(row.id.id, assigneeId),
     },
-    {
-      title: formatMessage({
-        id: 'pages.devices.detail.alarmType',
-        defaultMessage: 'Type',
-      }),
-      dataIndex: 'type',
-      ellipsis: true,
-    },
-    {
-      title: formatMessage({
-        id: 'pages.devices.detail.alarmSeverity',
-        defaultMessage: 'Severity',
-      }),
-      dataIndex: 'severity',
-      width: 110,
-      render: (severity: AlarmRow['severity']) => (
-        <Tag color={ALARM_SEVERITY_TAG[severity]}>
-          {formatMessage({
-            id: `pages.devices.detail.alarmSeverity.${severity}`,
-            defaultMessage: severity,
-          })}
-        </Tag>
-      ),
-    },
-    {
-      title: formatMessage({
-        id: 'pages.devices.detail.alarmStatus',
-        defaultMessage: 'Status',
-      }),
-      dataIndex: 'status',
-      width: 130,
-      render: (statusValue: AlarmRow['status']) => (
-        <Tag color={ALARM_STATUS_TAG[statusValue]}>
-          {formatMessage({
-            id: `pages.devices.detail.alarmStatus.${statusValue}`,
-            defaultMessage: statusValue,
-          })}
-        </Tag>
-      ),
-    },
-    {
-      title: formatMessage({
-        id: 'pages.devices.detail.alarmAssignee',
-        defaultMessage: 'Assignee',
-      }),
-      dataIndex: 'assignee',
-      width: 160,
-      ellipsis: true,
-      render: (_: unknown, record: AlarmRow) =>
-        alarmAssigneeName(record) || '-',
-    },
-    ...(readOnly
-      ? []
-      : [
-          {
-            title: formatMessage({
-              id: 'pages.devices.detail.actions',
-              defaultMessage: 'Actions',
-            }),
-            key: 'actions',
-            width: 130,
-            render: (_: unknown, record: AlarmRow) => (
-              <Space size={0}>
-                <Button
-                  type="text"
-                  size="small"
-                  title={formatMessage({
-                    id: 'pages.devices.detail.alarmDetails',
-                    defaultMessage: 'Details',
-                  })}
-                  onClick={() => setDetailsAlarm(record)}
-                >
-                  {formatMessage({
-                    id: 'pages.devices.detail.alarmDetails',
-                    defaultMessage: 'Details',
-                  })}
-                </Button>
-                <Button
-                  type="text"
-                  size="small"
-                  icon={<CheckOutlined />}
-                  title={formatMessage({
-                    id: 'pages.devices.detail.alarmAck',
-                    defaultMessage: 'Acknowledge',
-                  })}
-                  disabled={record.acknowledged}
-                  onClick={() => ackMutation.mutate(record.id.id)}
-                />
-                <Dropdown
-                  menu={{
-                    items: [
-                      {
-                        key: 'clear',
-                        label: formatMessage({
-                          id: 'pages.devices.detail.alarmClear',
-                          defaultMessage: 'Clear',
-                        }),
-                        disabled: record.cleared,
-                        onClick: () => clearMutation.mutate(record.id.id),
-                      },
-                      {
-                        key: 'delete',
-                        danger: true,
-                        label: formatMessage({
-                          id: 'pages.devices.detail.delete',
-                          defaultMessage: 'Delete',
-                        }),
-                        onClick: () => confirmDelete([record]),
-                      },
-                    ],
-                  }}
-                >
-                  <Button type="text" size="small" icon={<MoreOutlined />} />
-                </Dropdown>
-              </Space>
-            ),
-          },
-        ]),
-  ];
+  });
+
+  const selectedAlarms = rows.filter((row) => selectedIds.includes(row.id.id));
 
   return (
     <div className="flex flex-col gap-3">
@@ -445,6 +335,7 @@ export default function AlarmsPanel({
         alarm={detailsAlarm}
         readOnly={readOnly}
         onClose={() => setDetailsAlarm(null)}
+        allowAssign={!readOnly}
       />
     </div>
   );

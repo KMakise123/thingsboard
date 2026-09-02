@@ -19,13 +19,16 @@ import {
 import dayjs from 'dayjs';
 import { useState } from 'react';
 import { useIntl } from 'react-intl';
+import { AlarmAssigneeCell } from '@/components/alarms/alarm-assignee-cell';
 import { serverErrorText } from '@/components/entities/server-error-text';
 import {
   ackAlarm,
+  assignAlarm,
   clearAlarm,
   getAlarmComments,
   getAlarmInfoById,
   saveAlarmComment,
+  unassignAlarm,
 } from '@/services/tb/alarm';
 import {
   ALARM_SEVERITY_TAG,
@@ -47,12 +50,22 @@ export default function AlarmDetailsModal({
   alarm,
   readOnly,
   onClose,
+  canWriteAlarm,
+  allowAssign = false,
 }: {
   open: boolean;
   /** The table row snapshot; the dialog re-reads the full entity. */
   alarm: AlarmRow | null;
   readOnly: boolean;
   onClose: () => void;
+  /**
+   * Optional per-alarm write gate (spec 3.6 CU boundary: a customer user may
+   * ack/clear only alarms owned by their customer). Absent = the plain
+   * !readOnly rule the entity tabs have always used.
+   */
+  canWriteAlarm?: (alarm: AlarmRow) => boolean;
+  /** Show the assignee cell with the reassign popover (global page parity). */
+  allowAssign?: boolean;
 }) {
   const { formatMessage } = useIntl();
   const { message } = App.useApp();
@@ -117,6 +130,23 @@ export default function AlarmDetailsModal({
     },
     onError: (error) => void message.error(serverErrorText(error)),
   });
+
+  const assignMutation = useMutation({
+    mutationFn: (assigneeId: string | null) =>
+      assigneeId
+        ? assignAlarm(alarmId as string, assigneeId)
+        : unassignAlarm(alarmId as string),
+    onSuccess: () => {
+      invalidate();
+    },
+    onError: (error) => void message.error(serverErrorText(error)),
+  });
+
+  // ui-ngx alarm-table-config: the write actions ride the same gate whether
+  // offered here or from the table row.
+  const canWrite = current
+    ? !readOnly && (canWriteAlarm ? canWriteAlarm(current) : true)
+    : false;
 
   const translate = (key: string, values?: Record<string, string>) =>
     values
@@ -237,7 +267,18 @@ export default function AlarmDetailsModal({
                   id: 'pages.devices.detail.alarmAssignee',
                   defaultMessage: 'Assignee',
                 }),
-                children: alarmAssigneeName(current) || '-',
+                children: allowAssign ? (
+                  <AlarmAssigneeCell
+                    alarm={current}
+                    onAssign={
+                      canWrite
+                        ? (assigneeId) => assignMutation.mutate(assigneeId)
+                        : undefined
+                    }
+                  />
+                ) : (
+                  alarmAssigneeName(current) || '-'
+                ),
               },
               {
                 key: 'details',
@@ -254,7 +295,7 @@ export default function AlarmDetailsModal({
               },
             ]}
           />
-          {!readOnly && (
+          {canWrite && (
             <Space>
               <Button
                 type="primary"
