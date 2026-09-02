@@ -106,9 +106,7 @@ describe('expandWidgetDatasources', () => {
       'fw-filter': {
         id: 'fw-filter',
         filter: 'WaitingDevicesFilter',
-        keyFilters: [
-          { key: { type: 'TIME_SERIES', key: 'fw_state' } },
-        ],
+        keyFilters: [{ key: { type: 'TIME_SERIES', key: 'fw_state' } }],
       },
     };
     const result = expandWidgetDatasources(

@@ -28,7 +28,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { getAttributes, saveEntityAttributes } from '@/services/tb/attributes';
 import { AttributeScope } from '@/types/tb';
-import type { DataKey } from '@/types/tb/widget';
 import type { WidgetComponentProps } from './contract';
 import {
   interpolateStateParams,
@@ -89,7 +88,6 @@ export default function UpdateMultipleAttributes({
   const settings = (widget.config.settings ?? {}) as MultipleInputSettings;
 
   const entity = ctx.datasources[0]?.entities[0];
-  const scope = AttributeScope.SERVER_SCOPE;
 
   const fields = useMemo<Array<FieldSpec>>(() => {
     const specs: Array<FieldSpec> = [];
@@ -126,7 +124,7 @@ export default function UpdateMultipleAttributes({
     setLoading(true);
     getAttributes(
       entity,
-      scope,
+      AttributeScope.SERVER_SCOPE,
       fields.map((field) => field.name),
     ).then(
       (attributes) => {
@@ -157,7 +155,7 @@ export default function UpdateMultipleAttributes({
     return () => {
       cancelled = true;
     };
-  }, [entity, fields, form, scope]);
+  }, [entity, fields, form]);
 
   const groupTitle = interpolateStateParams(
     resolveI18nMessage(settings.groupTitle ?? '', locale),
@@ -183,7 +181,7 @@ export default function UpdateMultipleAttributes({
     try {
       await saveEntityAttributes(
         entity,
-        scope,
+        AttributeScope.SERVER_SCOPE,
         names.map((name) => ({
           key: name,
           value: form.getFieldValue(name),

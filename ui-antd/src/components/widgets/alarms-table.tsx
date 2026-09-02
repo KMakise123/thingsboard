@@ -18,7 +18,7 @@ import { SearchOutlined } from '@ant-design/icons';
 import { Input, Table, Tag, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import type { ExpandedDatasource } from '@/core/dashboard/datasources';
 import { resolveTimewindow } from '@/core/dashboard/timewindow';
@@ -94,8 +94,10 @@ export default function AlarmsTable({ ctx, widget }: WidgetComponentProps) {
     filter: alarmSource?.alarmFilter ?? null,
     keyFilters: alarmSource?.filter?.keyFilters ?? null,
     timewindow: ctx.effectiveTimewindow,
+    defaultSortOrder: settings.defaultSortOrder ?? null,
   });
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: alarmSource/settings/ctx.effectiveTimewindow enter as `alarmSignature`, their content projection — the caller passes ctx.datasources per render (ctx is not memoized), so the identity deps biome expects would tear down and rebuild the alarm subscription on every parent render (same pattern as DashboardPage.tsx stateEntityKey)
   useEffect(() => {
     if (!alarmSource || alarmSource.entities.length === 0) {
       setAlarms([]);
@@ -143,7 +145,6 @@ export default function AlarmsTable({ ctx, widget }: WidgetComponentProps) {
       dispose();
       subscription.unsubscribe();
     };
-    // biome-ignore lint/correctness/useExhaustiveDependencies: alarmSignature covers every field the query reads
   }, [manager, alarmSignature]);
 
   const title = interpolateStateParams(

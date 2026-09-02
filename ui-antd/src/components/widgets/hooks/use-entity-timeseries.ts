@@ -102,6 +102,7 @@ export function useEntityTimeseries(
   const [status, setStatus] = useState<WsStatus>('idle');
   const buffers = useRef<Array<Array<EntityTimeseriesRow>>>([]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: entities enter as `groups` and the key arrays as joined projections — callers rebuild these arrays per render (ctx is not memoized), so the identity deps biome expects would tear down and rebuild the WS subscription on every parent render (same pattern as DashboardPage.tsx stateEntityKey)
   useEffect(() => {
     if (groups.length === 0 || timeseriesKeys.length === 0) {
       buffers.current = [];
@@ -147,7 +148,6 @@ export function useEntityTimeseries(
         subscription.unsubscribe();
       }
     };
-    // biome-ignore lint/correctness/useExhaustiveDependencies: keysKey/latestKey are the stable projections of the key arrays
   }, [manager, groups, keysKey, latestKey, window]);
 
   return { rows, status, window };

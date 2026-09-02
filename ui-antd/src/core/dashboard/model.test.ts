@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import type { Dashboard } from '@/types/tb/dashboard';
+import type {
+  Dashboard,
+  DashboardConfiguration,
+  DashboardLayout,
+} from '@/types/tb/dashboard';
 import {
   createDefaultGridSettings,
   createDefaultState,
@@ -74,14 +78,18 @@ describe('validateAndUpdateDashboard', () => {
       },
     } as unknown as Dashboard;
 
-    const c = validateAndUpdateDashboard(dashboard).configuration!;
+    const configuration = validateAndUpdateDashboard(dashboard).configuration;
+    expect(configuration).toBeDefined();
+    const c = configuration as DashboardConfiguration;
     const widgetIds = Object.keys(c.widgets);
     expect(widgetIds).toHaveLength(1);
 
     // default state materialized from widget geometry
     const stateId = getRootStateId(c.states);
     expect(stateId).toBe('default');
-    const layout = c.states.default.layouts.main!.widgets[widgetIds[0]];
+    const mainLayout = c.states.default.layouts?.main;
+    expect(mainLayout).toBeDefined();
+    const layout = (mainLayout as DashboardLayout).widgets[widgetIds[0]];
     expect(layout).toMatchObject({
       sizeX: 8,
       sizeY: 6,
@@ -123,7 +131,9 @@ describe('validateAndUpdateDashboard', () => {
       },
     } as unknown as Dashboard;
 
-    const c = validateAndUpdateDashboard(dashboard).configuration!;
+    const configuration = validateAndUpdateDashboard(dashboard).configuration;
+    expect(configuration).toBeDefined();
+    const c = configuration as DashboardConfiguration;
     // first state got the root flag
     expect(c.states.first.root).toBe(true);
     expect(c.states.second.root).toBe(false);

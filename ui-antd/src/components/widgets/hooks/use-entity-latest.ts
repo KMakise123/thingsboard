@@ -8,7 +8,7 @@
  * datasource so a multi-datasource table stays attributable.
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ExpandedDatasource } from '@/core/dashboard/datasources';
 import {
   type EntityDataWire,
@@ -59,6 +59,7 @@ export function useEntityLatestData(datasources: Array<ExpandedDatasource>): {
     )
     .join('#');
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: datasources enters as `signature`, its content projection — callers pass per-render references (ctx is not memoized), so the identity deps biome expects would tear down and rebuild the WS subscription on every parent render (same pattern as DashboardPage.tsx stateEntityKey)
   useEffect(() => {
     const jobs = datasources.flatMap((datasource, datasourceIndex) =>
       toEntityListFilters(datasource.entities).map((group) => ({
@@ -131,7 +132,6 @@ export function useEntityLatestData(datasources: Array<ExpandedDatasource>): {
         subscription.unsubscribe();
       }
     };
-    // biome-ignore lint/correctness/useExhaustiveDependencies: `signature` is the stable projection of datasources
   }, [manager, signature]);
 
   return { entries, status };

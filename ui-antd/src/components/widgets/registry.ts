@@ -17,7 +17,6 @@
 import { type LazyExoticComponent, lazy } from 'react';
 
 import type { WidgetComponent } from './contract';
-import { PendingWidgetPlaceholder } from './placeholders';
 
 export interface WidgetRegistryEntry {
   component: LazyExoticComponent<WidgetComponent>;
@@ -25,15 +24,6 @@ export interface WidgetRegistryEntry {
     /** human label, walkthrough/debug aid. */
     label?: string;
     [key: string]: unknown;
-  };
-}
-
-function pendingEntry(meta?: { label?: string }): WidgetRegistryEntry {
-  return {
-    component: lazy(async () => ({
-      default: PendingWidgetPlaceholder as WidgetComponent,
-    })),
-    meta,
   };
 }
 

@@ -20,13 +20,13 @@ import { lazy } from 'react';
 import { createIntl, RawIntlProvider } from 'react-intl';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DashboardPage } from '@/components/dashboard/DashboardPage';
+import type { WidgetComponent } from '@/components/widgets/contract';
+import { PendingWidgetPlaceholder } from '@/components/widgets/placeholders';
+import { WIDGET_REGISTRY } from '@/components/widgets/registry';
 import { validateAndUpdateDashboard } from '@/core/dashboard/model';
 import { objToBase64 } from '@/core/dashboard/states';
 import zhDashboards from '@/locales/zh-CN/dashboards';
 import type { Dashboard } from '@/types/tb/dashboard';
-import type { WidgetComponent } from '@/components/widgets/contract';
-import { PendingWidgetPlaceholder } from '@/components/widgets/placeholders';
-import { WIDGET_REGISTRY } from '@/components/widgets/registry';
 
 /**
  * W2 replaces the builtin registry's pending placeholders with real widget
@@ -177,9 +177,7 @@ describe('DashboardPage runtime smoke (状态切换 → 布局 → 容器)', () 
     renderPage();
     // root layout cell resolved through the registry → pending placeholder
     await waitFor(() => {
-      expect(
-        screen.getByText(TEST_FQN_TABLE),
-      ).toBeInTheDocument();
+      expect(screen.getByText(TEST_FQN_TABLE)).toBeInTheDocument();
     });
     // only the root layout cell mounts
     expect(screen.queryByText(TEST_FQN_CHART)).toBeNull();
@@ -200,9 +198,7 @@ describe('DashboardPage runtime smoke (状态切换 → 布局 → 容器)', () 
   it('deep-links a state stack, swaps layout cells and re-resolves aliases', async () => {
     renderPage();
     await waitFor(() => {
-      expect(
-        screen.getByText(TEST_FQN_TABLE),
-      ).toBeInTheDocument();
+      expect(screen.getByText(TEST_FQN_TABLE)).toBeInTheDocument();
     });
     const callsBefore = findEntitiesByFilter.mock.calls.length;
 

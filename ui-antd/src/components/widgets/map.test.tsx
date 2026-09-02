@@ -6,13 +6,7 @@
  * tiles/DOM layout are unavailable under happy-dom); the entity latest-data
  * channel rides the setDefaultWsManager seam.
  */
-import {
-  cleanup,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from '@testing-library/react';
+import { cleanup, fireEvent, render, waitFor } from '@testing-library/react';
 import { createIntl, RawIntlProvider } from 'react-intl';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { StatesController } from '@/components/dashboard/use-states-controller';
@@ -28,7 +22,7 @@ import { setDefaultWsManager } from '@/core/ws';
 import zhDashboards from '@/locales/zh-CN/dashboards';
 import { EntityType } from '@/types/tb/entity';
 import type { Widget, WidgetLayout } from '@/types/tb/widget';
-import Map from './map';
+import GeoMap from './map';
 
 const leafletMock = vi.hoisted(() => {
   const markerStubs: Array<{
@@ -196,7 +190,7 @@ const entities = [
 function renderMap(widget: Widget) {
   return render(
     <RawIntlProvider value={intl}>
-      <Map
+      <GeoMap
         fqn="system.map"
         widgetId="w-map"
         widget={widget}

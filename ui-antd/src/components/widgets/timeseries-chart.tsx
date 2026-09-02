@@ -305,6 +305,7 @@ function ChartBody({
   const hasData = seriesSpecs.length > 0;
 
   // Repaint on data/settings changes (TimeseriesHistoryModal template).
+  // biome-ignore lint/correctness/useExhaustiveDependencies: chartNode is a mount-timing dependency — the chart div mounts only once data arrives (empty state), and without it in the deps the first paint never runs (TimeseriesHistoryModal chartNode rationale)
   useEffect(() => {
     if (!hasData) {
       clear();
@@ -472,6 +473,7 @@ function ChartBody({
     clear,
     rows,
     chartNode,
+    hasData,
   ]);
 
   if (!hasData) {

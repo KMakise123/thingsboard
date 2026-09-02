@@ -101,7 +101,7 @@ interface MarkerPoint {
   marker: MapMarkerConfig;
 }
 
-export default function Map({ ctx, widget }: WidgetComponentProps) {
+export default function GeoMap({ ctx, widget }: WidgetComponentProps) {
   const { locale } = useIntl();
   const settings = (widget.config.settings ?? {}) as MapSettings;
   const [node, setNode] = useState<HTMLDivElement | null>(null);
@@ -380,7 +380,7 @@ function convertLinkActs(
     /<link-act name="([^"]+)">([\s\S]*?)<\/link-act>/g,
     (_match, name: string, text: string) => {
       const action = actions.find((candidate) => candidate.name === name);
-      if (!action || action.type !== 'openDashboardState') {
+      if (action?.type !== 'openDashboardState') {
         return text;
       }
       const setEntity =

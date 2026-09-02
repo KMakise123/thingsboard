@@ -18,7 +18,6 @@ import { Button, Input, Space, Table, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
-import type { ExpandedDatasource } from '@/core/dashboard/datasources';
 import type { EntityDataWire } from '@/core/ws';
 import type { DataKey } from '@/types/tb/widget';
 import type { WidgetComponentProps } from './contract';

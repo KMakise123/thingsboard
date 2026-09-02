@@ -19,7 +19,6 @@ import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import type { ResolvedEntity } from '@/core/dashboard/alias-resolver';
-import type { ExpandedDatasource } from '@/core/dashboard/datasources';
 import type { DataKey } from '@/types/tb/widget';
 import type { WidgetComponentProps } from './contract';
 import {

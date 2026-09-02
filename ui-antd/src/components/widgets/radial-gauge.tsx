@@ -50,7 +50,7 @@ export default function RadialGauge({ ctx, widget }: WidgetComponentProps) {
   );
   const showTitle = widget.config.showTitle !== false && title.length > 0;
 
-  const { setNode, node: chartNode, paint, clear } = useEcharts(locale);
+  const { setNode, paint, clear } = useEcharts(locale);
 
   const seriesName = useMemo(
     () =>

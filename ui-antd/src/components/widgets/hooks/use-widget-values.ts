@@ -57,6 +57,7 @@ export function useWidgetValues(
     [datasources],
   );
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: datasources enters as `signature`, its content projection — the html_value_card caller passes ctx.datasources (a per-render reference, ctx is not memoized), so identity deps would tear down and rebuild the value subscriptions on every parent render (same pattern as DashboardPage.tsx stateEntityKey)
   useEffect(() => {
     interface Job {
       datasource: ExpandedDatasource;
@@ -144,7 +145,6 @@ export function useWidgetValues(
       }
       readers.current = [];
     };
-    // biome-ignore lint/correctness/useExhaustiveDependencies: `signature` is the stable projection of datasources
   }, [manager, signature]);
 
   return values;
