@@ -65,4 +65,16 @@ export default {
   'pages.alarms.empty': 'No alarms found',
   'pages.alarms.total': '{count} total',
   'pages.alarms.cancel': 'Cancel',
+
+  // alarm-rules tab
+  'pages.alarms.ruleEntity': 'Entity',
+  'pages.alarms.ruleEntityName': 'Target entity',
+  'pages.alarms.ruleEntityType': 'All entity types',
+  'pages.alarms.ruleSearch': 'Search alarm rules',
+  'pages.alarms.ruleNoEntities': 'No entities found',
+  'pages.alarms.ruleNoKeys': 'No keys found on this entity yet',
+  'pages.alarms.ruleDeleteTitle': "Delete alarm rule '{name}'?",
+  'pages.alarms.ruleDeleteText':
+    'The rule and all related data will become unrecoverable.',
+  'pages.alarms.ruleLoadFailed': 'Failed to load alarm rules',
 };

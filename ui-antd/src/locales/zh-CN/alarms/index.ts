@@ -65,4 +65,16 @@ export default {
   'pages.alarms.empty': '未找到告警',
   'pages.alarms.total': '共 {count} 条',
   'pages.alarms.cancel': '取消',
+
+  // alarm-rules tab
+  'pages.alarms.ruleEntity': '实体',
+  'pages.alarms.ruleEntityName': '目标实体',
+  'pages.alarms.ruleEntityType': '全部实体类型',
+  'pages.alarms.ruleSearch': '搜索告警规则',
+  'pages.alarms.ruleNoEntities': '未找到实体',
+  'pages.alarms.ruleNoKeys': '该实体暂无可用键',
+  'pages.alarms.ruleDeleteTitle': '确定要删除告警规则“{name}”吗？',
+  'pages.alarms.ruleDeleteText':
+    '请注意，确认后告警规则及所有相关数据将无法恢复。',
+  'pages.alarms.ruleLoadFailed': '加载告警规则失败',
 };

@@ -9,6 +9,7 @@ import { Tabs } from 'antd';
 import { useIntl } from 'react-intl';
 import PageContainer from '@/components/layout/page-container';
 import { useAuthority } from '@/components/shared/use-authority';
+import AlarmRulesTab from './alarm-rules-tab';
 import AlarmsTab from './alarms-tab';
 import {
   type AlarmsTab as AlarmsTabId,
@@ -20,7 +21,8 @@ export default function AlarmsPage() {
   const { state, patch } = useAlarmsPageUrlState();
   const { authority } = useAuthority();
   // alarm-rules is TA-only (spec 3.6): CU always lands on the alarms tab.
-  const tab: AlarmsTabId = authority === 'CUSTOMER_USER' ? 'alarms' : state.tab;
+  const isCustomerUser = authority === 'CUSTOMER_USER';
+  const tab: AlarmsTabId = isCustomerUser ? 'alarms' : state.tab;
 
   return (
     <PageContainer>
@@ -36,6 +38,18 @@ export default function AlarmsPage() {
             }),
             children: <AlarmsTab state={state} patch={patch} />,
           },
+          ...(isCustomerUser
+            ? []
+            : [
+                {
+                  key: 'alarm-rules',
+                  label: formatMessage({
+                    id: 'pages.alarms.tabAlarmRules',
+                    defaultMessage: 'Alarm rules',
+                  }),
+                  children: <AlarmRulesTab state={state} patch={patch} />,
+                },
+              ]),
         ]}
         destroyOnHidden
       />

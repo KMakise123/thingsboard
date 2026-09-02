@@ -12,11 +12,22 @@
 import { useEffect, useState } from 'react';
 
 import type { AlarmSearchStatus } from '@/services/tb/alarm';
-import { AlarmSeverity } from '@/types/tb';
+import { AlarmSeverity, EntityType } from '@/types/tb';
 
 export type AlarmsTab = 'alarms' | 'alarm-rules';
 
 export const ALARMS_TABS: ReadonlyArray<AlarmsTab> = ['alarms', 'alarm-rules'];
+
+/**
+ * Entity types the global alarm-rules dialog can attach a rule to
+ * (CalculatedField.SUPPORTED_ENTITIES for ALARM; profile-scoped rules are
+ * created from the profile detail pages, not here).
+ */
+export const ALARM_RULE_ENTITY_TYPES: ReadonlyArray<EntityType> = [
+  EntityType.DEVICE,
+  EntityType.ASSET,
+  EntityType.CUSTOMER,
+];
 
 /** Timewindow presets (sliding windows; 'all' = for-all-time). */
 export const TIMEWINDOW_PRESETS = [
@@ -58,6 +69,13 @@ export interface AlarmsPageUrlState {
   searchPropagatedAlarms: boolean;
   textSearch: string;
   tw: TimewindowPresetId | 'all';
+  // ---- alarm-rules tab (server-paginated list) ----
+  rulePage: number;
+  rulePageSize: number;
+  ruleSortProperty: 'createdTime' | 'name';
+  ruleSortDirection: 'ASC' | 'DESC';
+  ruleTextSearch: string;
+  ruleEntityType?: EntityType;
 }
 
 const DEFAULT_STATE: AlarmsPageUrlState = {
@@ -71,6 +89,12 @@ const DEFAULT_STATE: AlarmsPageUrlState = {
   searchPropagatedAlarms: false,
   textSearch: '',
   tw: 'all',
+  rulePage: 1,
+  rulePageSize: 10,
+  ruleSortProperty: 'createdTime',
+  ruleSortDirection: 'DESC',
+  ruleTextSearch: '',
+  ruleEntityType: undefined,
 };
 
 function clampPage(raw: string | null): number {
@@ -127,6 +151,20 @@ export function parseAlarmsPageUrlState(search: string): AlarmsPageUrlState {
     tw: (TIMEWINDOW_PRESETS.some((preset) => preset.id === tw) ? tw : 'all') as
       | TimewindowPresetId
       | 'all',
+    rulePage: clampPage(params.get('rulePage')),
+    rulePageSize: clampPageSize(params.get('rulePageSize')),
+    ruleSortProperty:
+      params.get('ruleSortProperty') === 'name'
+        ? 'name'
+        : DEFAULT_STATE.ruleSortProperty,
+    ruleSortDirection:
+      params.get('ruleSortDirection') === 'ASC' ? 'ASC' : 'DESC',
+    ruleTextSearch: params.get('ruleTextSearch') ?? '',
+    ruleEntityType: (ALARM_RULE_ENTITY_TYPES as ReadonlyArray<string>).includes(
+      params.get('ruleEntityType') ?? '',
+    )
+      ? (params.get('ruleEntityType') as EntityType)
+      : undefined,
   };
 }
 
@@ -165,6 +203,24 @@ export function serializeAlarmsPageUrlState(state: AlarmsPageUrlState): string {
   }
   if (state.tw !== DEFAULT_STATE.tw) {
     params.set('tw', state.tw);
+  }
+  if (state.rulePage !== DEFAULT_STATE.rulePage) {
+    params.set('rulePage', String(state.rulePage));
+  }
+  if (state.rulePageSize !== DEFAULT_STATE.rulePageSize) {
+    params.set('rulePageSize', String(state.rulePageSize));
+  }
+  if (state.ruleSortProperty !== DEFAULT_STATE.ruleSortProperty) {
+    params.set('ruleSortProperty', state.ruleSortProperty);
+  }
+  if (state.ruleSortDirection !== DEFAULT_STATE.ruleSortDirection) {
+    params.set('ruleSortDirection', state.ruleSortDirection);
+  }
+  if (state.ruleTextSearch) {
+    params.set('ruleTextSearch', state.ruleTextSearch);
+  }
+  if (state.ruleEntityType) {
+    params.set('ruleEntityType', state.ruleEntityType);
   }
   return params.toString();
 }

@@ -1,12 +1,14 @@
 /**
- * Alarm-rule transport (handwritten) — entity alarm-rules tab.
+ * Alarm-rule transport (handwritten) — entity alarm-rules tab + global
+ * alarm-rules list (spec 3.6).
  *
  * Alarm rules are calculated fields of type ALARM on this backend
- * (openapi AlarmRuleDefinition); the tab lists the entity-scoped page and
- * edits through the dedicated /api/alarm/rule endpoints.
+ * (openapi AlarmRuleDefinition); both surfaces edit through the dedicated
+ * /api/alarm/rule endpoints.
  *
  * Base paths:
  *   GET    /api/alarm/rules/{entityType}/{entityId}   entity-scoped page
+ *   GET    /api/alarm/rules                           tenant-wide page (TA)
  *   POST   /api/alarm/rule                            save
  *   DELETE /api/alarm/rule/{alarmRuleId}              delete
  */
@@ -101,6 +103,33 @@ export async function getAlarmRulesByEntityId(
   };
   return tbHttp.get<PageData<AlarmRuleDefinition>>(
     `/api/alarm/rules/${entityId.entityType}/${entityId.id}`,
+    params,
+  );
+}
+
+/** Tenant-wide row (AlarmRuleDefinitionInfo): + the target entity name. */
+export interface AlarmRuleDefinitionInfo extends AlarmRuleDefinition {
+  entityName?: string;
+}
+
+/** GET /api/alarm/rules — tenant-wide page (TA only, server-side filter). */
+export async function getAlarmRules(
+  pageLink: PageLink,
+  filter: { entityType?: EntityType; entities?: Array<string> } = {},
+): Promise<PageData<AlarmRuleDefinitionInfo>> {
+  const params: QueryParams = {
+    pageSize: pageLink.pageSize,
+    page: pageLink.page,
+    textSearch: pageLink.textSearch,
+    sortProperty: pageLink.sortOrder?.property,
+    sortOrder: pageLink.sortOrder?.direction,
+    entityType: filter.entityType,
+    entities: filter.entities?.length
+      ? filter.entities.join(',')
+      : undefined,
+  };
+  return tbHttp.get<PageData<AlarmRuleDefinitionInfo>>(
+    '/api/alarm/rules',
     params,
   );
 }

@@ -4,8 +4,10 @@
  * List + basic editing against /api/alarm/rule (alarm rules are ALARM-type
  * calculated fields on this backend). Create covers the common shape —
  * alarm type + one severity with a numeric threshold condition over one
- * device key; edit covers rename / debug-mode; delete confirms. The full
- * condition-tree / schedule editors stay with the v2 rule work.
+ * device key; edit covers rename / debug-mode; delete confirms. The shared
+ * form core lives in components/alarms (spec 3.6: same editor shape for the
+ * global alarm-rules page); the full condition-tree / schedule editors stay
+ * with the v2 rule work.
  */
 import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -15,10 +17,8 @@ import {
   Button,
   Form,
   Input,
-  InputNumber,
   Modal,
   Popconfirm,
-  Select,
   Space,
   Switch,
   Table,
@@ -27,6 +27,11 @@ import {
 import dayjs from 'dayjs';
 import { useState } from 'react';
 import { useIntl } from 'react-intl';
+import {
+  AlarmRuleConditionFields,
+  basicAlarmConfiguration,
+  type NumericOperation,
+} from '@/components/alarms/alarm-rule-basic-form';
 import { serverErrorText } from '@/components/entities/server-error-text';
 import {
   type AlarmRuleDefinition,
@@ -39,14 +44,6 @@ import { AlarmSeverity, type EntityId } from '@/types/tb';
 import { ALARM_SEVERITY_TAG } from './alarm-format';
 import { useEntityKeys } from './use-entity-keys';
 
-type NumericOperation =
-  | 'EQUAL'
-  | 'NOT_EQUAL'
-  | 'GREATER'
-  | 'LESS'
-  | 'GREATER_OR_EQUAL'
-  | 'LESS_OR_EQUAL';
-
 interface RuleFormValues {
   name: string;
   debugMode: boolean;
@@ -55,53 +52,6 @@ interface RuleFormValues {
   argumentKey?: string;
   operation?: NumericOperation;
   threshold?: number;
-}
-
-/** Minimal valid ALARM configuration for the create dialog. */
-function basicAlarmConfiguration(
-  entityId: EntityId,
-  severity: AlarmSeverity,
-  argumentKey: string,
-  keyType: 'TS_LATEST' | 'ATTRIBUTE',
-  operation: NumericOperation,
-  threshold: number,
-) {
-  return {
-    type: 'ALARM',
-    arguments: {
-      a: {
-        refEntityId: entityId,
-        refEntityKey:
-          keyType === 'TS_LATEST'
-            ? { type: keyType, key: argumentKey }
-            : { type: keyType, key: argumentKey, scope: 'SERVER_SCOPE' },
-      },
-    },
-    createRules: {
-      [severity]: {
-        condition: {
-          type: 'SIMPLE',
-          expression: {
-            type: 'SIMPLE',
-            filters: [
-              {
-                argument: 'a',
-                valueType: 'NUMERIC',
-                operation: 'AND',
-                predicates: [
-                  {
-                    type: 'NUMERIC',
-                    operation,
-                    value: { staticValue: threshold },
-                  },
-                ],
-              },
-            ],
-          },
-        },
-      },
-    },
-  };
 }
 
 export default function AlarmRulesPanel({ entityId }: { entityId: EntityId }) {
@@ -436,114 +386,13 @@ export default function AlarmRulesPanel({ entityId }: { entityId: EntityId }) {
             <Switch />
           </Form.Item>
           {!editing && (
-            <>
-              <Form.Item
-                name="severity"
-                label={formatMessage({
-                  id: 'pages.devices.detail.alarmSeverity',
-                  defaultMessage: 'Severity',
-                })}
-                rules={[
-                  {
-                    required: true,
-                    message: formatMessage({
-                      id: 'pages.devices.detail.ruleSeverityRequired',
-                      defaultMessage: 'Severity is required.',
-                    }),
-                  },
-                ]}
-              >
-                <Select
-                  options={(
-                    [
-                      AlarmSeverity.CRITICAL,
-                      AlarmSeverity.MAJOR,
-                      AlarmSeverity.MINOR,
-                      AlarmSeverity.WARNING,
-                      AlarmSeverity.INDETERMINATE,
-                    ] as Array<AlarmSeverity>
-                  ).map((severity) => ({
-                    value: severity,
-                    label: formatMessage({
-                      id: `pages.devices.detail.alarmSeverity.${severity}`,
-                      defaultMessage: severity,
-                    }),
-                  }))}
-                />
-              </Form.Item>
-              <Form.Item
-                name="argumentKey"
-                label={formatMessage({
-                  id: 'pages.devices.detail.ruleArgument',
-                  defaultMessage: 'Key to watch',
-                })}
-                rules={[
-                  {
-                    required: true,
-                    message: formatMessage({
-                      id: 'pages.devices.detail.cfArgumentRequired',
-                      defaultMessage: 'Argument key is required.',
-                    }),
-                  },
-                ]}
-              >
-                <Select
-                  showSearch
-                  options={keyOptions}
-                  notFoundContent={formatMessage({
-                    id: 'pages.devices.detail.cfNoKeys',
-                    defaultMessage: 'No keys found on this device yet',
-                  })}
-                />
-              </Form.Item>
-              <Space size={16} className="w-full">
-                <Form.Item
-                  name="operation"
-                  className="!flex-1"
-                  label={formatMessage({
-                    id: 'pages.devices.detail.ruleOperation',
-                    defaultMessage: 'Condition',
-                  })}
-                >
-                  <Select
-                    options={(
-                      [
-                        'GREATER',
-                        'GREATER_OR_EQUAL',
-                        'LESS',
-                        'LESS_OR_EQUAL',
-                        'EQUAL',
-                        'NOT_EQUAL',
-                      ] as Array<NumericOperation>
-                    ).map((operation) => ({
-                      value: operation,
-                      label: formatMessage({
-                        id: `pages.devices.detail.ruleOp.${operation}`,
-                        defaultMessage: operation,
-                      }),
-                    }))}
-                  />
-                </Form.Item>
-                <Form.Item
-                  name="threshold"
-                  label={formatMessage({
-                    id: 'pages.devices.detail.ruleThreshold',
-                    defaultMessage: 'Threshold',
-                  })}
-                  rules={[
-                    {
-                      required: true,
-                      message: formatMessage({
-                        id: 'pages.devices.detail.ruleThresholdRequired',
-                        defaultMessage: 'Threshold is required.',
-                      }),
-                    },
-                  ]}
-                >
-                  <InputNumber className="w-32" />
-                </Form.Item>
-              </Space>
-            </>
+            <AlarmRuleConditionFields
+              keyOptions={keyOptions}
+              noKeysText={formatMessage({
+                id: 'pages.devices.detail.cfNoKeys',
+                defaultMessage: 'No keys found on this device yet',
+              })}
+            />
           )}
         </Form>
       </Modal>

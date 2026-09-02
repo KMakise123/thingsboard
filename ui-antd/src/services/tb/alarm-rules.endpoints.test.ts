@@ -20,6 +20,7 @@ vi.mock('./http', () => ({
 import {
   alarmRuleSeverities,
   deleteAlarmRule,
+  getAlarmRules,
   getAlarmRulesByEntityId,
   saveAlarmRule,
 } from './alarm-rules';
@@ -50,6 +51,27 @@ describe('alarm-rule transport endpoints', () => {
       textSearch: undefined,
       sortProperty: 'createdTime',
       sortOrder: 'DESC',
+    });
+  });
+
+  it('reads the tenant-wide rule page with the optional entity-type filter', async () => {
+    await getAlarmRules(
+      {
+        pageSize: 10,
+        page: 1,
+        textSearch: 'high',
+        sortOrder: { property: 'name', direction: 'ASC' },
+      },
+      { entityType: EntityType.DEVICE },
+    );
+    expect(get).toHaveBeenCalledWith('/api/alarm/rules', {
+      pageSize: 10,
+      page: 1,
+      textSearch: 'high',
+      sortProperty: 'name',
+      sortOrder: 'ASC',
+      entityType: 'DEVICE',
+      entities: undefined,
     });
   });
 
