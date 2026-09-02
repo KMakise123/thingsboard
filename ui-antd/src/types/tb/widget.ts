@@ -90,8 +90,11 @@ export interface WidgetConfig {
   datasources?: Datasource[];
   /** alarm widgets source their rows from here instead of datasources. */
   alarmSource?: AlarmSource;
-  /** alarms-table filter descriptor id into `configuration.filters`. */
-  alarmFilterConfig?: string | null;
+  /**
+   * alarms-table filter: either an id into `configuration.filters` or an
+   * inline descriptor (anchor thermostats.json carries the inline form).
+   */
+  alarmFilterConfig?: string | Record<string, unknown> | null;
   /** legacy rpc target device (name or alias ref), passthrough. */
   targetDevice?: unknown;
   /** widget-type specific parameters (chart settings, table settings…). */
