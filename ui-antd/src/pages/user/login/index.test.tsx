@@ -29,9 +29,9 @@ const servicesMock = vi.hoisted(() => ({
 }));
 
 const tokenStoreMock = vi.hoisted(() => ({
-  decodeTokenClaims: vi.fn<
-    () => { sub?: string; scopes?: string[] } | null
-  >(() => null),
+  decodeTokenClaims: vi.fn<() => { sub?: string; scopes?: string[] } | null>(
+    () => null,
+  ),
 }));
 
 vi.mock('@umijs/max', async () => {

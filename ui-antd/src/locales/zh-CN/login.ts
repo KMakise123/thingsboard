@@ -65,7 +65,8 @@ export default {
   'pages.forceMfa.sms.title': '启用短信验证',
   'pages.forceMfa.sms.description': '输入用作验证的手机号。',
   'pages.forceMfa.phone.label': '手机号',
-  'pages.forceMfa.phone.invalid': '手机号格式不正确（E.164，如 +8613800138000）',
+  'pages.forceMfa.phone.invalid':
+    '手机号格式不正确（E.164，如 +8613800138000）',
   'pages.forceMfa.email.title': '启用邮箱验证',
   'pages.forceMfa.email.description': '输入用作验证的邮箱。',
   'pages.forceMfa.email.label': '邮箱',
@@ -77,17 +78,22 @@ export default {
   'pages.forceMfa.backupCode.title': '获取备份码',
   'pages.forceMfa.backupCode.description':
     '打印这些备份码，需要登录账户时即可取用。每个备份码只能使用一次。',
-  'pages.forceMfa.backupCode.warn': '离开此页面后，这些备份码将不再显示，请妥善保存。',
+  'pages.forceMfa.backupCode.warn':
+    '离开此页面后，这些备份码将不再显示，请妥善保存。',
   'pages.forceMfa.backupCode.download': '下载 (txt)',
   'pages.forceMfa.backupCode.print': '打印',
   'pages.forceMfa.success.totp': '认证应用已启用',
-  'pages.forceMfa.success.totpDescription': '下次登录时，你需要提供两步验证码。',
+  'pages.forceMfa.success.totpDescription':
+    '下次登录时，你需要提供两步验证码。',
   'pages.forceMfa.success.sms': '短信验证已启用',
-  'pages.forceMfa.success.smsDescription': '下次登录时，需要输入发送到该手机号的安全码。',
+  'pages.forceMfa.success.smsDescription':
+    '下次登录时，需要输入发送到该手机号的安全码。',
   'pages.forceMfa.success.email': '邮箱验证已启用',
-  'pages.forceMfa.success.emailDescription': '下次登录时，需要输入发送到该邮箱的安全码。',
+  'pages.forceMfa.success.emailDescription':
+    '下次登录时，需要输入发送到该邮箱的安全码。',
   'pages.forceMfa.success.backupCode': '备份码已启用',
-  'pages.forceMfa.success.backupCodeDescription': '下次登录时，可以使用其中一个备份码登录。',
+  'pages.forceMfa.success.backupCodeDescription':
+    '下次登录时，可以使用其中一个备份码登录。',
   'pages.forceMfa.addVerificationMethod': '添加验证方式',
 
   // /user/forgot-password (ui-ngx resetPasswordRequest)

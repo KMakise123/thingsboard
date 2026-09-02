@@ -117,7 +117,8 @@ export async function getInitialState(): Promise<{
   const scope = tokenStore.decodeTokenClaims()?.scopes?.[0];
   const isMfaInterim =
     scope === 'PRE_VERIFICATION_TOKEN' || scope === 'MFA_CONFIGURATION_TOKEN';
-  const currentUser = hasSession && !isMfaInterim ? await fetchUserInfo() : null;
+  const currentUser =
+    hasSession && !isMfaInterim ? await fetchUserInfo() : null;
 
   return {
     fetchUserInfo,
