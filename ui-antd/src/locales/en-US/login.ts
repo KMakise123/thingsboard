@@ -53,6 +53,58 @@ export default {
   'pages.mfa.resendWait': 'Resend code in {time} s',
   'pages.mfa.tryAnotherWay': 'Try another way',
 
+  // /user/force-mfa — forced 2FA enrollment (brief §2-C)
+  'pages.forceMfa.title.configured': 'Two-factor authentication',
+  'pages.forceMfa.title.required': 'Two-factor authentication is required',
+  'pages.forceMfa.description.configured':
+    'Set up a verification method, or login',
+  'pages.forceMfa.description.required':
+    'Set up a verification method to continue',
+  'pages.forceMfa.login': 'Login',
+  'pages.forceMfa.totp.title': 'Enable authenticator app',
+  'pages.forceMfa.totp.scanQr': 'Scan this QR code with your verification app',
+  'pages.forceMfa.totp.enterKey': 'or enter this key manually:',
+  'pages.forceMfa.totp.copyKey': 'Copy key',
+  'pages.forceMfa.totp.copied': 'Key copied',
+  'pages.forceMfa.totp.copyFailed': 'Copy failed — select and copy manually',
+  'pages.forceMfa.sms.title': 'Enable SMS authenticator',
+  'pages.forceMfa.sms.description':
+    'Enter a phone number to use as your authenticator.',
+  'pages.forceMfa.phone.label': 'Phone number',
+  'pages.forceMfa.phone.invalid':
+    'Invalid phone number (E.164, e.g. +12133734253)',
+  'pages.forceMfa.email.title': 'Enable email authenticator',
+  'pages.forceMfa.email.description':
+    'Enter an email to use as your authenticator.',
+  'pages.forceMfa.email.label': 'Email',
+  'pages.forceMfa.sendCode': 'Send code',
+  'pages.forceMfa.enterCode.totp':
+    'Please enter the security code from your authenticator app',
+  'pages.forceMfa.enterCode.sms':
+    'Enter a 6-digit code we just sent to {contact}',
+  'pages.forceMfa.verificationCode': '6-digit code',
+  'pages.forceMfa.confirm': 'Confirm',
+  'pages.forceMfa.backupCode.title': 'Get backup code',
+  'pages.forceMfa.backupCode.description':
+    'Print out the codes so you have them handy when you need to use them to log in to your account. You can use each backup code once.',
+  'pages.forceMfa.backupCode.warn':
+    'Once you leave this page, these codes cannot be shown again. Store them safely.',
+  'pages.forceMfa.backupCode.download': 'Download (txt)',
+  'pages.forceMfa.backupCode.print': 'Print',
+  'pages.forceMfa.success.totp': 'Authenticator app successfully enabled',
+  'pages.forceMfa.success.totpDescription':
+    'The next time you log in, you will need to provide a two-factor authentication code',
+  'pages.forceMfa.success.sms': 'SMS authenticator successfully enabled',
+  'pages.forceMfa.success.smsDescription':
+    'The next time you log in, you will be prompted to enter the security code that will be sent to the phone number',
+  'pages.forceMfa.success.email': 'Email authenticator successfully enabled',
+  'pages.forceMfa.success.emailDescription':
+    'The next time you log in, you will be prompted to enter the security code that will be sent to your email address',
+  'pages.forceMfa.success.backupCode': 'Backup codes successfully enabled',
+  'pages.forceMfa.success.backupCodeDescription':
+    'The next time you log in, you can use one of these backup codes to sign in',
+  'pages.forceMfa.addVerificationMethod': 'Add verification method',
+
   // /user/forgot-password (ui-ngx resetPasswordRequest)
   'pages.forgotPassword.title': 'Forgot password',
   'pages.forgotPassword.description':
