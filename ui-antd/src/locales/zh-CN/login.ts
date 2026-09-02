@@ -18,6 +18,12 @@ export default {
   'pages.login.forgotPassword': '忘记密码？',
   'pages.login.resetPasswordAction': '密码不符合策略，请重置密码',
   'pages.login.error.title': '登录失败',
+  'pages.login.error.ok': '知道了',
+
+  // /user/login — OAuth2 buttons (brief §1.4)
+  'pages.login.oauth2.groupTitle': '使用以下方式登录',
+  'pages.login.oauth2.signInWith': '使用 {name} 登录',
+  'pages.login.oauth2.or': '或',
 
   // /user/forgot-password (ui-ngx resetPasswordRequest)
   'pages.forgotPassword.title': '忘记密码',

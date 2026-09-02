@@ -17,6 +17,12 @@ export default {
   'pages.login.resetPasswordAction':
     'Password violates the policy — please reset it',
   'pages.login.error.title': 'Sign-in failed',
+  'pages.login.error.ok': 'OK',
+
+  // /user/login — OAuth2 buttons (brief §1.4)
+  'pages.login.oauth2.groupTitle': 'Sign in with one of the following',
+  'pages.login.oauth2.signInWith': 'Sign in with {name}',
+  'pages.login.oauth2.or': 'or',
 
   // /user/forgot-password (ui-ngx resetPasswordRequest)
   'pages.forgotPassword.title': 'Forgot password',

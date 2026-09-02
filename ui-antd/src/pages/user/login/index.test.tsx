@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { App as AntdApp } from 'antd';
+import { App as AntdApp, ConfigProvider } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
@@ -25,6 +25,13 @@ const modelMock = vi.hoisted(() => ({
 const servicesMock = vi.hoisted(() => ({
   login: vi.fn(),
   getCurrentUser: vi.fn(),
+  getOauth2Clients: vi.fn(),
+}));
+
+const tokenStoreMock = vi.hoisted(() => ({
+  decodeTokenClaims: vi.fn<
+    () => { sub?: string; scopes?: string[] } | null
+  >(() => null),
 }));
 
 vi.mock('@umijs/max', async () => {
@@ -41,6 +48,8 @@ vi.mock('@umijs/max', async () => {
 });
 
 vi.mock('@/services/tb', () => servicesMock);
+
+vi.mock('@/core/auth/token-store', () => ({ tokenStore: tokenStoreMock }));
 
 const tenantUser = {
   authority: Authority.TENANT_ADMIN,
@@ -59,9 +68,12 @@ function renderLogin() {
   });
   return render(
     <QueryClientProvider client={queryClient}>
-      <AntdApp>
-        <Login />
-      </AntdApp>
+      {/* motion off — jsdom never fires transitionend, so modal exits hang */}
+      <ConfigProvider theme={{ token: { motion: false } }}>
+        <AntdApp>
+          <Login />
+        </AntdApp>
+      </ConfigProvider>
     </QueryClientProvider>,
   );
 }
@@ -86,6 +98,10 @@ describe('login page (password line)', () => {
     modelMock.initialState.currentUser = null;
     servicesMock.login.mockReset();
     servicesMock.getCurrentUser.mockReset();
+    servicesMock.getOauth2Clients.mockReset();
+    servicesMock.getOauth2Clients.mockResolvedValue([]);
+    tokenStoreMock.decodeTokenClaims.mockReset();
+    tokenStoreMock.decodeTokenClaims.mockReturnValue(null);
   });
 
   it('signs in a tenant admin and lands on the device list', async () => {
@@ -135,6 +151,78 @@ describe('login page (password line)', () => {
     await waitFor(() => {
       expect(historyMock.replace).toHaveBeenCalledWith('/devices?page=2');
     });
+  });
+
+  it('routes a PRE_VERIFICATION_TOKEN login to the mfa page without a user fetch', async () => {
+    servicesMock.login.mockResolvedValue({ token: 't', refreshToken: null });
+    tokenStoreMock.decodeTokenClaims.mockReturnValue({
+      sub: 'tenant@thingsboard.org',
+      scopes: ['PRE_VERIFICATION_TOKEN'],
+    });
+
+    renderLogin();
+    await submitCredentials('tenant@thingsboard.org', 'tenant');
+
+    await waitFor(() => {
+      expect(historyMock.replace).toHaveBeenCalledWith('/user/mfa');
+    });
+    expect(servicesMock.getCurrentUser).not.toHaveBeenCalled();
+    expect(modelMock.setInitialState).not.toHaveBeenCalled();
+  });
+
+  it('forwards the ?redirect target to the mfa page', async () => {
+    window.history.pushState(
+      {},
+      '',
+      '/user/login?redirect=%2Fdevices%3Fpage%3D2',
+    );
+    servicesMock.login.mockResolvedValue({ token: 't', refreshToken: null });
+    tokenStoreMock.decodeTokenClaims.mockReturnValue({
+      scopes: ['PRE_VERIFICATION_TOKEN'],
+    });
+
+    renderLogin();
+    await submitCredentials('tenant@thingsboard.org', 'tenant');
+
+    await waitFor(() => {
+      expect(historyMock.replace).toHaveBeenCalledWith(
+        `/user/mfa?redirect=${encodeURIComponent('/devices?page=2')}`,
+      );
+    });
+  });
+
+  it('routes a MFA_CONFIGURATION_TOKEN login to the force-mfa page', async () => {
+    servicesMock.login.mockResolvedValue({ token: 't', refreshToken: null });
+    tokenStoreMock.decodeTokenClaims.mockReturnValue({
+      scopes: ['MFA_CONFIGURATION_TOKEN'],
+    });
+
+    renderLogin();
+    await submitCredentials('tenant@thingsboard.org', 'tenant');
+
+    await waitFor(() => {
+      expect(historyMock.replace).toHaveBeenCalledWith('/user/force-mfa');
+    });
+    expect(servicesMock.getCurrentUser).not.toHaveBeenCalled();
+  });
+
+  it('does not bounce an interim mfa token off the login page even with a stale user', () => {
+    modelMock.initialState.currentUser = tenantUser;
+    tokenStoreMock.decodeTokenClaims.mockReturnValue({
+      scopes: ['PRE_VERIFICATION_TOKEN'],
+    });
+
+    renderLogin();
+
+    expect(historyMock.replace).not.toHaveBeenCalled();
+  });
+
+  it('still bounces a live session with regular claims to the landing page', () => {
+    modelMock.initialState.currentUser = tenantUser;
+
+    renderLogin();
+
+    expect(historyMock.replace).toHaveBeenCalledWith('/devices');
   });
 
   it('shows the verbatim server error on bad credentials and stays put', async () => {
@@ -189,5 +277,125 @@ describe('login page (password line)', () => {
       expect(screen.getByText('请输入密码！')).toBeInTheDocument();
     });
     expect(servicesMock.login).not.toHaveBeenCalled();
+  });
+});
+
+describe('login page (oauth2 buttons)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    window.history.pushState({}, '', '/user/login');
+    modelMock.initialState.currentUser = null;
+    servicesMock.login.mockReset();
+    servicesMock.getCurrentUser.mockReset();
+    servicesMock.getOauth2Clients.mockReset();
+    servicesMock.getOauth2Clients.mockResolvedValue([]);
+    tokenStoreMock.decodeTokenClaims.mockReset();
+    tokenStoreMock.decodeTokenClaims.mockReturnValue(null);
+  });
+
+  it('renders no oauth2 section when the platform has no clients', async () => {
+    renderLogin();
+    await waitFor(() => {
+      expect(servicesMock.getOauth2Clients).toHaveBeenCalled();
+    });
+    expect(screen.queryByText('使用 Test IdP 登录')).not.toBeInTheDocument();
+  });
+
+  it('renders one labelled button for a single client with a native href', async () => {
+    servicesMock.getOauth2Clients.mockResolvedValue([
+      { name: 'Test IdP', url: '/oauth2/authorization/abc' },
+    ]);
+
+    renderLogin();
+
+    const button = await screen.findByText('使用 Test IdP 登录');
+    expect(button.closest('a')).toHaveAttribute(
+      'href',
+      '/oauth2/authorization/abc',
+    );
+  });
+
+  it('appends prevUri from the ?redirect param to the authorize url', async () => {
+    window.history.pushState(
+      {},
+      '',
+      '/user/login?redirect=%2Fdevices%3Fpage%3D2',
+    );
+    servicesMock.getOauth2Clients.mockResolvedValue([
+      { name: 'Test IdP', url: '/oauth2/authorization/abc' },
+    ]);
+
+    renderLogin();
+
+    const button = await screen.findByText('使用 Test IdP 登录');
+    expect(button.closest('a')).toHaveAttribute(
+      'href',
+      `/oauth2/authorization/abc?prevUri=${encodeURIComponent(
+        '/devices?page=2',
+      )}`,
+    );
+  });
+
+  it('renders a group title and per-client buttons for several clients', async () => {
+    servicesMock.getOauth2Clients.mockResolvedValue([
+      { name: 'IdP One', url: '/oauth2/authorization/one' },
+      { name: 'IdP Two', url: '/oauth2/authorization/two' },
+    ]);
+
+    renderLogin();
+
+    expect(await screen.findByText('使用以下方式登录')).toBeInTheDocument();
+    expect(screen.getByText('IdP One')).toBeInTheDocument();
+    expect(screen.getByText('IdP Two')).toBeInTheDocument();
+    expect(screen.getByText('或')).toBeInTheDocument();
+  });
+});
+
+describe('login page (loginError callback dialog)', () => {
+  beforeEach(() => {
+    // modal.warning portals into document.body — drop leftovers from a
+    // previous case before asserting on absence.
+    document.body.innerHTML = '';
+    window.history.pushState({}, '', '/user/login');
+    vi.clearAllMocks();
+    modelMock.initialState.currentUser = null;
+    servicesMock.login.mockReset();
+    servicesMock.getCurrentUser.mockReset();
+    servicesMock.getOauth2Clients.mockReset();
+    servicesMock.getOauth2Clients.mockResolvedValue([]);
+    tokenStoreMock.decodeTokenClaims.mockReset();
+    tokenStoreMock.decodeTokenClaims.mockReturnValue(null);
+  });
+
+  it('shows the decoded server message in a non-dismissable dialog and clears the query on ok', async () => {
+    window.history.pushState(
+      {},
+      '',
+      '/user/login?loginError=Provider%20is%20misconfigured',
+    );
+
+    renderLogin();
+
+    expect(
+      await screen.findByText('Provider is misconfigured'),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '知道了' }));
+    await waitFor(() => {
+      expect(historyMock.replace).toHaveBeenCalledWith('/user/login');
+    });
+    // Wait out the modal exit animation so no portal leaks into the
+    // following case.
+    await waitFor(() => {
+      expect(
+        screen.queryByText('Provider is misconfigured'),
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  it('opens no dialog without the loginError param', () => {
+    renderLogin();
+    expect(
+      screen.queryByText('Provider is misconfigured'),
+    ).not.toBeInTheDocument();
   });
 });

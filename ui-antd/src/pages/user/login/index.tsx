@@ -1,14 +1,16 @@
-import { LockOutlined, MailOutlined } from '@ant-design/icons';
+import { LockOutlined, LoginOutlined, MailOutlined } from '@ant-design/icons';
 import { Helmet, history, useIntl, useModel } from '@umijs/max';
-import { Alert, App, Button, Form, Input } from 'antd';
+import { Alert, App, Button, Divider, Form, Input } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
+import { tokenStore } from '@/core/auth/token-store';
 import {
   isCredentialsExpired,
   type ServerError,
   ThingsboardErrorCode,
 } from '@/core/http/server-error';
-import { getCurrentUser, login } from '@/services/tb';
+import { getCurrentUser, getOauth2Clients, login } from '@/services/tb';
 import { brand } from '@/theme/brand';
+import type { Oauth2ClientLoginInfo } from '@/types/tb/oauth2';
 
 import { AuthShell } from '../components/auth-shell';
 import {
@@ -23,16 +25,34 @@ interface LoginFormValues {
   password: string;
 }
 
+/** JWT `scopes[0]` of the two MFA interim tokens (brief §1.1). */
+const PRE_VERIFICATION_SCOPE = 'PRE_VERIFICATION_TOKEN';
+const MFA_CONFIGURATION_SCOPE = 'MFA_CONFIGURATION_TOKEN';
+
+function currentTokenScope(): string | undefined {
+  return tokenStore.decodeTokenClaims()?.scopes?.[0];
+}
+
+/** The login → mfa jump forwards the original ?redirect target along. */
+function mfaTarget(path: string): string {
+  const redirect = getQueryParam('redirect');
+  return redirect ? `${path}?redirect=${encodeURIComponent(redirect)}` : path;
+}
+
 /**
  * /user/login — password sign-in (ui-ngx LoginComponent parity: email
  * username, credentials-expired redirect with resetToken, password-violation
- * hint, verbatim server error passthrough).
+ * hint, verbatim server error passthrough) plus the OAuth2 button section
+ * and the loginError callback dialog (brief §1.4).
  */
 const Login: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [loginError, setLoginError] = useState<ServerError | null>(null);
   const [passwordViolation, setPasswordViolation] = useState(false);
-  const { message } = App.useApp();
+  const [oauth2Clients, setOauth2Clients] = useState<Oauth2ClientLoginInfo[]>(
+    [],
+  );
+  const { message, modal } = App.useApp();
   const { formatMessage } = useIntl();
   const { initialState, setInitialState } = useModel('@@initialState');
 
@@ -42,10 +62,55 @@ const Login: React.FC = () => {
   // ?redirect= return URL.
   const mountedUser = useRef(initialState?.currentUser);
   useEffect(() => {
-    if (mountedUser.current) {
-      history.replace(roleDefaultPath(mountedUser.current));
+    if (!mountedUser.current) {
+      return;
     }
+    // MFA interim tokens normally leave currentUser empty (app.tsx), but a
+    // stale ref must never bounce an interim state to the landing page —
+    // that would loop mfa ⇄ login. Judge on the token scope, never on
+    // "a token exists".
+    const scope = currentTokenScope();
+    if (scope === PRE_VERIFICATION_SCOPE || scope === MFA_CONFIGURATION_SCOPE) {
+      return;
+    }
+    history.replace(roleDefaultPath(mountedUser.current));
   }, []);
+
+  // OAuth2 button data (POST /api/noauth/oauth2Clients): the service
+  // resolves [] on any failure so the section silently disappears.
+  useEffect(() => {
+    let cancelled = false;
+    getOauth2Clients().then((clients) => {
+      if (!cancelled) {
+        setOauth2Clients(clients);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // OAuth2 failure callback lands on /user/login?loginError=<encoded>:
+  // an undismissable dialog with the verbatim server message; confirming
+  // strips the query so a refresh/re-mount does not replay the dialog.
+  useEffect(() => {
+    const detail = getQueryParam('loginError');
+    if (!detail) {
+      return;
+    }
+    const { destroy } = modal.warning({
+      title: formatMessage({ id: 'pages.login.error.title' }),
+      content: detail,
+      okText: formatMessage({ id: 'pages.login.error.ok' }),
+      closable: false,
+      keyboard: false,
+      maskClosable: false,
+      onOk: () => {
+        destroy();
+        history.replace('/user/login');
+      },
+    });
+  }, [formatMessage, modal]);
 
   const handleFinish = async (values: LoginFormValues) => {
     setSubmitting(true);
@@ -53,6 +118,17 @@ const Login: React.FC = () => {
     setPasswordViolation(false);
     try {
       await login({ username: values.username, password: values.password });
+      // Three-way split on the response scope (brief §1.1): the interim
+      // MFA pairs are already stored by login() — just carry them over.
+      const scope = currentTokenScope();
+      if (scope === PRE_VERIFICATION_SCOPE) {
+        history.replace(mfaTarget('/user/mfa'));
+        return;
+      }
+      if (scope === MFA_CONFIGURATION_SCOPE) {
+        history.replace(mfaTarget('/user/force-mfa'));
+        return;
+      }
       const user = await getCurrentUser();
       setInitialState((s) => ({ ...s, currentUser: user }));
       message.success(formatMessage({ id: 'pages.login.success' }));
@@ -76,6 +152,50 @@ const Login: React.FC = () => {
     }
   };
 
+  /** Native authorize navigation; ?redirect → ?prevUri (ui-ngx parity). */
+  const oauth2Href = (client: Oauth2ClientLoginInfo): string => {
+    const redirect = getQueryParam('redirect');
+    return redirect
+      ? `${client.url}?prevUri=${encodeURIComponent(redirect)}`
+      : client.url;
+  };
+
+  const oauth2Section = oauth2Clients.length > 0 && (
+    <div style={{ marginBottom: 8 }}>
+      {oauth2Clients.length === 1 ? (
+        <Button
+          block
+          size="large"
+          icon={<LoginOutlined />}
+          href={oauth2Href(oauth2Clients[0])}
+        >
+          {formatMessage(
+            { id: 'pages.login.oauth2.signInWith' },
+            { name: oauth2Clients[0].name },
+          )}
+        </Button>
+      ) : (
+        <>
+          <div style={{ marginBottom: 8, textAlign: 'center' }}>
+            {formatMessage({ id: 'pages.login.oauth2.groupTitle' })}
+          </div>
+          {oauth2Clients.map((client) => (
+            <Button
+              key={client.url}
+              block
+              size="large"
+              icon={<LoginOutlined />}
+              href={oauth2Href(client)}
+              style={{ marginBottom: 8 }}
+            >
+              {client.name}
+            </Button>
+          ))}
+        </>
+      )}
+    </div>
+  );
+
   return (
     <AuthShell
       subTitle={formatMessage({ id: 'pages.layouts.userLayout.title' })}
@@ -83,6 +203,12 @@ const Login: React.FC = () => {
       <Helmet>
         <title>{`${formatMessage({ id: 'menu.login' })} - ${brand.assets.appName}`}</title>
       </Helmet>
+      {oauth2Section}
+      {oauth2Clients.length > 0 && (
+        <Divider plain style={{ margin: '8px 0 16px' }}>
+          {formatMessage({ id: 'pages.login.oauth2.or' })}
+        </Divider>
+      )}
       <Form<LoginFormValues>
         layout="vertical"
         requiredMark={false}
