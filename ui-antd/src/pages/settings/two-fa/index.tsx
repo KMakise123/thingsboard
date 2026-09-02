@@ -46,9 +46,11 @@ export default function SettingsTwoFaPage() {
   const { formatMessage } = useIntl();
   const { message } = App.useApp();
 
+  // Unconfigured platforms answer 200 with an EMPTY body — normalize it to
+  // null so react-query accepts it and the form falls back to defaults.
   const settingsQuery = useQuery({
     queryKey: ['settings', 'two-fa'],
-    queryFn: getTwoFaSettings,
+    queryFn: async () => (await getTwoFaSettings()) ?? null,
   });
   const snapshot = settingsQuery.data;
 
