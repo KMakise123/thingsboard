@@ -35,6 +35,7 @@ import dayjs from 'dayjs';
 import { useState } from 'react';
 import { useIntl } from 'react-intl';
 import { serverErrorText } from '@/components/entities/server-error-text';
+import PageContainer from '@/components/layout/page-container';
 import { TOKEN_STORAGE_KEYS, tokenStore } from '@/core/auth/token-store';
 import {
   newPasswordRules,
@@ -75,12 +76,19 @@ interface PasswordFormValue {
 }
 
 export default function SecurityPage() {
+  const { formatMessage } = useIntl();
   return (
-    <div className="flex flex-col gap-4">
-      <JwtTokenCard />
-      <ChangePasswordCard />
-      <TwoFaCard />
-    </div>
+    <PageContainer
+      // Explicit title: the leaf route name is 'security', but the label
+      // lives under the grouped key menu.account.security.
+      title={formatMessage({ id: 'menu.account.security' })}
+    >
+      <div className="flex flex-col gap-4">
+        <JwtTokenCard />
+        <ChangePasswordCard />
+        <TwoFaCard />
+      </div>
+    </PageContainer>
   );
 }
 

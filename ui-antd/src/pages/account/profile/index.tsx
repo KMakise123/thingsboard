@@ -96,7 +96,13 @@ export default function ProfilePage() {
   const lastLoginTs = userLastLoginTs(currentUser);
 
   return (
-    <PageContainer dirty={dirty} onBack={() => history.push('/')}>
+    <PageContainer
+      // Explicit title: the leaf route name is 'profile', but the label
+      // lives under the grouped key menu.account.profile.
+      title={formatMessage({ id: 'menu.account.profile' })}
+      dirty={dirty}
+      onBack={() => history.push('/')}
+    >
       <Card>
         <Form<ProfileFormValue>
           form={form}

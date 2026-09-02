@@ -49,11 +49,25 @@ vi.mock('@umijs/max', () => ({
     initialState: { currentUser: { email: 'tenant@thingsboard.org' } },
     setInitialState: vi.fn(),
   }),
+  useSelectedRoutes: vi.fn(() => []),
+  useAppData: vi.fn(() => ({ clientRoutes: [] })),
+  history: { push: vi.fn(), replace: vi.fn() },
 }));
 
 vi.mock('react-intl', async (importOriginal) => {
   const actual = await importOriginal<typeof import('react-intl')>();
   return { ...actual, useIntl: () => intlMock };
+});
+
+// PageContainer pulls pro-components; render through plain antd to keep the
+// vitest module graph resolvable (users-page finding).
+vi.mock('@ant-design/pro-components', async () => {
+  const { Card } = await import('antd');
+  return {
+    PageContainer: (props: { children?: React.ReactNode }) => (
+      <Card>{props.children}</Card>
+    ),
+  };
 });
 
 const tokenStoreMock = vi.hoisted(() => ({
