@@ -1,13 +1,14 @@
 /**
- * Usage page (route `/usage`, brief §0.D) — W1 minimal face: fetch the
- * frontend asset api_usage.json and render it through DashboardView
- * (embedded, readonly).
- *
- * W3 owns this page's upgrade path (asset copy into public/static,
- * getUsageInfo card, page polish).
+ * Usage page (route `/usage`, brief §0.D): fetch the frontend asset
+ * api_usage.json (verbatim copy of the ui-ngx asset, public/static/
+ * dashboard/) and render it through DashboardView (embedded, readonly) —
+ * 11 states, 31 widget entries; system.api_usage renders through the ADR
+ * 0003 placeholder (registered omission).
  */
+import { ReloadOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
-import { Alert, Spin } from 'antd';
+import { Alert, Button, Spin } from 'antd';
+import { useIntl } from 'react-intl';
 
 import { DashboardView } from '@/components/dashboard/DashboardView';
 import { serverErrorText } from '@/components/entities/server-error-text';
@@ -19,6 +20,7 @@ const API_USAGE_ASSET = '/static/dashboard/api_usage.json';
 
 export default function UsagePage() {
   const { authority } = useAuthority();
+  const { formatMessage } = useIntl();
 
   const query = useQuery({
     queryKey: ['dashboard', 'usageAsset'],
@@ -32,6 +34,7 @@ export default function UsagePage() {
       return (await response.json()) as Dashboard;
     },
     staleTime: Number.POSITIVE_INFINITY,
+    retry: false,
   });
 
   if (query.isPending) {
@@ -43,7 +46,24 @@ export default function UsagePage() {
         style={{ margin: 24 }}
         type="error"
         showIcon
-        message={serverErrorText(query.error)}
+        message={formatMessage({
+          id: 'dashboards.system.loadFailed',
+          defaultMessage: 'Failed to load the system dashboard.',
+        })}
+        description={serverErrorText(query.error)}
+        action={
+          <Button
+            size="small"
+            danger
+            icon={<ReloadOutlined />}
+            onClick={() => void query.refetch()}
+          >
+            {formatMessage({
+              id: 'dashboards.system.retry',
+              defaultMessage: 'Retry',
+            })}
+          </Button>
+        }
       />
     );
   }

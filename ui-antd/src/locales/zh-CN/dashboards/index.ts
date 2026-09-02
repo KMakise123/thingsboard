@@ -111,6 +111,11 @@ export default {
   'dashboards.list.toastManaged': '已更新仪表盘的分配客户。',
   'dashboards.list.batchResult': '成功 {ok} 个，失败 {fail} 个。',
 
+  // ---- W3 ⑤⑥ 系统仪表盘页（usage / gateways） ----
+  'dashboards.system.loadFailed': '系统仪表盘加载失败。',
+  'dashboards.system.resourceMissing': '后端缺少该系统仪表盘资源。',
+  'dashboards.system.retry': '重试',
+
   // ---- 全局 timewindow 选择器 ----
   'dashboards.tw.tabRealtime': '实时',
   'dashboards.tw.tabHistory': '历史',

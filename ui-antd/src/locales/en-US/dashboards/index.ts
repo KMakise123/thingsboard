@@ -120,6 +120,12 @@ export default {
   'dashboards.list.toastManaged': 'Assigned customers updated.',
   'dashboards.list.batchResult': '{ok} succeeded, {fail} failed.',
 
+  // ---- W3 units 5/6 system dashboard pages (usage / gateways) ----
+  'dashboards.system.loadFailed': 'Failed to load the system dashboard.',
+  'dashboards.system.resourceMissing':
+    'The system dashboard resource is missing on this backend.',
+  'dashboards.system.retry': 'Retry',
+
   // ---- global timewindow picker ----
   'dashboards.tw.tabRealtime': 'Realtime',
   'dashboards.tw.tabHistory': 'History',
