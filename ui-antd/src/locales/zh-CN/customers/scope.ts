@@ -109,4 +109,20 @@ export default {
     '确定要取消指派仪表盘“{title}”吗？',
   'pages.customers.dashboards.unassignText': '确认后该客户将无法访问该仪表盘。',
   'pages.customers.dashboards.toastUnassigned': '仪表盘已取消指派。',
+
+  // ---- M5 W3 ④：客户域仪表盘操作集（recon §4 customer scope） ----
+  'pages.customers.dashboards.actionExport': '导出仪表盘',
+  'pages.customers.dashboards.exportFailed': '导出仪表盘失败：{error}',
+  'pages.customers.dashboards.actionMakePrivate': '将仪表盘设为私有',
+  'pages.customers.dashboards.makePrivateTitle':
+    '确定要将仪表盘“{title}”设为私有吗？',
+  'pages.customers.dashboards.makePrivateText':
+    '确认后仪表盘将设为私有，其他人将无法访问。',
+  'pages.customers.dashboards.toastMadePrivate': '仪表盘已设为私有。',
+  'pages.customers.dashboards.batchUnassign': '取消分配所选',
+  'pages.customers.dashboards.unassignManyTitle':
+    '确定要取消指派 {count} 个仪表盘吗？',
+  'pages.customers.dashboards.unassignManyText':
+    '确认后所有选中的仪表盘将被取消指派，该客户将无法访问。',
+  'pages.customers.dashboards.batchResult': '成功 {ok} 个，失败 {fail} 个。',
 };

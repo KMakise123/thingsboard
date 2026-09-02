@@ -1,12 +1,20 @@
 /**
- * Customer-scope dashboards page (spec M2, RECON risk 5 adjudication):
- * the MINIMAL face only — list (createdTime / title) + assign (pick a
- * tenant dashboard) + unassign, both confirmed where destructive. No
- * rendering, no CRUD: the dashboards domain owns that in M5. The legacy
- * non-Infos endpoint shape lives behind services/tb/customer.ts.
+ * Customer-scope dashboards page (M2 seed, upgraded by M5 W3 per recon §4
+ * customer scope): list under the customer scope shell, row operations
+ * export / unassign / make-private (the latter only while the current
+ * customer IS the tenant's public customer — ui-ngx
+ * isCurrentPublicDashboardCustomer) and the batch unassign fan-out. The M2
+ * assign-dashboard picker stays as the header action. Dashboards open in
+ * the readonly view through the title link.
  */
 
-import { PlusOutlined, ReloadOutlined } from '@ant-design/icons';
+import {
+  DownloadOutlined,
+  MoreOutlined,
+  PlusOutlined,
+  ReloadOutlined,
+  UserDeleteOutlined,
+} from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import {
@@ -15,18 +23,30 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
-import { useParams } from '@umijs/max';
-import { Alert, App, Button, Input, type TableProps } from 'antd';
+import { history, useParams } from '@umijs/max';
+import {
+  Alert,
+  App,
+  Button,
+  Dropdown,
+  Input,
+  type TableProps,
+  Typography,
+} from 'antd';
 import dayjs from 'dayjs';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { CustomerDashboardAssignDialog } from '@/components/customers/CustomerDashboardAssignDialog';
 import { serverErrorText } from '@/components/entities/server-error-text';
+import { BatchProgressModal } from '@/components/shared/BatchProgressModal';
+import { useBatchRun } from '@/components/shared/use-batch-run';
+import { exportDashboardToFile } from '@/pages/dashboards/list/import-export';
 import {
   assignDashboardToCustomer,
   getCustomerDashboards,
   unassignDashboardFromCustomer,
 } from '@/services/tb/customer';
+import { makeDashboardPrivate } from '@/services/tb/dashboard';
 import type { DashboardInfo } from '@/types/tb/dashboard';
 import { createListUrlState } from '../list-url-state';
 import {
@@ -47,6 +67,16 @@ const listUrlState = createListUrlState({
   sortProperty: 'createdTime',
   sortDirection: 'DESC',
 });
+
+/** ui-ngx isCurrentPublicDashboardCustomer: this customer is the public one. */
+function isCurrentPublicCustomer(
+  dashboard: DashboardInfo,
+  customerId: string,
+): boolean {
+  return (dashboard.assignedCustomers ?? []).some(
+    (info) => info.public && info.customerId?.id === customerId,
+  );
+}
 
 export default function CustomerDashboardsPage() {
   const { id } = useParams<{ id: string }>();
@@ -97,6 +127,14 @@ export default function CustomerDashboardsPage() {
   const invalidate = () =>
     queryClient.invalidateQueries({ queryKey: SCOPE_DASHBOARDS_KEY });
 
+  // ---- selection + batch unassign
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const selectedDashboards = dashboards.filter((dashboard) =>
+    selectedRowKeys.includes(dashboard.id.id),
+  );
+  const batch = useBatchRun();
+  const [batchOpen, setBatchOpen] = useState(false);
+
   const [assignOpen, setAssignOpen] = useState(false);
 
   const assignMutation = useMutation({
@@ -134,6 +172,22 @@ export default function CustomerDashboardsPage() {
     },
   });
 
+  const makePrivateMutation = useMutation({
+    mutationFn: (dashboardId: string) => makeDashboardPrivate(dashboardId),
+    onSuccess: () => {
+      void message.success(
+        formatMessage({
+          id: 'pages.customers.dashboards.toastMadePrivate',
+          defaultMessage: 'Dashboard is now private.',
+        }),
+      );
+      void invalidate();
+    },
+    onError: (error) => {
+      void message.error(serverErrorText(error));
+    },
+  });
+
   const confirmUnassign = (dashboard: DashboardInfo) => {
     modal.confirm({
       title: formatMessage(
@@ -161,45 +215,196 @@ export default function CustomerDashboardsPage() {
     });
   };
 
-  const columns: ProColumns<DashboardInfo>[] = [
-    {
-      title: formatMessage({
-        id: 'pages.customers.dashboards.columnCreatedTime',
-        defaultMessage: 'Created time',
+  const confirmMakePrivate = (dashboard: DashboardInfo) => {
+    modal.confirm({
+      title: formatMessage(
+        {
+          id: 'pages.customers.dashboards.makePrivateTitle',
+          defaultMessage:
+            "Are you sure you want to make the dashboard '{title}' private?",
+        },
+        { title: dashboard.title },
+      ),
+      content: formatMessage({
+        id: 'pages.customers.dashboards.makePrivateText',
+        defaultMessage:
+          "After the confirmation the dashboard will be made private and won't be accessible by others.",
       }),
-      dataIndex: 'createdTime',
-      width: 170,
-      sorter: true,
-      sortOrder: sortOrderFor('createdTime'),
-      render: (_, record) =>
-        dayjs(record.createdTime).format('YYYY-MM-DD HH:mm:ss'),
-    },
-    {
-      title: formatMessage({
-        id: 'pages.customers.dashboards.columnTitle',
-        defaultMessage: 'Dashboard title',
+      okText: formatMessage({
+        id: 'pages.customers.dashboards.actionMakePrivate',
+        defaultMessage: 'Make dashboard private',
       }),
-      dataIndex: 'title',
-      sorter: true,
-      sortOrder: sortOrderFor('title'),
-    },
-    {
-      valueType: 'option',
-      width: 100,
-      render: (_, record) => [
-        <Button
-          key="unassign"
-          size="small"
-          onClick={() => confirmUnassign(record)}
-        >
-          {formatMessage({
-            id: 'pages.customers.dashboards.actionUnassign',
-            defaultMessage: 'Unassign',
-          })}
-        </Button>,
-      ],
-    },
-  ];
+      cancelText: formatMessage({
+        id: 'pages.customers.dashboards.cancel',
+        defaultMessage: 'Cancel',
+      }),
+      onOk: () => makePrivateMutation.mutateAsync(dashboard.id.id),
+    });
+  };
+
+  const confirmUnassignSelected = () => {
+    if (selectedDashboards.length === 0) {
+      return;
+    }
+    modal.confirm({
+      title: formatMessage(
+        {
+          id: 'pages.customers.dashboards.unassignManyTitle',
+          defaultMessage:
+            'Are you sure you want to unassign {count, plural, =1 {1 dashboard} other {# dashboards}}?',
+        },
+        { count: selectedDashboards.length },
+      ),
+      content: formatMessage({
+        id: 'pages.customers.dashboards.unassignManyText',
+        defaultMessage:
+          'After the confirmation all selected dashboards will be unassigned and will not be accessible by the customer.',
+      }),
+      okText: formatMessage({
+        id: 'pages.customers.dashboards.actionUnassign',
+        defaultMessage: 'Unassign',
+      }),
+      cancelText: formatMessage({
+        id: 'pages.customers.dashboards.cancel',
+        defaultMessage: 'Cancel',
+      }),
+      onOk: async () => {
+        setBatchOpen(true);
+        const summary = await batch.run(
+          selectedDashboards,
+          (dashboard) => dashboard.title,
+          (dashboard) =>
+            unassignDashboardFromCustomer(
+              customerId as string,
+              dashboard.id.id,
+            ),
+        );
+        setSelectedRowKeys([]);
+        void invalidate();
+        if (summary.failed > 0) {
+          void message.warning(
+            formatMessage(
+              {
+                id: 'pages.customers.dashboards.batchResult',
+                defaultMessage: '{ok} succeeded, {fail} failed.',
+              },
+              { ok: summary.ok, fail: summary.failed },
+            ),
+          );
+        } else {
+          void message.success(
+            formatMessage({
+              id: 'pages.customers.dashboards.toastUnassigned',
+              defaultMessage: 'Dashboard unassigned.',
+            }),
+          );
+        }
+      },
+    });
+  };
+
+  const exportOne = async (dashboard: DashboardInfo) => {
+    try {
+      await exportDashboardToFile(dashboard.id.id);
+    } catch (error) {
+      void message.error(
+        formatMessage(
+          {
+            id: 'pages.customers.dashboards.exportFailed',
+            defaultMessage: 'Failed to export the dashboard: {error}',
+          },
+          { error: serverErrorText(error) },
+        ),
+      );
+    }
+  };
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: row-action handlers re-create per render by design; only these deps change the rendered columns
+  const columns: ProColumns<DashboardInfo>[] = useMemo(() => {
+    const cols: ProColumns<DashboardInfo>[] = [
+      {
+        title: formatMessage({
+          id: 'pages.customers.dashboards.columnCreatedTime',
+          defaultMessage: 'Created time',
+        }),
+        dataIndex: 'createdTime',
+        width: 170,
+        sorter: true,
+        sortOrder: sortOrderFor('createdTime'),
+        render: (_, record) => (
+          <span className="tabular-nums">
+            {dayjs(record.createdTime).format('YYYY-MM-DD HH:mm:ss')}
+          </span>
+        ),
+      },
+      {
+        title: formatMessage({
+          id: 'pages.customers.dashboards.columnTitle',
+          defaultMessage: 'Dashboard title',
+        }),
+        dataIndex: 'title',
+        sorter: true,
+        sortOrder: sortOrderFor('title'),
+        render: (_, record) => (
+          <Typography.Link
+            onClick={() => history.push(`/dashboards/${record.id.id}`)}
+          >
+            {record.title}
+          </Typography.Link>
+        ),
+      },
+      {
+        valueType: 'option',
+        width: 100,
+        render: (_, record) => [
+          <Button
+            key="export"
+            type="text"
+            size="small"
+            icon={<DownloadOutlined />}
+            title={formatMessage({
+              id: 'pages.customers.dashboards.actionExport',
+              defaultMessage: 'Export dashboard',
+            })}
+            onClick={() => void exportOne(record)}
+          />,
+          <Dropdown
+            key="more"
+            trigger={['click']}
+            menu={{
+              items: [
+                isCurrentPublicCustomer(record, customerId as string)
+                  ? {
+                      key: 'make-private',
+                      label: formatMessage({
+                        id: 'pages.customers.dashboards.actionMakePrivate',
+                        defaultMessage: 'Make dashboard private',
+                      }),
+                      onClick: () => confirmMakePrivate(record),
+                    }
+                  : {
+                      key: 'unassign',
+                      label: formatMessage({
+                        id: 'pages.customers.dashboards.actionUnassign',
+                        defaultMessage: 'Unassign',
+                      }),
+                      onClick: () => confirmUnassign(record),
+                    },
+              ],
+            }}
+          >
+            <Button type="text" size="small" icon={<MoreOutlined />} />
+          </Dropdown>,
+        ],
+      },
+    ];
+    return cols;
+  }, [
+    formatMessage,
+    urlState.sortProperty,
+    urlState.sortDirection,
+    customerId,
+  ]);
 
   function sortOrderFor(property: string): 'ascend' | 'descend' | undefined {
     if (urlState.sortProperty !== property) {
@@ -266,6 +471,18 @@ export default function CustomerDashboardsPage() {
               defaultMessage: 'Refresh',
             })}
           </Button>
+          {selectedDashboards.length > 0 && (
+            <Button
+              danger
+              icon={<UserDeleteOutlined />}
+              onClick={confirmUnassignSelected}
+            >
+              {formatMessage({
+                id: 'pages.customers.dashboards.batchUnassign',
+                defaultMessage: 'Unassign selected',
+              })}
+            </Button>
+          )}
           <Button
             type="primary"
             icon={<PlusOutlined />}
@@ -283,7 +500,7 @@ export default function CustomerDashboardsPage() {
         <Alert
           type="error"
           showIcon
-          title={formatMessage({
+          message={formatMessage({
             id: 'pages.customers.dashboards.loadFailed',
             defaultMessage: 'Failed to load dashboards',
           })}
@@ -293,12 +510,18 @@ export default function CustomerDashboardsPage() {
 
       <ProTable<DashboardInfo>
         rowKey={(record) => record.id.id}
+        tableAlertRender={false}
+        tableAlertOptionRender={false}
         columns={columns}
         dataSource={dashboards}
         loading={dashboardsQuery.isPending}
         search={false}
         options={false}
         onChange={onTableChange}
+        rowSelection={{
+          selectedRowKeys,
+          onChange: (keys) => setSelectedRowKeys(keys),
+        }}
         pagination={{
           current: urlState.page,
           pageSize: urlState.pageSize,
@@ -327,6 +550,14 @@ export default function CustomerDashboardsPage() {
         confirmLoading={assignMutation.isPending}
         onClose={() => setAssignOpen(false)}
         onConfirm={(dashboardId) => assignMutation.mutate(dashboardId)}
+      />
+      <BatchProgressModal
+        open={batchOpen}
+        state={batch.state}
+        onClose={() => {
+          setBatchOpen(false);
+          batch.reset();
+        }}
       />
     </CustomerScopePageShell>
   );
