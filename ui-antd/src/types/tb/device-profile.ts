@@ -7,13 +7,8 @@
  * common/data/.../DeviceProfile.java.
  */
 
-import type {
-  BaseData,
-  EntityIdOf,
-  EntityType,
-  HasVersion,
-} from './entity';
 import type { DeviceProfileType, DeviceTransportType } from './device';
+import type { BaseData, EntityIdOf, EntityType, HasVersion } from './entity';
 
 /**
  * Wire enum — provisioning strategies the transport accepts

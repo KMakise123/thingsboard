@@ -7,12 +7,7 @@
  * key for the Java `boolean isDefault`).
  */
 
-import type {
-  BaseData,
-  EntityIdOf,
-  EntityType,
-  HasVersion,
-} from './entity';
+import type { BaseData, EntityIdOf, EntityType, HasVersion } from './entity';
 
 /** GET /api/assetProfile/{id} / POST /api/assetProfile — the full entity. */
 export interface AssetProfile
