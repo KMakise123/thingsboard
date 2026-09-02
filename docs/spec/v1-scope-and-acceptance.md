@@ -64,11 +64,11 @@ v1 = **除编辑器三件套与八个子系统外，对齐 ui-ngx 全部页面�
 - [x] 用户菜单登出 → 清 localStorage 四键 → 落登录页；WS 连接关闭
 
 MFA（M4）：
-- [ ] 已启用 2FA 用户密码正确后 → `login/mfa` 验证码页 → 通过落默认页
-- [ ] force-mfa 策略命中用户 → `login/force-mfa` 强制设置流
+- [x] 已启用 2FA 用户密码正确后 → `login/mfa` 验证码页 → 通过落默认页〔M4 ✅：密码正确按 `scope=PRE_VERIFICATION_TOKEN` 分流先存 token 再跳验证码页；错码字段错误「验证码不正确」、正确算码落 `/devices`（TA 默认页）；「试试其他方式」切 provider、备份码登录（8 位 hex 输入形态）、`?redirect` 透传、`/login/mfa` 别名 + 守卫（无中间态回登录页）均真机走查；TOTP 无发码 / 重发按钮（parity）；挂起：SMS / EMAIL 发码真实链路（短信网关 / SMTP 前置，沿用 M3 口径）〕
+- [x] force-mfa 策略命中用户 → `login/force-mfa` 强制设置流〔M4 ✅：SA 两步验证页设强制策略（TENANT_ADMINISTRATORS + tenantsIds）→ 未配置用户密码登录自动跳 `/user/force-mfa` → SETUP（全新账号正确滤掉 BACKUP_CODE）→ TOTP 二维码 + secret → 算码激活 → SUCCESS → 登出重登走验证码；验完强制策略已解除〕
 
 OAuth2（M4，验收前置：sys 已配置 provider，见 3.7）：
-- [ ] 登录页出现 provider 按钮 → 跳转授权 → 回调建会话 → 落默认页；失败 / 拒绝态对齐 ui-ngx
+- [ ] 登录页出现 provider 按钮 → 跳转授权 → 回调建会话 → 落默认页；失败 / 拒绝态对齐 ui-ngx〔M4 失败链过：SA 配置测试 client + domain 后登录页出现「Sign in with {name}」按钮（单 client 形态 + or 分隔线，>1 client 分组标题）→ 点击真实 302 跳到 provider 授权页（实验真实到达 Google，假 clientId 被 provider 侧拒绝）；失败回调 `?loginError=` → 不可关闭对话框展示服务端原文 → OK 后 query 清除；成功回调消费以 `/?accessToken=&refreshToken=` 真实 token 对模拟核验（query 清除 + 落角色默认页 SA→`/tenants`）。挂起：真实 IdP 的授权成功全流程（同 M3 IdP 前置口径，测试用 domain + client 已删除还原）〕
 
 ### 3.2 应用壳（M1）
 
@@ -149,9 +149,11 @@ OAuth2（M4，验收前置：sys 已配置 provider，见 3.7）：
 
 ### 3.9 账户安全域（M4）
 
-- [ ] `account/profile`：资料编辑 + locale
-- [ ] `account/security`：改密码（旧密码校验）；2FA 启用 / 停用流（按 sys 配置的提供方）
-- [ ] MFA / OAuth2 登录链路见 3.1
+> M4 验收注（2026-09-02）：3/3 勾。profile 资料保存链（真机保存后 API 对照持久化、语言即时切全站 + `additionalInfo.lang` 持久、静默刷 token）与 security 改密码全链路（错旧密码服务端原文落旧密码字段、策略清单实时校验前端拦截、改密成功新密码重登后已还原原密码）真机走查通过；2FA 卡 TOTP / BACKUP_CODE 启用、默认方式切换、停用确认、重生成备用码全过；用户菜单新增个人资料 / 安全两入口、侧边栏不出现 account 组。遗留口径：API keys 卡不建（经复核非后端契约缺口，见修订记录）；SMS / EMAIL 发码与真实 IdP 成功链挂起（前置同 3.1）。
+
+- [x] `account/profile`：资料编辑 + locale〔M4 ✅：email / firstName / lastName / phone / language 单卡表单；保存链 = saveUser(sendActivationMail:false) → initialState 更新 → 语言变更即切全站 → 静默刷 token；firstName / phone 真机保存后 API 对照持久化；选 English 全站即时切换 + `additionalInfo.lang=en_US` 持久；切「跟随」删除 lang 键（不强制切回界面语言，v1 口径）；dirty 离开确认〕
+- [x] `account/security`：改密码（旧密码校验）；2FA 启用 / 停用流（按 sys 配置的提供方）〔M4 ✅：改密码全链路（错旧密码 →「Current password doesn't match!」落旧密码字段；策略清单实时校验前端拦截；改密成功 → 新密码重登 → 已还原 tenant 原密码）；JWT token 卡（有效期 + 复制 Bearer）；2FA 卡 = TOTP（二维码 + secret 明文 + 算码验证）/ BACKUP_CODE（codes 一次性展示 + 下载 txt + 打印）启用、默认方式切换、停用（确认框）、重生成备用码（旧码作废提示）全过〕
+- [x] MFA / OAuth2 登录链路见 3.1〔M4 ✅：MFA 两项全勾（见 3.1）；OAuth2 失败链过、真实 IdP 成功链挂起（口径随 3.1）〕
 
 ### 3.10 仪表盘只读（M5）
 
@@ -213,7 +215,7 @@ OAuth2（M4，验收前置：sys 已配置 provider，见 3.7）：
 - home dashboard 首页（v1 登录落 `/devices`）
 - settings 其余 tab（queues / notifications / home / repository / auto-commit / trendz / ai-models）
 - widget 冷门类型（demo 锚点外）渲染占位
-- MFA / OAuth2 / 邮件链路可用性依赖 sys 侧正确配置（outgoing-mail / 2fa / oauth2）
+- MFA / OAuth2 / 邮件链路可用性依赖 sys 侧正确配置（outgoing-mail / 2fa / oauth2）；MFA 的 SMS / EMAIL 发码真实链路另依赖短信网关 / SMTP 真实通道
 - CSV 导入仅设备 / 资产（parity 即如此）
 - 无双 UI 共存（一步切换，建图已钉死）
 
@@ -225,3 +227,5 @@ OAuth2（M4，验收前置：sys 已配置 provider，见 3.7）：
 - 2026-09-01（二）：**M2 落账**（资产 / 实体视图 / 客户域 / 用户管理四域；网关经裁定推迟 M5，见 §3.4 注与 #9 留痕）。架构：头部形态定案官方 PageContainer（ADR 0008）——§3.2「面包屑随路由」随之收口；设备详情 10 tab 面板参数化为实体通用组件（`components/entities`），四域按 ui-ngx 事实组装 tab 集（details 表单上移页头区，资产 8 / 客户 7 / 实体视图 6）。验收：真机四棒 65/65 项全过（资产 19 / 实体视图 16 / 客户域 16 / 用户+横切 14），累计修复 8 处（含实体视图类型输入阻断级缺陷、用户行菜单缓存不失效、客户审计 tab 改客户作用域端点）。口径微调：「重置密码」= 展示激活链接 + 重发激活（BCR C-11）；作用域 dashboards 页最小面（渲染归 M5）；资产无 active 过滤（后端无字段）；loginAsUser 随 SA 域 M3。BCR：C-1 提前复审维持 fallback，新增 C-9～C-11。遗留观察（M6 横切）：全局与组件级错误提示双份待收敛。
 
 - 2026-09-02：**M3 落账**（告警域 / sys admin / 实体 profile / settings 四域 + 横切收尾）。交付：全局告警页双 tab（AlarmData WS 双通道 DEVICE+ASSET 合并、过滤全量进 URL、批量 ack/clear/删除、详情 dialog 含评论时间线）+ alarm-rules 全局 CRUD（新实体 `/api/alarm/rule`）；tenants 列表/详情(4 tab)/作用域用户页（共享 UsersTable 组件化）+ loginAsUser（tokenAccessEnabled 开关门禁）+ tenantProfiles（9 配置组 + 队列编辑器 + export）；settings 五页全交付（general/connectivity 双卡片、outgoing-mail 含测试邮件与 OAuth2 token 流、2fa 四 provider 策略、oauth2 domains+clients 模板驱动、audit-logs URL 全量）；deviceProfiles 7 tab / assetProfiles 5 tab 全量。验收：门禁三绿（biome+locale+tsc / vitest 521 / build）+ 三角色 14 项真机走查逐项通过（含 CU 经激活链接建号全流程）。§3.2 SA 落点项收口：SA 登录落 `/tenants`，M1 临时 `/home` 页面删除（entry 保留）。验收修复 3 处：①loginAsUser 换号后 SPA replace 卡 403（umi layout 按 pathname 记忆匹配路由、access 重算不生效）且 WS 会话仍持旧 token——改整页重载落新角色默认页；②set-default 确认框 `{name}` 字面量（ICU `'{name}'` 引号转义大括号）——zh 改弯引号、en-US 双写引号共 29 处字符串修复；③profiles 遗留测试类型对齐（OtaPackageType enum）。口径微调：alarm-rules 编辑弹窗仅名称 + 调试模式（改条件需重建）；timewindow 过滤器（所有时间默认 + 11 档预设 + 自定义起止 RangePicker，WS 自定义区间映射 startTs + timeWindow、REST 传 startTime/endTime，URL `tw/twStart/twEnd` 书签恢复）由 alarm-dev 随验收补齐（90a9310fae），收口复验通过——预设档过滤、UI 输入自定义起止、刷新恢复、两种窗口下 WS 实时呈现均真机核验。BCR：C-1 M3 边界复审维持 fallback（批量端点排期随 M6 后端会话合议），新增 C-12～C-18。遗留登记：SMTP / IdP 前置链路（测试邮件、邮件激活、OAuth2 登录）转 M4 前置复验；Playwright 冒烟基线未建（M1/M2/M3 均未落基建，测试基线 §3.3 M3 三行随 M6 前统一补齐）。
+
+- 2026-09-02（二）：**M4 落账**（账户安全域 + MFA 登录线 + OAuth2 登录线）。交付：account/profile 单卡表单（email / 姓名 / 电话 / 语言；保存链 = saveUser → initialState 更新 → 语言变更即切全站 → JWT claims 变更静默刷 token）；account/security 三卡（JWT token 有效期 + 复制 Bearer / 改密码含密码策略实时校验与服务端错误按 detail 分派 / 2FA 卡按平台 providers 组装 TOTP·SMS·EMAIL·BACKUP_CODE 启用对话框 + 默认方式切换 + 停用确认 + 重生成备用码）；登录线 MFA 分流（login 响应 `scope=PRE_VERIFICATION_TOKEN` / `MFA_CONFIGURATION_TOKEN` 两中间态先存 token 再跳）+ `/user/mfa` 验证码页（多 provider「试试其他方式」切换、备份码 8 位 hex、429 限流倒计时）+ `/user/force-mfa` 强制设置流（SETUP→输入→验码→SUCCESS，全新账号滤 BACKUP_CODE、首个激活 provider 自动设默认）+ `/login/mfa`、`/login/force-mfa` 别名 redirect + 双守卫（authority 不符回登录页）；OAuth2 登录线（登录页 noauth/oauth2Clients 按钮区 + or 分隔、entry 消费 `?accessToken=&refreshToken=` 回调落角色默认页、`loginError` 不可关闭对话框）；用户菜单新增个人资料 / 安全两入口。验收：门禁三绿（biome + check-locale + tsc / vitest 620——M4 新增约 90 用例 / max build 含 account·profile 与 account·security 产物）+ §3.9 三项、§3.1 MFA 两项全勾，OAuth2 走失败链口径（真实 302 到 provider 授权页——实验真实到达 Google、假 clientId 被 provider 侧拒绝 → `loginError` 对话框链完整；成功回调以真实 token 对模拟消费核验）。期间修复缺陷 5 枚（均带渲染级测试）：①M3 settings/two-fa 设置页每次 UI 保存清空 providers——根因保存路径把 payload 变换跑了两遍（c25b34d438）；②同页 enforce 关闭时保存崩溃 + 强制过滤字段丢失——validateFields 不含未注册字段，改读完整 store + builder fallback（含于 c25b34d438）；③token-store 拒收 MFA 中间态 null refreshToken 致 2FA 用户卡死登录步（ce41fdafe8）；④account/security 备用码弹窗一次性展示被 onSaved 无条件关窗（7b4a280f70）；⑤侧边栏多出 Account 菜单项——父路由补 hideInMenu（087444c75f）。伴生实现：登录页对中间态的回弹环防护、getInitialState 对 MFA 中间态跳过 getCurrentUser（防 403 死循环，9185dc9cc2）。parity 微调口径：OAuth2 按钮 icon 用通用图标不解析 mdi 图标库；security 页 API keys 卡不建——施工简报原判「openapi 快照无 `/api/user/{id}/apiKeys` 端点」经落账复核不成立（`/api/apiKey*` 五端点在后端源码与 openapi 快照均在、ui-ngx 服务层同路径消费），实为 §3.9 v1 口径（资料编辑 + 改密码 + 2FA）未列该项的范围裁剪，非契约缺口；homeDashboard 选择器 / unitSystem 不在 §3.9 v1 口径；mfa 页 BACKUP_CODE 无自动发码（无码可发，设计如此）；「跟随」语言不强制切回界面语言；侧边栏无 account 组。前置挂起（沿用 M3 口径）：SMS / EMAIL 发码真实链路（短信网关 / SMTP 配置）、OAuth2 真实 IdP 授权成功全流程。数据还原终态：tenant 密码还原、tenant 2FA 配置移除（纯密码登录）、强制策略解除、OAuth2 测试 domain + client 删除；平台 2FA providers（TOTP + BACKUP_CODE）保持启用态为有意保留。BCR：M4 边界复审无新条目（缺陷均为前端侧，API keys 复核排除契约缺口）。
