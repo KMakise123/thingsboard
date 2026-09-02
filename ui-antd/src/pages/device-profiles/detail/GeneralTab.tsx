@@ -146,6 +146,8 @@ export default function GeneralTab({
       key={formKey}
       form={form}
       layout="vertical"
+      // initialValues keep the read-only inputs showing the stored profile.
+      initialValues={initialValues}
       disabled={!editing || saveMutation.isPending}
       onFinish={(next) => saveMutation.mutate(next)}
     >
