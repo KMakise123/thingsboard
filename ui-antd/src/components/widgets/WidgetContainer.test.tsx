@@ -6,6 +6,7 @@
  */
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { lazy } from 'react';
 import { createIntl, RawIntlProvider } from 'react-intl';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { StatesController } from '@/components/dashboard/use-states-controller';
@@ -14,9 +15,18 @@ import zhDashboards from '@/locales/zh-CN/dashboards';
 import { EntityType } from '@/types/tb/entity';
 import type { Timewindow } from '@/types/tb/timewindow';
 import type { Widget, WidgetLayout } from '@/types/tb/widget';
+import type { WidgetComponent } from './contract';
+import { PendingWidgetPlaceholder } from './placeholders';
+import { WIDGET_REGISTRY } from './registry';
 import { WidgetContainer } from './WidgetContainer';
 
 const intl = createIntl({ locale: 'zh-CN', messages: { ...zhDashboards } });
+
+/**
+ * W2 fills the builtin registry with real widgets, so the container tests
+ * pin their own PENDING entry instead of depending on W2's rollout progress.
+ */
+const TEST_PENDING_FQN = 'system.test.pending_widget';
 
 const getWidgetTypeByFqn = vi.hoisted(() => vi.fn());
 vi.mock('@/services/tb/dashboard', () => ({
@@ -104,15 +114,25 @@ afterEach(cleanup);
 
 beforeEach(() => {
   vi.clearAllMocks();
+  WIDGET_REGISTRY[TEST_PENDING_FQN] = {
+    component: lazy(async () => ({
+      default: PendingWidgetPlaceholder as WidgetComponent,
+    })),
+    meta: { label: 'test pending' },
+  };
+});
+
+afterEach(() => {
+  delete WIDGET_REGISTRY[TEST_PENDING_FQN];
 });
 
 describe('WidgetContainer', () => {
   it('renders a builtin registry entry via the pending placeholder', async () => {
-    renderContainer(makeWidget('system.time_series_chart'));
+    renderContainer(makeWidget(TEST_PENDING_FQN));
     await waitFor(() => {
       expect(screen.getByTestId('pending-placeholder')).toBeInTheDocument();
     });
-    expect(screen.getByText('system.time_series_chart')).toBeInTheDocument();
+    expect(screen.getByText(TEST_PENDING_FQN)).toBeInTheDocument();
     // the probe must not fire for builtin entries
     expect(getWidgetTypeByFqn).not.toHaveBeenCalled();
   });
@@ -168,7 +188,7 @@ describe('WidgetContainer', () => {
 
   it('expands datasources for the widget context (alias resolved)', async () => {
     pendingProps.current = [];
-    renderContainer(makeWidget('system.time_series_chart'));
+    renderContainer(makeWidget(TEST_PENDING_FQN));
     await waitFor(() => {
       expect(pendingProps.current.length).toBeGreaterThan(0);
     });
@@ -185,7 +205,7 @@ describe('WidgetContainer', () => {
         isMobile: boolean;
       };
     };
-    expect(props.fqn).toBe('system.time_series_chart');
+    expect(props.fqn).toBe(TEST_PENDING_FQN);
     expect(props.widgetId).toBe('w1');
     expect(props.ctx.effectiveTimewindow).toBe(dashboardTimewindow);
     expect(props.ctx.datasources).toHaveLength(1);
@@ -199,7 +219,7 @@ describe('WidgetContainer', () => {
 
   it('honors the widget-private timewindow override', async () => {
     pendingProps.current = [];
-    const widget = makeWidget('system.time_series_chart');
+    const widget = makeWidget(TEST_PENDING_FQN);
     widget.config.useDashboardTimewindow = false;
     const privateTw: Timewindow = {
       selectedTab: 'HISTORY',

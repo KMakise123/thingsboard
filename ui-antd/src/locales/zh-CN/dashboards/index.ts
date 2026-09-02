@@ -12,6 +12,24 @@ export default {
   'dashboards.widget.missing': '组件不存在或已被移除',
   'dashboards.widget.pending': '组件开发中，即将提供',
 
+  // ---- W2 widget 实体（brief §1.8 / §6） ----
+  'dashboards.widget.chart.noData': '该窗口内暂无数值数据',
+  'dashboards.widget.legend.min': '最小',
+  'dashboards.widget.legend.max': '最大',
+  'dashboards.widget.legend.avg': '平均',
+  'dashboards.widget.legend.total': '总和',
+  'dashboards.widget.legend.latest': '最新',
+  'dashboards.widget.table.entity': '实体',
+  'dashboards.widget.table.timestamp': '时间',
+  'dashboards.widget.map.noLocation': '暂无位置数据',
+  'dashboards.widget.map.details': '查看详情',
+  'dashboards.widget.attributes.saved': '属性已保存',
+  'dashboards.widget.attributes.saveFailed': '属性保存失败',
+  'dashboards.widget.attributes.noEntity': '该组件未解析到目标实体',
+  'dashboards.widget.alarms.originator': '告警对象',
+  'dashboards.widget.alarms.assignee': '未分配',
+  'dashboards.widget.alarms.empty': '所选时间窗口内暂无告警',
+
   // ---- 页面 / 工具栏 ----
   'dashboards.page.loading': '仪表盘加载中…',
   'dashboards.page.emptyConfiguration': '该仪表盘暂无配置',

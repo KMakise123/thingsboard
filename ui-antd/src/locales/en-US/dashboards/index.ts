@@ -12,6 +12,25 @@ export default {
   'dashboards.widget.missing': 'Widget not found or has been removed',
   'dashboards.widget.pending': 'Widget is on its way',
 
+  // ---- W2 widget bodies (brief §1.8 / §6) ----
+  'dashboards.widget.chart.noData': 'No numeric data in this window',
+  'dashboards.widget.legend.min': 'min',
+  'dashboards.widget.legend.max': 'max',
+  'dashboards.widget.legend.avg': 'avg',
+  'dashboards.widget.legend.total': 'total',
+  'dashboards.widget.legend.latest': 'latest',
+  'dashboards.widget.table.entity': 'Entity',
+  'dashboards.widget.table.timestamp': 'Timestamp',
+  'dashboards.widget.map.noLocation': 'No location data',
+  'dashboards.widget.map.details': 'View details',
+  'dashboards.widget.attributes.saved': 'Attributes saved',
+  'dashboards.widget.attributes.saveFailed': 'Failed to save attributes',
+  'dashboards.widget.attributes.noEntity':
+    'This widget has no resolved target entity',
+  'dashboards.widget.alarms.originator': 'Originator',
+  'dashboards.widget.alarms.assignee': 'Unassigned',
+  'dashboards.widget.alarms.empty': 'No alarms in the selected window',
+
   // ---- page / toolbar ----
   'dashboards.page.loading': 'Loading dashboard…',
   'dashboards.page.emptyConfiguration':

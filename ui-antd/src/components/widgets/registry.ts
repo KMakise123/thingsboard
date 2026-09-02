@@ -42,7 +42,10 @@ function pendingEntry(meta?: { label?: string }): WidgetRegistryEntry {
  * dashboard JSONs (`system.` prefix = system-scope widget types).
  */
 export const WIDGET_REGISTRY: Record<string, WidgetRegistryEntry> = {
-  'system.time_series_chart': pendingEntry({ label: 'Time series chart' }),
+  'system.time_series_chart': {
+    component: lazy(() => import('./timeseries-chart')),
+    meta: { label: 'Time series chart' },
+  },
   'system.cards.entities_table': pendingEntry({ label: 'Entities table' }),
   'system.cards.timeseries_table': pendingEntry({ label: 'Timeseries table' }),
   'system.cards.html_value_card': pendingEntry({ label: 'HTML value card' }),

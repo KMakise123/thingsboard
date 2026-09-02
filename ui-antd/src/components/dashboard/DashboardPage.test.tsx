@@ -16,6 +16,7 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react';
+import { lazy } from 'react';
 import { createIntl, RawIntlProvider } from 'react-intl';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DashboardPage } from '@/components/dashboard/DashboardPage';
@@ -23,6 +24,17 @@ import { validateAndUpdateDashboard } from '@/core/dashboard/model';
 import { objToBase64 } from '@/core/dashboard/states';
 import zhDashboards from '@/locales/zh-CN/dashboards';
 import type { Dashboard } from '@/types/tb/dashboard';
+import type { WidgetComponent } from '@/components/widgets/contract';
+import { PendingWidgetPlaceholder } from '@/components/widgets/placeholders';
+import { WIDGET_REGISTRY } from '@/components/widgets/registry';
+
+/**
+ * W2 replaces the builtin registry's pending placeholders with real widget
+ * components; this smoke test pins its OWN pending entries so the
+ * states/layout/alias assertions never depend on W2's rollout progress.
+ */
+const TEST_FQN_TABLE = 'system.test.smoke_table';
+const TEST_FQN_CHART = 'system.test.smoke_chart';
 
 const findEntitiesByFilter = vi.hoisted(() => vi.fn());
 const getTenantDashboards = vi.hoisted(() => vi.fn());
@@ -46,7 +58,7 @@ const dashboardJson = {
   configuration: {
     widgets: {
       wTable: {
-        typeFullFqn: 'system.cards.entities_table',
+        typeFullFqn: TEST_FQN_TABLE,
         config: {
           datasources: [
             { type: 'entity', entityAliasId: 'all-devices', dataKeys: [] },
@@ -54,7 +66,7 @@ const dashboardJson = {
         },
       },
       wChart: {
-        typeFullFqn: 'system.time_series_chart',
+        typeFullFqn: TEST_FQN_CHART,
         config: {
           useDashboardTimewindow: true,
           datasources: [
@@ -129,8 +141,18 @@ function pushUrl(search: string) {
   fireEvent(window, new Event('popstate'));
 }
 
+function pendingEntry() {
+  return {
+    component: lazy(async () => ({
+      default: PendingWidgetPlaceholder as WidgetComponent,
+    })),
+  };
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
+  WIDGET_REGISTRY[TEST_FQN_TABLE] = pendingEntry();
+  WIDGET_REGISTRY[TEST_FQN_CHART] = pendingEntry();
   findEntitiesByFilter.mockResolvedValue({
     data: [
       {
@@ -144,7 +166,11 @@ beforeEach(() => {
   window.history.replaceState(null, '', '/dashboards/d1');
 });
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  delete WIDGET_REGISTRY[TEST_FQN_TABLE];
+  delete WIDGET_REGISTRY[TEST_FQN_CHART];
+});
 
 describe('DashboardPage runtime smoke (状态切换 → 布局 → 容器)', () => {
   it('renders the root state with its widget cell and toolbar', async () => {
@@ -152,11 +178,11 @@ describe('DashboardPage runtime smoke (状态切换 → 布局 → 容器)', () 
     // root layout cell resolved through the registry → pending placeholder
     await waitFor(() => {
       expect(
-        screen.getByText('system.cards.entities_table'),
+        screen.getByText(TEST_FQN_TABLE),
       ).toBeInTheDocument();
     });
     // only the root layout cell mounts
-    expect(screen.queryByText('system.time_series_chart')).toBeNull();
+    expect(screen.queryByText(TEST_FQN_CHART)).toBeNull();
     // alias query ran for the entityType filter
     await waitFor(() => {
       expect(findEntitiesByFilter).toHaveBeenCalledWith(
@@ -175,7 +201,7 @@ describe('DashboardPage runtime smoke (状态切换 → 布局 → 容器)', () 
     renderPage();
     await waitFor(() => {
       expect(
-        screen.getByText('system.cards.entities_table'),
+        screen.getByText(TEST_FQN_TABLE),
       ).toBeInTheDocument();
     });
     const callsBefore = findEntitiesByFilter.mock.calls.length;
@@ -200,9 +226,9 @@ describe('DashboardPage runtime smoke (状态切换 → 布局 → 容器)', () 
 
     // the history state layout mounts the chart cell
     await waitFor(() => {
-      expect(screen.getByText('system.time_series_chart')).toBeInTheDocument();
+      expect(screen.getByText(TEST_FQN_CHART)).toBeInTheDocument();
     });
-    expect(screen.queryByText('system.cards.entities_table')).toBeNull();
+    expect(screen.queryByText(TEST_FQN_TABLE)).toBeNull();
     // breadcrumb interpolates the state name with the entity param
     expect(screen.getByText('History: Dev 1')).toBeInTheDocument();
     // the root crumb is clickable (entity controller pops)
