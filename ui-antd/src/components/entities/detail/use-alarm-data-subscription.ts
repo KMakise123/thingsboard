@@ -44,8 +44,12 @@ export interface AlarmDataQueryWire {
   latestValues: Array<EntityKeyWire>;
 }
 
-/** Fields the alarms table + details dialog need from every alarm row. */
-const ALARM_FIELDS: Array<EntityKeyWire> = [
+/**
+ * Fields the alarms table + details dialog need from every alarm row.
+ * Exported for the global-page subscription (components/alarms) so both
+ * channels request the identical column set.
+ */
+export const ALARM_FIELDS: Array<EntityKeyWire> = [
   { type: 'ALARM_FIELD', key: 'createdTime' },
   { type: 'ALARM_FIELD', key: 'startTime' },
   { type: 'ALARM_FIELD', key: 'endTime' },
@@ -61,7 +65,7 @@ const ALARM_FIELDS: Array<EntityKeyWire> = [
   { type: 'ALARM_FIELD', key: 'details' },
 ];
 
-const ENTITY_FIELDS: Array<EntityKeyWire> = [
+export const ENTITY_FIELDS: Array<EntityKeyWire> = [
   { type: 'ENTITY_FIELD', key: 'createdTime' },
   { type: 'ENTITY_FIELD', key: 'name' },
   { type: 'ENTITY_FIELD', key: 'label' },
