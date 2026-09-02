@@ -111,7 +111,13 @@ export async function getInitialState(): Promise<{
   // /api/auth/user would only fire the 401 refresh-failure event.
   const hasSession =
     tokenStore.isTokenValid('jwt') || tokenStore.isTokenValid('refresh');
-  const currentUser = hasSession ? await fetchUserInfo() : null;
+  // MFA interim tokens (brief §3): /api/auth/user rejects them with 403,
+  // whose failed-refresh exit would bounce the mfa pages back to login.
+  // The interim pages need no currentUser — leave it unset instead.
+  const scope = tokenStore.decodeTokenClaims()?.scopes?.[0];
+  const isMfaInterim =
+    scope === 'PRE_VERIFICATION_TOKEN' || scope === 'MFA_CONFIGURATION_TOKEN';
+  const currentUser = hasSession && !isMfaInterim ? await fetchUserInfo() : null;
 
   return {
     fetchUserInfo,
