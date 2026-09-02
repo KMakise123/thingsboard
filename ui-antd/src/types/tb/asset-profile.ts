@@ -23,6 +23,8 @@ export interface AssetProfile
   defaultDashboardId?: EntityIdOf<EntityType.DASHBOARD>;
   defaultQueueName?: string;
   defaultEdgeRuleChainId?: EntityIdOf<EntityType.RULE_CHAIN>;
+  /** Present on entities created by the PE/VCS export-import flows. */
+  externalId?: EntityIdOf<EntityType.ASSET_PROFILE>;
 }
 
 /** GET /api/assetProfileInfos — profile autocomplete digest (V2 shape). */

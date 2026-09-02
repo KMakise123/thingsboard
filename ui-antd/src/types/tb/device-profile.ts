@@ -149,6 +149,8 @@ export interface DeviceProfile
   firmwareId?: EntityIdOf<EntityType.OTA_PACKAGE>;
   softwareId?: EntityIdOf<EntityType.OTA_PACKAGE>;
   defaultEdgeRuleChainId?: EntityIdOf<EntityType.RULE_CHAIN>;
+  /** Present on entities created by the PE/VCS export-import flows. */
+  externalId?: EntityIdOf<EntityType.DEVICE_PROFILE>;
   profileData: DeviceProfileData;
 }
 
