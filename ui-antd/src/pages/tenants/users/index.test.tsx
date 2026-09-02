@@ -198,17 +198,31 @@ describe('tenant-admins scope page', () => {
       (await import('@/services/tb/auth')).getCurrentUser,
     );
     getCurrentUser.mockResolvedValue(user('ta-1', 'admin@acme.io'));
+    // The session swap ends in a full reload (the WS session and the access
+    // instance must re-derive from the new token) — assert the navigation.
+    const assign = vi
+      .spyOn(window.location, 'assign')
+      .mockImplementation(() => undefined);
     renderPage();
     await screen.findByText('admin@acme.io');
 
-    fireEvent.click(rowMenu(0));
-    fireEvent.click(await screen.findByText('以租户管理员身份登录'));
+    try {
+      fireEvent.click(rowMenu(0));
+      fireEvent.click(await screen.findByText('以租户管理员身份登录'));
 
-    await waitFor(() => {
-      expect(servicesMock.getUserToken).toHaveBeenCalledWith('ta-1');
-    });
-    expect(tokenStoreMock.setTokens).toHaveBeenCalledWith('jwt-1', 'refresh-1');
-    expect(routerMock.history.replace).toHaveBeenCalled();
+      await waitFor(() => {
+        expect(servicesMock.getUserToken).toHaveBeenCalledWith('ta-1');
+      });
+      expect(tokenStoreMock.setTokens).toHaveBeenCalledWith(
+        'jwt-1',
+        'refresh-1',
+      );
+      expect(assign).toHaveBeenCalledWith(
+        expect.stringMatching(/^\/(devices|tenants)$/),
+      );
+    } finally {
+      assign.mockRestore();
+    }
   });
 
   it('hides the login-as entry while the token switch is off', async () => {

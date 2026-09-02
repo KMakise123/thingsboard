@@ -14,7 +14,7 @@
  * /api/system/params — this backend exposes the dedicated endpoint).
  */
 import { useQuery } from '@tanstack/react-query';
-import { history, useModel, useParams } from '@umijs/max';
+import { history, useParams } from '@umijs/max';
 import type { MenuProps } from 'antd';
 import { App } from 'antd';
 import { useIntl } from 'react-intl';
@@ -33,7 +33,6 @@ export default function TenantUsersPage() {
   const tenantId = id as string;
   const { formatMessage } = useIntl();
   const { message } = App.useApp();
-  const { setInitialState } = useModel('@@initialState');
 
   // Header title = "<tenant title>: 租户管理员" (ui-ngx tableTitle).
   const tenantQuery = useQuery({
@@ -53,12 +52,17 @@ export default function TenantUsersPage() {
   const loginAsMutation = async (user: User) => {
     try {
       // ui-ngx loginAsUser: fetch the target JwtPair, store it, reload the
-      // session, go to the default place for the new authority.
+      // session, go to the default place for the new authority. The full
+      // reload is load-bearing: getInitialState, the access instance and the
+      // WS session must all re-derive from the new token. An SPA
+      // history.replace renders the target route once under the stale access
+      // instance (umi's layout memoizes the matched route per pathname) and
+      // sticks on the 403 node, and the socket would stay authenticated as
+      // the previous user (observed in M3 acceptance, fixed there).
       const pair = await getUserToken(user.id.id);
       tokenStore.setTokens(pair.token, pair.refreshToken);
       const me = await getCurrentUser();
-      setInitialState((s) => ({ ...s, currentUser: me }));
-      await history.replace(roleDefaultPath(me));
+      window.location.assign(roleDefaultPath(me));
     } catch (error) {
       void message.error(serverErrorText(error));
     }
