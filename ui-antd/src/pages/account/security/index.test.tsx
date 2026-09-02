@@ -386,4 +386,112 @@ describe('security page — two-factor auth card', () => {
       await screen.findByText(/输入刚刚发送到“\+8613800000000”的 6 位验证码/),
     ).toBeInTheDocument();
   });
+
+  it('keeps the BACKUP_CODE dialog open to show the one-time codes', async () => {
+    twoFaMock.getAvailableTwoFaProviderTypes.mockResolvedValue([
+      'TOTP',
+      'BACKUP_CODE',
+    ] as Array<TwoFaProviderType>);
+    // TOTP already active → the BACKUP_CODE switch is unlocked.
+    twoFaMock.getAccountTwoFaSettings.mockResolvedValue({
+      configs: {
+        TOTP: {
+          providerType: 'TOTP',
+          authUrl: 'otpauth://x',
+          useByDefault: true,
+        },
+      },
+    });
+    twoFaMock.generateTwoFaAccountConfig.mockResolvedValue({
+      providerType: 'BACKUP_CODE',
+      codes: ['aaaa-bbbb', 'cccc-dddd'],
+    });
+    twoFaMock.verifyAndSaveTwoFaAccountConfig.mockResolvedValue({
+      configs: {
+        TOTP: {
+          providerType: 'TOTP',
+          authUrl: 'otpauth://x',
+          useByDefault: true,
+        },
+        BACKUP_CODE: {
+          providerType: 'BACKUP_CODE',
+          codesLeft: 2,
+          useByDefault: false,
+        },
+      },
+    });
+    renderPage();
+    await screen.findByText('双因素认证');
+    // Wait for the provider rows to render (both queries settled).
+    await screen.findByText('认证器应用已为你的账户启用');
+    const switches = screen.getAllByRole('switch');
+
+    fireEvent.click(switches[1]); // BACKUP_CODE
+    expect(await screen.findByText('获取备用验证码')).toBeInTheDocument();
+
+    // generate → verifyAndSave both succeed; the codes must be displayed
+    // while the dialog STAYS open (one-time display contract).
+    await waitFor(() => {
+      expect(twoFaMock.verifyAndSaveTwoFaAccountConfig).toHaveBeenCalled();
+    });
+    expect(await screen.findByText('aaaa-bbbb')).toBeInTheDocument();
+    expect(screen.getByText('cccc-dddd')).toBeInTheDocument();
+    // Dialog still open: title + download/print actions reachable.
+    expect(
+      screen.getByRole('button', { name: /下载（txt）/ }),
+    ).toBeInTheDocument();
+    // Only the user's OK closes it.
+    fireEvent.click(screen.getByRole('button', { name: /^OK$/ }));
+    await waitFor(() => {
+      expect(screen.queryByText('获取备用验证码')).not.toBeInTheDocument();
+    });
+  });
+
+  it('shows the regenerated backup codes after the confirm dialog', async () => {
+    twoFaMock.getAvailableTwoFaProviderTypes.mockResolvedValue([
+      'BACKUP_CODE',
+    ] as Array<TwoFaProviderType>);
+    twoFaMock.getAccountTwoFaSettings.mockResolvedValue({
+      configs: {
+        BACKUP_CODE: {
+          providerType: 'BACKUP_CODE',
+          codesLeft: 8,
+          useByDefault: true,
+        },
+      },
+    });
+    twoFaMock.deleteTwoFaAccountConfig.mockResolvedValue({ configs: {} });
+    twoFaMock.generateTwoFaAccountConfig.mockResolvedValue({
+      providerType: 'BACKUP_CODE',
+      codes: ['1111-2222'],
+    });
+    twoFaMock.verifyAndSaveTwoFaAccountConfig.mockResolvedValue({
+      configs: {
+        BACKUP_CODE: {
+          providerType: 'BACKUP_CODE',
+          codesLeft: 10,
+          useByDefault: true,
+        },
+      },
+    });
+    renderPage();
+    await screen.findByText('双因素认证');
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: '获取新的备用验证码' }),
+    );
+    // The confirm asks before invalidating the remaining codes.
+    fireEvent.click(
+      await screen.findByRole('button', { name: '获取新验证码' }),
+    );
+
+    await waitFor(() => {
+      expect(twoFaMock.deleteTwoFaAccountConfig).toHaveBeenCalledWith(
+        'BACKUP_CODE',
+      );
+    });
+    expect(await screen.findByText('1111-2222')).toBeInTheDocument();
+    // Still open until the user confirms.
+    expect(screen.getByText('获取备用验证码')).toBeInTheDocument();
+  });
 });

@@ -464,7 +464,13 @@ function TwoFaCard() {
           onClose={() => setDialogProvider(undefined)}
           onSaved={(next) => {
             queryClient.setQueryData(SETTINGS_KEY, next);
-            setDialogProvider(undefined);
+            // BACKUP_CODE's activation IS the one-time code display: closing
+            // here would unmount the dialog the instant verifyAndSave
+            // resolves, before the codes are ever visible (M4 acceptance
+            // finding). Leave it open; the dialog's OK calls onClose.
+            if (dialogProvider !== 'BACKUP_CODE') {
+              setDialogProvider(undefined);
+            }
           }}
         />
       )}
