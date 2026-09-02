@@ -41,6 +41,7 @@ const dashboardServiceMock = vi.hoisted(() => ({
   makeDashboardPublic: vi.fn(),
   makeDashboardPrivate: vi.fn(),
   exportDashboard: vi.fn(),
+  saveDashboard: vi.fn(),
 }));
 
 const customerServiceMock = vi.hoisted(() => ({
@@ -158,6 +159,9 @@ describe('dashboards list page (tenant admin)', () => {
     );
     dashboardServiceMock.exportDashboard.mockResolvedValue(
       dashboard('dash-2', 'Rule Engine Statistics'),
+    );
+    dashboardServiceMock.saveDashboard.mockResolvedValue(
+      dashboard('dash-new', 'Imported Dashboard'),
     );
     customerServiceMock.getCustomerDashboards.mockResolvedValue({
       data: [],
@@ -304,6 +308,79 @@ describe('dashboards list page (tenant admin)', () => {
         'dash-1',
       );
     });
+  });
+
+  it('imports a dashboard file through the dialog and refreshes', async () => {
+    renderPage();
+    await screen.findByText('Thermostats');
+    dashboardServiceMock.saveDashboard.mockResolvedValue(
+      dashboard('dash-new', 'Imported Dashboard'),
+    );
+
+    fireEvent.click(
+      screen.getByRole('button', { name: /导入门?板|导入仪表盘/ }),
+    );
+    const fileInput = await screen.findByRole('button', {
+      name: /拖拽仪表盘/,
+    });
+    expect(fileInput).toBeInTheDocument();
+
+    // Upload.Dragger renders a hidden input[type=file]; push a file into it.
+    const input = document.querySelector(
+      'input[type="file"]',
+    ) as HTMLInputElement;
+    const file = new File(
+      [
+        JSON.stringify({
+          title: 'Imported Dashboard',
+          configuration: { widgets: {}, states: {}, entityAliases: {} },
+        }),
+      ],
+      'imported.json',
+      { type: 'application/json' },
+    );
+    fireEvent.change(input, { target: { files: [file] } });
+
+    fireEvent.click(await screen.findByRole('button', { name: /^导\s*入$/ }));
+
+    await waitFor(() => {
+      expect(dashboardServiceMock.saveDashboard).toHaveBeenCalledTimes(1);
+    });
+    const payload = dashboardServiceMock.saveDashboard.mock.calls[0][0] as {
+      id?: unknown;
+      title: string;
+    };
+    expect(payload.id).toBeUndefined();
+    expect(payload.title).toBe('Imported Dashboard');
+  });
+
+  it('shows the validation error and never posts an invalid file', async () => {
+    renderPage();
+    await screen.findByText('Thermostats');
+
+    fireEvent.click(
+      screen.getByRole('button', { name: /导入门?板|导入仪表盘/ }),
+    );
+    const input = await waitFor(() => {
+      const node = document.querySelector('input[type="file"]');
+      expect(node).not.toBeNull();
+      return node as HTMLInputElement;
+    });
+    const file = new File(
+      [JSON.stringify({ title: 'broken' })],
+      'broken.json',
+      {
+        type: 'application/json',
+      },
+    );
+    fireEvent.change(input, { target: { files: [file] } });
+
+    fireEvent.click(await screen.findByRole('button', { name: /^导\s*入$/ }));
+
+    expect(
+      await screen.findByText(/缺少 title 或 configuration/),
+    ).toBeInTheDocument();
+    expect(dashboardServiceMock.saveDashboard).not.toHaveBeenCalled();
   });
 });
 

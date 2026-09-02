@@ -81,6 +81,20 @@ export default {
   'dashboards.list.cancel': 'Cancel',
   'dashboards.list.toastDeleted': 'Dashboard deleted.',
 
+  // ---- W3 unit 2 import/export ----
+  'dashboards.list.import': 'Import dashboard',
+  'dashboards.list.importTitle': 'Import dashboard',
+  'dashboards.list.importOk': 'Import',
+  'dashboards.list.importDropHint':
+    'Drop a dashboard JSON file here or click to select one.',
+  'dashboards.list.importHint':
+    'The file must carry a title and a configuration. Widgets with missing entity aliases are imported as-is (no alias assignment in v1).',
+  'dashboards.list.importParseError': 'The file could not be parsed as JSON.',
+  'dashboards.list.importInvalidError':
+    'Invalid dashboard file: the title or configuration is missing.',
+  'dashboards.list.importFailed': 'Failed to import the dashboard: {error}',
+  'dashboards.list.toastImported': "Dashboard '{title}' has been imported.",
+
   // ---- global timewindow picker ----
   'dashboards.tw.tabRealtime': 'Realtime',
   'dashboards.tw.tabHistory': 'History',

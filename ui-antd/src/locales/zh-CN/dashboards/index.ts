@@ -76,6 +76,20 @@ export default {
   'dashboards.list.cancel': '取消',
   'dashboards.list.toastDeleted': '仪表盘已删除。',
 
+  // ---- W3 ② 导入 / 导出 ----
+  'dashboards.list.import': '导入仪表盘',
+  'dashboards.list.importTitle': '导入仪表盘',
+  'dashboards.list.importOk': '导入',
+  'dashboards.list.importDropHint':
+    '拖拽仪表盘 JSON 文件到此处，或点击选择文件。',
+  'dashboards.list.importHint':
+    '文件必须包含 title 与 configuration。缺失实体别名的组件按原样导入（v1 不提供别名指派）。',
+  'dashboards.list.importParseError': '无法将文件解析为 JSON。',
+  'dashboards.list.importInvalidError':
+    '无效的仪表盘文件：缺少 title 或 configuration。',
+  'dashboards.list.importFailed': '导入仪表盘失败：{error}',
+  'dashboards.list.toastImported': '仪表盘“{title}”已导入。',
+
   // ---- 全局 timewindow 选择器 ----
   'dashboards.tw.tabRealtime': '实时',
   'dashboards.tw.tabHistory': '历史',

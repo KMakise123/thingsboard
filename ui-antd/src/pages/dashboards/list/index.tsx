@@ -50,6 +50,7 @@ import {
   makeDashboardPublic,
 } from '@/services/tb/dashboard';
 import type { DashboardInfo } from '@/types/tb/dashboard';
+import { ImportDashboardModal } from './ImportDashboardModal';
 import { exportDashboardToFile } from './import-export';
 import { listUrlState } from './url-state';
 
@@ -100,6 +101,7 @@ export default function DashboardsListPage() {
 
   // ---- text search (server-side, debounced; URL carries the committed value)
   const [searchInput, setSearchInput] = useState(urlState.textSearch);
+  const [importOpen, setImportOpen] = useState(false);
   useEffect(() => {
     setSearchInput(urlState.textSearch);
   }, [urlState.textSearch]);
@@ -494,6 +496,17 @@ export default function DashboardsListPage() {
               defaultMessage: 'Refresh',
             })}
           </Button>
+          {!readOnly && (
+            <Button
+              icon={<DownloadOutlined />}
+              onClick={() => setImportOpen(true)}
+            >
+              {formatMessage({
+                id: 'dashboards.list.import',
+                defaultMessage: 'Import dashboard',
+              })}
+            </Button>
+          )}
         </div>
       }
     >
@@ -537,6 +550,23 @@ export default function DashboardsListPage() {
             id: 'dashboards.list.empty',
             defaultMessage: 'No dashboards',
           }),
+        }}
+      />
+
+      <ImportDashboardModal
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        onImported={(title) => {
+          void invalidate();
+          void message.success(
+            formatMessage(
+              {
+                id: 'dashboards.list.toastImported',
+                defaultMessage: "Dashboard '{title}' has been imported.",
+              },
+              { title },
+            ),
+          );
         }}
       />
     </PageContainer>
