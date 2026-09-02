@@ -67,12 +67,12 @@ export function AlarmAssigneeCell({
       defaultMessage: 'Unassigned',
     });
 
+  // Plain truncate (not Typography ellipsis): the measurement-based ellipsis
+  // re-loops in happy-dom tests and adds nothing over CSS truncation here.
+  const cellText = <span className="block max-w-36 truncate">{label}</span>;
+
   if (!writable) {
-    return (
-      <Typography.Text ellipsis className="block max-w-36">
-        {label}
-      </Typography.Text>
-    );
+    return cellText;
   }
 
   const userRows = usersQuery.data?.data ?? [];
@@ -155,9 +155,7 @@ export function AlarmAssigneeCell({
       }
     >
       <Button type="text" size="small" className="!px-1">
-        <Typography.Text ellipsis className="block max-w-36">
-          {label}
-        </Typography.Text>
+        {cellText}
       </Button>
     </Popover>
   );
