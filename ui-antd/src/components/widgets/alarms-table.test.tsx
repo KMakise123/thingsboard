@@ -12,9 +12,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { StatesController } from '@/components/dashboard/use-states-controller';
 import type { DashboardStateParams } from '@/core/dashboard/states';
 import type { WsManager, WsStatus, WsSubscription } from '@/core/ws';
-import type { AlarmData } from '@/types/tb';
 import { setDefaultWsManager } from '@/core/ws';
 import zhDashboards from '@/locales/zh-CN/dashboards';
+import type { AlarmData } from '@/types/tb';
 import { AlarmSeverity, AlarmStatus } from '@/types/tb/alarm';
 import { EntityType } from '@/types/tb/entity';
 import type { Timewindow } from '@/types/tb/timewindow';
@@ -227,7 +227,7 @@ describe('alarms_table (anchor: thermostats alarms table)', () => {
     expect(query.entityFilter).toEqual({
       type: 'entityList',
       entityType: 'DEVICE',
-      entityIds: ['therm-1'],
+      entityList: ['therm-1'],
     });
     expect(query.pageLink.statusList).toEqual([]);
     expect(query.pageLink.searchPropagatedAlarms).toBe(true);

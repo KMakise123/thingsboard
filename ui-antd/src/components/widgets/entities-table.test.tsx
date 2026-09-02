@@ -221,7 +221,7 @@ describe('entities_table (anchor: firmware waiting-devices table)', () => {
     expect(query?.entityFilter).toEqual({
       type: 'entityList',
       entityType: 'DEVICE',
-      entityIds: ['dev-1', 'dev-2'],
+      entityList: ['dev-1', 'dev-2'],
     });
     expect(query?.latestValues).toEqual([
       { type: 'TIME_SERIES', key: 'current_fw_title' },

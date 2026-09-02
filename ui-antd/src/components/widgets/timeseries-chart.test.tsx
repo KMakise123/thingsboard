@@ -255,7 +255,7 @@ describe('time_series_chart (anchor: thermostats Temperature)', () => {
     expect(params.query?.entityFilter).toEqual({
       type: 'entityList',
       entityType: 'DEVICE',
-      entityIds: ['therm-1'],
+      entityList: ['therm-1'],
     });
     expect(params.tsCmd).toMatchObject({
       keys: ['temperature'],

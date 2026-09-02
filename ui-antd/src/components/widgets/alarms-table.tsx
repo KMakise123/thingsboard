@@ -123,7 +123,7 @@ export default function AlarmsTable({ ctx, widget }: WidgetComponentProps) {
         entityFilter: {
           type: 'entityList',
           entityType: alarmSource.entities[0]?.entityType,
-          entityIds: alarmSource.entities.map((entity) => entity.id),
+          entityList: alarmSource.entities.map((entity) => entity.id),
         },
         pageLink,
         alarmFields: alarmSource.dataKeys.map((key) => ({

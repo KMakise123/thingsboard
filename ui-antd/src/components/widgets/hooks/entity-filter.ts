@@ -10,11 +10,15 @@
 
 import type { ResolvedEntity } from '@/core/dashboard/alias-resolver';
 
-/** Server-side entityList filter (ui-ngx AliasFilterType.ENTITY_LIST). */
+/**
+ * Server-side entityList filter (ui-ngx AliasFilterType.ENTITY_LIST).
+ * Wire field name is `entityList` (server: EntityListFilter.entityList —
+ * NOT entityIds; cross-checked against entity.service.ts:1471-1474).
+ */
 export interface EntityListFilter {
   type: 'entityList';
   entityType: string;
-  entityIds: Array<string>;
+  entityList: Array<string>;
 }
 
 /** PageLink large enough to stream every alias-matched entity in one page. */
@@ -54,6 +58,6 @@ export function toEntityListFilters(
   return [...byType.entries()].map(([entityType, entityIds]) => ({
     type: 'entityList',
     entityType,
-    entityIds,
+    entityList: entityIds,
   }));
 }
