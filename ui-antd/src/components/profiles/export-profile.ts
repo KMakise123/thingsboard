@@ -18,6 +18,7 @@ function prepareExport(profile: Profile): Profile {
   delete (clone as Partial<Profile>).tenantId;
   delete (clone as Partial<Profile>).createdTime;
   delete (clone as Partial<Profile>).version;
+  delete (clone as Partial<Profile>).externalId;
   return clone;
 }
 
