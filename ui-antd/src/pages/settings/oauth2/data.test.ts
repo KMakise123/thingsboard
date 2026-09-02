@@ -13,6 +13,9 @@ import {
   toClientPayload,
 } from './data';
 
+/** Literal `${…}` tenant pattern — spelled as interpolation for the linter. */
+const TENANT_PATTERN = `${'$'}{email#*@.}`;
+
 const client: Oauth2Client = {
   id: { entityType: EntityType.OAUTH2_CLIENT, id: 'c-1' },
   createdTime: 1,
@@ -33,7 +36,7 @@ const client: Oauth2Client = {
     basic: {
       emailAttributeKey: 'email',
       tenantNameStrategy: 'CUSTOM',
-      tenantNamePattern: '${email#*@.}',
+      tenantNamePattern: TENANT_PATTERN,
       alwaysFullScreen: false,
     },
   },
@@ -48,14 +51,12 @@ describe('oauth2 client transforms', () => {
       providerName: 'Github',
       mapperType: 'BASIC',
       tenantNameStrategy: 'CUSTOM',
-      tenantNamePattern: '${email#*@.}',
+      tenantNamePattern: TENANT_PATTERN,
     });
     const payload = toClientPayload(form, client);
     expect(payload.title).toBe('Work SSO');
     expect(payload.mapperConfig.type).toBe('BASIC');
-    expect(payload.mapperConfig.basic?.tenantNamePattern).toBe(
-      '${email#*@.}',
-    );
+    expect(payload.mapperConfig.basic?.tenantNamePattern).toBe(TENANT_PATTERN);
     expect(payload.mapperConfig.custom).toBeUndefined();
     expect(payload.additionalInfo?.providerName).toBe('Github');
     // Update keeps the identity fields.
@@ -81,7 +82,6 @@ describe('oauth2 client transforms', () => {
   });
 
   it('template presets overwrite everything except the title', () => {
-    const form = toClientFormValue(client);
     const preset = applyClientTemplate(
       {
         name: 'Google',

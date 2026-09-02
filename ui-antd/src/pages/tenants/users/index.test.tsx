@@ -14,7 +14,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ServerErrorError } from '@/core/http/server-error';
 import zhTenants from '@/locales/zh-CN/tenants';
 import zhUsers from '@/locales/zh-CN/users';
-import { Authority, type User, EntityType } from '@/types/tb';
+import { Authority, EntityType, type User } from '@/types/tb';
 
 const intl = createIntl({
   locale: 'zh-CN',

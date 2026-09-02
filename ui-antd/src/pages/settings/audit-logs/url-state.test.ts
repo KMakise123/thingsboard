@@ -12,7 +12,9 @@ import {
 
 describe('audit-logs url state', () => {
   it('falls back to defaults for an empty or invalid query', () => {
-    const state = parseAuditLogsUrlState('?page=abc&pageSize=7&sortProperty=nope');
+    const state = parseAuditLogsUrlState(
+      '?page=abc&pageSize=7&sortProperty=nope',
+    );
     expect(state).toMatchObject({
       page: 1,
       pageSize: 10,
@@ -48,8 +50,6 @@ describe('audit-logs url state', () => {
   });
 
   it('omits default values when serializing', () => {
-    expect(
-      serializeAuditLogsUrlState(parseAuditLogsUrlState('')),
-    ).toBe('');
+    expect(serializeAuditLogsUrlState(parseAuditLogsUrlState(''))).toBe('');
   });
 });
