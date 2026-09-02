@@ -11,6 +11,7 @@
 - **档位建议**：高。
 - **复审**：M6 收口前；M2 资产域若复用扇出模式（大概率），提前到 M2 边界。
 - **M2 边界复审（2026-09-01）**：已触发——资产 / 实体视图 / 客户作用域页的批量删除、（取消）分配全部以扇出模式交付（进度弹窗 + 失败明细，切换点注释留痕）。结论：维持 fallback，批量端点的后端排期建议随 M3 边界后端会话合议。
+- **M3 边界复审（2026-09-02）**：M3 各批量面（告警批 ack / clear / 批删、租户与租户配置批删、profile 批删）继续沿用扇出模式。结论：维持 fallback，批量端点的后端排期建议随 M6 后端会话合议（含 /api/ext 自有通道方案）。
 
 ## C-2 entitiesQuery/count 忽略 deviceTypes
 
@@ -87,5 +88,61 @@
 - **权限镜像源**：TENANT_ADMIN 用户管理权限。
 - **档位建议**：低（上游同缺；可归类 PE / 本土化另开图考虑）。
 
+## C-12 /api/v2/alarms 缺 searchPropagatedAlarms 参数
+
+- **缺口**：REST 种子端点 `GET /api/v2/alarms` 不接受 `searchPropagatedAlarms`，该开关仅存在于 WS AlarmDataQuery 契约——REST 与 WS 过滤口径不一致。
+- **消费功能**：全局告警页「传播告警」开关（URL `?propagated=1`）。
+- **fallback（已交付）**：开关只作用于 WS 实时通道；REST 首帧 / 翻页种子不按传播过滤，开关打开时刷新或翻页可能短暂混入非传播告警（服务端注释留痕）。
+- **权限镜像源**：同 `/api/v2/alarms`（TA / CU 作用域由服务端裁定）。
+- **档位建议**：中（v2 端点补 query 参数即整体消除）。
+
+## C-13 alarm-rules 无导出
+
+- **缺口**：告警规则无导出能力；ui-ngx 的行级 export 为客户端 JSON 序列化（无后端端点依赖），本实现未做。
+- **消费功能**：全局 alarm-rules tab 行操作。
+- **fallback（已交付）**：无（能力缺席）；CRUD 与实体挂载不受影响，注释留痕「copy / export / events / debug 随 v2」。
+- **权限镜像源**：同 `GET /api/alarm/rule/{id}` 读取权限。
+- **档位建议**：低（纯前端补齐即可；v2 编辑器阶段顺带）。
+
+## C-14 设备 profile OTA 变更无影响确认弹窗
+
+- **缺口**：切换 profile 的 firmware / software OTA 包时无「影响设备范围」二次确认（ui-ngx 有确认弹窗）。
+- **消费功能**：deviceProfile 详情 General tab 的 OtaPackageSelect。
+- **fallback（已交付）**：保存走统一未保存守卫 + 错误透传；OTA 变更即保存即生效，无拦截。
+- **权限镜像源**：同 `POST /api/deviceProfile`。
+- **档位建议**：低～中（纯前端补确认弹窗即可，无需后端变更；M6 复审可转 UI 遗留清单）。
+
+## C-15 LWM2M / SNMP 传输深配置仅 JSON 往返
+
+- **缺口**：deviceProfile 传输配置的 LWM2M 对象/观察表与 SNMP 通信配置无结构化编辑器，仅以可编辑 JSON 往返（深层编辑器随 v2）。
+- **消费功能**：deviceProfile 详情 Transport tab 的 LWM2M / SNMP 分支。
+- **fallback（已交付）**：JSON 往返保数据不丢（无结构化校验，占位文案已注明 mapping 编辑器随 v2）；DEFAULT / MQTT / COAP 分支结构化表单齐全。
+- **权限镜像源**：同 `POST /api/deviceProfile`。
+- **档位建议**：低（编辑器随 v2 编辑器阶段；JSON 往返已保 parity 数据面）。
+
+## C-16 device / asset profile 无 JSON 导入
+
+- **缺口**：profile 列表无导入入口（ui-ngx 支持 profile JSON 导入）。
+- **消费功能**：deviceProfiles / assetProfiles 列表工具栏。
+- **fallback（已交付）**：无；导出已交付（单行 export、strip externalId），跨环境迁移可「导出 → 手工重建」过渡。
+- **权限镜像源**：同 `POST /api/deviceProfile`、`POST /api/assetProfile`。
+- **档位建议**：低（纯前端能力，随批量/导入需求排期）。
+
+## C-17 2FA 强制策略租户/配置选择器降级 tags
+
+- **缺口**：two-fa 强制策略（`enforcedUsersFilter.type=TENANT_ADMINISTRATORS`）的 `tenantsIds` / `tenantProfilesIds` 前端无实体选择器，降级为裸 tags 输入（按 UUID 串提交）。
+- **消费功能**：settings 两步验证页的策略强制区。
+- **fallback（已交付）**：tags 输入契约不变（服务端语义一致），非法 UUID 依赖后端错误原文透传。
+- **权限镜像源**：SA 管理设置权限。
+- **档位建议**：低（纯前端增强，无需后端变更）。
+
+## C-18 oauth2 domains/clients 表格分页为本地状态
+
+- **缺口**：oauth2 设置页域名 / 客户端表格的分页、排序未进 URL 也不走服务端（列表端点一次性拉全量，本地分页）。
+- **消费功能**：settings OAuth2 页两个 tab 的表格。
+- **fallback（已交付）**：本地分页形态可用；规模上来前无用户可见影响。
+- **权限镜像源**：SA 管理设置权限。
+- **档位建议**：低（登记防遗忘；随数据规模再评估服务端分页）。
+
 ---
-登记：M1 终验收（2026-09-01）；M2 终验收（2026-09-01）增补 C-9～C-11，并触发 C-1 提前复审（结论：维持 fallback）。复审节点：M3 边界（C-1 批量端点排期合议）；M6 收口前集中复审。
+登记：M1 终验收（2026-09-01）；M2 终验收（2026-09-01）增补 C-9～C-11，并触发 C-1 提前复审（结论：维持 fallback）；M3 终验收（2026-09-02）增补 C-12～C-18，C-1 M3 边界复审维持 fallback（批量端点排期随 M6 后端会话合议）。复审节点：M6 收口前集中复审。

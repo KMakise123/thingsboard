@@ -78,7 +78,7 @@ OAuth2（M4，验收前置：sys 已配置 provider，见 3.7）：
 - [x] 无权限路由手输 → 拒绝（403 形态对齐 ui-ngx）
 - [x] locale 切换即生效并持久化；双语完整由 CI `check-locale` 门禁兜底
 - [x] 404 → 重定向设备列表；面包屑随路由（M2 ✅：ADR 0008 PageContainer 面包屑落地，动态段实体名随路由验收）
-- [ ] SA 登录落 `/tenants`，TA / CU 落 `/devices`（TA / CU ✅；SA 待 M3，M1 临时落 `/home`）
+- [x] SA 登录落 `/tenants`，TA / CU 落 `/devices`（M3 ✅：`roleDefaultPath` SA → `/tenants`，登录 / `/` entry / 404 回退三处同源；M1 临时 `/home` 页面、路由与文案已删）
 
 ### 3.3 设备域（M1）——资产 / 实体视图 / 网关按 3.4 差分引用本节
 
@@ -122,24 +122,30 @@ OAuth2（M4，验收前置：sys 已配置 provider，见 3.7）：
 
 ### 3.6 告警域（M3）
 
-- [ ] 全局告警页过滤全量：状态 chip 多选、类型多选、assignee、传播开关（searchPropagatedAlarms）、文本搜索、timewindow
-- [ ] 操作：ack / clear（单 + 批）、删除（单 + 批，确认）、详情 dialog（全字段 + 时间线）
-- [ ] 数据通道 = AlarmData WS 订阅（非 REST 轮询）；新告警呈现 ≤5s
-- [ ] 实体内告警 tab 预填实体过滤，复用同一组件
-- [ ] `alarm-rules` 列表 + 详情（条件 / 调度 / 详情场景配置表单 parity）
+> M3 验收注（2026-09-02）：5/5 勾。全局页双 tab（告警 / 告警规则）真机走查通过：severity chip 过滤进 URL 并书签恢复、ack 状态翻转与新告警自动呈现均 ≤5s（WS 双通道复验）、详情 dialog 全字段 + 评论时间线、alarm-rules 挂载 DEVICE 的 CRUD 全链路。timewindow 过滤器（所有时间默认 + 11 档预设 + 自定义起止 RangePicker）随验收补齐（90a9310fae）并复验通过。遗留口径：传播开关的 REST 种子口径登记 C-12；alarm-rules 导出缺登记 C-13。
+
+- [x] 全局告警页过滤全量：状态 chip 多选、类型多选、assignee、传播开关（searchPropagatedAlarms）、文本搜索、timewindow〔M3 ✅：全量交付且 URL 书签恢复（`tw` / `twStart` / `twEnd`，非法区间回退全时）；复验覆盖预设档过滤、UI 输入自定义起止、刷新恢复、预设与自定义两种窗口下 WS 实时呈现不受影响〕
+- [x] 操作：ack / clear（单 + 批）、删除（单 + 批，确认）、详情 dialog（全字段 + 时间线）〔M3 ✅；真机复验单条 ack / 删除确认 / 详情时间线，批量多选 + 批量 mutations 代码面在场〕
+- [x] 数据通道 = AlarmData WS 订阅（非 REST 轮询）；新告警呈现 ≤5s〔M3 ✅：DEVICE + ASSET 双通道合并订阅；REST `/api/v2/alarms` 仅作首帧种子（C-12）〕
+- [x] 实体内告警 tab 预填实体过滤，复用同一组件〔M3 ✅：实体 tab 面板与全局页共用告警列 / 分配核心组件〕
+- [x] `alarm-rules` 列表 + 详情（条件 / 调度 / 详情场景配置表单 parity）〔M3 ✅ 口径微调：条件 = 单阈值形态（同 3.3 CF/AR 口径，复杂编辑器随 v2）；后端 `/api/alarm/rule` 实体即无 schedule 字段（上游契约，非前端裁剪）；编辑弹窗口径 = 名称 + 调试模式，改条件需重建规则〕
 
 ### 3.7 sys admin（M3）
 
-- [ ] `tenants` 列表 / 新增（含 tenant profile 选择）/ 编辑 / 删除；`tenants/:id/users` 六操作
-- [ ] `tenantProfiles` 列表 / 详情（配置表单 parity）
-- [ ] settings v1 子集五页：general、outgoing-mail（连接测试）、2fa（提供方策略）、oauth2（domains / clients CRUD + 模板）、auditLogs（系统域过滤）
-- [ ] SA 侧审计日志列集与过滤对齐（timewindow / actionType / status）
+> M3 验收注（2026-09-02）：4/4 勾。SA 线七项真机走查全过（登录落点 / 菜单与 403 / 租户 CRUD 往返 / 作用域用户页六操作 + loginAs / 租户配置 set-default 与保护 / settings 五页渲染 / 审计 URL 书签恢复）。邮件与 OAuth2 登录链路的端到端验收仍前置 sys 侧 SMTP / IdP 配置（见 3.1）。已知小瑕疵：oauth2 表格分页本地状态（C-18）、2FA 强制策略租户选择器降级 tags（C-17）。
+
+- [x] `tenants` 列表 / 新增（含 tenant profile 选择）/ 编辑 / 删除；`tenants/:id/users` 六操作〔M3 ✅；新增含 profile 自动补全，删除二次确认；loginAs 按 `GET /api/user/tokenAccessEnabled` 开关门禁，换号后整页重载落新角色默认页（access 与 WS 会话随新 token 重建，验收中发现 SPA replace 卡 403 的缺陷已修复）〕
+- [x] `tenantProfiles` 列表 / 详情（配置表单 parity）〔M3 ✅；9 配置组全量渲染 + 保存往返 + export；set-default 确认插值缺陷已修复；default 行禁删禁选保护真机复验〕
+- [x] settings v1 子集五页：general、outgoing-mail（连接测试）、2fa（提供方策略）、oauth2（domains / clients CRUD + 模板）、auditLogs（系统域过滤）〔M3 ✅；五页逐页渲染走查通过；testMail / generate-token 跳转等外发动作未在验收中真实触发（依赖外部 SMTP / IdP，转 M4 前置）〕
+- [x] SA 侧审计日志列集与过滤对齐（timewindow / actionType / status）〔M3 ✅；`?actionTypes=…` 直接打开生效，拉取真实日志复验〕
 
 ### 3.8 实体 profile 管理（M3）
 
-- [ ] deviceProfiles / assetProfiles 列表 + 详情全 tab（general / transport / alarm rules / provisioning / dashboards / relations / audit）
-- [ ] profile 内 default dashboard 选择器只选不编（原则 3）
-- [ ] isDefault profile 保护逻辑对齐（不可删除 / 提示切换）
+> M3 验收注（2026-09-02）：3/3 勾。deviceProfiles 7 tab / assetProfiles 5 tab 切换渲染走查通过；isDefault 保护（列表禁选、default 详情无删除入口）与 set-default 双向切换复验；set-default 确认框 `{name}` 不插值的 ICU 缺陷已修复。遗留：LWM2M/SNMP 深配置 JSON 往返（C-15）、OTA 变更无影响确认（C-14）、profile 导入未做（C-16）。
+
+- [x] deviceProfiles / assetProfiles 列表 + 详情全 tab（general / transport / alarm rules / provisioning / dashboards / relations / audit）〔M3 ✅；tab 集按实体事实组装：device = 详情/传输/计算字段/告警规则/预配置/审计/版本控制 7 tab，asset = 详情/计算字段/告警规则/审计/版本控制 5 tab〕
+- [x] profile 内 default dashboard 选择器只选不编（原则 3）〔M3 ✅；DashboardSelect 仅选择，仪表盘编辑随 M5〕
+- [x] isDefault profile 保护逻辑对齐（不可删除 / 提示切换）〔M3 ✅；default 行勾选禁用 + 详情无删除/设默认入口，set-default 后保护随之迁移真机复验〕
 
 ### 3.9 账户安全域（M4）
 
@@ -217,3 +223,5 @@ OAuth2（M4，验收前置：sys 已配置 provider，见 3.7）：
 - 2026-09-01：**M1 验收落账**（终验收 488 次操作核验 + 修复轮 5 commit）。3.1 密码线 7/11（4 项邮件链路待 SMTP 前置）；3.2 应用壳 3/5（SA 落点待 M3；**面包屑未实现**——结构性遗留，头部形态取舍「自定义头 vs ProLayout PageContainer」待 M2 开工前决议）；3.3 列表 10/10 + 详情 10/10（CF=SIMPLE / AR=单阈值范围口径见 3.3 注）。验收中修复 4 个真实缺陷：alarm-data WS 通道直落详情页失联（建连竞态 + 三处后端契约不匹配）、tabular-nums 对 string 管道值失效、CU 凭证 Reset 禁用改隐藏（越权入口收口）、详情返回箭头绕过未保存守卫。WS 实时链路修复后端到端复验 ≤5s（3.11 新鲜度核心项提前达标）。后端缺口候选 8 条登记 `docs/bcr.md`，待阶段边界集中复审。
 
 - 2026-09-01（二）：**M2 落账**（资产 / 实体视图 / 客户域 / 用户管理四域；网关经裁定推迟 M5，见 §3.4 注与 #9 留痕）。架构：头部形态定案官方 PageContainer（ADR 0008）——§3.2「面包屑随路由」随之收口；设备详情 10 tab 面板参数化为实体通用组件（`components/entities`），四域按 ui-ngx 事实组装 tab 集（details 表单上移页头区，资产 8 / 客户 7 / 实体视图 6）。验收：真机四棒 65/65 项全过（资产 19 / 实体视图 16 / 客户域 16 / 用户+横切 14），累计修复 8 处（含实体视图类型输入阻断级缺陷、用户行菜单缓存不失效、客户审计 tab 改客户作用域端点）。口径微调：「重置密码」= 展示激活链接 + 重发激活（BCR C-11）；作用域 dashboards 页最小面（渲染归 M5）；资产无 active 过滤（后端无字段）；loginAsUser 随 SA 域 M3。BCR：C-1 提前复审维持 fallback，新增 C-9～C-11。遗留观察（M6 横切）：全局与组件级错误提示双份待收敛。
+
+- 2026-09-02：**M3 落账**（告警域 / sys admin / 实体 profile / settings 四域 + 横切收尾）。交付：全局告警页双 tab（AlarmData WS 双通道 DEVICE+ASSET 合并、过滤全量进 URL、批量 ack/clear/删除、详情 dialog 含评论时间线）+ alarm-rules 全局 CRUD（新实体 `/api/alarm/rule`）；tenants 列表/详情(4 tab)/作用域用户页（共享 UsersTable 组件化）+ loginAsUser（tokenAccessEnabled 开关门禁）+ tenantProfiles（9 配置组 + 队列编辑器 + export）；settings 五页全交付（general/connectivity 双卡片、outgoing-mail 含测试邮件与 OAuth2 token 流、2fa 四 provider 策略、oauth2 domains+clients 模板驱动、audit-logs URL 全量）；deviceProfiles 7 tab / assetProfiles 5 tab 全量。验收：门禁三绿（biome+locale+tsc / vitest 521 / build）+ 三角色 14 项真机走查逐项通过（含 CU 经激活链接建号全流程）。§3.2 SA 落点项收口：SA 登录落 `/tenants`，M1 临时 `/home` 页面删除（entry 保留）。验收修复 3 处：①loginAsUser 换号后 SPA replace 卡 403（umi layout 按 pathname 记忆匹配路由、access 重算不生效）且 WS 会话仍持旧 token——改整页重载落新角色默认页；②set-default 确认框 `{name}` 字面量（ICU `'{name}'` 引号转义大括号）——zh 改弯引号、en-US 双写引号共 29 处字符串修复；③profiles 遗留测试类型对齐（OtaPackageType enum）。口径微调：alarm-rules 编辑弹窗仅名称 + 调试模式（改条件需重建）；timewindow 过滤器（所有时间默认 + 11 档预设 + 自定义起止 RangePicker，WS 自定义区间映射 startTs + timeWindow、REST 传 startTime/endTime，URL `tw/twStart/twEnd` 书签恢复）由 alarm-dev 随验收补齐（90a9310fae），收口复验通过——预设档过滤、UI 输入自定义起止、刷新恢复、两种窗口下 WS 实时呈现均真机核验。BCR：C-1 M3 边界复审维持 fallback（批量端点排期随 M6 后端会话合议），新增 C-12～C-18。遗留登记：SMTP / IdP 前置链路（测试邮件、邮件激活、OAuth2 登录）转 M4 前置复验；Playwright 冒烟基线未建（M1/M2/M3 均未落基建，测试基线 §3.3 M3 三行随 M6 前统一补齐）。
