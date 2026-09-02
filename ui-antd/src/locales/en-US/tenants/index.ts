@@ -49,4 +49,19 @@ export default {
     'Be careful, after the confirmation the tenant and all related data will become unrecoverable.',
   'pages.tenants.list.toastDeleted': 'Tenant deleted.',
   'pages.tenants.list.toastSaved': 'Tenant saved.',
+
+  // ---- detail page ----
+  'pages.tenants.detail.loadFailed': 'Failed to load the tenant',
+  'pages.tenants.detail.toastSaved': 'Tenant saved.',
+  'pages.tenants.detail.edit': 'Edit',
+  'pages.tenants.detail.cancelEdit': 'Cancel edit',
+  'pages.tenants.detail.tabAttributes': 'Attributes',
+  'pages.tenants.detail.tabLatestTelemetry': 'Latest telemetry',
+  'pages.tenants.detail.tabEvents': 'Events',
+  'pages.tenants.detail.tabRelations': 'Relations',
+  'pages.tenants.detail.eventCreatedTime': 'Created time',
+  'pages.tenants.detail.eventType': 'Type',
+  'pages.tenants.detail.eventMessage': 'Message',
+  'pages.tenants.detail.eventEmpty': 'No events',
+  'pages.tenants.detail.eventLoadFailed': 'Failed to load events',
 };

@@ -49,4 +49,19 @@ export default {
     '请注意，确认后租户及所有相关数据将无法恢复。',
   'pages.tenants.list.toastDeleted': '租户已删除。',
   'pages.tenants.list.toastSaved': '租户已保存。',
+
+  // ---- 详情页 ----
+  'pages.tenants.detail.loadFailed': '加载租户详情失败',
+  'pages.tenants.detail.toastSaved': '租户已保存。',
+  'pages.tenants.detail.edit': '编辑',
+  'pages.tenants.detail.cancelEdit': '取消编辑',
+  'pages.tenants.detail.tabAttributes': '属性',
+  'pages.tenants.detail.tabLatestTelemetry': '最新遥测',
+  'pages.tenants.detail.tabEvents': '事件',
+  'pages.tenants.detail.tabRelations': '关联',
+  'pages.tenants.detail.eventCreatedTime': '创建时间',
+  'pages.tenants.detail.eventType': '类型',
+  'pages.tenants.detail.eventMessage': '消息',
+  'pages.tenants.detail.eventEmpty': '暂无事件',
+  'pages.tenants.detail.eventLoadFailed': '加载事件失败',
 };
