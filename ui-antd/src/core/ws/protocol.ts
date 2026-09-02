@@ -95,6 +95,56 @@ export interface EntityDataQueryLike {
   };
   entityFields?: Array<{ type: string; key: string }>;
   latestValues?: Array<{ type: string; key: string }>;
+  /** server-side data key filters (KeyFilter passthrough, M5 W2). */
+  keyFilters?: Array<Record<string, unknown>>;
+}
+
+/**
+ * Aggregation-bucket styles accepted by the ENTITY_DATA ts commands
+ * (server: common/data IntervalType). v1 always sends MILLISECONDS; the
+ * calendar buckets exist on the wire for parity.
+ */
+export type TsIntervalType =
+  | 'MILLISECONDS'
+  | 'WEEK'
+  | 'WEEK_ISO'
+  | 'MONTH'
+  | 'QUARTER';
+
+/**
+ * ENTITY_DATA realtime timeseries stream (server: service.ws TimeSeriesCmd).
+ * The server keeps the window rolling: startTs anchors it, timeWindow is its
+ * length, and every new datapoint/aggregated bucket arrives as an
+ * EntityDataUpdateMsg `update` entry for the same cmdId.
+ */
+export interface TimeSeriesCmd {
+  keys: Array<string>;
+  startTs: number;
+  timeWindow: number;
+  intervalType: TsIntervalType;
+  /** aggregation bucket ms; 0 with agg NONE. */
+  interval: number;
+  timeZoneId?: string;
+  limit: number;
+  agg: string;
+  fetchLatestPreviousPoint?: boolean;
+}
+
+/**
+ * ENTITY_DATA fixed history read (server: service.ws EntityHistoryCmd).
+ * One snapshot reply; the stream stays subscribed for updates inside the
+ * same [startTs, endTs] window.
+ */
+export interface EntityHistoryCmd {
+  keys: Array<string>;
+  startTs: number;
+  endTs: number;
+  intervalType: TsIntervalType;
+  interval: number;
+  timeZoneId?: string;
+  limit: number;
+  agg: string;
+  fetchLatestPreviousPoint?: boolean;
 }
 
 /**
@@ -105,8 +155,8 @@ export interface EntityDataCmd extends WebsocketCmd {
   type: WsCmdType.ENTITY_DATA;
   query?: EntityDataQueryLike;
   latestCmd?: LatestValueCmd;
-  historyCmd?: Record<string, unknown>;
-  tsCmd?: Record<string, unknown>;
+  historyCmd?: EntityHistoryCmd;
+  tsCmd?: TimeSeriesCmd;
 }
 
 export interface EntityCountCmd extends WebsocketCmd {

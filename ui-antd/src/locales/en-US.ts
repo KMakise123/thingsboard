@@ -8,6 +8,7 @@ import assetProfiles from './en-US/asset-profiles';
 import assets from './en-US/assets';
 import common from './en-US/common';
 import customers from './en-US/customers';
+import dashboards from './en-US/dashboards';
 import deviceProfiles from './en-US/device-profiles';
 import devicesDetail from './en-US/devices/detail';
 import devicesList from './en-US/devices/list';
@@ -28,6 +29,7 @@ export default {
   ...assetProfiles,
   ...assets,
   ...customers,
+  ...dashboards,
   ...deviceProfiles,
   ...entityViews,
   ...settings,

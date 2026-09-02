@@ -1,0 +1,63 @@
+/**
+ * Widget datasource → WS entity-query plumbing (brief §1.8).
+ *
+ * The alias resolver hands widgets CONCRETE entities, but the WS ENTITY_DATA
+ * family takes an entityFilter. The bridge is the server-side `entityList`
+ * filter: one filter per entityType carrying the resolved ids, so a whole
+ * widget (any number of datasources/entities) costs ONE subscription per
+ * entity type instead of one per entity.
+ */
+
+import type { ResolvedEntity } from '@/core/dashboard/alias-resolver';
+
+/**
+ * Server-side entityList filter (ui-ngx AliasFilterType.ENTITY_LIST).
+ * Wire field name is `entityList` (server: EntityListFilter.entityList —
+ * NOT entityIds; cross-checked against entity.service.ts:1471-1474).
+ */
+export interface EntityListFilter {
+  type: 'entityList';
+  entityType: string;
+  entityList: Array<string>;
+}
+
+/** PageLink large enough to stream every alias-matched entity in one page. */
+export const WIDGET_ENTITY_PAGE_SIZE = 1024;
+
+/** Widget DataKeyType → wire EntityKeyType (latest values / ts keys). */
+export function entityKeyTypeOfDataKey(type: string): string {
+  switch (type) {
+    case 'timeseries':
+      return 'TIME_SERIES';
+    case 'entityField':
+      return 'ENTITY_FIELD';
+    case 'alarm':
+      return 'ALARM_FIELD';
+    case 'count':
+      return 'COUNT';
+    default:
+      return 'ATTRIBUTE';
+  }
+}
+
+/**
+ * Group resolved entities into entityList filters (one per entityType,
+ * stable insertion order, ids deduped).
+ */
+export function toEntityListFilters(
+  entities: Array<ResolvedEntity>,
+): Array<EntityListFilter> {
+  const byType = new Map<string, Array<string>>();
+  for (const entity of entities) {
+    const ids = byType.get(entity.entityType) ?? [];
+    if (!ids.includes(entity.id)) {
+      ids.push(entity.id);
+    }
+    byType.set(entity.entityType, ids);
+  }
+  return [...byType.entries()].map(([entityType, entityIds]) => ({
+    type: 'entityList',
+    entityType,
+    entityList: entityIds,
+  }));
+}

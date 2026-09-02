@@ -144,5 +144,21 @@
 - **权限镜像源**：SA 管理设置权限。
 - **档位建议**：低（登记防遗忘；随数据规模再评估服务端分页）。
 
+## C-19 ENTITY_DATA+tsCmd 缺 latestValues 时后端 NPE
+
+- **缺口**：WS `ENTITY_DATA` cmd 携带 `tsCmd`/`historyCmd` 而 `query.latestValues` 缺省（null）时，后端 TsDataHandler 直接 NPE（`EntityDataQuery.getLatestValues()` null 调 `.contains`），订阅以 errorCode 1 被拒——协议层未声明该字段必填，空数组即可通过，属契约歧义。
+- **消费功能**：M5 widget 时序订阅（time_series_chart / timeseries_table 实时与历史通道）。
+- **fallback（已交付）**：useEntityTimeseries 恒发 `latestValues`（latestCmd keys 或空数组），6fd0f8c3a7。
+- **权限镜像源**：同 WS 订阅权限。
+- **档位建议**：中（后端补 null 兜底 / openapi 标注 required 即整体消除；上游贡献候选）。
+
+## C-20 WS 关闭码 1007 混用认证失败与数据帧解析失败
+
+- **缺口**：TbWebSocketHandler 对「会话未认证」与「数据帧 JSON 解析失败」均以 close 1007 关闭（reason 文本不同）；客户端从关闭码无法区分认证问题与订阅 cmd 契约问题。
+- **消费功能**：ws manager 的 AUTH 失败判定（M5）——gateways 系统页数据帧被 1007 拒后误判为认证失败，两次重试即触发统一 unauthorized 登出，用户打开页面约 3 秒被踢下线。
+- **fallback（已交付）**：数据侧修复（keyFilters 前端形态 → wire 契约转换，6fd0f8c3a7）消除触发源；manager 语义维持「两次 1007 → unauthorized」不变（认证失败的既有口径）。若后端为认证失败改用专用关闭码（或 reason 结构化），前端可精确区分、杜绝同类误登出。
+- **权限镜像源**：同 WS 会话认证。
+- **档位建议**：中～高（数据契约偏差不应把用户登出；建议后端侧区分关闭码，前端随之收紧判定）。
+
 ---
-登记：M1 终验收（2026-09-01）；M2 终验收（2026-09-01）增补 C-9～C-11，并触发 C-1 提前复审（结论：维持 fallback）；M3 终验收（2026-09-02）增补 C-12～C-18，C-1 M3 边界复审维持 fallback（批量端点排期随 M6 后端会话合议）。复审节点：M6 收口前集中复审。
+登记：M1 终验收（2026-09-01）；M2 终验收（2026-09-01）增补 C-9～C-11，并触发 C-1 提前复审（结论：维持 fallback）；M3 终验收（2026-09-02）增补 C-12～C-18，C-1 M3 边界复审维持 fallback（批量端点排期随 M6 后端会话合议）；M5 终验收（2026-09-03）增补 C-19～C-20。复审节点：M6 收口前集中复审。

@@ -99,6 +99,39 @@ export default [
     hideInMenu: true,
   },
 
+  // ---- M5 dashboards domain ----
+  // TA: dashboards list (+ usage / gateways system pages); CU's 4th menu is
+  // the same dashboards entry (spec §1.2). The readonly view/fullscreen
+  // pages are hidden (addressable by URL only).
+  {
+    name: 'dashboards',
+    icon: 'dashboard',
+    path: '/dashboards',
+    access: 'canTenantOrCustomer',
+    component: './dashboards/list',
+  },
+  {
+    name: 'dashboards.view',
+    path: '/dashboards/:dashboardId',
+    access: 'canTenantOrCustomer',
+    component: './dashboards/view',
+    hideInMenu: true,
+  },
+  {
+    name: 'usage',
+    icon: 'barChart',
+    path: '/usage',
+    access: 'canTenantAdmin',
+    component: './usage',
+  },
+  {
+    name: 'gateways',
+    icon: 'apartment',
+    path: '/entities/gateways',
+    access: 'canTenantAdmin',
+    component: './gateways',
+  },
+
   // ---- M2 domains (stubs; domain agents replace the pages) ----
   // CU's four menus include assets (spec §1.2) → canTenantOrCustomer;
   // entity views / customers / users are tenant-admin only (RECON §4).
@@ -315,6 +348,16 @@ export default [
         hideInMenu: true,
       },
     ],
+  },
+
+  // Dashboard single-page (fullscreen) mode: same auth gate as the shell
+  // page but rendered without the app shell (ui-ngx dashboard-pages.routing
+  // singlePageMode; brief §0.C).
+  {
+    path: '/dashboard/:dashboardId',
+    access: 'canTenantOrCustomer',
+    component: './dashboard-fullscreen',
+    layout: false,
   },
 
   // 404 → role-aware entry (TA/CU land on the device list, spec §3.2).

@@ -125,4 +125,21 @@ export default {
   'pages.customers.dashboards.unassignText':
     'After the confirmation the customer will no longer have access to this dashboard.',
   'pages.customers.dashboards.toastUnassigned': 'Dashboard unassigned.',
+
+  // ---- M5 W3 unit 4: customer-scope dashboard operations (recon §4) ----
+  'pages.customers.dashboards.actionExport': 'Export dashboard',
+  'pages.customers.dashboards.exportFailed':
+    'Failed to export the dashboard: {error}',
+  'pages.customers.dashboards.actionMakePrivate': 'Make dashboard private',
+  'pages.customers.dashboards.makePrivateTitle':
+    "Are you sure you want to make the dashboard '{title}' private?",
+  'pages.customers.dashboards.makePrivateText':
+    "After the confirmation the dashboard will be made private and won't be accessible by others.",
+  'pages.customers.dashboards.toastMadePrivate': 'Dashboard is now private.',
+  'pages.customers.dashboards.batchUnassign': 'Unassign selected',
+  'pages.customers.dashboards.unassignManyTitle':
+    'Are you sure you want to unassign {count} dashboard(s)?',
+  'pages.customers.dashboards.unassignManyText':
+    'After the confirmation all selected dashboards will be unassigned and will not be accessible by the customer.',
+  'pages.customers.dashboards.batchResult': '{ok} succeeded, {fail} failed.',
 };

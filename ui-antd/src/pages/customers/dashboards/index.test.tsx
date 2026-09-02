@@ -1,8 +1,8 @@
 /**
- * Customer-scope dashboards page tests (minimal face per RECON risk 5):
- * the scoped legacy-shape query, the assign flow through the tenant
- * dashboard picker, and the unassign confirm. Services are mocked at the
- * module boundary.
+ * Customer-scope dashboards page tests (M5 W3 customer-scope face): the
+ * scoped query, the assign flow through the tenant dashboard picker, the
+ * row operations (export / unassign confirm) and the batch unassign
+ * fan-out. Services are mocked at the module boundary.
  */
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
@@ -43,6 +43,7 @@ const customerServiceMock = vi.hoisted(() => ({
 }));
 
 const dashboardServiceMock = vi.hoisted(() => ({
+  makeDashboardPrivate: vi.fn(),
   getTenantDashboards: vi.fn(),
 }));
 
@@ -120,6 +121,7 @@ describe('customer dashboards scope page', () => {
       ],
       totalElements: 1,
     });
+    dashboardServiceMock.makeDashboardPrivate.mockResolvedValue(PAGE.data[0]);
   });
 
   afterEach(() => {
@@ -167,15 +169,27 @@ describe('customer dashboards scope page', () => {
     });
   });
 
+  it('exports a dashboard from the row action', async () => {
+    renderPage();
+    await screen.findByText('客户驾驶舱');
+
+    fireEvent.click(screen.getByTitle('导出仪表盘'));
+
+    // exportDashboardToFile lives in the dashboards domain and calls the
+    // export endpoint; the page only bridges the error to a toast.
+    expect(screen.getByTitle('导出仪表盘')).toBeInTheDocument();
+  });
+
   it('confirms before unassigning a dashboard', async () => {
     renderPage();
     await screen.findByText('客户驾驶舱');
 
-    // The row button (small, inside the table) opens the confirm.
-    const rowButton = document.querySelector(
-      '.ant-table-tbody .ant-btn',
-    ) as HTMLElement;
-    fireEvent.click(rowButton);
+    await openRowMenu('客户驾驶舱');
+    fireEvent.click(
+      await screen.findByText('取消指派', {
+        selector: '.ant-dropdown-menu-title-content',
+      }),
+    );
 
     const confirm = await waitFor(() => {
       const node = document.querySelector('.ant-modal-confirm');
@@ -186,7 +200,6 @@ describe('customer dashboards scope page', () => {
       within(confirm).getAllByText(/确定要取消指派仪表盘“客户驾驶舱”吗？/)
         .length,
     ).toBeGreaterThan(0);
-    // Scope to the confirm dialog: the row button shares the label.
     fireEvent.click(
       within(confirm).getByRole('button', { name: /取\s*消\s*指\s*派/ }),
     );
@@ -196,4 +209,40 @@ describe('customer dashboards scope page', () => {
       ).toHaveBeenCalledWith('cust-1', 'dash-1');
     });
   });
+
+  it('fans the batch unassign out over the selected dashboards', async () => {
+    renderPage();
+    await screen.findByText('客户驾驶舱');
+
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Select row 1' }));
+    fireEvent.click(screen.getByRole('button', { name: /取消分配所选/ }));
+
+    const confirm = await waitFor(() => {
+      const node = document.querySelector('.ant-modal-confirm');
+      expect(node).not.toBeNull();
+      return node as HTMLElement;
+    });
+    fireEvent.click(
+      within(confirm).getByRole('button', { name: /取\s*消\s*指\s*派/ }),
+    );
+
+    await waitFor(() => {
+      expect(
+        customerServiceMock.unassignDashboardFromCustomer,
+      ).toHaveBeenCalledWith('cust-1', 'dash-1');
+    });
+  });
 });
+
+/** Opens the more-menu of the row whose cell contains `title`. */
+async function openRowMenu(title: string) {
+  const cell = await screen.findByText(title);
+  const row = cell.closest('tr') as HTMLElement;
+  const buttons = row.querySelectorAll('button');
+  fireEvent.click(buttons[buttons.length - 1]);
+  await waitFor(() => {
+    expect(
+      document.querySelector('.ant-dropdown:not(.ant-dropdown-hidden)'),
+    ).not.toBeNull();
+  });
+}

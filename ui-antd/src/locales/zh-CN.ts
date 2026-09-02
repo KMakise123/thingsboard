@@ -10,6 +10,7 @@ import assetProfiles from './zh-CN/asset-profiles';
 import assets from './zh-CN/assets';
 import common from './zh-CN/common';
 import customers from './zh-CN/customers';
+import dashboards from './zh-CN/dashboards';
 import deviceProfiles from './zh-CN/device-profiles';
 import devicesDetail from './zh-CN/devices/detail';
 import devicesList from './zh-CN/devices/list';
@@ -30,6 +31,7 @@ export default {
   ...assetProfiles,
   ...assets,
   ...customers,
+  ...dashboards,
   ...deviceProfiles,
   ...entityViews,
   ...settings,
