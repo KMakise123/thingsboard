@@ -233,6 +233,7 @@ export default {
 
   'pages.settings.common.createdTime': 'Created time',
   'pages.settings.common.cancel': 'Cancel',
+  'pages.settings.auditLogs.title': 'Audit logs',
   'pages.settings.auditLogs.timestamp': 'Timestamp',
   'pages.settings.auditLogs.entityType': 'Entity type',
   'pages.settings.auditLogs.entityName': 'Entity name',

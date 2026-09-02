@@ -216,6 +216,7 @@ export default {
 
   'pages.settings.common.createdTime': '创建时间',
   'pages.settings.common.cancel': '取消',
+  'pages.settings.auditLogs.title': '审计日志',
   'pages.settings.auditLogs.timestamp': '时间戳',
   'pages.settings.auditLogs.entityType': '实体类型',
   'pages.settings.auditLogs.entityName': '实体名称',

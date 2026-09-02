@@ -244,7 +244,16 @@ export default function SettingsAuditLogsPage() {
   ];
 
   return (
-    <PageContainer>
+    <PageContainer
+      title={formatMessage({
+        id: 'pages.settings.auditLogs.title',
+        defaultMessage: 'Audit logs',
+      })}
+      breadcrumbLabel={formatMessage({
+        id: 'pages.settings.auditLogs.title',
+        defaultMessage: 'Audit logs',
+      })}
+    >
       <div className="flex flex-col gap-3">
         <Space wrap>
           <Select
