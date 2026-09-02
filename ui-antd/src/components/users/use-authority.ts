@@ -1,7 +1,7 @@
 /**
- * Page-local authority reader for the users page.
+ * Authority reader for the shared UsersTable hosts.
  *
- * Same rationale as the device list's reader: the page needs the caller's
+ * Same rationale as the device list's reader: the host needs the caller's
  * authority before the umi initialState model is consumed in this tree, and
  * the JWT already carries the answer. Adds the two claims the user domain
  * needs on top: `userId` (self-delete guard — you cannot delete yourself)

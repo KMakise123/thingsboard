@@ -29,6 +29,18 @@ export type UserSaveOutcome =
   | { type: 'activationMailSent' }
   | { type: 'activationLink'; link: string; ttlMs?: number };
 
+/**
+ * Host-fixed ownership scope (ui-ngx resolver injects authority + parent
+ * entity the same way): when set, the authority/customer pickers disappear
+ * and created users are stamped with this scope. The SA tenant-admins page
+ * passes { authority: TENANT_ADMIN, tenantId }.
+ */
+export interface UserDialogScope {
+  authority?: Authority;
+  tenantId?: string;
+  customerId?: string;
+}
+
 export interface UserDialogProps {
   open: boolean;
   /** Null/undefined = create mode. */
@@ -36,6 +48,8 @@ export interface UserDialogProps {
   onClose: () => void;
   /** Save succeeded — the page toasts, invalidates and chains the dialogs. */
   onSaved: (result: { user: User; outcome: UserSaveOutcome }) => void;
+  /** Fixed ownership scope (see UserDialogScope). */
+  scope?: UserDialogScope;
 }
 
 interface UserFormValues {
@@ -53,10 +67,17 @@ const CUSTOMER_SEARCH_DEBOUNCE_MS = 300;
 /** TB's null-customer UUID (EntityId.NULL_UUID). */
 const NULL_UUID = '13814000-1dd2-11b2-8080-808080808080';
 
-export function UserDialog({ open, user, onClose, onSaved }: UserDialogProps) {
+export function UserDialog({
+  open,
+  user,
+  onClose,
+  onSaved,
+  scope,
+}: UserDialogProps) {
   const { formatMessage } = useIntl();
   const [form] = Form.useForm<UserFormValues>();
   const editing = !!user;
+  const fixedAuthority = scope?.authority;
 
   const [serverError, setServerError] = useState<string>();
   const [customerSearch, setCustomerSearch] = useState('');
@@ -65,7 +86,8 @@ export function UserDialog({ open, user, onClose, onSaved }: UserDialogProps) {
     undefined,
   );
 
-  const authority = Form.useWatch('authority', form);
+  const watchedAuthority = Form.useWatch('authority', form);
+  const authority = fixedAuthority ?? watchedAuthority;
   const isCustomerUser = authority === Authority.CUSTOMER_USER;
 
   // Reset between openings, then prefill for edit.
@@ -76,7 +98,7 @@ export function UserDialog({ open, user, onClose, onSaved }: UserDialogProps) {
       setCustomerDebounced('');
       form.resetFields();
       form.setFieldsValue({
-        authority: user?.authority ?? Authority.CUSTOMER_USER,
+        authority: user?.authority ?? fixedAuthority ?? Authority.CUSTOMER_USER,
         email: user?.email,
         firstName: user?.firstName,
         lastName: user?.lastName,
@@ -91,7 +113,7 @@ export function UserDialog({ open, user, onClose, onSaved }: UserDialogProps) {
         activationMethod: 'DISPLAY_ACTIVATION_LINK',
       });
     }
-  }, [open, user, form]);
+  }, [open, user, form, fixedAuthority]);
 
   useEffect(() => {
     clearTimeout(customerTimer.current);
@@ -102,7 +124,7 @@ export function UserDialog({ open, user, onClose, onSaved }: UserDialogProps) {
     return () => clearTimeout(customerTimer.current);
   }, [customerSearch]);
 
-  // Server-searched customer picker (create mode only).
+  // Server-searched customer picker (create mode only, scope-free hosts).
   const customersQuery = useQuery({
     queryKey: ['customers', 'user-dialog', customerDebounced],
     queryFn: () =>
@@ -112,7 +134,7 @@ export function UserDialog({ open, user, onClose, onSaved }: UserDialogProps) {
         textSearch: customerDebounced || undefined,
         sortOrder: { property: 'title', direction: 'ASC' },
       }),
-    enabled: open && !editing,
+    enabled: open && !editing && !scope,
   });
 
   // Edit mode: resolve the assigned customer's title for the disabled select.
@@ -148,13 +170,18 @@ export function UserDialog({ open, user, onClose, onSaved }: UserDialogProps) {
       // (sending a blank EntityId UUID fails deserialization, same as the
       // device wizard learned).
       type UserDraft = Omit<User, 'id' | 'createdTime'>;
+      const effectiveAuthority = scope?.authority ?? values.authority;
       const draft: UserDraft = {
         email: values.email.trim(),
         firstName: values.firstName?.trim() || undefined,
         lastName: values.lastName?.trim() || undefined,
-        authority: values.authority,
-        customerId:
-          values.authority === Authority.CUSTOMER_USER && values.customerId
+        authority: effectiveAuthority,
+        tenantId: scope?.tenantId
+          ? { entityType: EntityType.TENANT, id: scope.tenantId }
+          : undefined,
+        customerId: scope?.customerId
+          ? { entityType: EntityType.CUSTOMER, id: scope.customerId }
+          : effectiveAuthority === Authority.CUSTOMER_USER && values.customerId
             ? { entityType: EntityType.CUSTOMER, id: values.customerId }
             : undefined,
         additionalInfo: {
@@ -286,6 +313,7 @@ export function UserDialog({ open, user, onClose, onSaved }: UserDialogProps) {
             id: 'pages.users.userDialog.authority',
             defaultMessage: 'Authority',
           })}
+          hidden={!!fixedAuthority}
           extra={
             editing
               ? formatMessage({
@@ -325,7 +353,7 @@ export function UserDialog({ open, user, onClose, onSaved }: UserDialogProps) {
             ]}
           />
         </Form.Item>
-        {isCustomerUser && (
+        {isCustomerUser && !scope && (
           <Form.Item
             name="customerId"
             label={formatMessage({

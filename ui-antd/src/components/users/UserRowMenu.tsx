@@ -14,7 +14,7 @@
  * item; edit/delete are always available (delete hidden for the session user
  * itself, same guard as ui-ngx's deleteEnabled).
  *
- * Reopen semantics: the page-level mutations invalidate ['users'], which
+ * Reopen semantics: the host's mutations invalidate the users slice, which
  * marks the disabled detail queries invalidated WITHOUT refetching them
  * (enabled: false — react-query never refetches those automatically, and
  * the observer's `isStale` is pinned false for disabled queries). So the
@@ -42,6 +42,11 @@ export interface UserRowMenuProps {
   onResendActivation: (user: User) => void;
   onSetCredentialsEnabled: (user: User, enabled: boolean) => void;
   onDelete: (user: User) => void;
+  /**
+   * Host-injected entries rendered after the account group, before delete
+   * (the SA tenant-admins page adds "login as"); return null to skip.
+   */
+  extraItems?: (user: User) => NonNullable<MenuProps['items']>[number] | null;
 }
 
 function boolInfo(user: User | undefined, key: string): boolean | undefined {
@@ -56,6 +61,7 @@ export function UserRowMenu({
   onResendActivation,
   onSetCredentialsEnabled,
   onDelete,
+  extraItems,
 }: UserRowMenuProps) {
   const { formatMessage } = useIntl();
   const { userId: sessionUserId } = useAuthority();
@@ -134,6 +140,12 @@ export function UserRowMenu({
   }
 
   if (!isSelf) {
+    if (extraItems) {
+      const extra = extraItems(user);
+      if (extra) {
+        items.push(extra);
+      }
+    }
     items.push({
       key: 'delete',
       danger: true,
