@@ -16,6 +16,8 @@ vi.mock('./http', () => ({
   },
 }));
 
+import { OtaPackageType } from '@/types/tb/device-profile';
+
 import {
   deleteDeviceProfile,
   getDeviceProfileById,
@@ -124,7 +126,7 @@ describe('device-profile transport endpoints', () => {
   it('OTA lookup scopes packages by profile id and FIRMWARE/SOFTWARE type', async () => {
     await getOtaPackagesByDeviceProfile(
       'dp-1',
-      'SOFTWARE',
+      OtaPackageType.SOFTWARE,
       { pageSize: 50, page: 0, sortOrder: { property: 'title', direction: 'ASC' } },
     );
     expect(get).toHaveBeenCalledWith('/api/otaPackages/dp-1/SOFTWARE', {
