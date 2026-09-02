@@ -4,23 +4,35 @@
  * Add one import + spread per new domain file — scripts/check-locale.mjs
  * verifies zh-CN/en-US key parity and cross-file duplicates.
  */
+import alarms from './zh-CN/alarms';
+import assetProfiles from './zh-CN/asset-profiles';
 import assets from './zh-CN/assets';
 import common from './zh-CN/common';
 import customers from './zh-CN/customers';
+import deviceProfiles from './zh-CN/device-profiles';
 import devicesDetail from './zh-CN/devices/detail';
 import devicesList from './zh-CN/devices/list';
 import entityViews from './zh-CN/entityViews';
 import login from './zh-CN/login';
 import menu from './zh-CN/menu';
+import settings from './zh-CN/settings';
+import tenantProfiles from './zh-CN/tenant-profiles';
+import tenants from './zh-CN/tenants';
 import users from './zh-CN/users';
 
 export default {
   ...common,
   ...login,
   ...menu,
+  ...alarms,
+  ...assetProfiles,
   ...assets,
   ...customers,
+  ...deviceProfiles,
   ...entityViews,
+  ...settings,
+  ...tenantProfiles,
+  ...tenants,
   ...users,
   ...devicesList,
   ...devicesDetail,

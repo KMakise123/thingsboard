@@ -167,6 +167,115 @@ export default [
     access: 'canTenantAdmin',
     component: './users/list',
   },
+  // ---- M3 domains (stubs; domain agents replace the pages) ----
+  // Alarms: TA + CU (spec §3.6); alarm-rules is an in-page tab, not a route.
+  {
+    name: 'alarms',
+    icon: 'alert',
+    path: '/alarms',
+    access: 'canTenantOrCustomer',
+    component: './alarms',
+  },
+  // Entity profiles: TA only (spec §3.8).
+  {
+    name: 'deviceProfiles',
+    icon: 'profile',
+    path: '/deviceProfiles',
+    access: 'canTenantAdmin',
+    component: './device-profiles/list',
+  },
+  {
+    name: 'deviceProfiles.detail',
+    path: '/deviceProfiles/:id',
+    access: 'canTenantAdmin',
+    component: './device-profiles/detail',
+    hideInMenu: true,
+  },
+  {
+    name: 'assetProfiles',
+    icon: 'appstore',
+    path: '/assetProfiles',
+    access: 'canTenantAdmin',
+    component: './asset-profiles/list',
+  },
+  {
+    name: 'assetProfiles.detail',
+    path: '/assetProfiles/:id',
+    access: 'canTenantAdmin',
+    component: './asset-profiles/detail',
+    hideInMenu: true,
+  },
+  // Sys-admin family (spec §3.7): tenants + tenant profiles + settings.
+  {
+    name: 'tenants',
+    icon: 'bank',
+    path: '/tenants',
+    access: 'canSysAdmin',
+    component: './tenants/list',
+  },
+  {
+    name: 'tenants.detail',
+    path: '/tenants/:id',
+    access: 'canSysAdmin',
+    component: './tenants/detail',
+    hideInMenu: true,
+  },
+  {
+    name: 'tenants.users',
+    path: '/tenants/:id/users',
+    access: 'canSysAdmin',
+    component: './tenants/users',
+    hideInMenu: true,
+  },
+  {
+    name: 'tenantProfiles',
+    icon: 'idcard',
+    path: '/tenantProfiles',
+    access: 'canSysAdmin',
+    component: './tenant-profiles/list',
+  },
+  {
+    name: 'tenantProfiles.detail',
+    path: '/tenantProfiles/:id',
+    access: 'canSysAdmin',
+    component: './tenant-profiles/detail',
+    hideInMenu: true,
+  },
+  {
+    name: 'settings',
+    icon: 'setting',
+    path: '/settings',
+    access: 'canSysAdmin',
+    redirect: '/settings/general',
+    routes: [
+      {
+        name: 'settings.general',
+        path: '/settings/general',
+        component: './settings/general',
+      },
+      {
+        name: 'settings.outgoingMail',
+        path: '/settings/outgoing-mail',
+        component: './settings/outgoing-mail',
+      },
+      {
+        name: 'settings.twoFa',
+        path: '/settings/two-fa',
+        component: './settings/two-fa',
+      },
+      {
+        name: 'settings.oauth2',
+        path: '/settings/oauth2',
+        component: './settings/oauth2',
+      },
+      {
+        name: 'settings.auditLogs',
+        path: '/settings/audit-logs',
+        component: './settings/audit-logs',
+      },
+    ],
+  },
+
   {
     name: 'home',
     icon: 'home',
