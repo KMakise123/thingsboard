@@ -34,6 +34,14 @@ const nameSort = {
   sortOrder: { property: 'name', direction: 'ASC' as const },
 };
 
+// The dashboards endpoint sorts on `title` (ui-ngx dashboard-autocomplete);
+// `name` is not a valid column there and 500s.
+const titleSort = {
+  pageSize: PAGE_SIZE,
+  page: 0,
+  sortOrder: { property: 'title', direction: 'ASC' as const },
+};
+
 /** Default rule chain / default edge rule chain picker. */
 export function RuleChainSelect({
   value,
@@ -93,7 +101,7 @@ export function DashboardSelect({
   const dashboardsQuery = useQuery({
     queryKey: ['dashboards', 'select', search],
     queryFn: () =>
-      getTenantDashboards({ ...nameSort, textSearch: search || undefined }),
+      getTenantDashboards({ ...titleSort, textSearch: search || undefined }),
   });
   return (
     <Select
