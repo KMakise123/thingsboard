@@ -1,5 +1,8 @@
 /**
- * WS subscription manager — a first-class deliverable of M1.
+ * WS subscription manager — a first-class deliverable of M1, extended by M5
+ * W2 with the typed ENTITY_DATA timeseries family (subscribeEntityTimeseries:
+ * one cmd streams the ts window of every alias-matched entity, realtime or
+ * fixed history — the widget-engine data channel for charts + ts tables).
  *
  * Single multiplexed `/api/ws` socket; every subscription gets a cmdId and
  * rides the same connection. Semantics (issue #7/#8 + ui-ngx websocket.service):
@@ -31,6 +34,7 @@ import type {
   AttributeData,
   AttributeScope,
   EntityId,
+  TsValue,
 } from '@/types/tb';
 
 import {
@@ -40,10 +44,12 @@ import {
   type EntityDataCmd,
   type EntityDataUpdateMsg,
   type EntityDataWire,
+  type EntityHistoryCmd,
   isSubscriptionUpdate,
   type LatestValueCmd,
   parseServerMessage,
   type SubscriptionUpdateMsg,
+  type TimeSeriesCmd,
   type TimeseriesSubscriptionCmd,
   type UnsubscribeCmd,
   WsCmdType,
@@ -125,6 +131,24 @@ export interface EntityDataParams {
   seed?: EntityDataWire[];
 }
 
+/** One entity's timeseries window (+ optional latest values) snapshot. */
+export interface EntityTimeseriesRow {
+  entityId: EntityId | string;
+  timeseries: Record<string, Array<TsValue>>;
+  latest?: Record<string, Record<string, TsValue>>;
+}
+
+export interface EntityTimeseriesParams {
+  query: EntityDataCmd['query'];
+  /** realtime rolling window — exactly one of tsCmd/historyCmd. */
+  tsCmd?: TimeSeriesCmd;
+  /** fixed history window — exactly one of tsCmd/historyCmd. */
+  historyCmd?: EntityHistoryCmd;
+  /** optional latest-value columns carried on the same cmd. */
+  latestCmd?: LatestValueCmd;
+  seed?: Array<EntityTimeseriesRow>;
+}
+
 const DEFAULTS = {
   maxCmdsPerFrame: 10,
   reconnectBaseMs: 2000,
@@ -168,6 +192,75 @@ function mergeKeyedValues(
   return next.sort((a, b) => a.key.localeCompare(b.key));
 }
 
+/** Stable identity of an EntityData row: wire ids may be objects or strings. */
+function entityIdKey(entityId: EntityId | string): string {
+  return typeof entityId === 'string' ? entityId : entityId.id;
+}
+
+/** Union by ts; re-sent points replace, result stays ts-ascending. */
+function mergePoints(
+  current: Array<TsValue>,
+  incoming: Array<TsValue>,
+): Array<TsValue> {
+  const byTs = new Map<number, TsValue>();
+  for (const point of current) {
+    byTs.set(point.ts, point);
+  }
+  for (const point of incoming) {
+    byTs.set(point.ts, point);
+  }
+  return [...byTs.values()].sort((a, b) => a.ts - b.ts);
+}
+
+/** Normalize a wire row into the typed snapshot row (timeseries always set). */
+function toTimeseriesRow(row: EntityDataWire): EntityTimeseriesRow {
+  return {
+    entityId: row.entityId,
+    timeseries: row.timeseries ? { ...row.timeseries } : {},
+    latest: row.latest,
+  };
+}
+
+/**
+ * Merge one incremental ENTITY_DATA update into the timeseries snapshot:
+ * per-entity rows are updated in place (immutably); per-key point arrays
+ * append/dedupe so streamed diffs never clobber the seeded window.
+ */
+export function mergeTimeseriesRows(
+  current: Array<EntityTimeseriesRow>,
+  update: Array<EntityDataWire>,
+): Array<EntityTimeseriesRow> {
+  let next = current;
+  for (const incoming of update) {
+    const key = entityIdKey(incoming.entityId);
+    const idx = next.findIndex((row) => entityIdKey(row.entityId) === key);
+    const base: EntityTimeseriesRow =
+      idx >= 0 ? next[idx] : { entityId: incoming.entityId, timeseries: {} };
+    const merged: EntityTimeseriesRow = {
+      ...base,
+      entityId: incoming.entityId,
+      latest: incoming.latest
+        ? { ...base.latest, ...incoming.latest }
+        : base.latest,
+      timeseries: { ...base.timeseries },
+    };
+    for (const [tsKey, points] of Object.entries(incoming.timeseries ?? {})) {
+      if (!points || points.length === 0) {
+        continue;
+      }
+      merged.timeseries[tsKey] = mergePoints(
+        merged.timeseries[tsKey] ?? [],
+        points,
+      );
+    }
+    next =
+      idx >= 0
+        ? [...next.slice(0, idx), merged, ...next.slice(idx + 1)]
+        : [...next, merged];
+  }
+  return next;
+}
+
 interface BaseRecord {
   cmdId: number;
   status: WsStatus;
@@ -186,6 +279,12 @@ interface EntityDataRecord extends BaseRecord {
   kind: 'entity-data';
   cmd: EntityDataCmd;
   snapshot: EntityDataWire[];
+}
+
+interface EntityTsRecord extends BaseRecord {
+  kind: 'entity-ts';
+  cmd: EntityDataCmd;
+  snapshot: EntityTimeseriesRow[];
 }
 
 interface AlarmDataRecord extends BaseRecord {
@@ -209,6 +308,7 @@ interface AlarmStatusRecord extends BaseRecord {
 type WsRecord =
   | AttrLikeRecord
   | EntityDataRecord
+  | EntityTsRecord
   | AlarmDataRecord
   | CountRecord
   | AlarmStatusRecord;
@@ -221,6 +321,14 @@ export interface WsManager {
     params: LatestTelemetryParams,
   ): WsSubscription<AttributeData[]>;
   subscribeEntityData(params: EntityDataParams): EntityDataSubscription;
+  /**
+   * ENTITY_DATA with tsCmd/historyCmd: one cmd streams the timeseries window
+   * of EVERY entity matching the query (alias-expanded), realtime or fixed
+   * history. The M5 widget-engine data channel for charts + ts tables.
+   */
+  subscribeEntityTimeseries(
+    params: EntityTimeseriesParams,
+  ): WsSubscription<Array<EntityTimeseriesRow>>;
   subscribeEntityCount(params: {
     query: { entityFilter: Record<string, unknown> };
   }): WsSubscription<number>;
@@ -498,6 +606,21 @@ export function createWsManager(options: WsManagerOptions): WsManager {
         notify(record);
         break;
       }
+      case 'entity-ts': {
+        const msg = message as unknown as EntityDataUpdateMsg;
+        if (msg.data?.data) {
+          record.snapshot =
+            record.awaitingSnapshot || !msg.update
+              ? msg.data.data.map(toTimeseriesRow)
+              : record.snapshot;
+          record.awaitingSnapshot = false;
+        }
+        if (msg.update?.length) {
+          record.snapshot = mergeTimeseriesRows(record.snapshot, msg.update);
+        }
+        notify(record);
+        break;
+      }
       case 'alarm-data': {
         const msg = message as {
           data?: { data: AlarmData[] };
@@ -620,6 +743,7 @@ export function createWsManager(options: WsManagerOptions): WsManager {
           unsubscribe: true,
         } as TimeseriesSubscriptionCmd & { unsubscribe: true };
       case 'entity-data':
+      case 'entity-ts':
         return { cmdId: record.cmdId, type: WsCmdType.ENTITY_DATA_UNSUBSCRIBE };
       case 'alarm-data':
         return { cmdId: record.cmdId, type: WsCmdType.ALARM_DATA_UNSUBSCRIBE };
@@ -756,6 +880,27 @@ export function createWsManager(options: WsManagerOptions): WsManager {
         awaitingSnapshot: true,
         cmd: { cmdId: 0, type: WsCmdType.ENTITY_COUNT, query },
         snapshot: 0,
+      };
+      registerRecord(record);
+      return wireSubscription(record, () => record.snapshot);
+    },
+
+    subscribeEntityTimeseries({ query, tsCmd, historyCmd, latestCmd, seed }) {
+      const record: EntityTsRecord = {
+        kind: 'entity-ts',
+        cmdId: 0,
+        status: 'idle',
+        listeners: new Set(),
+        awaitingSnapshot: true,
+        cmd: {
+          cmdId: 0,
+          type: WsCmdType.ENTITY_DATA,
+          query,
+          tsCmd,
+          historyCmd,
+          latestCmd,
+        },
+        snapshot: seed ? seed.map(toTimeseriesRow) : [],
       };
       registerRecord(record);
       return wireSubscription(record, () => record.snapshot);
