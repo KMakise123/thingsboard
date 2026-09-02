@@ -5,6 +5,7 @@
  */
 import { describe, expect, it } from 'vitest';
 
+import { EntityType } from '@/types/tb';
 import type { Oauth2Client } from '@/types/tb/oauth2';
 import {
   applyClientTemplate,
@@ -13,7 +14,7 @@ import {
 } from './data';
 
 const client: Oauth2Client = {
-  id: { entityType: 'OAUTH2_CLIENT', id: 'c-1' },
+  id: { entityType: EntityType.OAUTH2_CLIENT, id: 'c-1' },
   createdTime: 1,
   title: 'Work SSO',
   clientId: 'id',
