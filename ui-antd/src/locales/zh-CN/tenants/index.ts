@@ -64,4 +64,10 @@ export default {
   'pages.tenants.detail.eventMessage': '消息',
   'pages.tenants.detail.eventEmpty': '暂无事件',
   'pages.tenants.detail.eventLoadFailed': '加载事件失败',
+
+  // ---- 租户管理员作用域页（/tenants/:id/users） ----
+  'pages.tenants.users.title': '{title}：租户管理员',
+  'pages.tenants.users.search': '搜索用户',
+  'pages.tenants.users.add': '添加用户',
+  'pages.tenants.users.loginAs': '以租户管理员身份登录',
 };

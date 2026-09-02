@@ -64,4 +64,10 @@ export default {
   'pages.tenants.detail.eventMessage': 'Message',
   'pages.tenants.detail.eventEmpty': 'No events',
   'pages.tenants.detail.eventLoadFailed': 'Failed to load events',
+
+  // ---- tenant-admins scope page (/tenants/:id/users) ----
+  'pages.tenants.users.title': '{title}: Tenant admins',
+  'pages.tenants.users.search': 'Search users',
+  'pages.tenants.users.add': 'Add user',
+  'pages.tenants.users.loginAs': 'Login as tenant admin',
 };
