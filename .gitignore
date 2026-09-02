@@ -48,3 +48,6 @@ CLAUDE.md
 .mcp.json
 local/
 application/src/main/data/sql/
+
+# frontend deps / test caches (ui-antd, stray root runs)
+node_modules/
