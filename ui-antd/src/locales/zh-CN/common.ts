@@ -50,11 +50,6 @@ export default {
   'tb.error.network': '网络连接不可用',
   'tb.error.timeout': '请求超时',
 
-  // Temporary SA home (sys-domain pages land in M3)
-  'pages.home.sysPending.title': 'sys 域页面建设中',
-  'pages.home.sysPending.description':
-    '系统管理员域页面（租户管理、租户配置、系统设置等）于 M3 里程碑交付。当前可通过 API 或旧版界面执行系统管理操作。',
-
   // Page-container back guard (src/components/layout/page-container.tsx,
   // ADR 0008) — shared by every entity detail page.
   'pages.common.unsavedTitle': '未保存的更改',

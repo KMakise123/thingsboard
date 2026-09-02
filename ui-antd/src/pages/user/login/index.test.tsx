@@ -112,7 +112,7 @@ describe('login page (password line)', () => {
     expect(updater({})).toEqual({ currentUser: tenantUser });
   });
 
-  it('lands a sys admin on the temporary home page (M1)', async () => {
+  it('lands a sys admin on the tenants list', async () => {
     servicesMock.login.mockResolvedValue({ token: 't', refreshToken: 'r' });
     servicesMock.getCurrentUser.mockResolvedValue(sysAdmin);
 
@@ -120,7 +120,7 @@ describe('login page (password line)', () => {
     await submitCredentials('sysadmin@thingsboard.org', 'sysadmin');
 
     await waitFor(() => {
-      expect(historyMock.replace).toHaveBeenCalledWith('/home');
+      expect(historyMock.replace).toHaveBeenCalledWith('/tenants');
     });
   });
 

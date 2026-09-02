@@ -7,8 +7,8 @@
  * - `access` must match a key returned by src/access.ts, which mirrors the
  *   backend Authority enum (SYS_ADMIN / TENANT_ADMIN / CUSTOMER_USER).
  *   Menus are generated from this tree filtered by access — never hand-
- *   written. M1 role sets: TA = devices (+later domains), CU = devices
- *   read-only, SA = no tenant menu (temporary /home until M3 sys pages).
+ *   written. Role sets: SA = sys domain (tenants / tenant profiles /
+ *   settings), TA = tenant domain, CU = devices / assets / alarms.
  * - Keep this file declarative only (no imports of page internals).
  *
  * ui-ngx path aliases (`/login/…`, `/activationLinkExpired`,
@@ -68,7 +68,7 @@ export default [
   },
 
   // ---- app shell (role-aware) ----
-  // Role-based entry: SA → /home, TA/CU → /devices, anonymous → login.
+  // Role-based entry: SA → /tenants, TA/CU → /devices, anonymous → login.
   { path: '/', component: './home/entry' },
   {
     name: 'devices',
@@ -277,14 +277,6 @@ export default [
         component: './settings/audit-logs',
       },
     ],
-  },
-
-  {
-    name: 'home',
-    icon: 'home',
-    path: '/home',
-    access: 'canSysAdmin',
-    component: './home',
   },
 
   // 404 → role-aware entry (TA/CU land on the device list, spec §3.2).

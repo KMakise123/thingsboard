@@ -5,7 +5,7 @@ import { roleDefaultPath } from '@/pages/user/utils';
 
 /**
  * Role-aware entry for `/` and the 404 fallback: TA / CU → device list,
- * SA → temporary home. Anonymous visitors are picked up by the layout
+ * SA → tenants list. Anonymous visitors are picked up by the layout
  * runtime's onPageChange and sent to the login page.
  */
 const HomeEntry: React.FC = () => {

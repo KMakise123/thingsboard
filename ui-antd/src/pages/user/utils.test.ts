@@ -39,9 +39,9 @@ describe('roleDefaultPath', () => {
     ).toBe('/devices');
   });
 
-  it('sends sys admins to the temporary home notice (M1)', () => {
+  it('sends sys admins to the tenants list', () => {
     expect(roleDefaultPath({ authority: Authority.SYS_ADMIN } as never)).toBe(
-      '/home',
+      '/tenants',
     );
   });
 

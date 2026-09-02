@@ -48,10 +48,9 @@ export function getSafeRedirectUrl(redirect: string | null): string | null {
 }
 
 /**
- * Role landing page (spec §3.2). TA / CU land on the device list; SA has no
- * tenant-scoped menu in M1 and lands on the temporary /home notice until
- * the sys-domain pages arrive in M3.
+ * Role landing page (spec §3.2). TA / CU land on the device list; SA lands
+ * on the tenants list (sys-domain pages since M3).
  */
 export function roleDefaultPath(user?: User | null): string {
-  return user?.authority === Authority.SYS_ADMIN ? '/home' : '/devices';
+  return user?.authority === Authority.SYS_ADMIN ? '/tenants' : '/devices';
 }

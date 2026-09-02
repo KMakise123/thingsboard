@@ -52,11 +52,6 @@ export default {
   'tb.error.network': 'Network unavailable',
   'tb.error.timeout': 'Request timed out',
 
-  // Temporary SA home (sys-domain pages land in M3)
-  'pages.home.sysPending.title': 'Sys-domain pages under construction',
-  'pages.home.sysPending.description':
-    'System-admin pages (tenants, tenant profiles, settings) arrive with the M3 milestone. Until then, use the API or the legacy UI for system administration.',
-
   // Page-container back guard (src/components/layout/page-container.tsx,
   // ADR 0008) — shared by every entity detail page.
   'pages.common.unsavedTitle': 'Unsaved changes',
