@@ -1,9 +1,13 @@
 /**
- * Audit-log transport (handwritten) — entity-scoped audit tab.
+ * Audit-log transport (handwritten) — entity-scoped audit tab + the global
+ * page read (settings domain, spec 3.7).
  *
- * Base path:
+ * Base paths:
+ *   GET /api/audit/logs                          (global, SA/TA scope)
  *   GET /api/audit/logs/entity/{entityType}/{entityId}
  *       ?pageSize=&page=&textSearch=&sortProperty=&sortOrder=
+ *   Global read adds startTime/endTime (ms) and actionTypes
+ *   (comma-joined enum values — AuditLogController parses one string).
  */
 
 import type { QueryParams } from '@/core/http/client';
@@ -82,6 +86,35 @@ function auditLogParams(pageLink: PageLink): QueryParams {
     sortProperty: pageLink.sortOrder?.property,
     sortOrder: pageLink.sortOrder?.direction,
   };
+}
+
+/** Filters for the global audit read (settings audit-logs page). */
+export interface GlobalAuditLogFilter {
+  /** Inclusive window start, ms since epoch. */
+  startTime?: number;
+  /** Inclusive window end, ms since epoch. */
+  endTime?: number;
+  /** Empty/undefined = any action type (wire: comma-joined values). */
+  actionTypes?: AuditActionType[];
+}
+
+/**
+ * Global audit page read (GET /api/audit/logs): SA sees the system-domain
+ * log, TA their tenant scope — decided by the caller's authority upstream.
+ */
+export async function getAuditLogs(
+  pageLink: PageLink,
+  filter: GlobalAuditLogFilter = {},
+): Promise<PageData<AuditLog>> {
+  return tbHttp.get<PageData<AuditLog>>('/api/audit/logs', {
+    ...auditLogParams(pageLink),
+    startTime: filter.startTime,
+    endTime: filter.endTime,
+    actionTypes:
+      filter.actionTypes && filter.actionTypes.length > 0
+        ? filter.actionTypes.join(',')
+        : undefined,
+  });
 }
 
 /** Entity-scoped audit page read (spec 3.3 audit-logs tab). */
