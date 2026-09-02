@@ -136,7 +136,7 @@ resolve(typeFullFqn):
 | `system.time_series_chart` | rule_engine ×2、thermostats ×2、api_usage ×29 | echarts 折线/柱（config.settings 图形切换） | timeseries 订阅（历史+流式）+ agg | 柱状形态经同一组件（series type） |
 | `system.cards.entities_table` | firmware/software ×5+5、thermostats ×1、gateways ×19 | 实体表格（列 = dataKeys，分页） | subscribeEntityData | |
 | `system.cards.timeseries_table` | firmware/software ×1+1、rule_engine ×1、gateways ×2、api_usage ×1 | 时序表格（实体行 × key 列，latest/时序混合以 JSON 实查） | latest + timeseries | |
-| `system.cards.html_value_card` | firmware/software ×4+4 | 值卡（config.settings 模板/样式 + latest 值替换） | subscribeLatestTelemetry | |
+| `system.cards.html_value_card` | firmware/software ×4+4 | 值卡（config.settings 模板/样式 + latest 值替换） | subscribeLatestTelemetry | 勘误（W2 锚点实查）：锚点 8 张全为 `entityCount` datasource + `count` key + filterId keyFilters，实走 subscribeEntityCount 双通道，entity 形态才回落 subscribeLatestTelemetry |
 | `system.alarm_widgets.alarms_table` | thermostats ×1、gateways ×1 | 告警表格（alarmSource + filterConfig） | subscribeAlarmData | |
 | `system.map` | thermostats ×3（map state） | 地图打点（实体 + lat/lng 遥测） | aliases + latest | leaflet 直用，W2 spike 定型 |
 | `system.input_widgets.update_multiple_attributes` | thermostats ×1 | 属性编辑卡（当前值 + 保存） | latest + attributes save | v1 交付功能版（保存链路已有服务） |

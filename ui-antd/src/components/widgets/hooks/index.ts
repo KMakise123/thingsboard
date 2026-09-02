@@ -10,4 +10,5 @@ export * from './entity-filter';
 export * from './use-echarts';
 export * from './use-entity-latest';
 export * from './use-entity-timeseries';
+export * from './use-widget-values';
 export * from './widget-text';

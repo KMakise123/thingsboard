@@ -30,7 +30,11 @@ export type DataKeyType =
   | 'attribute'
   | 'entityField'
   | 'function'
-  | 'alarm';
+  | 'alarm'
+  /** M5 W2 (anchor-verified): entityCount datasources ship a `count` key
+      (ui-ngx DataKeyType.count → EntityKeyType.COUNT; firmware
+      html_value_card anchors). */
+  | 'count';
 
 /** One column of a widget datasource (timeseries key, attribute, …). */
 export interface DataKey {
