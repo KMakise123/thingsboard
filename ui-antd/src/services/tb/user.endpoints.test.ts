@@ -25,6 +25,8 @@ import {
   getUserActivationLink,
   getUserActivationLinkInfo,
   getUserById,
+  getUserToken,
+  isUserTokenAccessEnabled,
   getUsers,
   saveUser,
   sendActivationMail,
@@ -113,5 +115,13 @@ describe('user transport endpoints', () => {
       undefined,
       { email: 'cu@thingsboard.org' },
     );
+  });
+
+  it('pins the login-as endpoints (token switch + target JwtPair)', async () => {
+    await isUserTokenAccessEnabled();
+    expect(get).toHaveBeenCalledWith('/api/user/tokenAccessEnabled');
+
+    await getUserToken('u-1');
+    expect(get).toHaveBeenCalledWith('/api/user/u-1/token');
   });
 });

@@ -11,7 +11,7 @@
  * caller only picks the tenant-wide vs customer-scoped entry point.
  */
 
-import { type PageData, type PageLink, type User, type UserActivationLink, pageLinkToQueryParams } from '@/types/tb';
+import { type LoginResponse, type PageData, type PageLink, type User, type UserActivationLink, pageLinkToQueryParams } from '@/types/tb';
 
 import { tbHttp } from './http';
 
@@ -87,4 +87,19 @@ export async function getUserActivationLinkInfo(
 /** POST /api/user/sendActivationMail?email= */
 export async function sendActivationMail(email: string): Promise<void> {
   await tbHttp.post<void>('/api/user/sendActivationMail', undefined, { email });
+}
+
+/** GET /api/user/tokenAccessEnabled — the login-as-user switch (SA, TA). */
+export async function isUserTokenAccessEnabled(): Promise<boolean> {
+  return tbHttp.get<boolean>('/api/user/tokenAccessEnabled');
+}
+
+/**
+ * GET /api/user/{userId}/token — impersonationJwtPair of the target user
+ * (SA -> any tenant admin, TA -> own customer users; refused unless
+ * tokenAccessEnabled). The CALLER owns the token side effects (store the
+ * pair, reload the session) — tokenStore stays in services/tb/auth.
+ */
+export async function getUserToken(userId: string): Promise<LoginResponse> {
+  return tbHttp.get<LoginResponse>(`/api/user/${userId}/token`);
 }
