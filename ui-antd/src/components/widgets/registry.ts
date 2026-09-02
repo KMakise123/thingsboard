@@ -50,7 +50,10 @@ export const WIDGET_REGISTRY: Record<string, WidgetRegistryEntry> = {
     component: lazy(() => import('./entities-table')),
     meta: { label: 'Entities table' },
   },
-  'system.cards.timeseries_table': pendingEntry({ label: 'Timeseries table' }),
+  'system.cards.timeseries_table': {
+    component: lazy(() => import('./timeseries-table')),
+    meta: { label: 'Timeseries table' },
+  },
   'system.cards.html_value_card': pendingEntry({ label: 'HTML value card' }),
   'system.alarm_widgets.alarms_table': pendingEntry({ label: 'Alarms table' }),
   'system.map': pendingEntry({ label: 'Map' }),
