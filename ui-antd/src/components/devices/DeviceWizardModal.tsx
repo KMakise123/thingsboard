@@ -23,7 +23,7 @@ import {
 } from 'antd';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
-
+import { serverErrorText } from '@/components/entities/server-error-text';
 import {
   getDeviceProfiles,
   saveDevice,
@@ -36,7 +36,6 @@ import {
   type DeviceProfileInfo,
   EntityType,
 } from '@/types/tb';
-
 import { ConnectivityPanel } from './connectivity';
 import {
   credentialTypesForTransport,
@@ -48,7 +47,6 @@ import {
   type CredentialsFlatValue,
   DeviceCredentialsFields,
 } from './DeviceCredentialsFields';
-import { serverErrorText } from './server-error-text';
 
 export interface DeviceWizardModalProps {
   open: boolean;

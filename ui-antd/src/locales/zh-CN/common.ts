@@ -54,4 +54,24 @@ export default {
   'pages.home.sysPending.title': 'sys 域页面建设中',
   'pages.home.sysPending.description':
     '系统管理员域页面（租户管理、租户配置、系统设置等）于 M3 里程碑交付。当前可通过 API 或旧版界面执行系统管理操作。',
+
+  // Page-container back guard (src/components/layout/page-container.tsx,
+  // ADR 0008) — shared by every entity detail page.
+  'pages.common.unsavedTitle': '未保存的更改',
+  'pages.common.unsavedText':
+    '当前页面有未保存的更改，确定离开吗？离开后更改将丢失。',
+  'pages.common.unsavedLeave': '离开',
+  'pages.common.cancel': '取消',
+
+  // Assign-to-customer dialog shared by the device/asset flows
+  // (src/components/entities/AssignCustomerModal.tsx).
+  'pages.entities.assignTitle': '指派给客户',
+  'pages.entities.assignConfirm': '分配',
+  'pages.entities.cancel': '取消',
+  'pages.entities.customerRequired': '请选择客户。',
+  'pages.entities.customerPlaceholder': '搜索并选择客户',
+  'pages.entities.customerColumn': '客户',
+  'pages.entities.assignOneText': '该实体会分配给所选客户。',
+  'pages.entities.assignText':
+    '{count, plural, =1 {1 个实体} other {# 个实体}}将分配给所选客户。',
 };

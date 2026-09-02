@@ -10,6 +10,7 @@ import { App as AntdApp } from 'antd';
 import React from 'react';
 import { createIntl, RawIntlProvider } from 'react-intl';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import zhCommon from '@/locales/zh-CN/common';
 import zhDetail from '@/locales/zh-CN/devices/detail';
 import { EntityType } from '@/types/tb';
 
@@ -27,11 +28,48 @@ const tokenStoreMock = vi.hoisted(() => ({
 
 const historyMock = vi.hoisted(() => ({ push: vi.fn() }));
 
-const intl = createIntl({ locale: 'zh-CN', messages: zhDetail });
+const intl = createIntl({
+  locale: 'zh-CN',
+  messages: { ...zhCommon, ...zhDetail },
+});
 
 vi.mock('@umijs/max', () => ({
   history: historyMock,
   useParams: () => ({ id: 'dev-1' }),
+  useSelectedRoutes: () => [
+    { route: {}, pathname: '/' },
+    { route: { name: 'devices.detail' }, pathname: '/devices/dev-1' },
+  ],
+  useAppData: () => ({
+    clientRoutes: [{ name: 'devices', path: '/devices' }],
+  }),
+}));
+
+// pro-components cannot resolve antd locale imports under vite-node (M1
+// known issue) — stub PageContainer while keeping the wrapper's contract
+// visible (title / tags / extra / content / guarded onBack).
+vi.mock('@ant-design/pro-components', () => ({
+  PageContainer: (props: {
+    title?: React.ReactNode;
+    tags?: React.ReactNode;
+    extra?: React.ReactNode;
+    content?: React.ReactNode;
+    onBack?: () => void;
+    children?: React.ReactNode;
+  }) => (
+    <div>
+      {props.onBack ? (
+        <button type="button" aria-label="back" onClick={props.onBack}>
+          back-icon
+        </button>
+      ) : null}
+      <h1 data-testid="pc-title">{props.title}</h1>
+      <div data-testid="pc-tags">{props.tags}</div>
+      <div data-testid="pc-extra">{props.extra}</div>
+      <div data-testid="pc-content">{props.content}</div>
+      {props.children}
+    </div>
+  ),
 }));
 vi.mock('@/services/tb/device', () => servicesMock);
 vi.mock('@/core/auth/token-store', () => ({
@@ -196,9 +234,10 @@ describe('device detail page', () => {
     });
     const save = await screen.findByRole('button', { name: '保 存' });
     await waitFor(() => expect(save).not.toBeDisabled());
-    // The back arrow must be guarded the same way as tab switches.
-    fireEvent.click(screen.getByTitle('返回设备列表'));
-    expect((await screen.findAllByText('未保存的修改')).length).toBeGreaterThan(
+    // The back arrow must be guarded the same way as tab switches (guard
+    // lives in the shared PageContainer wrapper, ADR 0008 — generic copy).
+    fireEvent.click(screen.getByRole('button', { name: 'back' }));
+    expect((await screen.findAllByText('未保存的更改')).length).toBeGreaterThan(
       0,
     );
     expect(historyMock.push).not.toHaveBeenCalled();

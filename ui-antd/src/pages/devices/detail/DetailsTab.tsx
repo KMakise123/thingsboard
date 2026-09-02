@@ -19,7 +19,7 @@ import {
 } from 'antd';
 import { useEffect, useMemo } from 'react';
 import { useIntl } from 'react-intl';
-import { serverErrorText } from '@/components/devices/server-error-text';
+import { serverErrorText } from '@/components/entities/server-error-text';
 import { getDeviceProfiles, saveDevice } from '@/services/tb/device';
 import { type Device, type DeviceInfo, EntityType } from '@/types/tb';
 

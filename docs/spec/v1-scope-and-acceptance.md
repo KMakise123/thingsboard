@@ -77,7 +77,7 @@ OAuth2（M4，验收前置：sys 已配置 provider，见 3.7）：
 - [x] 三角色菜单集正确（SA：sys 域；TA：tenant 域全量；CU：设备 / 资产 / 告警 / 仪表盘四项）
 - [x] 无权限路由手输 → 拒绝（403 形态对齐 ui-ngx）
 - [x] locale 切换即生效并持久化；双语完整由 CI `check-locale` 门禁兜底
-- [ ] 404 → 重定向设备列表；面包屑随路由（404 ✅；面包屑 M1 未实现）
+- [x] 404 → 重定向设备列表；面包屑随路由（M2 ✅：ADR 0008 PageContainer 面包屑落地，动态段实体名随路由验收）
 - [ ] SA 登录落 `/tenants`，TA / CU 落 `/devices`（TA / CU ✅；SA 待 M3，M1 临时落 `/home`）
 
 ### 3.3 设备域（M1）——资产 / 实体视图 / 网关按 3.4 差分引用本节
@@ -108,17 +108,17 @@ OAuth2（M4，验收前置：sys 已配置 provider，见 3.7）：
 
 ### 3.4 资产 / 实体视图 / 网关（M2）
 
-- [ ] 资产：与 3.3 同构，无 `events` tab（8 tab）；CSV 导入 + 批量分配 / 删除
-- [ ] 实体视图：6 tab 且禁添加遥测；实体选择器表单（目标设备 / 资产 + keys 时间起点）parity
-- [ ] 网关：设备列表变体（gateway profile 过滤），行操作对齐
+- [x] 资产：与 3.3 同构，无 `events` tab（8 tab）；CSV 导入 + 批量分配 / 删除〔M2 ✅；实测口径：8 tab = 无 details tab、含 TA-only calculated-fields / alarm-rules / audit-logs / version-control（ui-ngx 原文为准）；行操作含 make-public / make-private（原则 1）〕
+- [x] 实体视图：6 tab 且禁添加遥测；实体选择器表单（目标设备 / 资产 + keys 时间起点）parity〔M2 ✅；6 tab 同样无 details tab〕
+- [ ] 网关：设备列表变体（gateway profile 过滤），行操作对齐〔裁定 2026-09-01：**推迟 M5**——ui-ngx 的 `/entities/gateways` 实为系统仪表盘页（非列表），后端亦无 gateway profile 过滤 API；随 M5 仪表盘只读按 ui-ngx 真实形态交付，#9 已留痕〕
 
 ### 3.5 客户域 + 用户管理（M2）
 
-- [ ] `customers` CRUD；详情 7 tab（attributes / latest / alarm-rules / alarms / relations / audit-logs / version-control）
-- [ ] 作用域页 ×4（users / devices / assets / dashboards）：进入即过滤该客户，操作集对齐
-- [ ] 设备 / 资产分配：单行 + 批量 + 详情页内取消分配
-- [ ] `users` 六操作；新增选 authority + 所属客户；重置密码 / 重发激活走邮件链路（前置同 3.1）
-- [ ] CU 登录：菜单四项、无 CRUD 按钮、数据只含所属客户作用域
+- [x] `customers` CRUD；详情 7 tab（attributes / latest / alarm-rules / alarms / relations / audit-logs / version-control）〔M2 ✅；7 tab 无 details tab；审计 tab 按客户作用域端点读取（ui-ngx CUSTOMER 模式）〕
+- [x] 作用域页 ×4（users / devices / assets / dashboards）：进入即过滤该客户，操作集对齐〔M2 ✅；dashboards 页为最小面：列表 + 指派 / 取消指派，渲染归 M5〕
+- [x] 设备 / 资产分配：单行 + 批量 + 详情页内取消分配〔M2 ✅〕
+- [x] `users` 六操作；新增选 authority + 所属客户；重置密码 / 重发激活走邮件链路（前置同 3.1）〔M2 ✅；「重置密码」实为展示激活链接（后端无专属端点，ui-ngx parity，登记 BCR C-11）；loginAsUser 为 SA 专属，随 SA 域 M3〕
+- [x] CU 登录：菜单四项、无 CRUD 按钮、数据只含所属客户作用域〔M2 ✅ 现存项；四项中告警（M3）/ 仪表盘（M5）随各自里程碑补齐〕
 
 ### 3.6 告警域（M3）
 
@@ -174,7 +174,7 @@ OAuth2（M4，验收前置：sys 已配置 provider，见 3.7）：
 | 段 | 内容 |
 |---|---|
 | M1 | 基建 + 登录密码线 + 设备域全量。#8 全部落地时序硬约束在本段完成：`theme/brand` + `theme/charts.ts` 先于首个图表组件、biome `useExhaustiveDependencies` 重开先于首批业务代码、`check-locale` 门禁与首个双语 commit 同步、Node 钉版冒烟、dev proxy（`/api/ws` 排在 `/api` 前） |
-| M2 | 资产 + 实体视图 + 网关 + 客户域 + 用户管理 |
+| M2 | 资产 + 实体视图 + 客户域 + 用户管理（网关推迟 M5，2026-09-01 裁定） |
 | M3 | 告警域 + sys admin 全家 + 实体 profile 管理 |
 | M4 | 账户安全域 + MFA 登录线 + OAuth2 登录线 |
 | M5 | 仪表盘只读 + usage 页 + widget 补齐至 demo 锚点 |
@@ -215,3 +215,5 @@ OAuth2（M4，验收前置：sys 已配置 provider，见 3.7）：
 
 - 2026-08-31：初版定案（#9 三轮 grilling：Round 1 骨架八问、Round 2 九域「全都要」、Round 3 边界 / 里程碑 / widget 锚点收口）。
 - 2026-09-01：**M1 验收落账**（终验收 488 次操作核验 + 修复轮 5 commit）。3.1 密码线 7/11（4 项邮件链路待 SMTP 前置）；3.2 应用壳 3/5（SA 落点待 M3；**面包屑未实现**——结构性遗留，头部形态取舍「自定义头 vs ProLayout PageContainer」待 M2 开工前决议）；3.3 列表 10/10 + 详情 10/10（CF=SIMPLE / AR=单阈值范围口径见 3.3 注）。验收中修复 4 个真实缺陷：alarm-data WS 通道直落详情页失联（建连竞态 + 三处后端契约不匹配）、tabular-nums 对 string 管道值失效、CU 凭证 Reset 禁用改隐藏（越权入口收口）、详情返回箭头绕过未保存守卫。WS 实时链路修复后端到端复验 ≤5s（3.11 新鲜度核心项提前达标）。后端缺口候选 8 条登记 `docs/bcr.md`，待阶段边界集中复审。
+
+- 2026-09-01（二）：**M2 落账**（资产 / 实体视图 / 客户域 / 用户管理四域；网关经裁定推迟 M5，见 §3.4 注与 #9 留痕）。架构：头部形态定案官方 PageContainer（ADR 0008）——§3.2「面包屑随路由」随之收口；设备详情 10 tab 面板参数化为实体通用组件（`components/entities`），四域按 ui-ngx 事实组装 tab 集（details 表单上移页头区，资产 8 / 客户 7 / 实体视图 6）。验收：真机四棒 65/65 项全过（资产 19 / 实体视图 16 / 客户域 16 / 用户+横切 14），累计修复 8 处（含实体视图类型输入阻断级缺陷、用户行菜单缓存不失效、客户审计 tab 改客户作用域端点）。口径微调：「重置密码」= 展示激活链接 + 重发激活（BCR C-11）；作用域 dashboards 页最小面（渲染归 M5）；资产无 active 过滤（后端无字段）；loginAsUser 随 SA 域 M3。BCR：C-1 提前复审维持 fallback，新增 C-9～C-11。遗留观察（M6 横切）：全局与组件级错误提示双份待收敛。

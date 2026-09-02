@@ -56,4 +56,25 @@ export default {
   'pages.home.sysPending.title': 'Sys-domain pages under construction',
   'pages.home.sysPending.description':
     'System-admin pages (tenants, tenant profiles, settings) arrive with the M3 milestone. Until then, use the API or the legacy UI for system administration.',
+
+  // Page-container back guard (src/components/layout/page-container.tsx,
+  // ADR 0008) — shared by every entity detail page.
+  'pages.common.unsavedTitle': 'Unsaved changes',
+  'pages.common.unsavedText':
+    'You have unsaved changes. Leave anyway? Changes will be lost.',
+  'pages.common.unsavedLeave': 'Leave',
+  'pages.common.cancel': 'Cancel',
+
+  // Assign-to-customer dialog shared by the device/asset flows
+  // (src/components/entities/AssignCustomerModal.tsx).
+  'pages.entities.assignTitle': 'Assign to customer',
+  'pages.entities.assignConfirm': 'Assign',
+  'pages.entities.cancel': 'Cancel',
+  'pages.entities.customerRequired': 'Customer is required.',
+  'pages.entities.customerPlaceholder': 'Search and select a customer',
+  'pages.entities.customerColumn': 'Customer',
+  'pages.entities.assignOneText':
+    'The entity will be assigned to the selected customer.',
+  'pages.entities.assignText':
+    '{count, plural, =1 {1 entity} other {# entities}} will be assigned to the selected customer.',
 };

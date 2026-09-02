@@ -13,9 +13,11 @@
  */
 
 export * from './alarm';
+export * from './asset';
 export * from './customer';
 export * from './device';
 export * from './entity';
+export * from './entity-view';
 export * from './page';
 export * from './telemetry';
 export * from './user';

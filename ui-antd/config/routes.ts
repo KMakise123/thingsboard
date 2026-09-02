@@ -84,6 +84,89 @@ export default [
     component: './devices/detail',
     hideInMenu: true,
   },
+
+  // ---- M2 domains (stubs; domain agents replace the pages) ----
+  // CU's four menus include assets (spec §1.2) → canTenantOrCustomer;
+  // entity views / customers / users are tenant-admin only (RECON §4).
+  {
+    name: 'assets',
+    icon: 'cluster',
+    path: '/assets',
+    access: 'canTenantOrCustomer',
+    component: './assets/list',
+  },
+  {
+    name: 'assets.detail',
+    path: '/assets/:id',
+    access: 'canTenantOrCustomer',
+    component: './assets/detail',
+    hideInMenu: true,
+  },
+  {
+    name: 'entityViews',
+    icon: 'eye',
+    path: '/entityViews',
+    access: 'canTenantAdmin',
+    component: './entity-views/list',
+  },
+  {
+    name: 'entityViews.detail',
+    path: '/entityViews/:id',
+    access: 'canTenantAdmin',
+    component: './entity-views/detail',
+    hideInMenu: true,
+  },
+  {
+    name: 'customers',
+    icon: 'team',
+    path: '/customers',
+    access: 'canTenantAdmin',
+    component: './customers/list',
+  },
+  {
+    name: 'customers.detail',
+    path: '/customers/:id',
+    access: 'canTenantAdmin',
+    component: './customers/detail',
+    hideInMenu: true,
+  },
+  // Customer-scope pages: flat siblings of the detail route (react-router
+  // ranks the longer path first, order here is irrelevant).
+  {
+    name: 'customers.users',
+    path: '/customers/:id/users',
+    access: 'canTenantAdmin',
+    component: './customers/users',
+    hideInMenu: true,
+  },
+  {
+    name: 'customers.devices',
+    path: '/customers/:id/devices',
+    access: 'canTenantAdmin',
+    component: './customers/devices',
+    hideInMenu: true,
+  },
+  {
+    name: 'customers.assets',
+    path: '/customers/:id/assets',
+    access: 'canTenantAdmin',
+    component: './customers/assets',
+    hideInMenu: true,
+  },
+  {
+    name: 'customers.dashboards',
+    path: '/customers/:id/dashboards',
+    access: 'canTenantAdmin',
+    component: './customers/dashboards',
+    hideInMenu: true,
+  },
+  {
+    name: 'users',
+    icon: 'user',
+    path: '/users',
+    access: 'canTenantAdmin',
+    component: './users/list',
+  },
   {
     name: 'home',
     icon: 'home',

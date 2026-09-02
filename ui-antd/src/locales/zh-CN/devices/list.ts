@@ -51,18 +51,11 @@ export default {
     '请注意，确认后所有选中的设备将被移除，所有相关数据将无法恢复。',
 
   // ---- batch ----
-  'pages.devices.list.assignTitle': '分配设备',
-  'pages.devices.list.assignText': '将 {count} 个设备分配给所选客户。',
-  'pages.devices.list.assignOneText': '将该设备分配给所选客户。',
   'pages.devices.list.unassignManyTitle': '确定要取消分配 {count} 个设备吗？',
   'pages.devices.list.unassignManyText':
     '确认后所有选中的设备将被取消分配，客户将无法访问。',
   'pages.devices.list.unassignTitle': '确定要取消分配设备“{name}”吗？',
   'pages.devices.list.unassignText': '确认后设备将被取消分配，客户将无法访问。',
-  'pages.devices.list.customerPlaceholder': '搜索并选择客户',
-  'pages.devices.list.customerRequired': '请选择客户。',
-  'pages.devices.list.customerColumn': '客户',
-  'pages.devices.list.assignConfirm': '分配',
   'pages.devices.list.batchRunning': '正在处理 {done}/{total} …',
   'pages.devices.list.batchResult': '成功 {ok} 个，失败 {fail} 个。',
   'pages.devices.list.batchFailures': '失败详情',
