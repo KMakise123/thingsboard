@@ -1,6 +1,7 @@
 import { ArrowLeftOutlined, CopyOutlined } from '@ant-design/icons';
 import { Helmet, history, useIntl } from '@umijs/max';
 import { App, Button, Form, Input, Spin } from 'antd';
+import { QRCodeSVG } from 'qrcode.react';
 import type { ChangeEvent } from 'react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { serverErrorText } from '@/components/entities/server-error-text';
@@ -429,10 +430,11 @@ const ForceMfaPage: React.FC = () => {
       ) : view === 'TOTP' && step === 'INPUT' ? (
         <div>
           <p>{formatMessage({ id: 'pages.forceMfa.totp.scanQr' })}</p>
-          {/* TODO(W2): render the real QR code here once qrcode.react lands
-              (brief §3): <QrCanvas authUrl={builtConfig.authUrl} />. Until
-              then only the plain-text secret below is shown — registered
-              parity gap. */}
+          {/* Same local-render shape as the security page's TOTP dialog
+              (brief §3): the otpauth URL becomes an inline SVG QR code. */}
+          {builtConfig?.providerType === 'TOTP' && (
+            <QRCodeSVG value={builtConfig.authUrl} size={180} />
+          )}
           <p>{formatMessage({ id: 'pages.forceMfa.totp.enterKey' })}</p>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <code style={{ flex: 1, wordBreak: 'break-all' }}>
