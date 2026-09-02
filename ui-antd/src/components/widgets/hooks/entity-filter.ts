@@ -20,6 +20,22 @@ export interface EntityListFilter {
 /** PageLink large enough to stream every alias-matched entity in one page. */
 export const WIDGET_ENTITY_PAGE_SIZE = 1024;
 
+/** Widget DataKeyType → wire EntityKeyType (latest values / ts keys). */
+export function entityKeyTypeOfDataKey(type: string): string {
+  switch (type) {
+    case 'timeseries':
+      return 'TIME_SERIES';
+    case 'entityField':
+      return 'ENTITY_FIELD';
+    case 'alarm':
+      return 'ALARM_FIELD';
+    case 'count':
+      return 'COUNT';
+    default:
+      return 'ATTRIBUTE';
+  }
+}
+
 /**
  * Group resolved entities into entityList filters (one per entityType,
  * stable insertion order, ids deduped).

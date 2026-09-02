@@ -21,6 +21,7 @@ export default {
   'dashboards.widget.legend.latest': 'latest',
   'dashboards.widget.table.entity': 'Entity',
   'dashboards.widget.table.timestamp': 'Timestamp',
+  'dashboards.widget.table.search': 'Search',
   'dashboards.widget.map.noLocation': 'No location data',
   'dashboards.widget.map.details': 'View details',
   'dashboards.widget.attributes.saved': 'Attributes saved',

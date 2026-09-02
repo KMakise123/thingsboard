@@ -95,6 +95,8 @@ export interface EntityDataQueryLike {
   };
   entityFields?: Array<{ type: string; key: string }>;
   latestValues?: Array<{ type: string; key: string }>;
+  /** server-side data key filters (KeyFilter passthrough, M5 W2). */
+  keyFilters?: Array<Record<string, unknown>>;
 }
 
 /**

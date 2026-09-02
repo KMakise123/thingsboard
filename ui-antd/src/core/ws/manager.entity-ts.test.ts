@@ -236,6 +236,59 @@ describe('ws manager entity timeseries family (M5 W2)', () => {
     expect(unsub).toMatchObject({ cmdId: 1, type: 'ENTITY_DATA_UNSUBSCRIBE' });
   });
 
+  it('routes entity-data latest updates to the right row (object ids)', async () => {
+    // regression: the update match used String(entityId), which collapses to
+    // '[object Object]' for wire object ids and misroutes every update to
+    // the first row (M5 W2 fix while wiring the entities table)
+    const subscription = manager.subscribeEntityData({
+      query: {
+        entityFilter: { type: 'entityType', entityType: 'DEVICE' },
+        pageLink: { pageSize: 10, page: 0 },
+      },
+      latestCmd: { keys: [{ type: 'ATTRIBUTE', key: 'active' }] },
+    });
+    await flush();
+    FakeWebSocket.last.serverOpen();
+    FakeWebSocket.last.serverMessage({
+      cmdId: 1,
+      errorCode: 0,
+      errorMsg: '',
+      cmdUpdateType: CmdUpdateType.ENTITY_DATA,
+      data: {
+        data: [
+          {
+            entityId: { entityType: EntityType.DEVICE, id: 'd1' },
+            latest: { ATTRIBUTE: { active: { ts: 1, value: 'true' } } },
+          },
+          {
+            entityId: { entityType: EntityType.DEVICE, id: 'd2' },
+            latest: { ATTRIBUTE: { active: { ts: 1, value: 'true' } } },
+          },
+        ],
+        totalPages: 1,
+        totalElements: 2,
+        hasNext: false,
+      },
+    });
+    FakeWebSocket.last.serverMessage({
+      cmdId: 1,
+      errorCode: 0,
+      errorMsg: '',
+      cmdUpdateType: CmdUpdateType.ENTITY_DATA,
+      update: [
+        {
+          entityId: { entityType: EntityType.DEVICE, id: 'd2' },
+          latest: { ATTRIBUTE: { active: { ts: 2, value: 'false' } } },
+        },
+      ],
+    });
+    const rows = subscription.getSnapshot();
+    const d2 = rows.find((row) => (row.entityId as { id: string }).id === 'd2');
+    const d1 = rows.find((row) => (row.entityId as { id: string }).id === 'd1');
+    expect(d2?.latest?.ATTRIBUTE?.active?.value).toBe('false');
+    expect(d1?.latest?.ATTRIBUTE?.active?.value).toBe('true');
+  });
+
   describe('mergeTimeseriesRows (pure)', () => {
     const device = (id: string) => ({ entityType: EntityType.DEVICE, id });
 

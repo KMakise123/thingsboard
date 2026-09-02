@@ -583,7 +583,8 @@ export function createWsManager(options: WsManagerOptions): WsManager {
           const merged = msg.update;
           for (const incoming of merged) {
             const idx = record.snapshot.findIndex(
-              (row) => String(row.entityId) === String(incoming.entityId),
+              (row) =>
+                entityIdKey(row.entityId) === entityIdKey(incoming.entityId),
             );
             if (idx >= 0) {
               record.snapshot = [

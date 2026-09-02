@@ -21,6 +21,7 @@ export default {
   'dashboards.widget.legend.latest': '最新',
   'dashboards.widget.table.entity': '实体',
   'dashboards.widget.table.timestamp': '时间',
+  'dashboards.widget.table.search': '搜索',
   'dashboards.widget.map.noLocation': '暂无位置数据',
   'dashboards.widget.map.details': '查看详情',
   'dashboards.widget.attributes.saved': '属性已保存',
