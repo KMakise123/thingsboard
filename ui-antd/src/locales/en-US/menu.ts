@@ -30,4 +30,7 @@ export default {
   'menu.settings.twoFa': 'Two-factor auth',
   'menu.settings.oauth2': 'OAuth2',
   'menu.settings.auditLogs': 'Audit logs',
+  'menu.account': 'Account',
+  'menu.account.profile': 'Profile',
+  'menu.account.security': 'Security',
 };

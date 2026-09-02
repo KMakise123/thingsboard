@@ -50,10 +50,24 @@ export default [
         path: '/user/password-reset-link-expired',
         component: './user/password-reset-link-expired',
       },
+      // MFA login step + forced-enrollment (login line, spec §3.1): reached
+      // with an interim PRE_VERIFICATION / MFA_CONFIGURATION token, so they
+      // stay under the public /user shell (no access field).
+      {
+        path: '/user/mfa',
+        component: './user/mfa',
+      },
+      {
+        path: '/user/force-mfa',
+        component: './user/force-mfa',
+      },
     ],
   },
   // ui-ngx mail-link aliases (see header comment)
   { path: '/login', redirect: '/user/login' },
+  // MFA flow aliases (backend 302s + ui-ngx deep links land on /login/*).
+  { path: '/login/mfa', redirect: '/user/mfa' },
+  { path: '/login/force-mfa', redirect: '/user/force-mfa' },
   { path: '/login/resetPasswordRequest', redirect: '/user/forgot-password' },
   { path: '/login/resetPassword', redirect: '/user/reset-password' },
   {
@@ -275,6 +289,29 @@ export default [
         name: 'auditLogs',
         path: '/settings/audit-logs',
         component: './settings/audit-logs',
+      },
+    ],
+  },
+  // Account family (spec §3.9): personal profile + security. Entries live
+  // behind the avatar dropdown, so children hide from the side menu (name +
+  // hideInMenu keeps them addressable for breadcrumbs).
+  {
+    name: 'account',
+    path: '/account',
+    access: 'canAuthenticated',
+    routes: [
+      { path: '/account', redirect: '/account/profile' },
+      {
+        name: 'profile',
+        path: '/account/profile',
+        component: './account/profile',
+        hideInMenu: true,
+      },
+      {
+        name: 'security',
+        path: '/account/security',
+        component: './account/security',
+        hideInMenu: true,
       },
     ],
   },

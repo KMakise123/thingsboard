@@ -34,4 +34,7 @@ export default {
   'menu.settings.twoFa': '两步验证',
   'menu.settings.oauth2': 'OAuth2',
   'menu.settings.auditLogs': '审计日志',
+  'menu.account': '账户',
+  'menu.account.profile': '个人资料',
+  'menu.account.security': '安全设置',
 };
