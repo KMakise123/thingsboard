@@ -74,6 +74,28 @@ describe('token-store', () => {
     expect(store.getRefreshToken()).toBe(refresh);
   });
 
+  it('stores an MFA interim pair (null refresh) and drops a stale refresh session', () => {
+    const iat = Math.floor(Date.now() / 1000);
+    const refresh = makeJwt({ sub: 'a', iat, exp: iat + 3600 });
+    store.setTokens(
+      makeJwt({ sub: 'a', iat, exp: iat + 600 }),
+      refresh,
+    );
+    // The interim MFA pairs ship with refreshToken: null (no ttl to derive).
+    const interim = makeJwt({
+      sub: 'tenant@tb',
+      scopes: ['PRE_VERIFICATION_TOKEN'],
+      iat,
+      exp: iat + 1800,
+    });
+    store.setTokens(interim, null);
+    expect(store.getToken()).toBe(interim);
+    expect(store.getRefreshToken()).toBeNull();
+    expect(storage.has('refresh_token')).toBe(false);
+    expect(storage.has('refresh_token_expiration')).toBe(false);
+    expect(storage.has('jwt_token')).toBe(true);
+  });
+
   it('isTokenValid honours the 2s skew guard from ui-ngx', () => {
     const iat = Math.floor(Date.now() / 1000);
     store.setTokens(

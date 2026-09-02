@@ -72,8 +72,14 @@ export function decodeJwt(token: string): TokenClaims | null {
 export interface TokenStore {
   getToken(): string | null;
   getRefreshToken(): string | null;
-  /** Store a token pair; derives client-clock expirations from iat/exp. */
-  setTokens(jwtToken: string, refreshToken: string): void;
+  /**
+   * Store a token pair; derives client-clock expirations from iat/exp.
+   * `refreshToken` may be null — the MFA interim pairs (scope
+   * PRE_VERIFICATION_TOKEN / MFA_CONFIGURATION_TOKEN) ship without one
+   * (ui-ngx parity): only the access token is stored and any stale refresh
+   * session is dropped.
+   */
+  setTokens(jwtToken: string, refreshToken: string | null): void;
   clear(): void;
   isTokenValid(kind: TokenKind): boolean;
   /** Decoded claims of the current token (null when absent/corrupt). */
@@ -112,12 +118,25 @@ export function createTokenStore(storage: TokenStorage): TokenStore {
   return {
     getToken: () => storage.getItem(TOKEN_STORAGE_KEYS.jwtToken),
     getRefreshToken: () => storage.getItem(TOKEN_STORAGE_KEYS.refreshToken),
-    setTokens(jwtToken: string, refreshToken: string): void {
+    setTokens(jwtToken: string, refreshToken: string | null): void {
+      if (!refreshToken) {
+        if (!storeToken('jwt', jwtToken)) {
+          // Reject the whole pair — a half-stored session is worse than none.
+          throw new Error('Invalid token pair: missing or non-positive ttl');
+        }
+        // MFA interim pair: no refresh token by contract. Drop any stale
+        // refresh session so it can never pair with the new access token.
+        storage.removeItem(TOKEN_STORAGE_KEYS.refreshToken);
+        storage.removeItem(TOKEN_STORAGE_KEYS.refreshTokenExpiration);
+        return;
+      }
       if (
         !storeToken('jwt', jwtToken) ||
         !storeToken('refresh', refreshToken)
       ) {
-        // Reject the whole pair — a half-stored session is worse than none.
+        for (const key of Object.values(TOKEN_STORAGE_KEYS)) {
+          storage.removeItem(key);
+        }
         throw new Error('Invalid token pair: missing or non-positive ttl');
       }
     },
