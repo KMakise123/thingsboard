@@ -2,6 +2,7 @@
  * en-US aggregator — same hand-written aggregation contract as zh-CN.ts
  * (umi only scans top-level locale files).
  */
+import account from './en-US/account';
 import alarms from './en-US/alarms';
 import assetProfiles from './en-US/asset-profiles';
 import assets from './en-US/assets';
@@ -22,6 +23,7 @@ export default {
   ...common,
   ...login,
   ...menu,
+  ...account,
   ...alarms,
   ...assetProfiles,
   ...assets,
