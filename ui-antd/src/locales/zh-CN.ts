@@ -15,6 +15,7 @@ import deviceProfiles from './zh-CN/device-profiles';
 import devicesDetail from './zh-CN/devices/detail';
 import devicesList from './zh-CN/devices/list';
 import editor from './zh-CN/editor';
+import editorDashboard from './zh-CN/editor-dashboard';
 import entityViews from './zh-CN/entityViews';
 import login from './zh-CN/login';
 import menu from './zh-CN/menu';
@@ -42,4 +43,5 @@ export default {
   ...devicesList,
   ...devicesDetail,
   ...editor,
+  ...editorDashboard,
 };
