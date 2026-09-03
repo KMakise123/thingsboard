@@ -6,13 +6,7 @@
  * state) or abandons the editor (unknown state). The checkpoint notice is
  * surfaced on both successful save paths.
  */
-import {
-  act,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { App as AntdApp } from 'antd';
 import { createIntl, RawIntlProvider } from 'react-intl';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -36,13 +30,6 @@ const intl = createIntl({
   locale: 'zh-CN',
   messages: { ...zhEditor, ...zhRulechain, ...zhPage },
 });
-
-const CHAIN = {
-  id: { entityType: EntityType.RULE_CHAIN, id: 'rc1' },
-  createdTime: 0,
-  name: 'Test chain',
-  version: 3,
-};
 
 function serverMeta(version: number): RuleChainMetaData {
   return {
@@ -172,9 +159,7 @@ describe('useRuleChainSave — 409 three-option loop', () => {
   });
 
   it('Option C exports the draft and adopts the server truth', async () => {
-    const createObjectURL = vi
-      .spyOn(URL, 'createObjectURL')
-      .mockReturnValue('blob:mock');
+    vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock');
     vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
     const click = vi.fn();
     const anchor = {
@@ -200,9 +185,7 @@ describe('useRuleChainSave — 409 three-option loop', () => {
   });
 
   it('Option C with an unknown server state abandons via onAbandon', async () => {
-    const createObjectURL = vi
-      .spyOn(URL, 'createObjectURL')
-      .mockReturnValue('blob:mock');
+    vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock');
     vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
     const click = vi.fn();
     const anchor = {

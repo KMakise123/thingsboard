@@ -13,11 +13,7 @@
  * 适配); the import dialog reports legacy migrations before creating.
  */
 
-import {
-  DownloadOutlined,
-  MoreOutlined,
-  ReloadOutlined,
-} from '@ant-design/icons';
+import { MoreOutlined, ReloadOutlined } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import {
