@@ -22,6 +22,7 @@ function meta(): Dashboard {
 }
 
 function dirtyDraft(): DashboardConfiguration {
+  // legacy v1 array shapes on purpose — the normalizer upgrades them
   return validateAndUpdateDashboard({
     title: 'x',
     configuration: {
@@ -32,7 +33,7 @@ function dirtyDraft(): DashboardConfiguration {
         { default: true, name: 'Root', layouts: { main: { widgets: [] } } },
       ],
     },
-  }).configuration as DashboardConfiguration;
+  } as unknown as Dashboard).configuration as DashboardConfiguration;
 }
 
 describe('prepareDraftExport — prepareExport parity', () => {

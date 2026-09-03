@@ -74,7 +74,7 @@ describe('findMissingEntityAliases', () => {
     });
     configuration.entityAliases = {
       'alias-present': { id: 'alias-present', alias: 'P', filter: {} },
-    } as DashboardConfiguration['entityAliases'];
+    } as unknown as DashboardConfiguration['entityAliases'];
 
     expect(findMissingEntityAliases(configuration)).toEqual([
       { aliasId: 'alias-missing', widgetIds: ['w1'] },
@@ -133,7 +133,7 @@ describe('createMissingAliasStub', () => {
     const dashboard = {
       title: 'T',
       configuration: { entityAliases: { a1: stub } },
-    } as Dashboard;
+    } as unknown as Dashboard;
     expect(dashboard.configuration?.entityAliases?.a1.alias).toBe('A');
   });
 });
