@@ -4,7 +4,7 @@
  * implementation (spec §3.4) behind this exact signature.
  */
 export {
-  WidgetConfigPanel,
   type PanelSectionId,
+  WidgetConfigPanel,
   type WidgetConfigPanelProps,
 } from './WidgetConfigPanel';

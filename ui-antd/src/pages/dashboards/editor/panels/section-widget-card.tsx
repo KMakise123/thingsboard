@@ -17,10 +17,14 @@ import {
   UndoSafeInput,
   UndoSafeTextArea,
 } from './panel-fields';
-import type { PanelSectionProps } from './section-data';
 import { cfgStr, cfgStrOr, patchWidgetConfig } from './panel-target';
+import type { PanelSectionProps } from './section-data';
 
-export function SectionWidgetCard({ session, target, widget }: PanelSectionProps) {
+export function SectionWidgetCard({
+  session,
+  target,
+  widget,
+}: PanelSectionProps) {
   const { formatMessage } = useIntl();
   const config = widget.config ?? {};
   const showTitle = config.showTitle === true;
@@ -133,9 +137,7 @@ export function SectionWidgetCard({ session, target, widget }: PanelSectionProps
         <UndoSafeInput
           value={cfgStrOr(config, 'iconSize', '')}
           disabled={!showTitleIcon}
-          onEdit={(next) =>
-            patch({ iconSize: next === '' ? undefined : next })
-          }
+          onEdit={(next) => patch({ iconSize: next === '' ? undefined : next })}
           testId="panel-icon-size"
         />
       </PanelRow>
@@ -269,7 +271,9 @@ export function SectionWidgetCard({ session, target, widget }: PanelSectionProps
             }),
             children: (
               <PanelJson
-                value={config.titleStyle ?? { fontSize: '16px', fontWeight: 400 }}
+                value={
+                  config.titleStyle ?? { fontSize: '16px', fontWeight: 400 }
+                }
                 onEdit={(next) => patch({ titleStyle: next })}
                 testIdPrefix="panel-title-style"
               />

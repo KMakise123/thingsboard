@@ -8,21 +8,21 @@
  * probed react-1 descriptor settingsForm → honest empty state (占位三态:
  * the text states the absence plainly, never "coming soon").
  */
-import { Spin, Typography } from 'antd';
+
 import { useQuery } from '@tanstack/react-query';
+import { Spin, Typography } from 'antd';
 import { useIntl } from 'react-intl';
 
 import { FormPropertyForm } from '@/components/form-property/FormPropertyForm';
 import { builtinWidgetEntry } from '@/components/widgets/registry';
 import { getWidgetTypeByFqn } from '@/services/tb/dashboard';
-import {
-  PanelNumber,
-  PanelRow,
-  UndoSafeInput,
-} from './panel-fields';
-import type { PanelSectionProps } from './section-data';
+import { PanelNumber, PanelRow, UndoSafeInput } from './panel-fields';
 import { cfgStrOr, patchWidgetConfig } from './panel-target';
-import { settingsSchemaFromDigest, settingsSchemaFromMeta } from './widget-meta';
+import type { PanelSectionProps } from './section-data';
+import {
+  settingsSchemaFromDigest,
+  settingsSchemaFromMeta,
+} from './widget-meta';
 
 export function SectionAppearance({
   session,
@@ -44,8 +44,7 @@ export function SectionAppearance({
     staleTime: Number.POSITIVE_INFINITY,
     gcTime: Number.POSITIVE_INFINITY,
   });
-  const settingsSchema =
-    registrySchema ?? settingsSchemaFromDigest(probe.data);
+  const settingsSchema = registrySchema ?? settingsSchemaFromDigest(probe.data);
 
   return (
     <div data-testid="panel-section-appearance">

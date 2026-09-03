@@ -14,12 +14,20 @@ import { useIntl } from 'react-intl';
 import { TimewindowPicker } from '@/components/dashboard/timewindow/TimewindowPicker';
 import type { EditorSession } from '@/core/editor/session';
 import type { DashboardConfiguration } from '@/types/tb/dashboard';
-import { createDefaultDashboardTimewindow, type Timewindow } from '@/types/tb/timewindow';
+import {
+  createDefaultDashboardTimewindow,
+  type Timewindow,
+} from '@/types/tb/timewindow';
 import type { AlarmSource, Widget } from '@/types/tb/widget';
 import type { EditorDialogsController } from '../dialogs/host';
 import type { AliasDialogTrigger } from './datasources-editor';
 import { DatasourcesEditor } from './datasources-editor';
-import { PanelNumber, PanelRow, PanelSwitch, UndoSafeInput } from './panel-fields';
+import {
+  PanelNumber,
+  PanelRow,
+  PanelSwitch,
+  UndoSafeInput,
+} from './panel-fields';
 import type { PanelTarget } from './panel-target';
 import { patchWidgetConfig } from './panel-target';
 
@@ -151,9 +159,7 @@ export function SectionData({
               })}
             >
               <TimewindowPicker
-                value={
-                  config.timewindow ?? createDefaultDashboardTimewindow()
-                }
+                value={config.timewindow ?? createDefaultDashboardTimewindow()}
                 onChange={(next: Timewindow) =>
                   patchWidgetConfig(session, target.widgetId, {
                     timewindow: next,

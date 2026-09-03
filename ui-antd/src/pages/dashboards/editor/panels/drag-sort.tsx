@@ -25,7 +25,9 @@ export interface DragSortApi {
   moveDown: (index: number) => void;
 }
 
-export function useDragSort(onReorder: (from: number, to: number) => void): DragSortApi {
+export function useDragSort(
+  onReorder: (from: number, to: number) => void,
+): DragSortApi {
   const fromRef = useRef<number | null>(null);
 
   return {

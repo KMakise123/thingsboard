@@ -76,7 +76,9 @@ export function settingsSchemaFromMeta(meta: unknown): FormProperty[] | null {
  * descriptors carry a React-consumable settingsForm; CE (Angular) bodies
  * never qualify.
  */
-export function settingsSchemaFromDigest(digest: unknown): FormProperty[] | null {
+export function settingsSchemaFromDigest(
+  digest: unknown,
+): FormProperty[] | null {
   const descriptor = (
     digest as { descriptor?: { runtime?: unknown; settingsForm?: unknown } }
   )?.descriptor;
@@ -123,19 +125,14 @@ export function actionSourcesFromMeta(meta: unknown): PanelActionSource[] {
     return DEFAULT_ACTION_SOURCES;
   }
   const sources: PanelActionSource[] = [];
-  for (const [id, value] of Object.entries(
-    raw as Record<string, unknown>,
-  )) {
+  for (const [id, value] of Object.entries(raw as Record<string, unknown>)) {
     if (!value || typeof value !== 'object') {
       continue;
     }
     const source = value as { name?: unknown; multiple?: unknown };
     sources.push({
       id,
-      name:
-        typeof source.name === 'string' && source.name
-          ? source.name
-          : id,
+      name: typeof source.name === 'string' && source.name ? source.name : id,
       multiple: source.multiple !== false,
     });
   }

@@ -19,10 +19,17 @@ export function PanelRow({
   children: React.ReactNode;
 }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+    <div
+      style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}
+    >
       <label
         htmlFor={htmlFor}
-        style={{ flex: '0 0 96px', minWidth: 96, color: 'inherit', opacity: 0.72 }}
+        style={{
+          flex: '0 0 96px',
+          minWidth: 96,
+          color: 'inherit',
+          opacity: 0.72,
+        }}
       >
         {label}
       </label>

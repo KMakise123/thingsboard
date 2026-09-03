@@ -15,8 +15,8 @@ import { FormPropertyForm } from '@/components/form-property/FormPropertyForm';
 import { getCustomComponent } from '@/components/form-property/registry';
 import { FormPropertyType } from '@/components/form-property/types';
 import type { WidgetConfig } from '@/types/tb/widget';
-import type { PanelSectionProps } from './section-data';
 import { patchWidgetConfig } from './panel-target';
+import type { PanelSectionProps } from './section-data';
 import type { BasicModeMeta } from './widget-meta';
 
 export function BasicConfig({
@@ -31,13 +31,18 @@ export function BasicConfig({
     const Custom = getCustomComponent(basic.customComponent);
     if (!Custom) {
       return (
-        <Typography.Text type="warning" data-testid="panel-basic-component-missing">
-          {formatMessage({
-            id: 'editor.dashboard.panel.basic.componentMissing',
-            defaultMessage:
-              'The basic-mode component "{id}" is not registered in this build.',
-          },
-          { id: basic.customComponent })}
+        <Typography.Text
+          type="warning"
+          data-testid="panel-basic-component-missing"
+        >
+          {formatMessage(
+            {
+              id: 'editor.dashboard.panel.basic.componentMissing',
+              defaultMessage:
+                'The basic-mode component "{id}" is not registered in this build.',
+            },
+            { id: basic.customComponent },
+          )}
         </Typography.Text>
       );
     }

@@ -6,7 +6,7 @@
  * widget config (coalesced updateWidgetConfig path).
  */
 import { Button, Input, Select, Space, Typography } from 'antd';
-import { useId, useState } from 'react';
+import { useState } from 'react';
 import { useIntl } from 'react-intl';
 
 import type { DataKey, DataKeyType } from '@/types/tb/widget';
@@ -65,7 +65,6 @@ export function DataKeysEditor({
   const { formatMessage } = useIntl();
   const [newName, setNewName] = useState('');
   const [newType, setNewType] = useState<DataKeyType>('timeseries');
-  const baseId = useId();
 
   const api = useDragSort((from, to) => {
     if (from === to) {
@@ -93,9 +92,7 @@ export function DataKeysEditor({
   };
 
   const patchKey = (index: number, patch: Partial<DataKey>) => {
-    onChange(
-      keys.map((key, i) => (i === index ? { ...key, ...patch } : key)),
-    );
+    onChange(keys.map((key, i) => (i === index ? { ...key, ...patch } : key)));
   };
 
   const removeKey = (index: number) => {
@@ -109,7 +106,8 @@ export function DataKeysEditor({
       </Typography.Text>
       {keys.map((key, index) => (
         <div
-          key={`${baseId}-${index}`}
+          // biome-ignore lint/suspicious/noArrayIndexKey: wire DataKey carries no stable id (ui-ngx parity) — rows are positional; all inputs are controlled so removal re-values in place
+          key={index}
           {...api.rowProps(index)}
           style={{
             border: '1px solid rgba(128,128,128,0.25)',
@@ -120,7 +118,11 @@ export function DataKeysEditor({
           data-testid={`${testIdPrefix}-key-${index}`}
         >
           <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-            <DragSortHandle api={api} index={index} testIdPrefix={`${testIdPrefix}-key-${index}`} />
+            <DragSortHandle
+              api={api}
+              index={index}
+              testIdPrefix={`${testIdPrefix}-key-${index}`}
+            />
             <UndoSafeInput
               value={key.label ?? key.name ?? ''}
               onEdit={(next) =>
@@ -145,12 +147,22 @@ export function DataKeysEditor({
               size="small"
               style={{ minWidth: 96, flex: '0 0 auto' }}
               value={key.type ?? 'timeseries'}
-              options={DATA_KEY_TYPES.map((type) => ({ value: type, label: type }))}
+              options={DATA_KEY_TYPES.map((type) => ({
+                value: type,
+                label: type,
+              }))}
               data-testid={`${testIdPrefix}-key-${index}-type`}
               onChange={(next) => patchKey(index, { type: next })}
             />
           </div>
-          <div style={{ display: 'flex', gap: 4, alignItems: 'center', marginTop: 4 }}>
+          <div
+            style={{
+              display: 'flex',
+              gap: 4,
+              alignItems: 'center',
+              marginTop: 4,
+            }}
+          >
             <PanelColor
               value={key.color}
               onEdit={(next) => patchKey(index, { color: next })}
@@ -171,7 +183,9 @@ export function DataKeysEditor({
               value={key.decimals}
               min={0}
               max={15}
-              onEdit={(next) => patchKey(index, { decimals: next ?? undefined })}
+              onEdit={(next) =>
+                patchKey(index, { decimals: next ?? undefined })
+              }
               testId={`${testIdPrefix}-key-${index}-decimals`}
             />
             <Space size={2} style={{ marginLeft: 'auto' }}>
