@@ -33,8 +33,8 @@ import {
   Tooltip,
   Typography,
 } from 'antd';
-import { Fragment, useState } from 'react';
 import type { ComponentType } from 'react';
+import { Fragment, useState } from 'react';
 
 import { JsonFieldFallback } from './JsonFieldFallback';
 import {
@@ -43,18 +43,18 @@ import {
   resolveCustomComponent,
 } from './registry';
 import {
-  FormPropertyType,
   type FormProperty,
+  FormPropertyType,
   type FormSelectItem,
 } from './types';
 import {
-  type UiHint,
-  type UiHints,
-  type UiWidgetKind,
   groupProperties,
   resolveEnumOptions,
   resolveFieldLabel,
   resolveUiHint,
+  type UiHint,
+  type UiHints,
+  type UiWidgetKind,
 } from './ui-hints';
 
 export interface FormPropertyFormProps {
@@ -317,7 +317,9 @@ export function FormPropertyForm({
             placeholder={hint?.placeholder}
             disabled={property.disabled}
             style={{ width: '100%' }}
-            onChange={(next) => setValue(typeof next === 'number' ? next : null)}
+            onChange={(next) =>
+              setValue(typeof next === 'number' ? next : null)
+            }
           />
         );
       case 'switch':
@@ -382,7 +384,9 @@ export function FormPropertyForm({
     modeKey: string,
   ) => {
     const fieldValue =
-      safeValue[property.id] !== undefined ? safeValue[property.id] : property.default;
+      safeValue[property.id] !== undefined
+        ? safeValue[property.id]
+        : property.default;
     const control = resolveFieldControl(
       property,
       hint,
@@ -398,7 +402,9 @@ export function FormPropertyForm({
       const nested = isRecord(fieldValue) ? fieldValue : {};
       return (
         <div data-testid={`form-property-${property.id}`}>
-          <Typography.Text strong>{resolveFieldLabel(property, hint)}</Typography.Text>
+          <Typography.Text strong>
+            {resolveFieldLabel(property, hint)}
+          </Typography.Text>
           <div style={{ paddingLeft: 16 }}>
             {(property.properties ?? []).map((child) => (
               <Fragment key={child.id}>
@@ -424,14 +430,21 @@ export function FormPropertyForm({
     return (
       <div data-testid={`form-property-${property.id}`}>
         <div
-          style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 4 }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
+            marginBottom: 4,
+          }}
         >
           <Typography.Text>
             {resolveFieldLabel(property, hint)}
             {property.required ? ' *' : ''}
           </Typography.Text>
           {property.subLabel && (
-            <Typography.Text type="secondary">{property.subLabel}</Typography.Text>
+            <Typography.Text type="secondary">
+              {property.subLabel}
+            </Typography.Text>
           )}
           {property.hint && (
             <Tooltip title={property.hint}>

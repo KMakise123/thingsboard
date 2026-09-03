@@ -3,7 +3,7 @@
  * the group/order layout pipeline the renderer consumes.
  */
 import { describe, expect, it } from 'vitest';
-import { FormPropertyType, type FormProperty } from './types';
+import { type FormProperty, FormPropertyType } from './types';
 import {
   groupProperties,
   resolveEnumOptions,
@@ -12,14 +12,22 @@ import {
 } from './ui-hints';
 
 function prop(partial: Partial<FormProperty>): FormProperty {
-  return { id: 'p', name: 'p', type: FormPropertyType.text, default: null, ...partial };
+  return {
+    id: 'p',
+    name: 'p',
+    type: FormPropertyType.text,
+    default: null,
+    ...partial,
+  };
 }
 
 describe('resolveUiHint / resolveFieldLabel / resolveEnumOptions', () => {
   it('resolves the hint by property id and tolerates a missing map', () => {
     const property = prop({ id: 'interval' });
     expect(resolveUiHint(undefined, property)).toBeUndefined();
-    expect(resolveUiHint({ interval: { label: 'Interval' } }, property)).toEqual({
+    expect(
+      resolveUiHint({ interval: { label: 'Interval' } }, property),
+    ).toEqual({
       label: 'Interval',
     });
   });
@@ -37,9 +45,11 @@ describe('resolveUiHint / resolveFieldLabel / resolveEnumOptions', () => {
       items: [{ value: 'a', label: 'A' }],
     });
     expect(resolveEnumOptions(property)).toHaveLength(1);
-    expect(resolveEnumOptions(property, { enumOptions: [{ value: 'b', label: 'B' }] })).toEqual([
-      { value: 'b', label: 'B' },
-    ]);
+    expect(
+      resolveEnumOptions(property, {
+        enumOptions: [{ value: 'b', label: 'B' }],
+      }),
+    ).toEqual([{ value: 'b', label: 'B' }]);
   });
 });
 
@@ -64,7 +74,10 @@ describe('groupProperties', () => {
       hinted: { group: 'Basic' },
     });
     expect(groups.map((g) => g.title)).toEqual(['Basic', 'Advanced']);
-    expect(groups[0].members.map((m) => m.property.id)).toEqual(['first', 'hinted']);
+    expect(groups[0].members.map((m) => m.property.id)).toEqual([
+      'first',
+      'hinted',
+    ]);
   });
 
   it('sorts fields inside a group by hint.order, stable otherwise', () => {

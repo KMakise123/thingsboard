@@ -44,7 +44,9 @@ describe('CodeEditor', () => {
     const stub = screen.getByTestId('codemirror-stub');
     expect(stub).toHaveValue('{"a":1}');
     expect(stub).toHaveAttribute('data-extensions', '1');
-    expect(container.querySelector('[data-testid="code-editor"]')).not.toBeNull();
+    expect(
+      container.querySelector('[data-testid="code-editor"]'),
+    ).not.toBeNull();
   });
 
   it('loads no language extension when language is omitted', () => {

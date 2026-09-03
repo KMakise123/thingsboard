@@ -81,7 +81,7 @@ export function JsonFieldFallback({
           role="alert"
           data-json-error="true"
           data-testid={`${testIdPrefix}-json-error`}
-          message={`Invalid JSON: ${error}`}
+          title={`Invalid JSON: ${error}`}
           style={{ marginTop: 4 }}
         />
       )}

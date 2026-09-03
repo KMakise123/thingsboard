@@ -10,6 +10,7 @@
  * which takes precedence over this global registry (test isolation + composition).
  */
 import type { ComponentType } from 'react';
+import type { FormProperty } from './types';
 import type { UiHint } from './ui-hints';
 
 /**
@@ -73,7 +74,9 @@ export function resolveCustomComponent(
   hint?: UiHint,
   override?: CustomComponentRegistry,
 ): ComponentType<CustomFieldProps> | undefined {
-  const ids = hint?.customComponent ? [hint.customComponent, property.id] : [property.id];
+  const ids = hint?.customComponent
+    ? [hint.customComponent, property.id]
+    : [property.id];
   for (const id of ids) {
     const fromOverride = override?.[id];
     if (fromOverride) {

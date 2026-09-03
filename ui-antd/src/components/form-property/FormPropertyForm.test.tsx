@@ -6,18 +6,20 @@
  * The CodeEditor is mocked (CodeMirror measures layout) — the JSON source
  * path is driven through a textarea stub.
  */
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-
-import { FormPropertyType, type FormProperty } from './types';
 import {
   FormPropertyForm,
   type FormPropertyFormProps,
 } from './FormPropertyForm';
-import {
-  registerCustomComponent,
-  resetCustomComponents,
-} from './registry';
+import { registerCustomComponent, resetCustomComponents } from './registry';
+import { type FormProperty, FormPropertyType } from './types';
 import type { UiHints } from './ui-hints';
 
 vi.mock('../code-editor', () => ({
@@ -108,7 +110,14 @@ describe('FormPropertyForm — inference from value shape', () => {
 
   it('number value renders an InputNumber and emits a number', () => {
     const { onChange } = renderForm(
-      [prop({ id: 'port', name: 'Port', type: undefined as never, default: 1883 })],
+      [
+        prop({
+          id: 'port',
+          name: 'Port',
+          type: undefined as never,
+          default: 1883,
+        }),
+      ],
       {},
     );
     fireEvent.change(within(field('port')).getByRole('spinbutton'), {
@@ -119,7 +128,14 @@ describe('FormPropertyForm — inference from value shape', () => {
 
   it('string value with uiHints enumOptions renders a Select and emits the picked option value', async () => {
     const { onChange } = renderForm(
-      [prop({ id: 'mode', name: 'Mode', type: undefined as never, default: '' })],
+      [
+        prop({
+          id: 'mode',
+          name: 'Mode',
+          type: undefined as never,
+          default: '',
+        }),
+      ],
       { mode: 'fast' },
       {
         uiHints: {
@@ -138,7 +154,14 @@ describe('FormPropertyForm — inference from value shape', () => {
 
   it('plain string renders an Input and the label falls back to the property id', () => {
     const { onChange } = renderForm(
-      [prop({ id: 'plain', name: undefined, type: undefined as never, default: '' })],
+      [
+        prop({
+          id: 'plain',
+          name: undefined,
+          type: undefined as never,
+          default: '',
+        }),
+      ],
       { plain: 'hello' },
     );
     const input = within(field('plain')).getByRole('textbox');
@@ -150,7 +173,14 @@ describe('FormPropertyForm — inference from value shape', () => {
 
   it('array of primitives renders a tags Select and emits the updated array', async () => {
     const { onChange } = renderForm(
-      [prop({ id: 'tags', name: 'Tags', type: undefined as never, default: [] })],
+      [
+        prop({
+          id: 'tags',
+          name: 'Tags',
+          type: undefined as never,
+          default: [],
+        }),
+      ],
       { tags: ['a'] },
       {
         uiHints: {
@@ -211,7 +241,18 @@ describe('FormPropertyForm — declared upstream property.type', () => {
 
   it('number property honors min/max/step via InputNumber and required marks the label', () => {
     renderForm(
-      [prop({ id: 'n', name: 'Count', type: FormPropertyType.number, default: 1, min: 1, max: 9, step: 2, required: true })],
+      [
+        prop({
+          id: 'n',
+          name: 'Count',
+          type: FormPropertyType.number,
+          default: 1,
+          min: 1,
+          max: 9,
+          step: 2,
+          required: true,
+        }),
+      ],
       { n: 3 },
     );
     expect(within(field('n')).getByRole('spinbutton')).toBeInTheDocument();
@@ -220,7 +261,13 @@ describe('FormPropertyForm — declared upstream property.type', () => {
 });
 
 describe('FormPropertyForm — resolution precedence', () => {
-  const CustomInput = ({ value, onChange }: { value: unknown; onChange: (next: unknown) => void }) => (
+  const CustomInput = ({
+    value,
+    onChange,
+  }: {
+    value: unknown;
+    onChange: (next: unknown) => void;
+  }) => (
     <input
       data-testid="custom-field"
       value={String(value ?? '')}
@@ -230,7 +277,14 @@ describe('FormPropertyForm — resolution precedence', () => {
 
   it('uiHints.widget overrides the value-shape inference', () => {
     renderForm(
-      [prop({ id: 'count', name: 'Count', type: undefined as never, default: 0 })],
+      [
+        prop({
+          id: 'count',
+          name: 'Count',
+          type: undefined as never,
+          default: 0,
+        }),
+      ],
       { count: 5 },
       { uiHints: { count: { widget: 'input' } } },
     );
@@ -253,8 +307,18 @@ describe('FormPropertyForm — resolution precedence', () => {
     registerCustomComponent('by-hint-id', CustomInput);
     renderForm(
       [
-        prop({ id: 'by-property-id', name: 'A', type: FormPropertyType.text, default: '' }),
-        prop({ id: 'other', name: 'B', type: FormPropertyType.text, default: '' }),
+        prop({
+          id: 'by-property-id',
+          name: 'A',
+          type: FormPropertyType.text,
+          default: '',
+        }),
+        prop({
+          id: 'other',
+          name: 'B',
+          type: FormPropertyType.text,
+          default: '',
+        }),
       ],
       { byPropertyId: '', other: '' },
       { uiHints: { other: { customComponent: 'by-hint-id' } } },
@@ -266,7 +330,14 @@ describe('FormPropertyForm — resolution precedence', () => {
     registerCustomComponent('config', CustomInput);
     const Override = () => <input data-testid="override-field" />;
     renderForm(
-      [prop({ id: 'config', name: 'Config', type: FormPropertyType.text, default: '' })],
+      [
+        prop({
+          id: 'config',
+          name: 'Config',
+          type: FormPropertyType.text,
+          default: '',
+        }),
+      ],
       { config: 'x' },
       { customComponents: { config: Override } },
     );
@@ -278,7 +349,14 @@ describe('FormPropertyForm — resolution precedence', () => {
 describe('FormPropertyForm — JSON source mode + fidelity', () => {
   it('object value falls back to the JSON editor and round-trips through edits', () => {
     const { onChange } = renderForm(
-      [prop({ id: 'payload', name: 'Payload', type: undefined as never, default: {} })],
+      [
+        prop({
+          id: 'payload',
+          name: 'Payload',
+          type: undefined as never,
+          default: {},
+        }),
+      ],
       { payload: { inner: 1 }, sibling: 'keep' },
     );
     expect(screen.getByTestId('payload-json-editor')).toHaveValue(
@@ -294,19 +372,36 @@ describe('FormPropertyForm — JSON source mode + fidelity', () => {
 
   it('invalid JSON in source mode shows an inline error and does not propagate', () => {
     const { onChange } = renderForm(
-      [prop({ id: 'payload', name: 'Payload', type: undefined as never, default: {} })],
+      [
+        prop({
+          id: 'payload',
+          name: 'Payload',
+          type: undefined as never,
+          default: {},
+        }),
+      ],
       { payload: { inner: 1 } },
     );
     fireEvent.change(screen.getByTestId('payload-json-editor'), {
       target: { value: '{inner:1' },
     });
     expect(onChange).not.toHaveBeenCalled();
-    expect(screen.getByRole('alert')).toHaveAttribute('data-json-error', 'true');
+    expect(screen.getByRole('alert')).toHaveAttribute(
+      'data-json-error',
+      'true',
+    );
   });
 
   it('the per-field toggle swaps a normal input into JSON source mode', () => {
     const { onChange } = renderForm(
-      [prop({ id: 'title', name: 'Title', type: FormPropertyType.text, default: '' })],
+      [
+        prop({
+          id: 'title',
+          name: 'Title',
+          type: FormPropertyType.text,
+          default: '',
+        }),
+      ],
       { title: 'x' },
     );
     fireEvent.click(screen.getByTestId('json-toggle-title'));
@@ -320,8 +415,18 @@ describe('FormPropertyForm — JSON source mode + fidelity', () => {
   it('jsonFallbackEnabled=false hides the toggle but keeps the fallback control for objects', () => {
     renderForm(
       [
-        prop({ id: 'title', name: 'Title', type: FormPropertyType.text, default: '' }),
-        prop({ id: 'payload', name: 'Payload', type: undefined as never, default: {} }),
+        prop({
+          id: 'title',
+          name: 'Title',
+          type: FormPropertyType.text,
+          default: '',
+        }),
+        prop({
+          id: 'payload',
+          name: 'Payload',
+          type: undefined as never,
+          default: {},
+        }),
       ],
       { title: 'x', payload: {} },
       { jsonFallbackEnabled: false },
@@ -339,8 +444,18 @@ describe('FormPropertyForm — JSON source mode + fidelity', () => {
           type: FormPropertyType.fieldset,
           default: {},
           properties: [
-            prop({ id: 'size', name: 'Size', type: FormPropertyType.number, default: 12 }),
-            prop({ id: 'family', name: 'Family', type: FormPropertyType.text, default: '' }),
+            prop({
+              id: 'size',
+              name: 'Size',
+              type: FormPropertyType.number,
+              default: 12,
+            }),
+            prop({
+              id: 'family',
+              name: 'Family',
+              type: FormPropertyType.text,
+              default: '',
+            }),
           ],
         }),
       ],
@@ -350,7 +465,11 @@ describe('FormPropertyForm — JSON source mode + fidelity', () => {
       target: { value: '14' },
     });
     const next = onChange.mock.calls[0][0];
-    expect(next.font).toEqual({ size: 14, family: 'Roboto', extra: { nested: true } });
+    expect(next.font).toEqual({
+      size: 14,
+      family: 'Roboto',
+      extra: { nested: true },
+    });
   });
 });
 
@@ -358,9 +477,26 @@ describe('FormPropertyForm — layout + safety', () => {
   it('groups sections by uiHints groupOrder and orders fields within a group', () => {
     renderForm(
       [
-        prop({ id: 'adv', name: 'Adv', group: 'Advanced', type: FormPropertyType.text, default: '' }),
-        prop({ id: 'basic2', name: 'B2', group: 'Basic', type: FormPropertyType.text, default: '' }),
-        prop({ id: 'basic1', name: 'B1', type: FormPropertyType.text, default: '' }),
+        prop({
+          id: 'adv',
+          name: 'Adv',
+          group: 'Advanced',
+          type: FormPropertyType.text,
+          default: '',
+        }),
+        prop({
+          id: 'basic2',
+          name: 'B2',
+          group: 'Basic',
+          type: FormPropertyType.text,
+          default: '',
+        }),
+        prop({
+          id: 'basic1',
+          name: 'B1',
+          type: FormPropertyType.text,
+          default: '',
+        }),
       ],
       {},
       {
@@ -400,7 +536,14 @@ describe('FormPropertyForm — layout + safety', () => {
 
   it('with a null value, edits start from an empty object instead of crashing', () => {
     const { onChange } = renderForm(
-      [prop({ id: 's', name: 'S', type: FormPropertyType.text, default: 'dft' })],
+      [
+        prop({
+          id: 's',
+          name: 'S',
+          type: FormPropertyType.text,
+          default: 'dft',
+        }),
+      ],
       null as unknown as Record<string, unknown>,
     );
     expect(within(field('s')).getByRole('textbox')).toHaveValue('dft');
@@ -414,7 +557,12 @@ describe('FormPropertyForm — layout + safety', () => {
     render(
       <FormPropertyForm
         properties={[
-          prop({ id: 'help', name: 'Help', type: FormPropertyType.htmlSection, default: null }),
+          prop({
+            id: 'help',
+            name: 'Help',
+            type: FormPropertyType.htmlSection,
+            default: null,
+          }),
         ]}
         value={{}}
         onChange={vi.fn()}

@@ -95,7 +95,7 @@ export function groupProperties(
     members: [],
   };
 
-  properties.forEach((property, index) => {
+  properties.forEach((property) => {
     if (property.visible === false) {
       return;
     }
@@ -110,7 +110,10 @@ export function groupProperties(
       group = { title, order: Number.POSITIVE_INFINITY, members: [] };
       groups.set(title, group);
     }
-    group.order = Math.min(group.order, hint?.groupOrder ?? Number.POSITIVE_INFINITY);
+    group.order = Math.min(
+      group.order,
+      hint?.groupOrder ?? Number.POSITIVE_INFINITY,
+    );
     group.members.push({ property, hint });
   });
 

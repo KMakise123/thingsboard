@@ -3,13 +3,13 @@
  * precedence chain (hint id → property id, override map → global registry).
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { FormPropertyType } from './types';
 import {
   getCustomComponent,
   registerCustomComponent,
   resetCustomComponents,
   resolveCustomComponent,
 } from './registry';
+import { FormPropertyType } from './types';
 
 const property = {
   id: 'scriptBody',
@@ -58,6 +58,8 @@ describe('custom-component registry', () => {
   });
 
   it('returns undefined for unknown properties', () => {
-    expect(resolveCustomComponent({ ...property, id: 'unknown' })).toBeUndefined();
+    expect(
+      resolveCustomComponent({ ...property, id: 'unknown' }),
+    ).toBeUndefined();
   });
 });

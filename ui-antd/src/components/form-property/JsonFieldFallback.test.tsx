@@ -80,7 +80,9 @@ describe('JsonFieldFallback', () => {
     const { rerender } = render(
       <JsonFieldFallback value={{ a: 1 }} onChange={vi.fn()} />,
     );
-    rerender(<JsonFieldFallback value={{ a: 2, b: true }} onChange={vi.fn()} />);
+    rerender(
+      <JsonFieldFallback value={{ a: 2, b: true }} onChange={vi.fn()} />,
+    );
     expect(screen.getByTestId('field-json-editor')).toHaveValue(
       '{\n  "a": 2,\n  "b": true\n}',
     );
