@@ -47,6 +47,7 @@ import {
   createDefaultDashboardTimewindow,
   type Timewindow,
 } from '@/types/tb/timewindow';
+import { EditorCanvas } from './canvas/EditorCanvas';
 import { ConflictDialog } from './contract/ConflictDialog';
 import { importDashboardIntoEditor } from './contract/import-dashboard';
 import {
@@ -398,8 +399,13 @@ export function EditorShell({ session, dashboard }: EditorShellProps) {
 
       <div style={{ display: 'flex', gap: 8, alignItems: 'stretch' }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          {/* EditorCanvas lands in the canvas unit; slot kept for wiring */}
-          <div data-testid="editor-canvas-slot" style={{ minHeight: 200 }} />
+          <EditorCanvas
+            session={session}
+            selectedWidgetId={selectedWidgetId}
+            onSelectWidget={setSelectedWidgetId}
+            dashboardTimewindow={timewindow}
+            showRightLayout={showRightLayout}
+          />
         </div>
         <WidgetConfigPanel
           session={session}
