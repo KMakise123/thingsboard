@@ -125,10 +125,11 @@ describe('RuleChainEditorShell — library DnD → add-node dialog (host seam)',
     // prefilled with the component display name (ui-ngx parity)
     expect(nameInput).toHaveValue('Test Filter');
     fireEvent.change(nameInput, { target: { value: 'My Filter' } });
-    // the config slot shows the descriptor default configuration
-    expect(screen.getByTestId('rc-node-config-slot')).toHaveTextContent(
-      'org.example.TestFilter',
-    );
+    // wave-3 K2: the slot renders the generated NodeConfigForm — the value
+    // tree's `threshold` field becomes a real control inside it
+    expect(screen.getByTestId('rc-node-config-slot')).toBeInTheDocument();
+    expect(screen.getByTestId('node-config-form')).toBeInTheDocument();
+    expect(screen.getByTestId('form-property-threshold')).toBeInTheDocument();
     // antd renders two-CJK-char buttons with an inner space ("确 定")
     fireEvent.click(screen.getByRole('button', { name: /确\s*定/ }));
 
