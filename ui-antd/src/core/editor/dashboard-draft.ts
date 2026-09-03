@@ -22,17 +22,18 @@
  *    or clipboard objects (immer auto-freeze would leak into them).
  */
 
+import { createDefaultState, getRootStateId } from '@/core/dashboard/model';
 import type {
+  DashboardBreakpointId,
   DashboardConfiguration,
   DashboardFilter,
   DashboardLayout,
   DashboardLayoutId,
+  DashboardSettings,
   DashboardState,
   EntityAlias,
   GridSettings,
-  DashboardSettings,
 } from '@/types/tb/dashboard';
-import { createDefaultState, getRootStateId } from '@/core/dashboard/model';
 import type { Widget, WidgetConfig, WidgetLayout } from '@/types/tb/widget';
 import type { EditorSession } from './session';
 
@@ -118,8 +119,21 @@ export function removeWidget(input: RemoveWidgetInput): DashboardDraftWrite {
       for (const state of Object.values(draft.states)) {
         for (const layout of Object.values(state.layouts)) {
           delete layout.widgets[widgetId];
-          for (const breakpoint of Object.values(layout.breakpoints ?? {})) {
-            delete breakpoint.widgets[widgetId];
+          const breakpoints = layout.breakpoints;
+          if (breakpoints) {
+            for (const bpId of Object.keys(
+              breakpoints,
+            ) as DashboardBreakpointId[]) {
+              // NOTE: Omit<DashboardLayout,'breakpoints'> degrades to
+              // { [key: string]: unknown } because DashboardLayout carries an
+              // index signature — read the widget record through a cast.
+              const breakpoint = breakpoints[bpId] as
+                | { widgets: Record<string, WidgetLayout> }
+                | undefined;
+              if (breakpoint) {
+                delete breakpoint.widgets[widgetId];
+              }
+            }
           }
         }
       }
@@ -141,7 +155,12 @@ export function moveWidget(input: MoveWidgetInput): DashboardDraftWrite {
   return {
     label: 'move widget',
     recipe: (draft): void => {
-      const entry = requireWidgetLayoutEntry(draft, widgetId, stateId, layoutId);
+      const entry = requireWidgetLayoutEntry(
+        draft,
+        widgetId,
+        stateId,
+        layoutId,
+      );
       entry.row = row;
       entry.col = col;
     },
@@ -161,7 +180,12 @@ export function resizeWidget(input: ResizeWidgetInput): DashboardDraftWrite {
   return {
     label: 'resize widget',
     recipe: (draft): void => {
-      const entry = requireWidgetLayoutEntry(draft, widgetId, stateId, layoutId);
+      const entry = requireWidgetLayoutEntry(
+        draft,
+        widgetId,
+        stateId,
+        layoutId,
+      );
       entry.sizeX = sizeX;
       entry.sizeY = sizeY;
     },
@@ -210,7 +234,12 @@ export function updateWidgetLayout(
   return {
     label: 'update widget layout',
     recipe: (draft): void => {
-      const entry = requireWidgetLayoutEntry(draft, widgetId, stateId, layoutId);
+      const entry = requireWidgetLayoutEntry(
+        draft,
+        widgetId,
+        stateId,
+        layoutId,
+      );
       Object.assign(entry, clone(layout));
     },
   };
@@ -274,9 +303,8 @@ export interface CopyWidgetsInput {
 export function copyWidgets(input: CopyWidgetsInput): CopiedWidget[] {
   const { configuration, widgetIds, stateId, layoutId } = input;
   const resolvedStateId = stateId ?? getRootStateId(configuration.states);
-  const layout = configuration.states[resolvedStateId]?.layouts[
-    layoutId ?? 'main'
-  ];
+  const layout =
+    configuration.states[resolvedStateId]?.layouts[layoutId ?? 'main'];
   const copied: CopiedWidget[] = [];
   for (const widgetId of widgetIds) {
     const widget = configuration.widgets[widgetId];

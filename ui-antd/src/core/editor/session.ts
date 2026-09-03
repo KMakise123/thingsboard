@@ -37,7 +37,12 @@
  *    the UI may surface it later.
  */
 
-import { applyPatches, enablePatches, type Patch, produceWithPatches } from 'immer';
+import {
+  applyPatches,
+  enablePatches,
+  type Patch,
+  produceWithPatches,
+} from 'immer';
 
 enablePatches();
 
@@ -229,9 +234,7 @@ export class EditorSession<T extends object> {
     // exactly — reset the reference so dirty goes false. With truncated
     // history the reconstruction cannot reach the baseline; keep the value.
     this.draft =
-      this.undoStack.length === 0 && !this.truncated
-        ? this.baseline
-        : restored;
+      this.undoStack.length === 0 && !this.truncated ? this.baseline : restored;
     this.redoStack.push(group);
     this.notify();
   }

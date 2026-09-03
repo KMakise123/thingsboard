@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import { createDefaultState } from '@/core/dashboard/model';
-import type { DashboardConfiguration } from '@/types/tb/dashboard';
+import type {
+  DashboardBreakpointId,
+  DashboardConfiguration,
+} from '@/types/tb/dashboard';
 import type { Widget, WidgetLayout } from '@/types/tb/widget';
 import {
   addState,
@@ -79,7 +82,9 @@ describe('dashboard draft: widget lifecycle', () => {
       addWidget({ widget: makeWidget('system.b', 'B'), stateId: 'default' }),
     );
 
-    const newId = Object.keys(session.current.widgets).find((id) => id !== 'w1');
+    const newId = Object.keys(session.current.widgets).find(
+      (id) => id !== 'w1',
+    );
     expect(newId).toBeDefined();
     const inserted = session.current.widgets[newId as string];
     expect(inserted?.typeFullFqn).toBe('system.b');
@@ -156,8 +161,20 @@ describe('dashboard draft: widget lifecycle', () => {
     for (const state of Object.values(session.current.states)) {
       for (const layoutEntry of Object.values(state.layouts)) {
         expect(Object.keys(layoutEntry.widgets)).not.toContain('w1');
-        for (const bp of Object.values(layoutEntry.breakpoints ?? {})) {
-          expect(Object.keys(bp.widgets)).not.toContain('w1');
+        const breakpoints = layoutEntry.breakpoints;
+        if (breakpoints) {
+          for (const bpId of Object.keys(
+            breakpoints,
+          ) as DashboardBreakpointId[]) {
+            // Omit<DashboardLayout,'breakpoints'> degrades under the index
+            // signature — cast to read the widget record
+            const bp = breakpoints[bpId] as
+              | { widgets: Record<string, string> }
+              | undefined;
+            if (bp) {
+              expect(Object.keys(bp.widgets)).not.toContain('w1');
+            }
+          }
         }
       }
     }
