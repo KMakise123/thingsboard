@@ -32,6 +32,9 @@ const tokenStoreMock = vi.hoisted(() => ({
   decodeTokenClaims: vi.fn<() => { sub?: string; scopes?: string[] } | null>(
     () => null,
   ),
+  // Guard added with the M6 logout fix: the login page checks token
+  // validity before bouncing a stale user ref to the role landing page.
+  isTokenValid: vi.fn<() => boolean>(() => true),
 }));
 
 vi.mock('@umijs/max', async () => {

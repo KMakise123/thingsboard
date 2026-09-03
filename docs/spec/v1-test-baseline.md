@@ -25,7 +25,7 @@ v1 测试 = **混合模式**：横切章与每域冒烟路径自动化，域内�
 
 ### 3.1 运行环境
 
-- **后端 = 本仓库后端代码直接运行**（开发者裁决，弃上游 release 镜像）：Maven 构建 + H2 demo profile 起单体；本地开发连 localhost 后端，CI 在 e2e job 内起进程。不变量：**陪练后端即本仓代码**——BCR 自有契约（`/api/ext/**`）落地后天然同步，无镜像切换条件。
+- **后端 = 本仓库后端代码直接运行**（开发者裁决，弃上游 release 镜像）：Maven 构建 + PostgreSQL 起单体（本地连本机 PG18 的 thingsboard 库 + demo 数据，CI 用 PG service 容器）。〔2026-09-03 修订：原表述「H2 demo profile」基于过时假设——上游已移除嵌入式 H2 demo 数据库，本仓全仓 pom 与 thingsboard.yml 均无 hsqldb/H2 依赖（M6 侦察实测）；PG 为唯一可行路径，不变量「陪练后端即本仓代码」不受影响。〕本地开发连 localhost 后端，CI 在 e2e job 内起进程。不变量：**陪练后端即本仓代码**——BCR 自有契约（`/api/ext/**`）落地后天然同步，无镜像切换条件。
 - **种子脚本 = 交付物**（`ui-antd/e2e/seed/`）：三角色账号（SA / TA / CU）+ demo 数据（设备、告警、demo 仪表盘引用）。
 - **错误注入**：Playwright `page.route` 在真实后端之上拦截（401 / 5xx）。WS 不可 mock（Playwright 能力边界），订阅类验收对真 socket 跑。
 - CI e2e job 用 Maven 仓库 cache 缓解构建时长。
@@ -74,7 +74,7 @@ v1 测试 = **混合模式**：横切章与每域冒烟路径自动化，域内�
 | job | 内容 | 备注 |
 |---|---|---|
 | ④ `test` | `vitest --coverage`（阈值门禁） | 快，分钟级 |
-| ⑤ `e2e` | 构建并起本仓后端（H2 demo）+ 种子 + Playwright | `--retries=1`；Maven cache 减痛 |
+| ⑤ `e2e` | 构建并起本仓后端（PG service 容器 + demo 数据）+ 种子 + Playwright | `--retries=1`；Maven cache 减痛 |
 
 既有三件门（biome check / tsc / build，#8）与 check-locale（#8/#9）不变。
 
@@ -105,3 +105,4 @@ v1 测试 = **混合模式**：横切章与每域冒烟路径自动化，域内�
 ## 修订记录
 
 - 2026-08-31：初版定案（#12 三轮 grilling）。
+- 2026-09-03：M6 收口修订——§3.1 运行环境 H2 → PostgreSQL（原表述基于过时假设：上游已移除嵌入式 demo 数据库，本仓无 H2/hsqldb 依赖；PG 为唯一可行路径，陪练后端=本仓代码不变量不变）；§3.2/§3.3 E2E 与种子脚本随 M6 统一补齐落地（M1~M3 均未落基建，见 #9 修订记录 M3 条）。

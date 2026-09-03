@@ -152,7 +152,7 @@
         </dependency>
         <dependency>
             <groupId>org.thingsboard</groupId>
-            <artifactId>ui-ngx</artifactId>
+            <artifactId>ui-antd</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>
         </dependency>

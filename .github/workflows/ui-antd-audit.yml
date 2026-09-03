@@ -1,8 +1,7 @@
 # Weekly production-dependency audit for ui-antd — informational, never
 # blocking (ADR 0007): failures open a ticket, not a red required check.
-#
-# NOTE: hoist to <repo-root>/.github/workflows/ together with ui-antd-ci.yml
-# to activate (paths below are already root-shaped).
+# Hoisted from ui-antd/.github/workflows/audit.yml (GitHub only executes
+# workflows from the REPO ROOT .github/workflows/).
 
 name: ui-antd audit
 

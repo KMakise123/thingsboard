@@ -65,6 +65,15 @@ const Login: React.FC = () => {
     if (!mountedUser.current) {
       return;
     }
+    // Tokens cleared synchronously (logout / failed-refresh unauthorized
+    // exit) must win over a stale currentUser ref: the memory state is
+    // wiped through startTransition and can lag behind the navigation that
+    // lands here. Without this guard the login page bounces the
+    // just-logged-out user straight back to the role landing page with no
+    // tokens — every subsequent request then 401s (M6 cross-cutting fix).
+    if (!tokenStore.isTokenValid('jwt')) {
+      return;
+    }
     // MFA interim tokens normally leave currentUser empty (app.tsx), but a
     // stale ref must never bounce an interim state to the landing page —
     // that would loop mfa ⇄ login. Judge on the token scope, never on

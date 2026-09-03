@@ -83,16 +83,16 @@ OAuth2（M4，验收前置：sys 已配置 provider，见 3.7）：
 ### 3.3 设备域（M1）——资产 / 实体视图 / 网关按 3.4 差分引用本节
 
 列表：
-- [ ] 分页 10/20/30 + 服务端排序 + URL 参数同步（page / pageSize / sortOrder / 过滤项），可书签恢复
-- [ ] 服务端文本搜索（防抖）
-- [ ] profile 自动补全过滤 + active 下拉（any / active / inactive）
-- [ ] URL 带 `deviceProfileId` / `active` 初始化过滤
-- [ ] 多步新建向导：profile 选择 → 名称 / label → 凭证配置（三类型）→ 连通性检查结果展示 → 完成入列
-- [ ] 凭证 dialog：按凭证类型查看 / 复制（token / 证书 / client id+secret）、重置（二次确认）
-- [ ] 连通性检查 dialog：独立入口 + 排障输出对齐 ui-ngx
-- [ ] 批量删除 / 批量分配客户 / 批量取消分配（确认弹窗 + 结果 toast）
-- [ ] CSV 导入：文件选择 → 列映射 → 导入进度 / 结果（对齐 `ImportDialogCsv`）
-- [ ] 行删除（二次确认）
+- [x] 分页 10/20/30 + 服务端排序 + URL 参数同步（page / pageSize / sortOrder / 过滤项），可书签恢复〔M1 ✅（修订记录落账 10/10，正文补勾）；M6 E2E 05 组书签往返复验〕
+- [x] 服务端文本搜索（防抖）〔M1 ✅；M6 冒烟 devices 搜索路径复验〕
+- [x] profile 自动补全过滤 + active 下拉（any / active / inactive）〔M1 ✅ 正文补勾〕
+- [x] URL 带 `deviceProfileId` / `active` 初始化过滤〔M1 ✅ 正文补勾〕
+- [x] 多步新建向导：profile 选择 → 名称 / label → 凭证配置（三类型）→ 连通性检查结果展示 → 完成入列〔M1 ✅ 正文补勾；单测 DeviceWizardModal 覆盖〕
+- [x] 凭证 dialog：按凭证类型查看 / 复制（token / 证书 / client id+secret）、重置（二次确认）〔M1 ✅ 正文补勾〕
+- [x] 连通性检查 dialog：独立入口 + 排障输出对齐 ui-ngx〔M1 ✅ 正文补勾〕
+- [x] 批量删除 / 批量分配客户 / 批量取消分配（确认弹窗 + 结果 toast）〔M1 ✅ 正文补勾；批量走扇出 fallback，BCR C-1〕
+- [x] CSV 导入：文件选择 → 列映射 → 导入进度 / 结果（对齐 `ImportDialogCsv`）〔M1 ✅ 正文补勾；单测 csv-import 覆盖〕
+- [x] 行删除（二次确认）〔M1 ✅ 正文补勾；M6 真机复验确认框插值标题〕
 
 详情 10 tab：
 - [x] `details`：编辑 / 保存 / 离开未保存确认；字段校验
@@ -168,16 +168,18 @@ OAuth2（M4，验收前置：sys 已配置 provider，见 3.7）：
 
 ### 3.11 横切验收（全页适用，M6 全绿）
 
-- [ ] 认证：401 刷新单飞（并发挂队重放、失败登出、豁免登录 / 刷新端点）；WS 首帧 AUTH、AUTH 失败刷新 → 重连 → 重发
-- [ ] WS 订阅管理器：8 族 cmd；断线重连（2s×2^n 封顶 60s，上限 10 次）后页面自动恢复，无需手动操作；零订阅 90s 关连；cmd 批量 ≤10
-- [ ] 新鲜度：本地环境遥测 / 告警变更呈现 ≤5s
-- [ ] 错误态：后端错误原文透传 + 通用壳文案（`server-error.ts`）；网络断开全局提示
-- [ ] 空态 / 加载态：每列表与详情 tab 均有；删除类操作二次确认
-- [ ] 双语：zh-CN / en-US key 全等（CI 门禁零红）；HTTP 层发 Accept-Language
-- [ ] 品牌：title / logo / favicon / 登录背景单源 `theme/brand`（三处漏风点全封，#8）
-- [ ] 三角色菜单 / 按钮门禁全覆盖（`access.ts` 对齐 Authority）
-- [ ] 遥测数字列 tabular-nums；CJK 字体栈生效（#8）
-- [ ] 列表页 URL 状态可书签恢复（分页 / 排序 / 过滤）
+> M6 验收注（2026-09-03）：10/10 勾。自动化形态 = E2E 横切专项 6 组（`ui-antd/e2e/specs/crosscutting/`，17 条）+ 单测（`core/` 全量，覆盖率 core 91.66% lines / 81.81% branches）；真机复验覆盖新鲜度闭环 537ms（推送→呈现）、空态、删除二次确认、断网全局横幅、tabular-nums / CJK 计算样式、品牌资产实测。验收中修复 1 枚缺陷：登出 / 刷新失败后被陈旧 currentUser 弹回角色默认页（token-first 守卫，604ffeff52）。
+
+- [x] 认证：401 刷新单飞（并发挂队重放、失败登出、豁免登录 / 刷新端点）；WS 首帧 AUTH、AUTH 失败刷新 → 重连 → 重发〔M6 ✅：E2E 02 组并发 401 恰发一次 refresh、新 token 重放、刷新失败统一登出四键清空；单测 client.test.ts 同域覆盖〕
+- [x] WS 订阅管理器：8 族 cmd；断线重连（2s×2^n 封顶 60s，上限 10 次）后页面自动恢复，无需手动操作；零订阅 90s 关连；cmd 批量 ≤10〔M6 ✅：E2E 03 组 offline 窗口后自动恢复遥测（不刷新页面）；状态机细节（8 族 / 退避 / 关连 / 批量）单测 manager.test.ts 覆盖〕
+- [x] 新鲜度：本地环境遥测 / 告警变更呈现 ≤5s〔M6 ✅：页面内闭环推送→呈现 537ms；M5 实测 WS 帧 81ms；告警域 M3 已验 WS 双通道 ≤5s〕
+- [x] 错误态：后端错误原文透传 + 通用壳文案（`server-error.ts`）；网络断开全局提示〔M6 ✅：E2E 04 组 500/404 原文 + 壳标题双保险；真机断网横幅出现/恢复消失；M1 登录错误透传延续〕
+- [x] 空态 / 加载态：每列表与详情 tab 均有；删除类操作二次确认〔M6 ✅：真机「暂无设备」空态 + 删除确认框（插值标题 + 取消/删除）；加载/空态由冒烟矩阵 22 条（每条含就绪断言）覆盖〕
+- [x] 双语：zh-CN / en-US key 全等（CI 门禁零红）；HTTP 层发 Accept-Language〔M6 ✅：check-locale 随 lint 门禁 exit 0；Accept-Language 绑定 locale 有单测；真机中文全站渲染〕
+- [x] 品牌：title / logo / favicon / 登录背景单源 `theme/brand`（三处漏风点全封，#8）〔M6 ✅：grep 无硬编码漏风点；真机 title/favicon/logo 实测；登录页视觉 baseline 逐像素锚定〕
+- [x] 三角色菜单 / 按钮门禁全覆盖（`access.ts` 对齐 Authority）〔M6 ✅：E2E 06 组 SA/TA/CU 落点、菜单集、越权 403 形态全断言；单测 access.test.ts 三角色逐条〕
+- [x] 遥测数字列 tabular-nums；CJK 字体栈生效（#8）〔M6 ✅：真机 getComputedStyle 最新遥测值 / ts 列 `font-variant-numeric: tabular-nums`，body 栈含 PingFang SC / Microsoft YaHei〕
+- [x] 列表页 URL 状态可书签恢复（分页 / 排序 / 过滤）〔M6 ✅：E2E 05 组操作写 URL + 书签硬载恢复（搜索/排序/页码三参数往返）；真机 sortProperty=name&sortOrder=ASC 硬载复验〕
 
 ## 4. 里程碑（每段独立可演示）
 
@@ -223,6 +225,7 @@ OAuth2（M4，验收前置：sys 已配置 provider，见 3.7）：
 
 ## 修订记录
 
+
 - 2026-08-31：初版定案（#9 三轮 grilling：Round 1 骨架八问、Round 2 九域「全都要」、Round 3 边界 / 里程碑 / widget 锚点收口）。
 - 2026-09-01：**M1 验收落账**（终验收 488 次操作核验 + 修复轮 5 commit）。3.1 密码线 7/11（4 项邮件链路待 SMTP 前置）；3.2 应用壳 3/5（SA 落点待 M3；**面包屑未实现**——结构性遗留，头部形态取舍「自定义头 vs ProLayout PageContainer」待 M2 开工前决议）；3.3 列表 10/10 + 详情 10/10（CF=SIMPLE / AR=单阈值范围口径见 3.3 注）。验收中修复 4 个真实缺陷：alarm-data WS 通道直落详情页失联（建连竞态 + 三处后端契约不匹配）、tabular-nums 对 string 管道值失效、CU 凭证 Reset 禁用改隐藏（越权入口收口）、详情返回箭头绕过未保存守卫。WS 实时链路修复后端到端复验 ≤5s（3.11 新鲜度核心项提前达标）。后端缺口候选 8 条登记 `docs/bcr.md`，待阶段边界集中复审。
 
@@ -233,3 +236,5 @@ OAuth2（M4，验收前置：sys 已配置 provider，见 3.7）：
 - 2026-09-02（二）：**M4 落账**（账户安全域 + MFA 登录线 + OAuth2 登录线）。交付：account/profile 单卡表单（email / 姓名 / 电话 / 语言；保存链 = saveUser → initialState 更新 → 语言变更即切全站 → JWT claims 变更静默刷 token）；account/security 三卡（JWT token 有效期 + 复制 Bearer / 改密码含密码策略实时校验与服务端错误按 detail 分派 / 2FA 卡按平台 providers 组装 TOTP·SMS·EMAIL·BACKUP_CODE 启用对话框 + 默认方式切换 + 停用确认 + 重生成备用码）；登录线 MFA 分流（login 响应 `scope=PRE_VERIFICATION_TOKEN` / `MFA_CONFIGURATION_TOKEN` 两中间态先存 token 再跳）+ `/user/mfa` 验证码页（多 provider「试试其他方式」切换、备份码 8 位 hex、429 限流倒计时）+ `/user/force-mfa` 强制设置流（SETUP→输入→验码→SUCCESS，全新账号滤 BACKUP_CODE、首个激活 provider 自动设默认）+ `/login/mfa`、`/login/force-mfa` 别名 redirect + 双守卫（authority 不符回登录页）；OAuth2 登录线（登录页 noauth/oauth2Clients 按钮区 + or 分隔、entry 消费 `?accessToken=&refreshToken=` 回调落角色默认页、`loginError` 不可关闭对话框）；用户菜单新增个人资料 / 安全两入口。验收：门禁三绿（biome + check-locale + tsc / vitest 620——M4 新增约 90 用例 / max build 含 account·profile 与 account·security 产物）+ §3.9 三项、§3.1 MFA 两项全勾，OAuth2 走失败链口径（真实 302 到 provider 授权页——实验真实到达 Google、假 clientId 被 provider 侧拒绝 → `loginError` 对话框链完整；成功回调以真实 token 对模拟消费核验）。期间修复缺陷 5 枚（均带渲染级测试）：①M3 settings/two-fa 设置页每次 UI 保存清空 providers——根因保存路径把 payload 变换跑了两遍（c25b34d438）；②同页 enforce 关闭时保存崩溃 + 强制过滤字段丢失——validateFields 不含未注册字段，改读完整 store + builder fallback（含于 c25b34d438）；③token-store 拒收 MFA 中间态 null refreshToken 致 2FA 用户卡死登录步（ce41fdafe8）；④account/security 备用码弹窗一次性展示被 onSaved 无条件关窗（7b4a280f70）；⑤侧边栏多出 Account 菜单项——父路由补 hideInMenu（087444c75f）。伴生实现：登录页对中间态的回弹环防护、getInitialState 对 MFA 中间态跳过 getCurrentUser（防 403 死循环，9185dc9cc2）。parity 微调口径：OAuth2 按钮 icon 用通用图标不解析 mdi 图标库；security 页 API keys 卡不建——施工简报原判「openapi 快照无 `/api/user/{id}/apiKeys` 端点」经落账复核不成立（`/api/apiKey*` 五端点在后端源码与 openapi 快照均在、ui-ngx 服务层同路径消费），实为 §3.9 v1 口径（资料编辑 + 改密码 + 2FA）未列该项的范围裁剪，非契约缺口；homeDashboard 选择器 / unitSystem 不在 §3.9 v1 口径；mfa 页 BACKUP_CODE 无自动发码（无码可发，设计如此）；「跟随」语言不强制切回界面语言；侧边栏无 account 组。前置挂起（沿用 M3 口径）：SMS / EMAIL 发码真实链路（短信网关 / SMTP 配置）、OAuth2 真实 IdP 授权成功全流程。数据还原终态：tenant 密码还原、tenant 2FA 配置移除（纯密码登录）、强制策略解除、OAuth2 测试 domain + client 删除；平台 2FA providers（TOTP + BACKUP_CODE）保持启用态为有意保留。BCR：M4 边界复审无新条目（缺陷均为前端侧，API keys 复核排除契约缺口）。
 
 - 2026-09-03：**M5 落账**（仪表盘只读 + usage 页 + widget 补齐至 demo 锚点 + 网关系统页收口）。交付：dashboards 列表（URL state + 搜索 / 刷新 / 导入 + 行操作 export·make public·make private·manage customers·删除 + 批量 assign/unassign 走扇出进度弹窗）+ customers/:id/dashboards 作用域页升级；只读页（states 双 controller + URL base64 契约 + RGL v2 完全受控只读布局 + 别名解析 + WS 数据 hooks + widget 注册表 resolver + 占位三态 + 全局 timewindow 25 档 + toolbar + dashboardCss 背景省略）；全屏 single-page；usage 页（api_usage.json 内嵌资产）；gateways 系统仪表盘页（网关项收口，见 §3.4）。验收：门禁三绿（biome + check-locale + tsc / vitest 770——M5 净增约 150 用例 / build 全页面产物）+ §3.10 六项真机走查全勾（TA + CU 双角色；CU 测试号经激活链接通道建号、验毕删除）。**验收中修复 3 枚 WS / 渲染缺陷**（先渲染级测试复现再修，6fd0f8c3a7）：①gateways 系统页 WS 的 ENTITY_DATA cmd 原样转发 dashboard JSON 里 ui-ngx 前端形态的 keyFilters（predicates[] 包 keyFilterPredicate + userInfo），后端 Jackson 拒收并以 1007 关 socket，ws manager 把 1007 判为认证失败、两次重试后走统一 unauthorized 登出——用户打开 /entities/gateways 约 3 秒即被踢下线（连带 404 回退假象）；新增 toWireKeyFilters 平铺转换（COMPLEX 递归），实体表 / entityCount 两消费点接入；②timeseries 订阅的 ENTITY_DATA+tsCmd query 缺 latestValues，后端 TsDataHandler NPE（errorCode 1）拒订，时序图 / 时序表永远无数据；useEntityTimeseries 恒发 latestValues；③realtime 图表的 numericPoints 用订阅时刻冻结的 endTs 过滤，订阅建立后到达的流式点全部落在窗口外被丢弃——WS 帧实测 81ms 到页面而图表永久空态；streaming 窗口上界改为 now。口径微调（v1 落定，均为有意裁剪非缺陷）：自动刷新 = WS 流式订阅通道（无显式 auto-refresh 档，ui-ngx CE 同无）；export 恒 includeResources=true 不弹询问；import 剥 id/externalId、缺别名不弹别名对话框（resolver 空集兜底渲染）；create-new-dashboard 不建（v1 无编辑器，import 承担入口）；`?publicId=` 匿名公共仪表盘页遗留 v2；widget 自定义 JS 配置脚本（customPretty 等）不执行、按钮不渲染；widget 标题 `{i18n:api-usage.*}` 解析不到 i18n 资产时渲染原始键；告警表只读无 ack/clear（v1 无操作口径）；地图简化实现 + 公网瓦片依赖（纯色底 = 断网非 bug）；chart 数字为近似渲染（aggregation 桶口径同 ui-ngx）；usage 页 31 widget 中 26 个位于实体下钻 states、依赖 api_usage Angular 卡交互，v1 占位后不可达；Firmware 卡片计数与状态表行数核数一致（0=0）；TSW 检验发现 popstate 直改地址的自动化导航会撕裂 umi 路由状态（ErrorBoundary 兜住），真实路径（Link / 硬载）无碍，验收一律走真实路径。环境事故：dev server（utoopack）资产路由损坏（/umi.js 请求返回 HTML fallback → 页面永久 loading），按崩溃剧本杀旧起新一次（8000 单实例），WS 代理验证无恙。数据还原终态：import 测试仪表盘删除、assign/unassign 与 make public/private 及 manage customers 全部还原至初始态、CU 测试号删除、注入遥测点按时间窗删除。BCR：新增 C-19（ENTITY_DATA+tsCmd 缺 latestValues 后端 NPE）、C-20（WS 关闭码 1007 混用认证失败与数据帧解析失败，前端无法区分致误登出）。遗留登记：匿名公共仪表盘页（v2）、widget 冷门类型占位（§7 已有）、usage 下钻 states 随 api_usage 卡 v2。
+
+- 2026-09-03（二）：**M6 落账（收口）**。四项交付：①**横切全绿**——§3.11 十条全部勾选（E2E 横切专项 6 组 17 条 + 冒烟矩阵 22 条 + 视觉锚点 5 条全绿、coverage core 91.66/81.81 与 widgets 87.75 达标零缺口、CI 三门禁上提仓库根激活）；验收中修复 1 枚缺陷：登出 / 刷新失败后被陈旧 currentUser 弹回角色默认页、用户滞留无 token 缓存页（entry / login 双守卫加 tokenStore.isTokenValid 前置，604ffeff52）。②**一步切换演练成功**——jar 通道落地（3 处 pom 坐标翻转 + ui-antd pom frontend-maven-plugin + license excludes），单体 ：8080 直接服务新 UI（登录 / 设备域 / 同源 WS 实时 308ms 全链走查），ui-ngx 移出构建链休眠保留；演练揪出并修正 2 处：§4 `staticPathPrefix` 键不存在于用户级 umi config（ADR 已修订）、copy-resources 残留旧产物（pom 补 clean execution）。③**测试基线收口**——test-baseline §3.1 运行环境修订 H2→PostgreSQL（上游已移除嵌入式 demo 库，本仓无 hsqldb/H2 依赖，不变量「陪练后端即本仓代码」不变）；种子脚本 + 后端起停脚本交付 `ui-antd/e2e/`；CI job ④ test（coverage 阈值门禁）与 ⑤ e2e（手动触发，PG service + boot jar + Playwright 全链已写就）。④**遗留清单成文**——`docs/spec/v1-legacy-limitations.md` L1~L28 逐条无阻断确认；BCR C-1~C-20 M6 边界复审维持 fallback（C-1 批量端点 /api/ext 方案随 v2 后端会话合议；C-19/C-20 上游贡献候选）。编队执行：4 个并行子代理（横切 E2E / 冒烟 E2E / 视觉+CI+coverage / 切换接线）+ 主线程真机验收（browseros 逐项证据）与收敛。gate 四条证据齐备（见 §5），gate 评审待用户拍板。

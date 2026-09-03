@@ -207,7 +207,11 @@ export default defineConfig({
       },
     },
   },
-  exportStatic: {},
+  // ADR 0002 §4: exportStatic (multi-route prerender) was removed at M6 —
+  // redundant with the backend's forward:/index.html SPA fallback. §4's
+  // `staticPathPrefix` key is NOT a user-level umi config (utoopack internal
+  // only, no preset-umi schema entry → `Invalid config keys` assertion);
+  // ADR revised. Asset prefix verified empirically at the M6 cutover drill.
   define: {
     'process.env.CI': process.env.CI,
     'process.env.COMMIT_HASH': commitHash,

@@ -1,0 +1,157 @@
+# ui-antd CI — hoisted from ui-antd/.github/workflows/ci.yml (GitHub only
+# executes workflows from the REPO ROOT .github/workflows/). Three parallel,
+# all-required jobs (biome+check-locale / tsc+vitest-coverage / build) plus a
+# manual e2e job (test-baseline §5 job ⑤).
+#
+# Path filter: only ui-antd/** changes trigger it — the upstream monorepo is
+# huge and everything outside ui-antd/ is out of this workflow's scope.
+# Branch protection must mark the required jobs (see docs/spec/v1-test-baseline.md §5).
+#
+# vitest runs inside the typecheck job: it shares the same `npm ci` (the
+# suite neither needs the build output nor a browser) and stays fast enough
+# (~1.5 min) that a fourth install cycle is not worth it. `test:coverage`
+# carries the §2 thresholds (core/ lines 80 / branches 70, widgets/ lines 85;
+# no global thresholds) — a threshold breach fails the job.
+
+name: ui-antd CI
+
+on:
+  push:
+    branches: [master, feature/**]
+    paths: ['ui-antd/**']
+  pull_request:
+    paths: ['ui-antd/**']
+
+defaults:
+  run:
+    working-directory: ui-antd
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: ui-antd/.nvmrc
+          cache: npm
+          cache-dependency-path: ui-antd/package-lock.json
+      # `prepare` (max setup) runs on install and generates src/.umi, which
+      # tsc (inside npm run lint) depends on.
+      - run: npm ci
+      # Aligned with the local gate: biome check + check-locale + tsc
+      # (`npm run lint`). Full `biome check` (formatter + linter + assist) —
+      # must NOT degrade to `biome lint`.
+      - run: npm run lint
+
+  typecheck-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: ui-antd/.nvmrc
+          cache: npm
+          cache-dependency-path: ui-antd/package-lock.json
+      # `prepare` (max setup) runs on install and generates src/.umi, which
+      # tsc depends on.
+      - run: npm ci
+      - run: npm run tsc
+      # Coverage thresholds (vitest.config.ts) are the §2 gate — a breach is red.
+      - run: npm run test:coverage
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: ui-antd/.nvmrc
+          cache: npm
+          cache-dependency-path: ui-antd/package-lock.json
+      - run: npm ci
+      - run: npm run build
+        env:
+          NODE_OPTIONS: --max_old_space_size=4096
+
+  # ── job ⑤ e2e (docs/spec/v1-test-baseline.md §5) ─────────────────────────
+  # Builds the REAL backend from this repo (sparring-backend invariant, §3.1)
+  # with the ui-antd jar channel (ADR 0002: application bundles the ui-antd
+  # jar; the ui-antd Maven module runs `npm run build` via
+  # frontend-maven-plugin, so no separate UI deploy step), installs schema +
+  # demo data (install-db.sh --install.load_demo=true), boots the jar, and
+  # runs Playwright. Seeds are idempotent and run in Playwright globalSetup.
+  #
+  # TODO(M6-closeout): kept MANUAL (workflow_dispatch) until the baseline is
+  # stable — a full Maven build of the backend is too heavy to babysit while
+  # the suite is still being written. To enable: remove the `if:` below and
+  # add `ui-antd/**` path filtering is inherited from the workflow triggers;
+  # then mark the job as a required check.
+  e2e:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: 123456 # matches e2e/backend/*.sh defaults
+          POSTGRES_DB: thingsboard
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: ui-antd/.nvmrc
+          cache: npm
+          cache-dependency-path: ui-antd/package-lock.json
+      - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
+        with:
+          distribution: temurin
+          java-version: 25 # docs/adr/0006-jdk25-toolchain.md
+      - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: ~/.m2/repository
+          key: maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: maven-
+      # Backend build. -Dpkg.skip=true skips deb/rpm/zip packaging (root pom
+      # skip-pkg profile); the boot jar lands at application/target/thingsboard.jar.
+      - name: Build backend boot jar (incl. ui-antd jar channel)
+        working-directory: .
+        run: mvn -pl application -am package -DskipTests -Dpkg.skip=true --batch-mode
+      - name: Install schema + demo data
+        working-directory: .
+        run: bash ui-antd/e2e/backend/install-db.sh
+      - name: Start backend (jar serves the UI at :8080)
+        working-directory: .
+        run: bash ui-antd/e2e/backend/start-backend.sh
+      - run: npm ci
+      # Playwright browser cache keyed on the lockfile; `--with-deps` installs
+      # the OS libraries the runners lack.
+      - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ hashFiles('ui-antd/package-lock.json') }}
+      - run: npx playwright install --with-deps chromium
+      - run: npm run e2e
+        env:
+          # one-step-switch drill shape (ADR 0002): the jar serves UI + API
+          E2E_BASE_URL: http://localhost:8080
+          E2E_API_URL: http://localhost:8080
+      - name: Upload Playwright artifacts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: playwright-test-results
+          path: ui-antd/test-results/
+          if-no-files-found: ignore
