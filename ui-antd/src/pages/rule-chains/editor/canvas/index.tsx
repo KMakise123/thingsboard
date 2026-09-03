@@ -14,9 +14,11 @@
  *    controlled props (derive → mirror resync, skipped mid-interaction);
  *  - edge reconnection is off (`edgesReconnectable={false}`, brief §0);
  *  - blank-canvas left-drag = box selection (`selectionOnDrag` +
- *    `panOnDrag={[1,2]}`), ctrl+click adds to the selection (RF default
- *    multiSelectionKeyCode), zoom 0.5–2, initial viewport (0,0)/1,
- *    fitView off, translateExtent carries the adjustCanvasSize semantics.
+ *    `panOnDrag={[1]}` middle-button panning — button 2 is reserved for
+ *    the pane context menu, see inline note), ctrl+click adds to the
+ *    selection (RF default multiSelectionKeyCode), zoom 0.5–2, initial
+ *    viewport (0,0)/1, fitView off, translateExtent carries the
+ *    adjustCanvasSize semantics.
  */
 
 import type {
@@ -355,7 +357,10 @@ function RuleChainCanvasInner({
           interactingRef.current = false;
         }}
         selectionOnDrag
-        panOnDrag={[1, 2]}
+        // middle-drag pans; right-drag pan (2) is NOT enabled because React
+        // Flow suppresses the pane context menu when button 2 is in
+        // panOnDrag — and the ui-ngx blank-canvas menu is a checklist item
+        panOnDrag={[1]}
         deleteKeyCode={null}
         fitView={false}
         defaultViewport={{ x: 0, y: 0, zoom: 1 }}

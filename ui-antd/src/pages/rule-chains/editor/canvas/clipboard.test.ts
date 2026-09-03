@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { EditorSession } from '@/core/editor/session';
-import { INPUT_NODE_UID } from '@/core/rulechain/types';
 import type { CanvasNode } from '@/core/rulechain/types';
+import { INPUT_NODE_UID } from '@/core/rulechain/types';
 
 import {
   clearRuleChainClipboard,

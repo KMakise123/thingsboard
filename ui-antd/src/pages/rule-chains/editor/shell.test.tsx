@@ -146,3 +146,31 @@ describe('RuleChainEditorShell — library DnD → add-node dialog (host seam)',
     expect(session.history).toHaveLength(1);
   });
 });
+
+describe('RuleChainEditorShell — selection hotkeys + context menu', () => {
+  it('delete-selected removes the selection as one group per category', async () => {
+    const session = setup();
+    // ctrl+a selects every node/edge (react-hotkeys-hook binds document)
+    fireEvent.keyDown(document, { key: 'a', code: 'KeyA', ctrlKey: true });
+    fireEvent.keyDown(document, { key: 'Delete', code: 'Delete' });
+    await waitFor(() => {
+      expect(Object.keys(session.current.nodes)).toHaveLength(0);
+    });
+    expect(session.current.edges).toHaveLength(0);
+    const labels = session.history.map((group) => group.label);
+    expect(labels).toEqual(['remove nodes', 'remove edges']);
+  });
+
+  it('pane right-click opens the context menu with ui-ngx actions', async () => {
+    setup();
+    // React Flow binds the pane handler on its own pane element
+    const pane = document.querySelector('.react-flow__pane');
+    expect(pane).not.toBeNull();
+    fireEvent.contextMenu(pane as Element);
+    await waitFor(() => {
+      expect(screen.getByTestId('rc-pane-menu')).toBeInTheDocument();
+    });
+    expect(screen.getByText('全选')).toBeInTheDocument();
+    expect(screen.getByText('添加便签')).toBeInTheDocument();
+  });
+});
