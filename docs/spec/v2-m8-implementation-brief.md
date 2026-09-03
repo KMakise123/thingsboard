@@ -95,7 +95,7 @@ routes.ts              /ruleChains（canTenantAdmin）+ /ruleChains/:ruleChainId
 
 - 每个逻辑单元一 commit（限额中断可恢复，接续 agent 从分支状态接管）；Conventional Commits（英文）。
 - 提交前自跑：`npx vitest run <自己范围的测试>` + `npm run tsc` + `npx biome check <自己文件>`；波次收尾跑全量 `npm run lint` + `npm run test`。
-- worktree 作业：开工第一步 `git merge master --no-edit`（origin/master 落后于本地是预期，必须带齐 M7 代码）；`ui-antd` 下无 node_modules 时用 junction 复用主检出的依赖：`cmd //c "mklink /J node_modules ..\\..\\..\\ui-antd\\node_modules"`（路径按 worktree 实际深度调整）；只有 F 允许改 package.json/lock。
+- worktree 作业：开工第一步 `git merge feature/m8-rulechain-canvas --no-edit`（origin/master 落后于本地是预期，必须带齐 M7+已合并波次代码）；`ui-antd` 下无 node_modules 时用 junction 复用主检出的依赖：`cmd //c "mklink /J node_modules ..\\..\\..\\ui-antd\\node_modules"`（路径按 worktree 实际深度调整）；**junction 只读复用——在该目录跑 `npm install` 会摘链重建为真实目录（波1 F 实证），依赖一律以主检出 canonical 安装为准，agent 禁止 npm install**；只有波1 F 允许改 package.json/lock。
 - 不装额外依赖；新依赖需求 = 停下上报。antd 组件动手前 `npx antd info <Component>`；颜色只走 antd token；HTTP 铁律（core/README.md）：只有 `core/http` 发请求；i18n 键 zh/en 对齐（check-locale 强制）。
 - @xyflow/react v12 关键 API 面（C 采信，动手前以 node_modules d.ts 复核）：`<ReactFlow nodes edges onNodesChange={null 保持半受控} nodeTypes edgeTypes fitView={false} defaultViewport={{x:0,y:0,zoom:1}} minZoom={0.5} maxZoom={2} translateExtent>`；框选 `panOnDrag={[1,2]}` + `selectionOnDrag` 或 shift 框选；连线 `onConnect` + `isValidConnection`（右→左、INPUT 唯一出边）。
 
