@@ -162,7 +162,7 @@ export default function RuleChainsListPage() {
               : 'ruleChains.list.toastCreated',
             defaultMessage: chain.id
               ? 'Rule chain saved.'
-              : "Rule chain '{name}' has been created.",
+              : 'Rule chain "{name}" has been created.',
           },
           { name: saved.name },
         ),
@@ -264,7 +264,7 @@ export default function RuleChainsListPage() {
         {
           id: 'ruleChains.list.deleteTitle',
           defaultMessage:
-            "Are you sure you want to delete the rule chain '{name}'?",
+            'Are you sure you want to delete the rule chain "{name}"?',
         },
         { name: chain.name },
       ),
@@ -577,7 +577,7 @@ export default function RuleChainsListPage() {
             formatMessage(
               {
                 id: 'ruleChains.list.toastImported',
-                defaultMessage: "Rule chain '{name}' has been imported.",
+                defaultMessage: 'Rule chain "{name}" has been imported.',
               },
               { name: chain.name },
             ),

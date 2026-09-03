@@ -228,7 +228,8 @@ describe('ruleChains list page', () => {
 
     fireEvent.click(screen.getByTestId('rc-more-rc-2'));
     fireEvent.click((await screen.findAllByText('删除'))[0]);
-    await screen.findAllByText(/确认删除规则链/);
+    // D1 regression: the delete confirm interpolates the actual chain name
+    await screen.findAllByText('确认删除规则链「Thermostats Chain」？');
     const okButton = document.querySelector(
       '.ant-modal-confirm .ant-btn-dangerous',
     ) as HTMLButtonElement | null;
@@ -268,6 +269,9 @@ describe('ruleChains list page', () => {
       unknown
     >;
     expect(payload.id).toBeUndefined();
+    // D1 regression: the created toast interpolates the actual chain name
+    // (ICU straight-quote escaping used to render a bare {name})
+    expect(await screen.findByText('规则链「新建链」已创建。')).toBeInTheDocument();
   });
 
   it('edit prefills the name and merges additionalInfo.description', async () => {
