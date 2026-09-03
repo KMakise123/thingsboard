@@ -4,6 +4,21 @@
  * (check-locale gate).
  */
 export default {
+  // node details drawer (wave-3 K2)
+  'editor.ruleNode.tab.details': 'Details',
+  'editor.ruleNode.tab.events': 'Events',
+  'editor.ruleNode.tab.help': 'Help',
+  'editor.ruleNode.details.name': 'Name',
+  'editor.ruleNode.details.nameRequired': 'Name is required',
+  'editor.ruleNode.details.description': 'Node description',
+  'editor.ruleNode.details.queueName': 'Queue',
+  'editor.ruleNode.details.singletonMode': 'Singleton mode',
+  'editor.ruleNode.details.debugFailures': 'Debug failures',
+  'editor.ruleNode.details.debugAll': 'Debug all messages',
+  'editor.ruleNode.details.apply': 'Apply',
+  'editor.ruleNode.help.docUrl': 'Open documentation',
+  'editor.ruleNode.help.noDocs': 'This node has no documentation.',
+
   // script family — per-node test button labels (ui-ngx test-*-function)
   'editor.ruleNode.test.filter': 'Test filter function',
   'editor.ruleNode.test.switch': 'Test switch function',

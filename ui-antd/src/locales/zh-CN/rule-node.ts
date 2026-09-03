@@ -6,6 +6,21 @@
  * Keep zh-CN/en-US key-for-key identical (check-locale gate).
  */
 export default {
+  // node details drawer (wave-3 K2)
+  'editor.ruleNode.tab.details': '详情',
+  'editor.ruleNode.tab.events': '事件',
+  'editor.ruleNode.tab.help': '帮助',
+  'editor.ruleNode.details.name': '名称',
+  'editor.ruleNode.details.nameRequired': '名称必填',
+  'editor.ruleNode.details.description': '节点描述',
+  'editor.ruleNode.details.queueName': '队列',
+  'editor.ruleNode.details.singletonMode': '单例模式',
+  'editor.ruleNode.details.debugFailures': '调试失败消息',
+  'editor.ruleNode.details.debugAll': '调试全部消息',
+  'editor.ruleNode.details.apply': '应用',
+  'editor.ruleNode.help.docUrl': '查看文档',
+  'editor.ruleNode.help.noDocs': '该节点暂无帮助文档。',
+
   // script family — per-node test button labels (ui-ngx test-*-function)
   'editor.ruleNode.test.filter': '测试过滤函数',
   'editor.ruleNode.test.switch': '测试切换函数',
