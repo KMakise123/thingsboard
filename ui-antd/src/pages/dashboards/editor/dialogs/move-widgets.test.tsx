@@ -109,7 +109,7 @@ describe('MoveWidgetsDialog', () => {
       expect(session.history).toHaveLength(1);
     });
     expect(session.history[0].label).toBe('move widgets');
-    const widgets = session.current.states.default.layouts.main.widgets;
+    const widgets = session.current.states.default.layouts?.main?.widgets;
     expect(widgets.w1).toMatchObject({ row: 4, col: 6 });
     expect(widgets.w2).toMatchObject({ row: 12, col: 12 });
     expect(session.dirty).toBe(true);
@@ -123,7 +123,7 @@ describe('MoveWidgetsDialog', () => {
       expect(session.history).toHaveLength(0);
     });
     expect(session.dirty).toBe(false);
-    expect(session.current.states.default.layouts.main.widgets.w1).toMatchObject(
+    expect(session.current.states.default.layouts?.main?.widgets.w1).toMatchObject(
       { row: 2, col: 3 },
     );
   });
@@ -137,7 +137,7 @@ describe('MoveWidgetsDialog', () => {
     await waitFor(() => {
       expect(session.history).toHaveLength(1);
     });
-    const widgets = session.current.states.default.layouts.main.widgets;
+    const widgets = session.current.states.default.layouts?.main?.widgets;
     // minCol 3 + (-50) clamps to shift -3; minRow 2 + (-5) clamps to shift -2
     expect(widgets.w1).toMatchObject({ row: 0, col: 0 });
     expect(widgets.w2).toMatchObject({ row: 8, col: 6 });
@@ -159,11 +159,11 @@ describe('MoveWidgetsDialog', () => {
     await waitFor(() => {
       expect(session.history).toHaveLength(2);
     });
-    expect(session.current.states.default.layouts.right.widgets.w1).toMatchObject(
+    expect(session.current.states.default.layouts?.right?.widgets.w1).toMatchObject(
       { row: 3, col: 4 },
     );
     // main untouched
-    expect(session.current.states.default.layouts.main.widgets.w1).toMatchObject(
+    expect(session.current.states.default.layouts?.main?.widgets.w1).toMatchObject(
       { row: 2, col: 3 },
     );
   });
@@ -171,7 +171,7 @@ describe('MoveWidgetsDialog', () => {
   it('disables the move action on an empty layout', () => {
     const { session } = setup();
     session.write('clear layout', (draft) => {
-      draft.states.default.layouts.main.widgets = {};
+      draft.states.default.layouts.main!.widgets = {};
     });
     renderDialog(session);
     expect(screen.getByTestId('move-widgets-empty')).toBeInTheDocument();
