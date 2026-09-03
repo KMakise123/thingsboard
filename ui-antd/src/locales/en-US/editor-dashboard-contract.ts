@@ -48,8 +48,7 @@ export default {
   'editor.dashboard.contract.import.aliasNameLabel': 'Alias name',
   'editor.dashboard.contract.import.create': 'Complete',
   'editor.dashboard.contract.import.created': 'Completed',
-  'editor.dashboard.contract.import.skipped':
-    'Skipped (reference kept, renders as empty data)',
+  'editor.dashboard.contract.import.skip': 'Skip',
   'editor.dashboard.contract.import.defaultFilterNote':
     'Completed aliases default to a device-type filter and can be adjusted later in the Aliases dialog.',
   'editor.dashboard.contract.import.apply': 'Import',

@@ -46,7 +46,7 @@ export default {
   'editor.dashboard.contract.import.aliasNameLabel': '别名名称',
   'editor.dashboard.contract.import.create': '补录',
   'editor.dashboard.contract.import.created': '已补录',
-  'editor.dashboard.contract.import.skipped': '跳过（引用保留，按空数据处理）',
+  'editor.dashboard.contract.import.skip': '跳过',
   'editor.dashboard.contract.import.defaultFilterNote':
     '补录的别名默认创建为设备类型过滤器，可稍后在「别名」管理中修改。',
   'editor.dashboard.contract.import.apply': '导入',
