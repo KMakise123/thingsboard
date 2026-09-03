@@ -34,18 +34,11 @@
           "description": "Checks alarm status.",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "True",
-            "False",
-            "Failure"
-          ],
+          "relationTypes": ["True", "False", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
-            "alarmStatusList": [
-              "ACTIVE_ACK",
-              "ACTIVE_UNACK"
-            ]
+            "alarmStatusList": ["ACTIVE_ACK", "ACTIVE_UNACK"]
           },
           "uiResources": [],
           "configDirective": "tbFilterNodeCheckAlarmStatusConfig",
@@ -74,10 +67,7 @@
           "description": "Route incoming messages based on the name of the asset profile",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "default",
-            "Failure"
-          ],
+          "relationTypes": ["default", "Failure"],
           "customRelations": true,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -110,11 +100,7 @@
           "description": "Checks the presence of the specified fields in the message and/or metadata.",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "True",
-            "False",
-            "Failure"
-          ],
+          "relationTypes": ["True", "False", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -149,11 +135,7 @@
           "description": "Checks the presence of the relation between the originator of the message and other entities.",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "True",
-            "False",
-            "Failure"
-          ],
+          "relationTypes": ["True", "False", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -190,10 +172,7 @@
           "description": "Route incoming messages based on the name of the device profile",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "default",
-            "Failure"
-          ],
+          "relationTypes": ["default", "Failure"],
           "customRelations": true,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -226,17 +205,11 @@
           "description": "Filter incoming messages by the type of message originator entity",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "True",
-            "False",
-            "Failure"
-          ],
+          "relationTypes": ["True", "False", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
-            "originatorTypes": [
-              "DEVICE"
-            ]
+            "originatorTypes": ["DEVICE"]
           },
           "uiResources": [],
           "configDirective": "tbFilterNodeOriginatorTypeConfig",
@@ -336,11 +309,7 @@
           "description": "Filter incoming messages by GPS based geofencing",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "True",
-            "False",
-            "Failure"
-          ],
+          "relationTypes": ["True", "False", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -382,11 +351,7 @@
           "description": "Filter incoming messages by Message Type",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "True",
-            "False",
-            "Failure"
-          ],
+          "relationTypes": ["True", "False", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -500,11 +465,7 @@
           "description": "Filter incoming messages using TBEL or JS script",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "True",
-            "False",
-            "Failure"
-          ],
+          "relationTypes": ["True", "False", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -539,9 +500,7 @@
           "description": "Routes incoming message to one OR multiple output connections.",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Failure"
-          ],
+          "relationTypes": ["Failure"],
           "customRelations": true,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -576,11 +535,7 @@
           "description": "Calculates delta and amount of time passed between previous timeseries key reading and current value for this key from the incoming message",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure",
-            "Other"
-          ],
+          "relationTypes": ["Success", "Failure", "Other"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -620,10 +575,7 @@
           "description": "Adds message originator customer attributes or latest telemetry into message or message metadata",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -660,10 +612,7 @@
           "description": "Adds message originator customer details into message or message metadata",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -697,10 +646,7 @@
           "description": "Adds device credentials to the message or message metadata",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -733,10 +679,7 @@
           "description": "Adds attributes and/or latest timeseries data for the message originator to the message or message metadata",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -775,10 +718,7 @@
           "description": "Adds message originator fields values into message or message metadata",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -816,10 +756,7 @@
           "description": "Adds message originator telemetry for selected time range into message metadata",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -863,10 +800,7 @@
           "description": "Add originators related device attributes and/or latest telemetry values into message or message metadata",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -881,9 +815,7 @@
               "direction": "FROM",
               "maxLevel": 1,
               "relationType": "Contains",
-              "deviceTypes": [
-                "default"
-              ],
+              "deviceTypes": ["default"],
               "fetchLastLevelOnly": false
             }
           },
@@ -914,10 +846,7 @@
           "description": "Adds originators related entity attributes or latest telemetry or fields into message or message metadata",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -966,10 +895,7 @@
           "description": "Adds message originator tenant attributes or latest telemetry into message or message metadata",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -1006,10 +932,7 @@
           "description": "Adds message originator tenant details into message or message metadata",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -1043,10 +966,7 @@
           "description": "Change message originator to Tenant/Customer/Related Entity/Alarm Originator/Entity by name pattern.",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -1093,10 +1013,7 @@
           "description": "Copies key-value pairs from message to message metadata or vice-versa.",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -1130,10 +1047,7 @@
           "description": "Deduplicate messages within the same originator entity for a configurable period based on a specified deduplication strategy.",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -1170,10 +1084,7 @@
           "description": "Deletes key-value pairs from message or message metadata.",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -1207,10 +1118,7 @@
           "description": "Transforms incoming message body using JSONPath expression.",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -1243,10 +1151,7 @@
           "description": "Renames message or message metadata keys.",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -1282,10 +1187,7 @@
           "description": "Change Message payload, Metadata or Message type using JavaScript",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -1320,10 +1222,7 @@
           "description": "Split array message into several messages",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -1356,10 +1255,7 @@
           "description": "Transforms message to email message",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -1399,10 +1295,7 @@
           "description": "Assign message originator entity to customer",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -1436,10 +1329,7 @@
           "description": "Pushes incoming messages to calculated fields and alarm rules services",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -1472,11 +1362,7 @@
           "description": "Clear Alarm",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Cleared",
-            "False",
-            "Failure"
-          ],
+          "relationTypes": ["Cleared", "False", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -1512,10 +1398,7 @@
           "description": "Copy attributes from asset/device to entity view and changes message originator to related entity view",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -1548,12 +1431,7 @@
           "description": "Create or Update Alarm",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Created",
-            "Updated",
-            "False",
-            "Failure"
-          ],
+          "relationTypes": ["Created", "Updated", "False", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -1597,10 +1475,7 @@
           "description": "Finds target entity specified in the configuration and creates a relation with the incoming message originator based on the configured direction and type.",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -1640,10 +1515,7 @@
           "description": "Delays incoming message (deprecated)",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -1679,10 +1551,7 @@
           "description": "Delete attributes for Message Originator.",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -1718,10 +1587,7 @@
           "description": "Deletes relation with the incoming message originator based on the configured direction and type.",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -1800,11 +1666,7 @@
           "description": "Triggers device connectivity events",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure",
-            "Rate limited"
-          ],
+          "relationTypes": ["Success", "Failure", "Rate limited"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -1837,10 +1699,7 @@
           "description": "Periodically generates messages",
           "inEnabled": false,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -1933,10 +1792,7 @@
           "description": "Log incoming messages using JS script for transformation Message into String",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -1971,10 +1827,7 @@
           "description": "Apply math function and save the result into the message and/or database",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -2025,10 +1878,7 @@
           "description": "Count incoming messages",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -2062,10 +1912,7 @@
           "description": "Push messages from cloud to edge",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -2098,10 +1945,7 @@
           "description": "Sends reply to REST API call to rule engine",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -2135,10 +1979,7 @@
           "description": "Sends reply to RPC call from device",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -2173,10 +2014,7 @@
           "description": "Sends RPC call to device",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -2209,10 +2047,7 @@
           "description": "Saves attribute data with a configurable scope and according to configured processing strategies.\n",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -2251,10 +2086,7 @@
           "description": "Saves time series data with a configurable TTL and according to configured processing strategies.\n",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -2291,10 +2123,7 @@
           "description": "Node stores data from incoming Message payload to the Cassandra database into the predefined custom table that should have <b>cs_tb_</b> prefix, to avoid the data insertion to the common TB tables.<br><b>Note:</b> rule node can be used only for Cassandra DB.",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -2331,10 +2160,7 @@
           "description": "This Node is now deprecated. Use \"Checkpoint\" instead.",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -2367,10 +2193,7 @@
           "description": "This Node is now deprecated. Use \"Checkpoint\" instead.",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -2403,10 +2226,7 @@
           "description": "Unassign message originator entity from customer",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -2439,10 +2259,7 @@
           "description": "Sends a request to an AI model using system and user prompts. Supports JSON mode.",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -2483,10 +2300,7 @@
           "description": "Publish message to the AWS Lambda",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -2526,10 +2340,7 @@
           "description": "Publish message to the AWS SNS",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -2565,10 +2376,7 @@
           "description": "Publish messages to the AWS SQS",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -2607,10 +2415,7 @@
           "description": "Publish messages to the Azure IoT Hub",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -2661,10 +2466,7 @@
           "description": "Publish message to the Google Cloud PubSub",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -2701,10 +2503,7 @@
           "description": "Publish messages to Kafka server",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -2747,10 +2546,7 @@
           "description": "Publish messages to the MQTT broker",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -2796,10 +2592,7 @@
           "description": "Publish messages to the RabbitMQ",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -2843,10 +2636,7 @@
           "description": "Invoke REST API calls to external REST server",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -2899,10 +2689,7 @@
           "description": "Sends email message via SMTP server.",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -2948,10 +2735,7 @@
           "description": "Sends notification to targets using the template",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -2985,10 +2769,7 @@
           "description": "Sends SMS message via SMS provider.",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -3024,10 +2805,7 @@
           "description": "Send message via Slack",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -3064,10 +2842,7 @@
           "description": "Acknowledges the incoming message",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -3100,10 +2875,7 @@
           "description": "transfers the message to another queue",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -3136,10 +2908,7 @@
           "description": "transfers the message to the caller rule chain",
           "inEnabled": true,
           "outEnabled": false,
-          "relationTypes": [
-            "Success",
-            "Failure"
-          ],
+          "relationTypes": ["Success", "Failure"],
           "customRelations": false,
           "ruleChainNode": false,
           "defaultConfiguration": {
@@ -3172,9 +2941,7 @@
           "description": "Transfers the message to another rule chain",
           "inEnabled": true,
           "outEnabled": true,
-          "relationTypes": [
-            "Failure"
-          ],
+          "relationTypes": ["Failure"],
           "customRelations": true,
           "ruleChainNode": true,
           "defaultConfiguration": {

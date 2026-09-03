@@ -8,7 +8,23 @@
  *  - help tab renders descriptor HTML through DOMPurify (script stripped).
  * Without a session the drawer degrades to a read-only display.
  */
+
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
+
+// The wave-D events table performs real transport calls once a tenantId is
+// wired through; the drawer suite has no server — stub the read at the
+// service boundary (same pattern as debug-events-table.test.tsx).
+vi.mock('@/services/tb/events', async (importOriginal) => ({
+  ...(await importOriginal<object>()),
+  getEventsByFilter: vi.fn().mockResolvedValue({
+    data: [],
+    totalPages: 0,
+    totalElements: 0,
+    hasNext: false,
+  }),
+}));
+
 import { createIntl, RawIntlProvider } from 'react-intl';
 import { describe, expect, it, vi } from 'vitest';
 import { EditorSession } from '@/core/editor/session';
@@ -16,6 +32,7 @@ import type { CanvasNode, CanvasRuleChain } from '@/core/rulechain/types';
 import zhEditor from '@/locales/zh-CN/editor';
 import zhRulechain from '@/locales/zh-CN/editor-rulechain';
 import zhCanvas from '@/locales/zh-CN/editor-rulechain-canvas';
+import zhRulechainPage from '@/locales/zh-CN/editor-rulechain-page';
 import zhRuleNode from '@/locales/zh-CN/rule-node';
 import { EntityType } from '@/types/tb/entity';
 import type { RuleNodeComponentDescriptor } from '@/types/tb/rule-chain';
@@ -29,6 +46,7 @@ const intl = createIntl({
     ...zhRulechain,
     ...zhCanvas,
     ...zhRuleNode,
+    ...zhRulechainPage,
   },
 });
 
@@ -100,13 +118,15 @@ function renderDrawer(
   const onClose = (): void => undefined;
   render(
     <RawIntlProvider value={intl}>
-      <RuleNodeDetailsDrawer
-        open
-        node={node}
-        descriptor={args.descriptor ?? DESCRIPTOR}
-        onClose={onClose}
-        session={session}
-      />
+      <QueryClientProvider client={new QueryClient()}>
+        <RuleNodeDetailsDrawer
+          open
+          node={node}
+          descriptor={args.descriptor ?? DESCRIPTOR}
+          onClose={onClose}
+          session={session}
+        />
+      </QueryClientProvider>
     </RawIntlProvider>,
   );
   return session;
@@ -122,12 +142,9 @@ describe('RuleNodeDetailsDrawer — three tabs', () => {
     // details tab: header name field + generated config form
     expect(screen.getByTestId('rc-details-name')).toHaveValue('Original name');
     expect(screen.getByTestId('node-config-form')).toBeInTheDocument();
-    // events tab only rendered for a saved node
+    // events tab only rendered for a saved node (wave-D real table seam)
     fireEvent.click(screen.getByRole('tab', { name: /事件/ }));
-    expect(screen.getByTestId('rc-node-events-tab')).toHaveAttribute(
-      'data-rule-node-id',
-      'node-1',
-    );
+    expect(screen.getByTestId('rc-node-events-filters')).toBeInTheDocument();
     // help tab: sanitized descriptor HTML
     fireEvent.click(screen.getByRole('tab', { name: /帮助/ }));
     expect(screen.getByTestId('rc-details-help')).toHaveTextContent(

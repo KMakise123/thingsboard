@@ -98,7 +98,14 @@ export function RuleNodeDetailsDrawer({
               id: 'editor.ruleNode.tab.events',
               defaultMessage: 'Events',
             }),
-            children: <RuleNodeEventsTab ruleNodeId={node.ruleNodeId.id} />,
+            children: (
+              <RuleNodeEventsTab
+                ruleNodeId={node.ruleNodeId.id}
+                node={node}
+                descriptor={descriptor}
+                tenantId={session?.current.chain.tenantId?.id}
+              />
+            ),
           },
         ]
       : []),

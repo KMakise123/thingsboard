@@ -131,9 +131,12 @@ export function ScriptTestPanel({
           ? `${formatMessage({ id: 'editor.script.test.msg' })}: ${msg.reason}`
           : `${formatMessage({ id: 'editor.script.test.metadata' })}: ${metadata.reason}`;
       setJsonError(
-        formatMessage({ id: 'editor.script.test.invalidJson' }, {
-          message: detail,
-        }),
+        formatMessage(
+          { id: 'editor.script.test.invalidJson' },
+          {
+            message: detail,
+          },
+        ),
       );
       return;
     }

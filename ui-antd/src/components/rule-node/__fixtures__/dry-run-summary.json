@@ -18,15 +18,15 @@
     "crashed": []
   },
   "states": {
-    "controls": 75,
+    "controls": 63,
     "json-fallback": 1,
-    "legal-empty": 0,
+    "legal-empty": 12,
     "non-editable": 0
   },
   "metrics": {
     "editableRate": 1,
     "controlLevelRate": 0.9868421052631579,
-    "pureControlLevelRate": 0.9868421052631579
+    "pureControlLevelRate": 0.8289473684210527
   },
   "deprecatedNodes": [
     "delay (deprecated)",
@@ -178,20 +178,32 @@
       {
         "name": "gps geofencing filter",
         "clazz": "org.thingsboard.rule.engine.geo.TbGpsGeofencingFilterNode",
-        "jsonFields": 5,
-        "controlFields": 5
+        "jsonFields": 3,
+        "controlFields": 7
       },
       {
-        "name": "calculate delta",
-        "clazz": "org.thingsboard.rule.engine.metadata.CalculateDeltaNode",
+        "name": "customer attributes",
+        "clazz": "org.thingsboard.rule.engine.metadata.TbGetCustomerAttributeNode",
         "jsonFields": 1,
-        "controlFields": 7
+        "controlFields": 2
+      },
+      {
+        "name": "originator fields",
+        "clazz": "org.thingsboard.rule.engine.metadata.TbGetOriginatorFieldsNode",
+        "jsonFields": 1,
+        "controlFields": 2
       },
       {
         "name": "related entity data",
         "clazz": "org.thingsboard.rule.engine.metadata.TbGetRelatedAttributeNode",
+        "jsonFields": 2,
+        "controlFields": 5
+      },
+      {
+        "name": "tenant attributes",
+        "clazz": "org.thingsboard.rule.engine.metadata.TbGetTenantAttributeNode",
         "jsonFields": 1,
-        "controlFields": 6
+        "controlFields": 2
       },
       {
         "name": "change originator",
@@ -208,8 +220,8 @@
       {
         "name": "to email",
         "clazz": "org.thingsboard.rule.engine.mail.TbMsgToEmailNode",
-        "jsonFields": 3,
-        "controlFields": 5
+        "jsonFields": 1,
+        "controlFields": 7
       },
       {
         "name": "create relation",
@@ -238,8 +250,8 @@
       {
         "name": "gps geofencing events",
         "clazz": "org.thingsboard.rule.engine.geo.TbGpsGeofencingActionNode",
-        "jsonFields": 5,
-        "controlFields": 10
+        "jsonFields": 3,
+        "controlFields": 12
       },
       {
         "name": "math function",
@@ -248,40 +260,46 @@
         "controlFields": 7
       },
       {
+        "name": "save to custom table",
+        "clazz": "org.thingsboard.rule.engine.action.TbSaveToCustomCassandraTableNode",
+        "jsonFields": 1,
+        "controlFields": 2
+      },
+      {
         "name": "AI request",
         "clazz": "org.thingsboard.rule.engine.ai.TbAiNode",
-        "jsonFields": 3,
-        "controlFields": 4
+        "jsonFields": 2,
+        "controlFields": 5
       },
       {
         "name": "aws lambda",
         "clazz": "org.thingsboard.rule.engine.aws.lambda.TbAwsLambdaNode",
-        "jsonFields": 3,
-        "controlFields": 5
+        "jsonFields": 2,
+        "controlFields": 6
       },
       {
         "name": "aws sns",
         "clazz": "org.thingsboard.rule.engine.aws.sns.TbSnsNode",
-        "jsonFields": 2,
-        "controlFields": 2
+        "jsonFields": 1,
+        "controlFields": 3
       },
       {
         "name": "aws sqs",
         "clazz": "org.thingsboard.rule.engine.aws.sqs.TbSqsNode",
-        "jsonFields": 3,
-        "controlFields": 4
+        "jsonFields": 2,
+        "controlFields": 5
       },
       {
         "name": "azure iot hub",
         "clazz": "org.thingsboard.rule.engine.mqtt.azure.TbAzureIotHubNode",
-        "jsonFields": 6,
-        "controlFields": 11
+        "jsonFields": 2,
+        "controlFields": 10
       },
       {
         "name": "gcp pubsub",
         "clazz": "org.thingsboard.rule.engine.gcp.pubsub.TbPubSubNode",
-        "jsonFields": 3,
-        "controlFields": 2
+        "jsonFields": 2,
+        "controlFields": 3
       },
       {
         "name": "kafka",
@@ -292,8 +310,8 @@
       {
         "name": "mqtt",
         "clazz": "org.thingsboard.rule.engine.mqtt.TbMqttNode",
-        "jsonFields": 2,
-        "controlFields": 10
+        "jsonFields": 3,
+        "controlFields": 9
       },
       {
         "name": "rabbitmq",
@@ -304,14 +322,14 @@
       {
         "name": "rest api call",
         "clazz": "org.thingsboard.rule.engine.rest.TbRestApiCallNode",
-        "jsonFields": 4,
-        "controlFields": 13
+        "jsonFields": 5,
+        "controlFields": 12
       },
       {
         "name": "send email",
         "clazz": "org.thingsboard.rule.engine.mail.TbSendEmailNode",
-        "jsonFields": 6,
-        "controlFields": 8
+        "jsonFields": 4,
+        "controlFields": 10
       },
       {
         "name": "send sms",
@@ -355,9 +373,9 @@
       "deprecated": false,
       "legalEmpty": true,
       "hasFamily": false,
-      "controlFields": 1,
-      "jsonFields": 0,
-      "state": "controls",
+      "controlFields": 0,
+      "jsonFields": 1,
+      "state": "legal-empty",
       "nonEmpty": true,
       "noCrash": true,
       "crash": null
@@ -397,9 +415,9 @@
       "deprecated": false,
       "legalEmpty": true,
       "hasFamily": false,
-      "controlFields": 1,
-      "jsonFields": 0,
-      "state": "controls",
+      "controlFields": 0,
+      "jsonFields": 1,
+      "state": "legal-empty",
       "nonEmpty": true,
       "noCrash": true,
       "crash": null
@@ -425,9 +443,9 @@
       "deprecated": false,
       "legalEmpty": true,
       "hasFamily": false,
-      "controlFields": 1,
-      "jsonFields": 0,
-      "state": "controls",
+      "controlFields": 0,
+      "jsonFields": 1,
+      "state": "legal-empty",
       "nonEmpty": true,
       "noCrash": true,
       "crash": null
@@ -439,8 +457,8 @@
       "deprecated": false,
       "legalEmpty": false,
       "hasFamily": false,
-      "controlFields": 5,
-      "jsonFields": 5,
+      "controlFields": 7,
+      "jsonFields": 3,
       "state": "controls",
       "nonEmpty": true,
       "noCrash": true,
@@ -467,9 +485,9 @@
       "deprecated": false,
       "legalEmpty": true,
       "hasFamily": false,
-      "controlFields": 1,
-      "jsonFields": 0,
-      "state": "controls",
+      "controlFields": 0,
+      "jsonFields": 1,
+      "state": "legal-empty",
       "nonEmpty": true,
       "noCrash": true,
       "crash": null
@@ -509,8 +527,8 @@
       "deprecated": false,
       "legalEmpty": false,
       "hasFamily": false,
-      "controlFields": 7,
-      "jsonFields": 1,
+      "controlFields": 8,
+      "jsonFields": 0,
       "state": "controls",
       "nonEmpty": true,
       "noCrash": true,
@@ -523,8 +541,8 @@
       "deprecated": false,
       "legalEmpty": false,
       "hasFamily": false,
-      "controlFields": 3,
-      "jsonFields": 0,
+      "controlFields": 2,
+      "jsonFields": 1,
       "state": "controls",
       "nonEmpty": true,
       "noCrash": true,
@@ -579,8 +597,8 @@
       "deprecated": false,
       "legalEmpty": false,
       "hasFamily": false,
-      "controlFields": 4,
-      "jsonFields": 0,
+      "controlFields": 2,
+      "jsonFields": 1,
       "state": "controls",
       "nonEmpty": true,
       "noCrash": true,
@@ -621,8 +639,8 @@
       "deprecated": false,
       "legalEmpty": false,
       "hasFamily": false,
-      "controlFields": 6,
-      "jsonFields": 1,
+      "controlFields": 5,
+      "jsonFields": 2,
       "state": "controls",
       "nonEmpty": true,
       "noCrash": true,
@@ -635,8 +653,8 @@
       "deprecated": false,
       "legalEmpty": false,
       "hasFamily": false,
-      "controlFields": 3,
-      "jsonFields": 0,
+      "controlFields": 2,
+      "jsonFields": 1,
       "state": "controls",
       "nonEmpty": true,
       "noCrash": true,
@@ -761,9 +779,9 @@
       "deprecated": false,
       "legalEmpty": true,
       "hasFamily": false,
-      "controlFields": 1,
-      "jsonFields": 0,
-      "state": "controls",
+      "controlFields": 0,
+      "jsonFields": 1,
+      "state": "legal-empty",
       "nonEmpty": true,
       "noCrash": true,
       "crash": null
@@ -775,8 +793,8 @@
       "deprecated": false,
       "legalEmpty": false,
       "hasFamily": false,
-      "controlFields": 5,
-      "jsonFields": 3,
+      "controlFields": 7,
+      "jsonFields": 1,
       "state": "controls",
       "nonEmpty": true,
       "noCrash": true,
@@ -803,9 +821,9 @@
       "deprecated": false,
       "legalEmpty": true,
       "hasFamily": false,
-      "controlFields": 1,
-      "jsonFields": 0,
-      "state": "controls",
+      "controlFields": 0,
+      "jsonFields": 1,
+      "state": "legal-empty",
       "nonEmpty": true,
       "noCrash": true,
       "crash": null
@@ -831,9 +849,9 @@
       "deprecated": false,
       "legalEmpty": true,
       "hasFamily": false,
-      "controlFields": 1,
-      "jsonFields": 0,
-      "state": "controls",
+      "controlFields": 0,
+      "jsonFields": 1,
+      "state": "legal-empty",
       "nonEmpty": true,
       "noCrash": true,
       "crash": null
@@ -957,8 +975,8 @@
       "deprecated": false,
       "legalEmpty": false,
       "hasFamily": false,
-      "controlFields": 10,
-      "jsonFields": 5,
+      "controlFields": 12,
+      "jsonFields": 3,
       "state": "controls",
       "nonEmpty": true,
       "noCrash": true,
@@ -1097,8 +1115,8 @@
       "deprecated": false,
       "legalEmpty": false,
       "hasFamily": false,
-      "controlFields": 3,
-      "jsonFields": 0,
+      "controlFields": 2,
+      "jsonFields": 1,
       "state": "controls",
       "nonEmpty": true,
       "noCrash": true,
@@ -1111,9 +1129,9 @@
       "deprecated": true,
       "legalEmpty": true,
       "hasFamily": false,
-      "controlFields": 1,
-      "jsonFields": 0,
-      "state": "controls",
+      "controlFields": 0,
+      "jsonFields": 1,
+      "state": "legal-empty",
       "nonEmpty": true,
       "noCrash": true,
       "crash": null
@@ -1125,9 +1143,9 @@
       "deprecated": true,
       "legalEmpty": true,
       "hasFamily": false,
-      "controlFields": 1,
-      "jsonFields": 0,
-      "state": "controls",
+      "controlFields": 0,
+      "jsonFields": 1,
+      "state": "legal-empty",
       "nonEmpty": true,
       "noCrash": true,
       "crash": null
@@ -1153,8 +1171,8 @@
       "deprecated": false,
       "legalEmpty": false,
       "hasFamily": false,
-      "controlFields": 4,
-      "jsonFields": 3,
+      "controlFields": 5,
+      "jsonFields": 2,
       "state": "controls",
       "nonEmpty": true,
       "noCrash": true,
@@ -1167,8 +1185,8 @@
       "deprecated": false,
       "legalEmpty": false,
       "hasFamily": false,
-      "controlFields": 5,
-      "jsonFields": 3,
+      "controlFields": 6,
+      "jsonFields": 2,
       "state": "controls",
       "nonEmpty": true,
       "noCrash": true,
@@ -1181,8 +1199,8 @@
       "deprecated": false,
       "legalEmpty": false,
       "hasFamily": false,
-      "controlFields": 2,
-      "jsonFields": 2,
+      "controlFields": 3,
+      "jsonFields": 1,
       "state": "controls",
       "nonEmpty": true,
       "noCrash": true,
@@ -1195,8 +1213,8 @@
       "deprecated": false,
       "legalEmpty": false,
       "hasFamily": false,
-      "controlFields": 4,
-      "jsonFields": 3,
+      "controlFields": 5,
+      "jsonFields": 2,
       "state": "controls",
       "nonEmpty": true,
       "noCrash": true,
@@ -1209,8 +1227,8 @@
       "deprecated": false,
       "legalEmpty": false,
       "hasFamily": false,
-      "controlFields": 11,
-      "jsonFields": 6,
+      "controlFields": 10,
+      "jsonFields": 2,
       "state": "controls",
       "nonEmpty": true,
       "noCrash": true,
@@ -1223,8 +1241,8 @@
       "deprecated": false,
       "legalEmpty": false,
       "hasFamily": false,
-      "controlFields": 2,
-      "jsonFields": 3,
+      "controlFields": 3,
+      "jsonFields": 2,
       "state": "controls",
       "nonEmpty": true,
       "noCrash": true,
@@ -1251,8 +1269,8 @@
       "deprecated": false,
       "legalEmpty": false,
       "hasFamily": false,
-      "controlFields": 10,
-      "jsonFields": 2,
+      "controlFields": 9,
+      "jsonFields": 3,
       "state": "controls",
       "nonEmpty": true,
       "noCrash": true,
@@ -1279,8 +1297,8 @@
       "deprecated": false,
       "legalEmpty": false,
       "hasFamily": false,
-      "controlFields": 13,
-      "jsonFields": 4,
+      "controlFields": 12,
+      "jsonFields": 5,
       "state": "controls",
       "nonEmpty": true,
       "noCrash": true,
@@ -1293,8 +1311,8 @@
       "deprecated": false,
       "legalEmpty": false,
       "hasFamily": false,
-      "controlFields": 8,
-      "jsonFields": 6,
+      "controlFields": 10,
+      "jsonFields": 4,
       "state": "controls",
       "nonEmpty": true,
       "noCrash": true,
@@ -1349,9 +1367,9 @@
       "deprecated": false,
       "legalEmpty": true,
       "hasFamily": false,
-      "controlFields": 1,
-      "jsonFields": 0,
-      "state": "controls",
+      "controlFields": 0,
+      "jsonFields": 1,
+      "state": "legal-empty",
       "nonEmpty": true,
       "noCrash": true,
       "crash": null
@@ -1363,9 +1381,9 @@
       "deprecated": false,
       "legalEmpty": true,
       "hasFamily": false,
-      "controlFields": 1,
-      "jsonFields": 0,
-      "state": "controls",
+      "controlFields": 0,
+      "jsonFields": 1,
+      "state": "legal-empty",
       "nonEmpty": true,
       "noCrash": true,
       "crash": null
@@ -1377,9 +1395,9 @@
       "deprecated": false,
       "legalEmpty": true,
       "hasFamily": false,
-      "controlFields": 1,
-      "jsonFields": 0,
-      "state": "controls",
+      "controlFields": 0,
+      "jsonFields": 1,
+      "state": "legal-empty",
       "nonEmpty": true,
       "noCrash": true,
       "crash": null
