@@ -17,7 +17,7 @@
 
 import type { UploadFile } from 'antd';
 import { Button, Modal, Upload } from 'antd';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
 
 import { getDashboard, saveDashboard } from '@/services/tb/dashboard';
@@ -52,6 +52,26 @@ export function DashboardImageDialog({
   const [saving, setSaving] = useState(false);
 
   const disabled = !scope?.dashboardId;
+
+  // The readonly toolbar caller has no dashboard entity at hand — load the
+  // current image on open so the preview reflects the persisted state.
+  useEffect(() => {
+    if (!open || !scope?.dashboardId || scope.currentImage !== undefined) {
+      return;
+    }
+    let cancelled = false;
+    getDashboard(scope.dashboardId).then(
+      (dashboard) => {
+        if (!cancelled) {
+          setImage((current) => current ?? dashboard.image ?? undefined);
+        }
+      },
+      () => undefined,
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [open, scope]);
 
   const save = async (): Promise<void> => {
     if (!scope) {

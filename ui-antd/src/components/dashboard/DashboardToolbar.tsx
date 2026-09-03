@@ -13,16 +13,21 @@
  *   - fullscreen toggle (shell page enters, fullscreen page exits);
  *   - collapse / expand button (toolbarAlwaysOpen seeds the initial state).
  *
- * Never rendered in v1: edit FAB, update-image, filters, entities-select,
- * powered-by footer (embedded only anyway).
+ * Never rendered in v1: edit FAB, filters, entities-select, powered-by
+ * footer (embedded only anyway).
  *
- * M7: one surgical addition — the 编辑 entry (TA, not embedded, not the
- * fullscreen single page) navigating to /dashboards/:id/editor.
+ * M7 surgical additions:
+ *  - the 编辑 entry (TA, not embedded, not the fullscreen single page)
+ *    navigating to /dashboards/:id/editor;
+ *  - the update-image entry (spec §3.5 parity: READ-ONLY toolbar only,
+ *    TA + not embedded + settings flag) opening the dashboard-image
+ *    dialog, ui-ngx dashboard-page.component.html:230-235.
  */
 import {
   DownloadOutlined,
   EditOutlined,
   ExpandOutlined,
+  FileImageOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   RightCircleOutlined,
@@ -31,8 +36,9 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { history } from '@umijs/max';
 import { Button, Select, Space, Tooltip, Typography } from 'antd';
+import { useState } from 'react';
 import { useIntl } from 'react-intl';
-
+import { DashboardImageDialog } from '@/pages/dashboards/editor/dialogs/dashboard-image';
 import { exportDashboard, getTenantDashboards } from '@/services/tb/dashboard';
 import type { DashboardSettings } from '@/types/tb/dashboard';
 import type { Timewindow } from '@/types/tb/timewindow';
@@ -83,6 +89,7 @@ export function DashboardToolbar({
   isTenantAdmin,
 }: DashboardToolbarProps) {
   const { formatMessage } = useIntl();
+  const [imageDialogOpen, setImageDialogOpen] = useState(false);
 
   const dashboardsSelect = useQuery({
     queryKey: ['dashboard', 'toolbarSelect'],
@@ -166,6 +173,26 @@ export function DashboardToolbar({
             />
           </Tooltip>
         ) : null}
+        {/* M7 §3.5 parity: update-image lives on the READ-ONLY toolbar only
+            (never in the edit-mode editor toolbar), ui-ngx
+            dashboard-page.component.html:230-235. */}
+        {isTenantAdmin &&
+        !embedded &&
+        settings.showUpdateDashboardImage !== false ? (
+          <Tooltip
+            title={formatMessage({
+              id: 'editor.dashboard.dialogs.image.title',
+              defaultMessage: 'Update dashboard image',
+            })}
+          >
+            <Button
+              size="small"
+              icon={<FileImageOutlined />}
+              data-testid="dashboard-toolbar-image"
+              onClick={() => setImageDialogOpen(true)}
+            />
+          </Tooltip>
+        ) : null}
         {isMobile && hasRightLayout ? (
           <Button
             size="small"
@@ -245,6 +272,11 @@ export function DashboardToolbar({
           </Tooltip>
         ) : null}
       </Space>
+      <DashboardImageDialog
+        open={imageDialogOpen}
+        payload={{ dashboardId }}
+        onClose={() => setImageDialogOpen(false)}
+      />
     </Space>
   );
 }
