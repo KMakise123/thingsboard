@@ -27,7 +27,8 @@ export default {
   'editor.ruleNode.field.scope': '属性范围',
   'editor.ruleNode.field.notifyDevice': '强制通知设备',
   'editor.ruleNode.field.sendAttributesUpdatedNotification': '发送属性更新通知',
-  'editor.ruleNode.field.updateAttributesOnlyOnValueChange': '仅在值变化时更新属性',
+  'editor.ruleNode.field.updateAttributesOnlyOnValueChange':
+    '仅在值变化时更新属性',
   'editor.ruleNode.field.alarmType': '告警类型',
 
   // key operations
@@ -45,10 +46,13 @@ export default {
 
   // processing settings (save time series / save attributes)
   'editor.ruleNode.processing.title': '处理设置',
+  'editor.ruleNode.processing.mode.basic': '基本',
+  'editor.ruleNode.processing.mode.advanced': '高级',
   'editor.ruleNode.processing.strategy': '策略',
   'editor.ruleNode.processing.deduplicationInterval': '去重间隔（秒）',
   'editor.ruleNode.processing.advanced': '高级策略',
   'editor.ruleNode.processing.advanced.timeseries': '遥测',
+  'editor.ruleNode.processing.advanced.attributes': '属性',
   'editor.ruleNode.processing.advanced.latest': '最新值',
   'editor.ruleNode.processing.advanced.webSockets': 'WebSocket',
   'editor.ruleNode.processing.advanced.calculatedFields': '计算字段',
@@ -63,7 +67,8 @@ export default {
   'editor.ruleNode.createAlarm.severity': '告警严重程度',
   'editor.ruleNode.createAlarm.dynamicSeverity': '使用告警严重程度模式',
   'editor.ruleNode.createAlarm.propagate': '将告警传播到关联实体',
-  'editor.ruleNode.createAlarm.propagateToOwner': '将告警传播到实体所有者（客户或租户）',
+  'editor.ruleNode.createAlarm.propagateToOwner':
+    '将告警传播到实体所有者（客户或租户）',
   'editor.ruleNode.createAlarm.propagateToTenant': '将告警传播到租户',
   'editor.ruleNode.createAlarm.relationTypes': '要传播的关联类型',
   'editor.ruleNode.createAlarm.useMessageAlarmData': '使用消息告警数据',
