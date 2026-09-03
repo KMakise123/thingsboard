@@ -1,0 +1,148 @@
+/**
+ * Shell wiring smoke: toolbar affordances follow the session stack, the
+ * DialogHost seam opens the real add-node dialog through the canvas DnD
+ * drop path (descriptor → name field → config slot → addNode recipe commit
+ * as ONE group).
+ *
+ * Services are mocked at the module boundary; the descriptors query is
+ * seeded through the mock.
+ */
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
+import { App as AntdApp } from 'antd';
+import { createIntl, RawIntlProvider } from 'react-intl';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { EditorSession } from '@/core/editor/session';
+import zhEditor from '@/locales/zh-CN/editor';
+import zhRulechain from '@/locales/zh-CN/editor-rulechain';
+import zhCanvas from '@/locales/zh-CN/editor-rulechain-canvas';
+import type { RuleNodeComponentDescriptor } from '@/types/tb/rule-chain';
+
+import { RULE_NODE_DROP_MIME } from './canvas';
+import { rowDraft } from './canvas/test-helpers';
+import { RuleChainEditorShell } from './shell';
+
+const serviceMock = vi.hoisted(() => ({
+  saveRuleChain: vi.fn(),
+  saveRuleChainMetaData: vi.fn(),
+  getRuleNodeComponents: vi.fn(),
+}));
+vi.mock('@/services/tb/rule-chain', () => serviceMock);
+
+const intl = createIntl({
+  locale: 'zh-CN',
+  messages: { ...zhEditor, ...zhRulechain, ...zhCanvas },
+});
+
+const DESCRIPTOR: RuleNodeComponentDescriptor = {
+  type: 'FILTER',
+  name: 'Test Filter',
+  clazz: 'org.example.TestFilter',
+  configurationVersion: 0,
+  configurationDescriptor: {
+    nodeDefinition: {
+      details: 'details body',
+      description: 'a test node',
+      inEnabled: true,
+      outEnabled: true,
+      relationTypes: ['True', 'False'],
+      customRelations: false,
+      defaultConfiguration: { threshold: 1 },
+    },
+  },
+};
+
+function setup() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  const session = new EditorSession({ baseline: rowDraft(2, true) });
+  render(
+    <RawIntlProvider value={intl}>
+      <AntdApp>
+        <QueryClientProvider client={queryClient}>
+          <RuleChainEditorShell session={session} />
+        </QueryClientProvider>
+      </AntdApp>
+    </RawIntlProvider>,
+  );
+  return session;
+}
+
+beforeEach(() => {
+  serviceMock.getRuleNodeComponents.mockReset();
+  serviceMock.getRuleNodeComponents.mockResolvedValue([DESCRIPTOR]);
+  serviceMock.saveRuleChain.mockReset();
+  serviceMock.saveRuleChainMetaData.mockReset();
+});
+
+describe('RuleChainEditorShell — toolbar', () => {
+  it('renders save/undo/redo with session-backed affordances', () => {
+    setup();
+    expect(screen.getByTestId('rc-toolbar-save')).toBeInTheDocument();
+    expect(screen.getByTestId('rc-toolbar-undo')).toBeDisabled();
+    expect(screen.getByTestId('rc-toolbar-redo')).toBeDisabled();
+  });
+});
+
+describe('RuleChainEditorShell — library DnD → add-node dialog (host seam)', () => {
+  it('commits the addNode recipe from the real dialog as ONE group', async () => {
+    const session = setup();
+    // descriptors loaded → the library drawer data is ready
+    await waitFor(() => {
+      expect(serviceMock.getRuleNodeComponents).toHaveBeenCalled();
+    });
+    // let the descriptor query resolution settle before the drop
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    // simulate the library item drop on the canvas wrapper (HTML5 DnD)
+    const canvas = screen.getByTestId('rc-canvas');
+    fireEvent.drop(canvas, {
+      dataTransfer: {
+        types: [RULE_NODE_DROP_MIME],
+        getData: (type: string) =>
+          type === RULE_NODE_DROP_MIME ? 'org.example.TestFilter' : '',
+      },
+      clientX: 400,
+      clientY: 300,
+    });
+
+    await waitFor(
+      () => {
+        expect(screen.getByTestId('rc-add-node-dialog')).toBeInTheDocument();
+      },
+      { timeout: 5000 },
+    );
+    const nameInput = screen.getByTestId('rc-add-node-name');
+    // prefilled with the component display name (ui-ngx parity)
+    expect(nameInput).toHaveValue('Test Filter');
+    fireEvent.change(nameInput, { target: { value: 'My Filter' } });
+    // the config slot shows the descriptor default configuration
+    expect(screen.getByTestId('rc-node-config-slot')).toHaveTextContent(
+      'org.example.TestFilter',
+    );
+    // antd renders two-CJK-char buttons with an inner space ("确 定")
+    fireEvent.click(screen.getByRole('button', { name: /确\s*定/ }));
+
+    await waitFor(() => {
+      expect(session.current.nodes['local-2']).toBeDefined();
+    });
+    expect(session.current.nodes['local-2'].name).toBe('My Filter');
+    expect(session.current.nodes['local-2'].clazz).toBe(
+      'org.example.TestFilter',
+    );
+    expect(session.current.nodes['local-2'].configuration).toEqual({
+      threshold: 1,
+    });
+    expect(session.history.at(-1)?.label).toBe('add node');
+    expect(session.history).toHaveLength(1);
+  });
+});
