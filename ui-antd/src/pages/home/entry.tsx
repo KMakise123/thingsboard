@@ -19,9 +19,17 @@ const HomeEntry: React.FC = () => {
 
   useEffect(() => {
     const user = initialState?.currentUser;
-    if (user) {
-      history.replace(roleDefaultPath(user));
+    if (!user) {
+      return;
     }
+    // Token-first guard (see the twin guard in user/login): after a logout
+    // or failed-refresh exit the tokens are gone synchronously while the
+    // memory state can lag — role-landing without tokens strands the user
+    // on a cached page where every request 401s (M6 cross-cutting fix).
+    if (!tokenStore.isTokenValid('jwt')) {
+      return;
+    }
+    history.replace(roleDefaultPath(user));
   }, [initialState?.currentUser]);
 
   // Mount-only: the callback lands exactly once and must survive the
