@@ -1,0 +1,56 @@
+/**
+ * zh-CN editor dashboard keys (`editor.dashboard.*`, M7 brief §3 C wave).
+ * Keep zh-CN/en-US key-for-key identical (check-locale gate). Keys shared
+ * with the editor-common domain (save/undo/redo/…) stay in editor.ts.
+ */
+export default {
+  'editor.dashboard.toolbar.add': '添加 widget',
+  'editor.dashboard.toolbar.manageLayouts': '管理布局',
+  'editor.dashboard.toolbar.rightLayout': '右侧布局',
+  'editor.dashboard.toolbar.fullscreen': '全屏',
+  'editor.dashboard.toolbar.exitFullscreen': '退出全屏',
+  'editor.dashboard.toolbar.states': '状态',
+  'editor.dashboard.toolbar.aliases': '别名',
+  'editor.dashboard.toolbar.filters': '过滤器',
+  'editor.dashboard.toolbar.settings': '设置',
+  'editor.dashboard.toolbar.import': '导入',
+  'editor.dashboard.toolbar.export': '导出',
+  'editor.dashboard.toolbar.versionControl': '版本控制',
+  'editor.dashboard.toolbar.versionControlEmpty':
+    '当前编辑器未接入版本控制操作。',
+  'editor.dashboard.toolbar.saved': '已保存',
+  'editor.dashboard.toolbar.saveFailed': '保存失败',
+  'editor.dashboard.toolbar.importFailed': '导入失败',
+  'editor.dashboard.toolbar.importInvalid': '无效的仪表盘文件',
+  'editor.dashboard.panel.placeholder':
+    '未选中 widget：在画布中点击一个 widget 进行配置。',
+  'editor.dashboard.dialog.empty': '该面板暂无可执行操作。',
+  'editor.dashboard.conflict.title': '保存冲突',
+  'editor.dashboard.conflict.empty':
+    '检测到保存冲突，但当前未接入冲突处理操作。',
+  'editor.dashboard.addWidget.title': '选择 widget 类型',
+  'editor.dashboard.addWidget.search': '搜索 widget 类型',
+  'editor.dashboard.addWidget.confirmTitle': '配置 widget',
+  'editor.dashboard.addWidget.add': '添加',
+  'editor.dashboard.addWidget.group.general': '通用',
+  'editor.dashboard.addWidget.field.title': '标题',
+  'editor.dashboard.addWidget.field.layout': '目标布局',
+  'editor.dashboard.addWidget.field.sizeX': '宽度（列）',
+  'editor.dashboard.addWidget.field.sizeY': '高度（行）',
+  'editor.dashboard.addWidget.field.row': '行位置',
+  'editor.dashboard.addWidget.field.col': '列位置',
+  'editor.dashboard.selectLayout.title': '选择目标布局',
+  'editor.dashboard.layout.main': '主布局',
+  'editor.dashboard.layout.right': '右侧布局',
+  'editor.dashboard.menu.edit': '编辑',
+  'editor.dashboard.menu.replaceReference': '引用转副本',
+  'editor.dashboard.menu.copy': '复制',
+  'editor.dashboard.menu.copyReference': '复制引用',
+  'editor.dashboard.menu.paste': '粘贴',
+  'editor.dashboard.menu.pasteReference': '粘贴引用',
+  'editor.dashboard.menu.remove': '删除',
+  'editor.dashboard.menu.moveAllWidgets': '移动所有 widget',
+  'editor.dashboard.widget.removeTitle': '删除 widget',
+  'editor.dashboard.widget.removeText': '该 widget 将从布局中移除。',
+  'editor.dashboard.widget.remove': '删除',
+};

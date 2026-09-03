@@ -70,7 +70,15 @@ export function useWidgetValues(
     const jobs: Array<Job> = [];
     for (const datasource of datasources) {
       if (datasource.type === 'entityCount') {
-        jobs.push({ datasource });
+        // zero resolved entities (unresolved alias, editor mounts before
+        // alias resolution lands) → no entityList group to query. Skipping
+        // keeps the "render degrades, never crashes" datasource contract:
+        // countSubs[0] would be undefined and .subscribe would throw the
+        // whole tree into the error boundary. The signature changes when
+        // entities resolve, so the channel re-subscribes then.
+        if (datasource.entities.length > 0) {
+          jobs.push({ datasource });
+        }
       } else {
         for (const entity of datasource.entities) {
           jobs.push({

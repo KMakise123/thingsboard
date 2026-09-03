@@ -33,62 +33,68 @@ v2 交付的仪表盘编辑器、widget 编辑器、规则链画布，对 ui-ngx
 
 ### 3.1 编辑态与工具栏
 
-- [ ] 编辑态进入：只读页「编辑」→ 编辑态（widget 出现拖拽 / 缩放手柄、工具栏切换编辑组）——等价 ui-ngx Edit mode〔ui-ngx 锚点 dashboard-page.component.html:148-171〕
-- [ ] 编辑态退出两路语义：保存 → baseline 前移；取消 → 草稿整体撤回进入前基线（prevDashboard 语义）——两路均回只读态
-- [ ] 工具栏齐套：保存 / 撤销 / 重做（行为契约）/ 布局切换 / 全屏 / states 管理 / 别名管理 / 过滤器管理 / 设置 / 导入 / 导出 / 版本控制入口（VC 子系统边界依 #9：编辑器内 popover 形态对齐，不跳独立页）
-- [ ] 空 dashboard 自动进入编辑态
+- [x] 编辑态进入：只读页「编辑」→ 编辑态（widget 出现拖拽 / 缩放手柄、工具栏切换编辑组）——等价 ui-ngx Edit mode〔ui-ngx 锚点 dashboard-page.component.html:148-171〕〔V 波真机 ✅；Software 盘加载即崩 → 见 §3.1 末缺口行 D1，已修复（X 波），真机复验通过〕
+- [x] 编辑态退出两路语义：保存 → baseline 前移；取消 → 草稿整体撤回进入前基线（prevDashboard 语义）——两路均回只读态〔V 波真机 ✅：保存后 save 图标禁用（baseline 前移）+ 刷新持久化；退出编辑 → 放弃修改 → 只读路由、草稿撤回〕
+- [x] 工具栏齐套：保存 / 撤销 / 重做（行为契约）/ 布局切换 / 全屏 / states 管理 / 别名管理 / 过滤器管理 / 设置 / 导入 / 导出 / 版本控制入口（VC 子系统边界依 #9：编辑器内 popover 形态对齐，不跳独立页）〔V 波真机 ✅：AX 枚举全量在列，VC 为 popover 占位形态〕
+- [ ] 空 dashboard 自动进入编辑态〔未勾：本地 4 盘均有内容，真机未走「新建空盘」路径；编辑器路由本身为纯编辑态、空配置渲染有单测（shell.test emptyDashboardJson），待 M10 补一次新建空盘走查〕
+- [x] ~~**D1 缺口（V 波新登记）：Software 演示仪表盘（6 states / `stateControllerId=entity`）编辑器路由加载即崩**~~（应用错误边界「页面出现错误」）；其余 3 盘正常。EditorShell 以真实 configuration 隔离挂载不崩 → 崩点在路由级装配（疑似 states-controller 的 URL state 装配交互）→ **已修复（X 波，commit 01a46dd321）**：真机堆栈定位——崩点不在 states-controller 也不在路由装配本身，而是共享 `useWidgetValues` hook 对**零解析实体**的 entityCount 数据源建订阅（`countSubs[0]` undefined → `.subscribe` TypeError）；编辑器画布挂载时 alias 必然未解析（异步），崩得确定性，只读页靠 lazy chunk 加载时序侥幸避过。修复 = hook 源头守卫（空实体集跳过 entityCount 作业，别名解析后 signature 变化自动重订阅；恢复 datasources.ts「render degrades, never crashes」契约；该文件在 M7 页面集之外，报告中已显式标注）。回归测试 `entity-controller-crash.test.tsx`（真 shell/canvas/widget 链 + Software 形状夹具）；真机复验：Software 盘编辑器经「编辑」按钮打开、states 对话框 6 状态齐全、无错误边界〔截图取证〕
 
 ### 3.2 widget 生命周期
 
-- [ ] 添加 widget：右侧 widget 类型选择抽屉（分组 + 搜索）→ 类型 → 参数/布局确认对话框 → 落格；多布局时选目标布局；scada 布局下选择器 scada 类型置顶且跳过布局配置步
-- [ ] 从选择器拖拽 widget 落格（dropConfig 体系，落点取网格坐标）
-- [ ] 删除 widget（交互对齐 ui-ngx）
-- [ ] 复制 / 粘贴双档：ctrl+c 复制 / ctrl+v 粘贴（副本重生成 guid）；ctrl+r 复制引用 / ctrl+i 粘贴引用（保留 alias/filter 引用）——粘贴 = 一个事务组
-- [ ] 拖拽移动与 resize 手柄（编辑态）
-- [ ] 碰撞阻挡：拖到占用格不推不叠（gridster pushItems:false / swap:false 语义）
-- [ ] 边界夹取：拖出边界坐标夹回网格范围
+- [x] 添加 widget：右侧 widget 类型选择抽屉（分组 + 搜索）→ 类型 → 参数/布局确认对话框 → 落格；多布局时选目标布局；scada 布局下选择器 scada 类型置顶且跳过布局配置步〔V 波真机 ✅：五组抽屉 + 搜索过滤 + 确认框 + 落格 + 面板自动展开；多布局选目标布局由 select-target-layout 契约单测覆盖（单布局盘真机无此步）；scada 置顶 → 见本节末缺口行〕
+- [x] 从选择器拖拽 widget 落格（dropConfig 体系，落点取网格坐标）〔P3 引擎取证（calcXY 两轴夹取）+ `rgl-edit-behavior.test.tsx`；真机抽屉 HTML5 DnD 未驱动（环境受阻），落格链经确认框路径实证〕
+- [x] 删除 widget（交互对齐 ui-ngx）〔Delete 键/菜单 → 删除确认对话框有单测（shell.test「Delete opens the remove confirm」）；真机右键被浏览器扩展劫持未目击菜单本体〕
+- [x] 复制 / 粘贴双档：ctrl+c 复制 / ctrl+v 粘贴（副本重生成 guid）；ctrl+r 复制引用 / ctrl+i 粘贴引用（保留 alias/filter 引用）——粘贴 = 一个事务组〔V 波真机 ✅：c/v 后 3→4 cells、一次 ctrl+z 整组抹掉；r/i 的引用粘贴被 sameTarget 守卫正确拒绝（ui-ngx canPasteWidgetReference parity，需多布局目标），引用粘贴事务由 clipboard 单测覆盖〕
+- [x] 拖拽移动与 resize 手柄（编辑态）〔V 波真机 ✅ 拖拽移动（含一次 drag-stop 一个事务组）；resize 手柄已渲染、引擎+单测取证，真机未驱动手柄缩放〕
+- [x] 碰撞阻挡：拖到占用格不推不叠（gridster pushItems:false / swap:false 语义）〔V 波真机 ✅：拖向 Exceptions 占用格 → 原地弹回零位移、零级联〕
+- [x] 边界夹取：拖出边界坐标夹回网格范围〔P3 引擎取证（横向硬夹/纵向向下生长）+ V 波真机下边界落位观察一致〕
+- [x] ~~**D2 缺口（V 波新登记）：添加 widget 默认落 `(0,0)` 叠压既有 widget，不寻找空闲位**~~（ui-ngx findPosition 预填第一个空闲位/全满时落末端）；真机 DOM 探针实证新旧两 cell 同为 `translate(10px,10px)` → **已修复（X 波，commit c162c3bef8 find-free-placement）**：`dialogs/add-widget/find-free-placement.ts` 实现 ui-ngx `widgetPossiblePosition` parity——行主序扫描目标布局占用格取第一个无碰撞槽位（列夹取网格宽度、1x1 默认几何），扫描含占用包围盒下方一行（构造上必空闲），墙对墙布局退化为 ui-ngx 末端落位（row=maxBottom, col=0）而非叠压；确认框 row/col 由默认目标布局的空闲位预填，用户显式改值优先。单测 8 例矩阵 + 流程级预填/落格测试；真机复验：Software 盘（已占用画布）添加 HTML value card → 6 cell 全部位置互异、新件落 `translate(12px,594px)` 空白带、undo 一组可整撤〔截图取证；草稿放弃，服务器零改动 API 复核〕。pasteWidgets 相对排布不受影响（clipboard 契约未动）
+- [x] ~~**D3 缺口（V 波新登记，minor）：add-widget 确认框标题默认填 fqn 原文**~~（如 `system.cards.html_value_card`）而非类型显示名（ui-ngx 预填类型名）→ **已修复（X 波）**：`widgetTypeLabel(fqn)`（registry `meta.label` → fqn 兜底；widgetType 探针名一节从 add-widget 流程不可达——选择器只列 registry fqns）用于确认框标题预填与抽屉列表统一解析；单测 + 真机复验确认框标题输入框预填「HTML value card」
+- [ ] **缺口登记（V 波）：widget 选择抽屉 scada 类型置顶缺**——scada 符号类型本身归资源库子系统（v2 后段交付），类型不存在前置顶机制无从验收；排序机制待类型存在后补走查
 
 ### 3.3 网格背景与右键菜单
 
-- [ ] displayGrid 三态 none / onDrag&Resize / always；move-widgets 对话框打开期间临时 always〔锚点 dashboard-layout.component.ts:117-119〕
-- [ ] dashboard 级右键菜单五项：设置 / 别名 / 粘贴 / 粘贴引用 / 移动所有 widget
-- [ ] widget 级右键菜单：编辑 / 引用转副本（仅引用件显示）/ 复制 / 复制引用 / 删除
-- [ ] move-widgets 对话框：cols/rows 偏移量整体平移所有 widget
+- [x] displayGrid 三态 none / onDrag&Resize / always；move-widgets 对话框打开期间临时 always〔锚点 dashboard-layout.component.ts:117-119〕〔`editor-grid.test.tsx` 三态 + override 通道单测全绿；真机默认态（onDrag&Resize 静止隐藏）可见性一致〕
+- [ ] dashboard 级右键菜单五项：设置 / 别名 / 粘贴 / 粘贴引用 / 移动所有 widget〔未勾（环境受阻）：BrowserOS 扩展劫持右键、标签页曾被导航走；菜单接线在 `shell.tsx dashboardMenu`（五项 + testid），菜单本体真机未目击、亦无专项单测——补自动化或人工右键走查后再勾〕
+- [ ] widget 级右键菜单：编辑 / 引用转副本（仅引用件显示）/ 复制 / 复制引用 / 删除〔未勾（环境受阻）：同上；`widgetMenu` 接线有 builder 调用断言、Delete 键删除确认有单测，菜单本体未目击〕
+- [x] move-widgets 对话框：cols/rows 偏移量整体平移所有 widget〔`move-widgets.test.tsx` 专项单测（整体平移/负向夹取/零偏移零补丁 no-op/空布局占位/一个事务组）+ displayGrid override 单测；真机入口依赖 dashboard 右键菜单（被阻）〕
 
 ### 3.4 widget 配置面板
 
 > 勘误：骨架所写「Data / Settings / Advanced / Appearance / Action」为 3.x 旧结构；4.4 已重构为 toggle-select 五区〔锚点 widget-config.component.ts:333-372〕。
 
-- [ ] advanced 模式五区齐套（头部顺序）：**Data / Appearance / Widget card / Actions / Layout**
-- [ ] Data 区：timewindow 配置、alarm filter（告警类）、datasources 编辑 + datakey 配置与拖拽排序（含 latest keys）、RPC 类 targetDevice 选择、alarm source
-- [ ] Appearance 区：外观设置 + widget 高级设置（原 Settings tab 收纳于此，无独立 Settings / Advanced tab）
-- [ ] Widget card 区：标题 / 卡片样式 + widgetCss 扩展面板
-- [ ] Actions 区：action 配置（actionSources 全操作源）
-- [ ] Layout 区：default 断点显示 resizable + preserveAspectRatio；非 default 断点显示 mobile/list 布局组（mobileHide / desktopHide / mobileOrder / mobileHeight）；scada 布局恒只显示前者
-- [ ] basic / advanced 切换：类型带 basicMode 时头部出现切换，basic 形态由类型自带 basic 配置渲染（如 scada symbol widget 的 targetDevice + 符号选择 + 逐对象绑定）
-- [ ] 别名闭环：面板内创建 / 编辑别名回调打开别名对话框；过滤器同理
-- [ ] settingsForm（表单配方）统一渲染器：与规则链节点配置共用（ADR 0004；M7 交付）
+- [x] advanced 模式五区齐套（头部顺序）：**Data / Appearance / Widget card / Actions / Layout**〔V 波真机 ✅：segmented 五区 AX 枚举（数据/外观/Widget 卡片/操作/布局）〕
+- [x] Data 区：timewindow 配置、alarm filter（告警类）、datasources 编辑 + datakey 配置与拖拽排序（含 latest keys）、RPC 类 targetDevice 选择、alarm source〔V 波真机 ✅：时间窗开关联动/数据源/数据键（标签/名称/单位/上下移/拖拽排序手柄/删除）/latest keys/添加键与数据源；alarm filter、RPC targetDevice 为类型条件渲染，由 WidgetConfigPanel/section-data 单测覆盖〕
+- [x] Appearance 区：外观设置 + widget 高级设置（原 Settings tab 收纳于此，无独立 Settings / Advanced tab）〔section-appearance 单测 + 真机区块在列〕
+- [x] Widget card 区：标题 / 卡片样式 + widgetCss 扩展面板〔section-widget-card 单测 + 真机区块在列〕
+- [x] Actions 区：action 配置（actionSources 全操作源）〔section-actions 单测 + 真机区块在列〕
+- [x] Layout 区：default 断点显示 resizable + preserveAspectRatio；非 default 断点显示 mobile/list 布局组（mobileHide / desktopHide / mobileOrder / mobileHeight）；scada 布局恒只显示前者〔section-layout 单测；真机 default 断点形态在列〕
+- [x] basic / advanced 切换：类型带 basicMode 时头部出现切换，basic 形态由类型自带 basic 配置渲染（如 scada symbol widget 的 targetDevice + 符号选择 + 逐对象绑定）〔WidgetConfigPanel.test「registry meta.basicMode reveals the header switch and basic form」；真机标准类型（无 basicMode）不出现切换，形态正确〕
+- [x] 别名闭环：面板内创建 / 编辑别名回调打开别名对话框；过滤器同理〔WidgetConfigPanel.test「inline create opens the alias dialog and applies the saved alias」等〕
+- [x] settingsForm（表单配方）统一渲染器：与规则链节点配置共用（ADR 0004；M7 交付）〔`components/form-property` 全套单测；面板设置表单经它渲染〕
 
 ### 3.5 states / layouts 对话框群（勘误后完整清单）
 
 > 勘误：原「state controller」非对话框（states-controller.service 注册的 default / entity 控制器组件）；原「select-dashboard-breakpoint」为工具栏内嵌切换组件（→ §3.7）。补漏：add-widget 确认框、widget 选择抽屉、单别名 / 别名集 / 过滤器三个对话框、dashboard-image 非编辑态入口。
 
-- [ ] manage-dashboard-states（工具栏 States）：state 列表增删改
-- [ ] dashboard-state（manage-states 内 add/edit）：name / id / root 字段
-- [ ] manage-dashboard-layouts（工具栏 Layouts）：布局数量、布局类型（default | scada | divider）、断点增删入口
-- [ ] add-new-breakpoint：仅从 manage-layouts「Add breakpoint」打开，选断点 + copyFrom
-- [ ] dashboard-settings（工具栏 Settings）：含 dashboardCss 编辑；被 manage-layouts「Layout settings」复用
-- [ ] dashboard-image：**非编辑态**工具栏入口 + 对话框（编辑态不显示——parity 细节）〔锚点 dashboard-page.component.html:230-235〕
-- [ ] 别名集对话框（工具栏 Aliases）+ 过滤器对话框（工具栏 Filters）+ 单别名对话框（widget 面板回调）
-- [ ] add-widget 参数/布局确认对话框 + widget 类型选择抽屉（操作见 §3.2）
-- [ ] select-target-layout：多布局添加 / 导入 widget 时选目标布局
-- [ ] select-target-state：从实体视图「添加到仪表盘」路径选目标 state（编辑器自身不直接打开——边界）
+- [x] manage-dashboard-states（工具栏 States）：state 列表增删改〔V 波真机 ✅：添加状态/编辑/删除 + default 根状态在列；manage-states.test 专项单测〕
+- [x] dashboard-state（manage-states 内 add/edit）：name / id / root 字段〔manage-states.test 单测；真机 add/edit 表单入口在列〕
+- [ ] **缺口登记（V 波）：manage-states 复制 state（duplicate）缺**——ui-ngx 状态行操作含复制；本实现仅 编辑/删除。低频操作，登记后随 states 域迭代补齐
+- [x] manage-dashboard-layouts（工具栏 Layouts）：布局数量、布局类型（default | scada | divider）、断点增删入口〔V 波真机 ✅：单选 默认/分栏（左+右）/SCADA布局 + 布局设置 + 添加断点；manage-layouts.test 单测〕
+- [x] add-new-breakpoint：仅从 manage-layouts「Add breakpoint」打开，选断点 + copyFrom〔add-breakpoint.test 专项单测（copyFrom 逐字复制/断点枚举）；真机入口在列〕
+- [x] dashboard-settings（工具栏 Settings）：含 dashboardCss 编辑；被 manage-layouts「Layout settings」复用〔V 波真机 ✅：全字段开关 + 状态控制器 + 仪表盘 CSS 编辑器〕
+- [x] dashboard-image：**非编辑态**工具栏入口 + 对话框（编辑态不显示——parity 细节）〔锚点 dashboard-page.component.html:230-235〕〔只读工具栏 update-image 入口已交付（a3b029ec7f）并有单测；本地盘均未设 image，入口按条件隐藏与 ui-ngx 一致——设置 image 后的入口/对话框真机走查留 M10 抽查〕
+- [ ] **缺口登记（V 波）：dashboard-image 截图抓图（html2canvas）缺**——上传 / 预览 / 清除 / 保存已等价；「从当前仪表盘生成截图」需引入 html2canvas 新依赖（M7 禁装新依赖），留后续里程碑评估
+- [x] 别名集对话框（工具栏 Aliases）+ 过滤器对话框（工具栏 Filters）+ 单别名对话框（widget 面板回调）〔V 波真机 ✅ 别名集/过滤器；单别名回调由 WidgetConfigPanel.test 覆盖〕
+- [x] add-widget 参数/布局确认对话框 + widget 类型选择抽屉（操作见 §3.2）〔V 波真机 ✅〕
+- [x] select-target-layout：多布局添加 / 导入 widget 时选目标布局〔host.test「select-target-layout delivers the picked layout id（frozen payload）」契约单测；真机单布局盘无触发场景〕
+- [ ] select-target-state：从实体视图「添加到仪表盘」路径选目标 state（编辑器自身不直接打开——边界）〔未勾（超出 M7 走查面）：该路径属实体视图域，编辑器侧仅保证不自行打开（现无该入口，边界成立）；随实体视图域走查验收〕
 
 ### 3.6 SCADA 布局编辑模式
 
 > 勘误：骨架「select/pan/move 模式切换」在 ui-ngx 4.4.0 无对应实现（全库检索零命中；pan/zoom 仅存在于资源库的 SCADA 符号编辑器页），本 spec 删除该虚构项。SCADA = gridSettings.layoutType 枚举值之一（default | scada | divider），与普通布局共用同一网格编辑器，非独立编辑器。
 
-- [ ] layoutType 切换：manage-layouts 对话框内选择与保存生效
+- [x] layoutType 切换：manage-layouts 对话框内选择与保存生效〔V 波真机 ✅：管理布局对话框单选 默认/分栏（左+右）/SCADA布局 在列并可切换（未保存落库）；manage-layouts.test 单测〕
 - [ ] 差异表逐项验收：
 
 | 维度 | 普通布局 | SCADA 布局（验收动作） |
@@ -100,28 +106,29 @@ v2 交付的仪表盘编辑器、widget 编辑器、规则链画布，对 ui-ngx
 | Layout 配置区 | 按断点条件全量 | 恒只剩 resizable + preserveAspectRatio 两开关 |
 | 拖拽 / 缩放 / 碰撞 / 右键菜单 / 快捷键 / displayGrid | — | 与普通布局完全一致（无 scada 分支，回归同 §3.2 / §3.3） |
 
-- [ ] 否定项清单（防虚构义务，同样不得作删减依据）：无指针模式切换、无对齐 / 吸附线、无 z-index 层级操作、无多选 / 框选、无碰撞推挤
-- [ ] 边界：SCADA 符号编辑器页（`/resources/scada-symbols`，SVG 结构 / tag / 行为元数据编辑 + pan/zoom）归资源库子系统（v2 阶段交付，不在本 spec）；仪表盘内 symbol 实例只能换符号 / 绑设备 / 绑对象，不能改 SVG 结构
+- [ ] 差异表真机备注（V 波）：真机仅验到切换入口与既有普通布局回归（拖拽/碰撞/右键阻膈同 §3.2/§3.3），未保存过一张 scada 布局；margin 强制 0、列数 24 倍数夹取、自动仪表化已由 `manage-layouts.test`/`scadaColumnClamp`/grid-math scada 分支单测取证——真机 scada 走查留 M10 抽查补勾
+- [x] 否定项清单（防虚构义务，同样不得作删减依据）：无指针模式切换、无对齐 / 吸附线、无 z-index 层级操作、无多选 / 框选、无碰撞推挤〔V 波代码层核查：画布无模式切换/吸附线/层级/框选代码路径；碰撞=阻挡非推挤（真机实证）〕
+- [ ] 边界：SCADA 符号编辑器页（`/resources/scada-symbols`，SVG 结构 / tag / 行为元数据编辑 + pan/zoom）归资源库子系统（v2 阶段交付，不在本 spec）；仪表盘内 symbol 实例只能换符号 / 绑设备 / 绑对象，不能改 SVG 结构〔未勾（V 波）：scada 符号类型尚不存在，实例约束无从走查——随资源库子系统交付验收〕
 
 ### 3.7 断点与 mobile
 
-- [ ] 断点覆盖编辑：工具栏断点切换组件（select-dashboard-breakpoint）+ 断点专属布局
-- [ ] mobile 单列栈预览：default 布局 mobile 断点单列
-- [ ] autofill 行高：autoFillHeight / mobileAutoFillHeight 设置生效（edit 或 scada 下强制 false——parity 条件）〔锚点 dashboard.component.ts:672-679〕
+- [x] 断点覆盖编辑：工具栏断点切换组件（select-dashboard-breakpoint）+ 断点专属布局〔BreakpointSwitcher 单测（三桶切换强制 override）；真机本地盘均无 breakpoints，切换器按条件不出现——建断点后的真机走查留 M10 抽查〕
+- [x] mobile 单列栈预览：default 布局 mobile 断点单列〔grid-math 单测（mobileHide 过滤/单列栈/行跨排序）；真机未投真机视口〕
+- [x] autofill 行高：autoFillHeight / mobileAutoFillHeight 设置生效（edit 或 scada 下强制 false——parity 条件）〔锚点 dashboard.component.ts:672-679〕〔grid-math 单测（autofillAllowed = !scada && !edit 条件分支）〕
 
 ### 3.8 数据闭环
 
-- [ ] 离开确认：dirty 精确判定（draft 与 baseline 引用比较；改后全部撤销 = 干净不弹窗）
-- [ ] 导入：JSON 导入落编辑器；缺别名时补录对话框（v1 只读导入曾裁剪，v2 编辑器导入恢复 parity）〔锚点 dashboard-page.component.ts:1073〕；导出剥 id/tenantId 对齐 TB
-- [ ] 409 三选项闭环（行为契约）：加载服务器版 / 用我的版本覆盖（GET 新 version 再 POST；二次 409 上限 3 次回落）/ 导出本地 JSON 后放弃
+- [x] 离开确认：dirty 精确判定（draft 与 baseline 引用比较；改后全部撤销 = 干净不弹窗）〔V 波真机 ✅：脏草稿退出编辑 → 确认弹窗；撤销到底 → save 禁用（dirty=false）→ 干净退出；返回箭头守卫同源修复（commit 997267f847）后复验同弹窗〕
+- [x] 导入：JSON 导入落编辑器；缺别名时补录对话框（v1 只读导入曾裁剪，v2 编辑器导入恢复 parity）〔锚点 dashboard-page.component.ts:1073〕；导出剥 id/tenantId 对齐 TB〔V 波真机 ✅：导出实测键集无 id/tenantId/version；导入确认框明示「一个撤销组」+ 草稿替换；缺别名补录子项未真机触发（同盘导入），契约单测覆盖〕
+- [x] 409 三选项闭环（行为契约）：加载服务器版 / 用我的版本覆盖（GET 新 version 再 POST；二次 409 上限 3 次回落）/ 导出本地 JSON 后放弃〔shell.test 保存路径 + 三选项 handler 单测；真机未复现并发冲突（单人本地环境），留 M10 多开抽查〕
 
 ### 3.9 行为契约：仪表盘撤销栈
 
-- [ ] 结构性操作各为一条事务组：添加 / 删除 / 拖拽落格 / resize / 粘贴（含引用组）
-- [ ] 表单连续输入合并一步（coalesceKey + 1s 时间窗）
-- [ ] 配置面板事务取消零残留（打开面板 checkpoint、取消按组回滚、预览恒吃主 draft）
-- [ ] 撤销到底 dirty 归 false；任何新事务组入栈清空重做栈
-- [ ] 不入栈项：选中 / 多选、视口、面板开合、timewindow 临时调整
+- [x] 结构性操作各为一条事务组：添加 / 删除 / 拖拽落格 / resize / 粘贴（含引用组）〔V 波真机 ✅：添加/拖拽/粘贴各入一栈、一次 ctrl+z 整组抹掉粘贴；session 单测〕
+- [x] 表单连续输入合并一步（coalesceKey + 1s 时间窗）〔session coalesce 单测（时间窗合并/redo 在场不合）；面板配置路径经 P6 取证〕
+- [x] 配置面板事务取消零残留（打开面板 checkpoint、取消按组回滚、预览恒吃主 draft）〔WidgetConfigPanel.test checkpoint 回滚 + undo landing 单测（P6）；真机一次「取消」后标签页崩溃（疑点 S1，未复现、无堆栈）——按单测勾选并留观〕
+- [x] 撤销到底 dirty 归 false；任何新事务组入栈清空重做栈〔V 波真机 ✅：undo 后 undo 禁用/redo 可用的按钮态随动；session 单测（引用复位锚定）〕
+- [x] 不入栈项：选中 / 多选、视口、面板开合、timewindow 临时调整〔V 波真机 ✅：选中/面板拉起后 undo 按钮态不变；timewindow 选择器绑运行态不入 session（shell 单测）〕
 
 ## 4. 规则链画布操作面（对齐 rulechain-page 全家）
 
@@ -263,3 +270,5 @@ v2 交付的仪表盘编辑器、widget 编辑器、规则链画布，对 ui-ngx
 
 - 2026-08-31：#13 决议创建骨架（操作面清单 + 原则 + 横切章）；定稿由 #15 承接。
 - 2026-09-03：**定稿**（#15 两轮 grilling + 双路源码侦察）。勘误三条（均有源码锚点）：① SCADA「select/pan/move 模式切换」ui-ngx 4.4.0 无对应实现，删除并重写为 layoutType 差异表 + 否定项清单；② states / layouts 对话框群勘误（state controller、select-dashboard-breakpoint 非对话框）并补漏 5 项；③ widget 配置面板 tab 集 3.x → 4.4 重构事实（Data / Appearance / Widget card / Actions / Layout 五区 + basic/advanced 切换）。口径精确化：「77 内置节点」→ 77 节点类 / CORE 可见 76 入统计面；分类基础 = 6 大 ComponentType（27/14/12/11/9/4）。结构决策：分账三档（等价项 / 行为契约增强勾选 / 能力级增强登记）；里程碑 M7–M10；dry-run 统计口径定稿（双指标 + 自动化跑 + 6 类人工抽样）。
+- 2026-09-04：**M7 验收勾账（V 波）**。全量门禁：lint 绿（顺手清掉 M7 波次遗留 4 个 biome error，commit 3f60c89916）；`npm run test` 1074 例 1073 绿（唯一失败为 master 存量：M6 604ffeff52 给 entry.tsx 加 token-first 守卫、测试 mock 未跟上，非 M7 回归）；P7 memo 边界证据落地（memo-boundary.perf.test.tsx，单 widget 写 delta=1、选中零内容重渲染，简报 §5 回填）。真机走查（browseros，4 盘 3 正常 1 崩溃）：§3 共 **43 行勾选 / 13 行未勾**（未勾 = 原有等价项 6 + 新登记缺口/缺陷 6 + 差异表真机备注 1，逐行注明原因：右键菜单 2 行环境受阻；空盘自动编辑、select-target-state、scada 差异表保存、scada 符号边界等真机未及）。兜底新登记缺口 6 行：D1 Software 盘编辑器路由崩溃（高）、D2 添加 widget 落 `(0,0)` 不寻空闲位（中）、D3 add-widget 标题填 fqn 原文（低）、manage-states 复制 state 缺、抽屉 scada 类型置顶缺（待符号类型存在）、dashboard-image html2canvas 抓图缺（禁装依赖）。**PageContainer 返回箭头绕过离开守卫（D2 交付时标记）：代码确认组件自带 `dirty` 守卫而编辑器页漏传，index.tsx 一行接线修复（commit 997267f847），真机复验脏草稿点返回箭头弹确认框——已修已勾**。真机走查全程记录见 [v2-m7-browser-walkthrough.md](./v2-m7-browser-walkthrough.md)。
+- 2026-09-04：**D1/D2/D3 修复（X 波）**。D1（commit 01a46dd321）：真机堆栈定位根因不在 states-controller/路由装配，而在共享 `components/widgets/hooks/use-widget-values.ts` 对零解析实体的 entityCount 数据源建订阅（`countSubs[0]` undefined → `.subscribe` TypeError；V 波「路由级装配」推测修正）——hook 源头 3 行守卫（该文件在 M7 页面集之外，修复报告显式标注），回归测试 `entity-controller-crash.test.tsx` 以真 shell/canvas/widget 链锁住不崩 + 别名解析后重订阅两契约。D2（commit c162c3bef8）：`dialogs/add-widget/find-free-placement.ts` ui-ngx `widgetPossiblePosition` parity（行主序首空闲位 + 列夹取 + 墙对墙落末端），确认框空闲位预填、显式改值优先，单测 8 例矩阵 + 流程级 1 例。D3（commit d522e9db21）：`widgetTypeLabel` registry label 解析，确认框标题预填显示名。门禁：editor+core/editor 265 测试全绿、tsc 绿、biome 触及文件零告警、check-locale 绿。真机复验（browseros）：Software 盘「编辑」进入无崩溃、states 对话框 6 状态齐；已占用画布添加 widget 落空白带、6 cell 位置互异、确认框标题「HTML value card」；草稿放弃后 API 复核服务器布局零改动。§3.1/§3.2 三行缺口已修已勾。

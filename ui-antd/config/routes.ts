@@ -118,6 +118,14 @@ export default [
     hideInMenu: true,
   },
   {
+    // M7 dashboard editor (spec §3.1 edit mode entry; reached from the
+    // readonly toolbar 编辑 button). Hidden, TA-only, app-shell page.
+    path: '/dashboards/:dashboardId/editor',
+    access: 'canTenantAdmin',
+    component: './dashboards/editor',
+    hideInMenu: true,
+  },
+  {
     name: 'usage',
     icon: 'barChart',
     path: '/usage',

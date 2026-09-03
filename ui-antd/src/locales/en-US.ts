@@ -12,6 +12,11 @@ import dashboards from './en-US/dashboards';
 import deviceProfiles from './en-US/device-profiles';
 import devicesDetail from './en-US/devices/detail';
 import devicesList from './en-US/devices/list';
+import editor from './en-US/editor';
+import editorDashboard from './en-US/editor-dashboard';
+import editorDashboardContract from './en-US/editor-dashboard-contract';
+import editorDashboardDialogs from './en-US/editor-dashboard-dialogs';
+import editorDashboardPanel from './en-US/editor-dashboard-panel';
 import entityViews from './en-US/entityViews';
 import login from './en-US/login';
 import menu from './en-US/menu';
@@ -38,4 +43,9 @@ export default {
   ...users,
   ...devicesList,
   ...devicesDetail,
+  ...editor,
+  ...editorDashboard,
+  ...editorDashboardContract,
+  ...editorDashboardDialogs,
+  ...editorDashboardPanel,
 };
