@@ -4,6 +4,7 @@
  * with the editor-common domain (save/undo/redo/…) stay in editor.ts.
  */
 export default {
+  'editor.dashboard.toolbar.add': 'Add widget',
   'editor.dashboard.toolbar.manageLayouts': 'Manage layouts',
   'editor.dashboard.toolbar.rightLayout': 'Right layout',
   'editor.dashboard.toolbar.fullscreen': 'Fullscreen',
@@ -27,4 +28,18 @@ export default {
   'editor.dashboard.conflict.title': 'Save conflict',
   'editor.dashboard.conflict.empty':
     'A save conflict was detected, but no conflict actions are wired up.',
+  'editor.dashboard.addWidget.title': 'Choose a widget type',
+  'editor.dashboard.addWidget.search': 'Search widget types',
+  'editor.dashboard.addWidget.confirmTitle': 'Configure widget',
+  'editor.dashboard.addWidget.add': 'Add',
+  'editor.dashboard.addWidget.group.general': 'General',
+  'editor.dashboard.addWidget.field.title': 'Title',
+  'editor.dashboard.addWidget.field.layout': 'Target layout',
+  'editor.dashboard.addWidget.field.sizeX': 'Width (columns)',
+  'editor.dashboard.addWidget.field.sizeY': 'Height (rows)',
+  'editor.dashboard.addWidget.field.row': 'Row',
+  'editor.dashboard.addWidget.field.col': 'Column',
+  'editor.dashboard.selectLayout.title': 'Select target layout',
+  'editor.dashboard.layout.main': 'Main layout',
+  'editor.dashboard.layout.right': 'Right layout',
 };

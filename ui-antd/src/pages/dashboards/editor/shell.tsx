@@ -23,6 +23,7 @@ import {
   FullscreenOutlined,
   HistoryOutlined,
   LayoutOutlined,
+  PlusOutlined,
   ProjectOutlined,
   RedoOutlined,
   SaveOutlined,
@@ -55,6 +56,7 @@ import {
   saveDashboardDraft,
 } from './contract/save-with-conflict';
 import { useLeaveGuard } from './contract/use-leave-guard';
+import { AddWidgetFlow } from './dialogs/add-widget';
 import { DialogHost, useEditorDialogs } from './dialogs/host';
 import { WidgetConfigPanel } from './panels';
 
@@ -96,6 +98,7 @@ export function EditorShell({ session, dashboard }: EditorShellProps) {
   const [conflictOpen, setConflictOpen] = useState(false);
   const [showRightLayout, setShowRightLayout] = useState(false);
   const [selectedWidgetId, setSelectedWidgetId] = useState<string | null>(null);
+  const [addWidgetOpen, setAddWidgetOpen] = useState(false);
 
   // entry baseline for the cancel path (ui-ngx prevDashboard semantics):
   // captured once at edit-mode entry, BEFORE any edit or save.
@@ -253,6 +256,17 @@ export function EditorShell({ session, dashboard }: EditorShellProps) {
             />
           </Tooltip>
         ) : null}
+        <Tooltip
+          title={formatMessage(t('editor.dashboard.toolbar.add', 'Add widget'))}
+        >
+          <Button
+            size="small"
+            type="primary"
+            icon={<PlusOutlined />}
+            data-testid="editor-toolbar-add-widget"
+            onClick={() => setAddWidgetOpen(true)}
+          />
+        </Tooltip>
         <Tooltip
           title={formatMessage(
             t('editor.dashboard.toolbar.manageLayouts', 'Manage layouts'),
@@ -421,6 +435,12 @@ export function EditorShell({ session, dashboard }: EditorShellProps) {
         onOverwrite={() => setConflictOpen(false)}
         onExportLocal={() => setConflictOpen(false)}
         onClose={() => setConflictOpen(false)}
+      />
+      <AddWidgetFlow
+        session={session}
+        open={addWidgetOpen}
+        onClose={() => setAddWidgetOpen(false)}
+        onAdded={setSelectedWidgetId}
       />
       <DialogHost controller={dialogs} />
     </div>

@@ -4,6 +4,7 @@
  * with the editor-common domain (save/undo/redo/…) stay in editor.ts.
  */
 export default {
+  'editor.dashboard.toolbar.add': '添加 widget',
   'editor.dashboard.toolbar.manageLayouts': '管理布局',
   'editor.dashboard.toolbar.rightLayout': '右侧布局',
   'editor.dashboard.toolbar.fullscreen': '全屏',
@@ -27,4 +28,18 @@ export default {
   'editor.dashboard.conflict.title': '保存冲突',
   'editor.dashboard.conflict.empty':
     '检测到保存冲突，但当前未接入冲突处理操作。',
+  'editor.dashboard.addWidget.title': '选择 widget 类型',
+  'editor.dashboard.addWidget.search': '搜索 widget 类型',
+  'editor.dashboard.addWidget.confirmTitle': '配置 widget',
+  'editor.dashboard.addWidget.add': '添加',
+  'editor.dashboard.addWidget.group.general': '通用',
+  'editor.dashboard.addWidget.field.title': '标题',
+  'editor.dashboard.addWidget.field.layout': '目标布局',
+  'editor.dashboard.addWidget.field.sizeX': '宽度（列）',
+  'editor.dashboard.addWidget.field.sizeY': '高度（行）',
+  'editor.dashboard.addWidget.field.row': '行位置',
+  'editor.dashboard.addWidget.field.col': '列位置',
+  'editor.dashboard.selectLayout.title': '选择目标布局',
+  'editor.dashboard.layout.main': '主布局',
+  'editor.dashboard.layout.right': '右侧布局',
 };
