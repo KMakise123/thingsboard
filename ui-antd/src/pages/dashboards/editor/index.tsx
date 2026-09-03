@@ -17,6 +17,7 @@ import { useDashboard } from '@/components/dashboard/use-dashboard';
 import { serverErrorText } from '@/components/entities/server-error-text';
 import PageContainer from '@/components/layout/page-container';
 import { EditorSession } from '@/core/editor/session';
+import { useEditorSession } from '@/core/editor/use-editor-session';
 import type { Dashboard, DashboardConfiguration } from '@/types/tb/dashboard';
 
 import { EditorShell } from './shell';
@@ -28,6 +29,10 @@ export default function DashboardsEditorPage() {
   const { query, dashboard } = useDashboard(dashboardId);
 
   const [session] = useState(() => new EditorSession<DashboardConfiguration>());
+  // The PageContainer back arrow must honor the same dirty guard as the
+  // toolbar's exit (离开确认 dirty 判定同源 — spec §6.3): subscribe to the
+  // session so re-renders track draft edits.
+  const { dirty } = useEditorSession(session);
 
   // Enter once per dashboard: the draft must survive react-query
   // background refetches (a new configuration object from the server must
@@ -50,6 +55,7 @@ export default function DashboardsEditorPage() {
   return (
     <PageContainer
       breadcrumbLabel={dashboard?.title}
+      dirty={dirty}
       onBack={() => dashboard && backToView(dashboard)}
     >
       {query.isPending ? (
