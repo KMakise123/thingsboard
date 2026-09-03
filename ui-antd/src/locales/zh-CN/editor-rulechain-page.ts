@@ -48,6 +48,8 @@ export default {
   'editor.ruleChain.events.empty': '暂无事件',
   'editor.ruleChain.events.loadFailed': '事件加载失败',
   'editor.ruleChain.events.clearFailed': '事件清空失败',
+  'editor.ruleChain.events.nodeUnsaved':
+    '保存规则链后，该节点才会开始收集调试事件。',
   'editor.ruleChain.events.viewContent': '查看',
   'editor.ruleChain.events.filter.msgDirectionType': '方向 (IN/OUT)',
   'editor.ruleChain.events.filter.msgType': '消息类型',

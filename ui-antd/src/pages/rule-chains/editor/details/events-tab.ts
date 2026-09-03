@@ -1,23 +1,17 @@
 /**
- * RuleNodeEventsTab — FROZEN PLACEHOLDER SEAM (M8 brief §3 wave C; wave 3 D
- * FILLS this file with the DEBUG_RULE_NODE events table — the path and prop
- * signature must not change).
+ * RuleNodeEventsTab — FROZEN SEAM (M8 brief §3 wave C; the path, the export
+ * names and the minimal prop `{ruleNodeId}` must not change — wave 3 K2
+ * renders this tab with only that prop).
  *
- *   props: { ruleNodeId: string }
- *
- * .ts (no JSX) per the seam spec: a plain-object element keeps this a
- * non-JSX module while still rendering an honest placeholder.
+ * Wave 3 D FILLED the implementation: it lives in
+ * `../events/rule-node-events-tab` (a JSX module) and this non-JSX seam
+ * module re-exports it. The props widened ADDITIVELY — every new prop is
+ * optional and degrades gracefully:
+ *   { ruleNodeId,            // frozen (required)
+ *     node?,                 // CanvasNode → enables 用这条消息测试 row action
+ *     descriptor?,           // reserved for the K2 drawer surface
+ *     tenantId?,             // events API scope; defaults to session user
+ *     testIdPrefix? }        // test seam
  */
-import { createElement } from 'react';
-
-export interface RuleNodeEventsTabProps {
-  ruleNodeId: string;
-}
-
-export function RuleNodeEventsTab({ ruleNodeId }: RuleNodeEventsTabProps) {
-  return createElement(
-    'div',
-    { 'data-testid': 'rc-node-events-tab', 'data-rule-node-id': ruleNodeId },
-    `events tab placeholder (wave 3 D) — ruleNodeId: ${ruleNodeId}`,
-  );
-}
+export type { RuleNodeEventsTabProps } from '../events/rule-node-events-tab';
+export { RuleNodeEventsTab } from '../events/rule-node-events-tab';

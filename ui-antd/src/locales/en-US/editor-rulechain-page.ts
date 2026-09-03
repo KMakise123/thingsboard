@@ -48,6 +48,8 @@ export default {
   'editor.ruleChain.events.empty': 'No events',
   'editor.ruleChain.events.loadFailed': 'Failed to load events',
   'editor.ruleChain.events.clearFailed': 'Failed to clear events',
+  'editor.ruleChain.events.nodeUnsaved':
+    'Save the rule chain to collect debug events for this node.',
   'editor.ruleChain.events.viewContent': 'View',
   'editor.ruleChain.events.filter.msgDirectionType': 'Direction (IN/OUT)',
   'editor.ruleChain.events.filter.msgType': 'Message type',
