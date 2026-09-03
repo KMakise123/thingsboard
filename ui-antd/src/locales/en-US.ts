@@ -14,6 +14,7 @@ import devicesDetail from './en-US/devices/detail';
 import devicesList from './en-US/devices/list';
 import editor from './en-US/editor';
 import editorDashboard from './en-US/editor-dashboard';
+import editorDashboardDialogs from './en-US/editor-dashboard-dialogs';
 import entityViews from './en-US/entityViews';
 import login from './en-US/login';
 import menu from './en-US/menu';
@@ -42,4 +43,5 @@ export default {
   ...devicesDetail,
   ...editor,
   ...editorDashboard,
+  ...editorDashboardDialogs,
 };
