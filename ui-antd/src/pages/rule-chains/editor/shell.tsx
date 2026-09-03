@@ -872,6 +872,16 @@ export function RuleChainEditorShell({ session }: RuleChainEditorShellProps) {
               }
               openMenuAt(event, menu);
             }}
+            onNodeDoubleClick={(_event, node) => {
+              // D2 (ui-ngx fcEventNodeDblClick parity): double-click = details
+              // drawer — the SAME entry as the node context-menu 详情 action.
+              // INPUT is read-only (no menu either); notes have their own
+              // edit dialog, not a node-details drawer.
+              if (node.type === 'note' || node.id === INPUT_NODE_UID) {
+                return;
+              }
+              setDetailsUid(node.id);
+            }}
             onEdgeContextMenu={(event, edge) =>
               openMenuAt(event, edgeMenu(edge.id))
             }

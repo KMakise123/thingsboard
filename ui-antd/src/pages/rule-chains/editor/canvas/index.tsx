@@ -102,6 +102,11 @@ export interface RuleChainCanvasProps {
   }) => void;
   onNodeContextMenu?: (event: ReactMouseEvent, node: CanvasFlowNode) => void;
   onEdgeContextMenu?: (event: ReactMouseEvent, edge: CanvasFlowEdge) => void;
+  /**
+   * Node double-click (ui-ngx `fcEventNodeDblClick` parity — D2): the shell
+   * opens the details drawer; INPUT / note nodes are filtered shell-side.
+   */
+  onNodeDoubleClick?: (event: ReactMouseEvent, node: CanvasFlowNode) => void;
   /** test seam: fixed canvas dimensions (happy-dom has no layout). */
   width?: number;
   height?: number;
@@ -130,6 +135,7 @@ function RuleChainCanvasInner({
   onPaneContextMenu,
   onNodeContextMenu,
   onEdgeContextMenu,
+  onNodeDoubleClick,
   width,
   height,
   nodeTypes = RULE_CHAIN_NODE_TYPES,
@@ -350,6 +356,7 @@ function RuleChainCanvasInner({
         onPaneContextMenu={(event) => onPaneContextMenu?.(event)}
         onNodeContextMenu={(event, node) => onNodeContextMenu?.(event, node)}
         onEdgeContextMenu={(event, edge) => onEdgeContextMenu?.(event, edge)}
+        onNodeDoubleClick={(event, node) => onNodeDoubleClick?.(event, node)}
         onConnectStart={() => {
           interactingRef.current = true;
         }}

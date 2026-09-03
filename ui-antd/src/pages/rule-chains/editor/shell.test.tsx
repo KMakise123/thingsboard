@@ -148,6 +148,29 @@ describe('RuleChainEditorShell — library DnD → add-node dialog (host seam)',
   });
 });
 
+describe('RuleChainEditorShell — node double-click details (D2, ui-ngx fcEventNodeDblClick parity)', () => {
+  it('double-clicking a rule node opens the details drawer', async () => {
+    setup();
+    const nodeEl = document.querySelector('[data-id="local-1"]');
+    expect(nodeEl).not.toBeNull();
+    fireEvent.dblClick(nodeEl as Element);
+    await waitFor(() => {
+      expect(screen.getByTestId('rc-node-details-drawer')).toBeInTheDocument();
+    });
+  });
+
+  it('double-clicking the INPUT read-only node opens nothing', async () => {
+    setup();
+    const inputEl = document.querySelector('[data-id="__input__"]');
+    expect(inputEl).not.toBeNull();
+    fireEvent.dblClick(inputEl as Element);
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(screen.queryByTestId('rc-node-details-drawer')).toBeNull();
+  });
+});
+
 describe('RuleChainEditorShell — selection hotkeys + context menu', () => {
   it('delete-selected removes the selection as one group per category', async () => {
     const session = setup();
