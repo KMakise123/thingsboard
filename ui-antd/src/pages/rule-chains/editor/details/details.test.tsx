@@ -13,11 +13,11 @@ import { createIntl, RawIntlProvider } from 'react-intl';
 import { describe, expect, it, vi } from 'vitest';
 import { EditorSession } from '@/core/editor/session';
 import type { CanvasNode, CanvasRuleChain } from '@/core/rulechain/types';
-import { EntityType } from '@/types/tb/entity';
 import zhEditor from '@/locales/zh-CN/editor';
 import zhRulechain from '@/locales/zh-CN/editor-rulechain';
 import zhCanvas from '@/locales/zh-CN/editor-rulechain-canvas';
 import zhRuleNode from '@/locales/zh-CN/rule-node';
+import { EntityType } from '@/types/tb/entity';
 import type { RuleNodeComponentDescriptor } from '@/types/tb/rule-chain';
 
 import { RuleNodeDetailsDrawer } from './index';
