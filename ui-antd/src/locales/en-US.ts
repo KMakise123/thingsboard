@@ -18,6 +18,7 @@ import editorDashboardContract from './en-US/editor-dashboard-contract';
 import editorDashboardDialogs from './en-US/editor-dashboard-dialogs';
 import editorDashboardPanel from './en-US/editor-dashboard-panel';
 import editorRulechain from './en-US/editor-rulechain';
+import editorRulechainCanvas from './en-US/editor-rulechain-canvas';
 import editorScript from './en-US/editor-script';
 import entityViews from './en-US/entityViews';
 import login from './en-US/login';
@@ -51,5 +52,6 @@ export default {
   ...editorDashboardDialogs,
   ...editorDashboardPanel,
   ...editorRulechain,
+  ...editorRulechainCanvas,
   ...editorScript,
 };
