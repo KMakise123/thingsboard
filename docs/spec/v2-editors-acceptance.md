@@ -33,11 +33,11 @@ v2 交付的仪表盘编辑器、widget 编辑器、规则链画布，对 ui-ngx
 
 ### 3.1 编辑态与工具栏
 
-- [x] 编辑态进入：只读页「编辑」→ 编辑态（widget 出现拖拽 / 缩放手柄、工具栏切换编辑组）——等价 ui-ngx Edit mode〔ui-ngx 锚点 dashboard-page.component.html:148-171〕〔V 波真机 ✅；Software 盘加载即崩 → 见 §3.1 末缺口行 D1〕
+- [x] 编辑态进入：只读页「编辑」→ 编辑态（widget 出现拖拽 / 缩放手柄、工具栏切换编辑组）——等价 ui-ngx Edit mode〔ui-ngx 锚点 dashboard-page.component.html:148-171〕〔V 波真机 ✅；Software 盘加载即崩 → 见 §3.1 末缺口行 D1，已修复（X 波），真机复验通过〕
 - [x] 编辑态退出两路语义：保存 → baseline 前移；取消 → 草稿整体撤回进入前基线（prevDashboard 语义）——两路均回只读态〔V 波真机 ✅：保存后 save 图标禁用（baseline 前移）+ 刷新持久化；退出编辑 → 放弃修改 → 只读路由、草稿撤回〕
 - [x] 工具栏齐套：保存 / 撤销 / 重做（行为契约）/ 布局切换 / 全屏 / states 管理 / 别名管理 / 过滤器管理 / 设置 / 导入 / 导出 / 版本控制入口（VC 子系统边界依 #9：编辑器内 popover 形态对齐，不跳独立页）〔V 波真机 ✅：AX 枚举全量在列，VC 为 popover 占位形态〕
 - [ ] 空 dashboard 自动进入编辑态〔未勾：本地 4 盘均有内容，真机未走「新建空盘」路径；编辑器路由本身为纯编辑态、空配置渲染有单测（shell.test emptyDashboardJson），待 M10 补一次新建空盘走查〕
-- [ ] **D1 缺口（V 波新登记）：Software 演示仪表盘（6 states / `stateControllerId=entity`）编辑器路由加载即崩**（应用错误边界「页面出现错误」）；其余 3 盘正常。EditorShell 以真实 configuration 隔离挂载不崩 → 崩点在路由级装配（疑似 states-controller 的 URL state 装配交互），待定位修复
+- [x] ~~**D1 缺口（V 波新登记）：Software 演示仪表盘（6 states / `stateControllerId=entity`）编辑器路由加载即崩**~~（应用错误边界「页面出现错误」）；其余 3 盘正常。EditorShell 以真实 configuration 隔离挂载不崩 → 崩点在路由级装配（疑似 states-controller 的 URL state 装配交互）→ **已修复（X 波，commit 01a46dd321）**：真机堆栈定位——崩点不在 states-controller 也不在路由装配本身，而是共享 `useWidgetValues` hook 对**零解析实体**的 entityCount 数据源建订阅（`countSubs[0]` undefined → `.subscribe` TypeError）；编辑器画布挂载时 alias 必然未解析（异步），崩得确定性，只读页靠 lazy chunk 加载时序侥幸避过。修复 = hook 源头守卫（空实体集跳过 entityCount 作业，别名解析后 signature 变化自动重订阅；恢复 datasources.ts「render degrades, never crashes」契约；该文件在 M7 页面集之外，报告中已显式标注）。回归测试 `entity-controller-crash.test.tsx`（真 shell/canvas/widget 链 + Software 形状夹具）；真机复验：Software 盘编辑器经「编辑」按钮打开、states 对话框 6 状态齐全、无错误边界〔截图取证〕
 
 ### 3.2 widget 生命周期
 
@@ -48,8 +48,8 @@ v2 交付的仪表盘编辑器、widget 编辑器、规则链画布，对 ui-ngx
 - [x] 拖拽移动与 resize 手柄（编辑态）〔V 波真机 ✅ 拖拽移动（含一次 drag-stop 一个事务组）；resize 手柄已渲染、引擎+单测取证，真机未驱动手柄缩放〕
 - [x] 碰撞阻挡：拖到占用格不推不叠（gridster pushItems:false / swap:false 语义）〔V 波真机 ✅：拖向 Exceptions 占用格 → 原地弹回零位移、零级联〕
 - [x] 边界夹取：拖出边界坐标夹回网格范围〔P3 引擎取证（横向硬夹/纵向向下生长）+ V 波真机下边界落位观察一致〕
-- [ ] **D2 缺口（V 波新登记）：添加 widget 默认落 `(0,0)` 叠压既有 widget，不寻找空闲位**（ui-ngx findPosition 预填第一个空闲位/全满时落末端）；真机 DOM 探针实证新旧两 cell 同为 `translate(10px,10px)`
-- [ ] **D3 缺口（V 波新登记，minor）：add-widget 确认框标题默认填 fqn 原文**（如 `system.cards.html_value_card`）而非类型显示名（ui-ngx 预填类型名）
+- [x] ~~**D2 缺口（V 波新登记）：添加 widget 默认落 `(0,0)` 叠压既有 widget，不寻找空闲位**~~（ui-ngx findPosition 预填第一个空闲位/全满时落末端）；真机 DOM 探针实证新旧两 cell 同为 `translate(10px,10px)` → **已修复（X 波，commit c162c3bef8 find-free-placement）**：`dialogs/add-widget/find-free-placement.ts` 实现 ui-ngx `widgetPossiblePosition` parity——行主序扫描目标布局占用格取第一个无碰撞槽位（列夹取网格宽度、1x1 默认几何），扫描含占用包围盒下方一行（构造上必空闲），墙对墙布局退化为 ui-ngx 末端落位（row=maxBottom, col=0）而非叠压；确认框 row/col 由默认目标布局的空闲位预填，用户显式改值优先。单测 8 例矩阵 + 流程级预填/落格测试；真机复验：Software 盘（已占用画布）添加 HTML value card → 6 cell 全部位置互异、新件落 `translate(12px,594px)` 空白带、undo 一组可整撤〔截图取证；草稿放弃，服务器零改动 API 复核〕。pasteWidgets 相对排布不受影响（clipboard 契约未动）
+- [x] ~~**D3 缺口（V 波新登记，minor）：add-widget 确认框标题默认填 fqn 原文**~~（如 `system.cards.html_value_card`）而非类型显示名（ui-ngx 预填类型名）→ **已修复（X 波）**：`widgetTypeLabel(fqn)`（registry `meta.label` → fqn 兜底；widgetType 探针名一节从 add-widget 流程不可达——选择器只列 registry fqns）用于确认框标题预填与抽屉列表统一解析；单测 + 真机复验确认框标题输入框预填「HTML value card」
 - [ ] **缺口登记（V 波）：widget 选择抽屉 scada 类型置顶缺**——scada 符号类型本身归资源库子系统（v2 后段交付），类型不存在前置顶机制无从验收；排序机制待类型存在后补走查
 
 ### 3.3 网格背景与右键菜单
@@ -271,3 +271,4 @@ v2 交付的仪表盘编辑器、widget 编辑器、规则链画布，对 ui-ngx
 - 2026-08-31：#13 决议创建骨架（操作面清单 + 原则 + 横切章）；定稿由 #15 承接。
 - 2026-09-03：**定稿**（#15 两轮 grilling + 双路源码侦察）。勘误三条（均有源码锚点）：① SCADA「select/pan/move 模式切换」ui-ngx 4.4.0 无对应实现，删除并重写为 layoutType 差异表 + 否定项清单；② states / layouts 对话框群勘误（state controller、select-dashboard-breakpoint 非对话框）并补漏 5 项；③ widget 配置面板 tab 集 3.x → 4.4 重构事实（Data / Appearance / Widget card / Actions / Layout 五区 + basic/advanced 切换）。口径精确化：「77 内置节点」→ 77 节点类 / CORE 可见 76 入统计面；分类基础 = 6 大 ComponentType（27/14/12/11/9/4）。结构决策：分账三档（等价项 / 行为契约增强勾选 / 能力级增强登记）；里程碑 M7–M10；dry-run 统计口径定稿（双指标 + 自动化跑 + 6 类人工抽样）。
 - 2026-09-04：**M7 验收勾账（V 波）**。全量门禁：lint 绿（顺手清掉 M7 波次遗留 4 个 biome error，commit 3f60c89916）；`npm run test` 1074 例 1073 绿（唯一失败为 master 存量：M6 604ffeff52 给 entry.tsx 加 token-first 守卫、测试 mock 未跟上，非 M7 回归）；P7 memo 边界证据落地（memo-boundary.perf.test.tsx，单 widget 写 delta=1、选中零内容重渲染，简报 §5 回填）。真机走查（browseros，4 盘 3 正常 1 崩溃）：§3 共 **43 行勾选 / 13 行未勾**（未勾 = 原有等价项 6 + 新登记缺口/缺陷 6 + 差异表真机备注 1，逐行注明原因：右键菜单 2 行环境受阻；空盘自动编辑、select-target-state、scada 差异表保存、scada 符号边界等真机未及）。兜底新登记缺口 6 行：D1 Software 盘编辑器路由崩溃（高）、D2 添加 widget 落 `(0,0)` 不寻空闲位（中）、D3 add-widget 标题填 fqn 原文（低）、manage-states 复制 state 缺、抽屉 scada 类型置顶缺（待符号类型存在）、dashboard-image html2canvas 抓图缺（禁装依赖）。**PageContainer 返回箭头绕过离开守卫（D2 交付时标记）：代码确认组件自带 `dirty` 守卫而编辑器页漏传，index.tsx 一行接线修复（commit 997267f847），真机复验脏草稿点返回箭头弹确认框——已修已勾**。真机走查全程记录见 [v2-m7-browser-walkthrough.md](./v2-m7-browser-walkthrough.md)。
+- 2026-09-04：**D1/D2/D3 修复（X 波）**。D1（commit 01a46dd321）：真机堆栈定位根因不在 states-controller/路由装配，而在共享 `components/widgets/hooks/use-widget-values.ts` 对零解析实体的 entityCount 数据源建订阅（`countSubs[0]` undefined → `.subscribe` TypeError；V 波「路由级装配」推测修正）——hook 源头 3 行守卫（该文件在 M7 页面集之外，修复报告显式标注），回归测试 `entity-controller-crash.test.tsx` 以真 shell/canvas/widget 链锁住不崩 + 别名解析后重订阅两契约。D2（commit c162c3bef8）：`dialogs/add-widget/find-free-placement.ts` ui-ngx `widgetPossiblePosition` parity（行主序首空闲位 + 列夹取 + 墙对墙落末端），确认框空闲位预填、显式改值优先，单测 8 例矩阵 + 流程级 1 例。D3（commit d522e9db21）：`widgetTypeLabel` registry label 解析，确认框标题预填显示名。门禁：editor+core/editor 265 测试全绿、tsc 绿、biome 触及文件零告警、check-locale 绿。真机复验（browseros）：Software 盘「编辑」进入无崩溃、states 对话框 6 状态齐；已占用画布添加 widget 落空白带、6 cell 位置互异、确认框标题「HTML value card」；草稿放弃后 API 复核服务器布局零改动。§3.1/§3.2 三行缺口已修已勾。
