@@ -30,6 +30,16 @@ export function widgetGroupOf(fqn: string): string {
   return segments.length > 1 ? segments.slice(0, -1).join('.') : 'general';
 }
 
+/**
+ * Human label of a widget type (D3): registry meta.label first, the raw fqn
+ * as last resort. The widgetType-probe name leg of the resolution chain is
+ * unreachable from the add-widget flow — the picker only offers registry
+ * fqns, so an unknown fqn can only surface from direct callers.
+ */
+export function widgetTypeLabel(fqn: string): string {
+  return WIDGET_REGISTRY[fqn]?.meta?.label ?? fqn;
+}
+
 function groupLabel(
   group: string,
   formatMessage: (m: { id: string; defaultMessage: string }) => string,
@@ -54,9 +64,9 @@ export function WidgetPickerDrawer({
   const entries = useMemo<PickerEntry[]>(
     () =>
       Object.entries(WIDGET_REGISTRY)
-        .map(([fqn, entry]) => ({
+        .map(([fqn]) => ({
           fqn,
-          label: entry.meta?.label ?? fqn,
+          label: widgetTypeLabel(fqn),
           group: widgetGroupOf(fqn),
         }))
         .sort(

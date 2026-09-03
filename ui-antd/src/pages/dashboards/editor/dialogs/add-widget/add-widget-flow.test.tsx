@@ -22,6 +22,7 @@ import zhEditorDashboard from '@/locales/zh-CN/editor-dashboard';
 import type { Dashboard, DashboardConfiguration } from '@/types/tb/dashboard';
 
 import { AddWidgetFlow } from './index';
+import { widgetTypeLabel } from './widget-picker-drawer';
 
 const TEST_FQN = 'system.test.add_flow';
 
@@ -95,6 +96,29 @@ function setup() {
 }
 
 describe('AddWidgetFlow', () => {
+  it('widgetTypeLabel resolves the registry label and falls back to the fqn', () => {
+    expect(widgetTypeLabel(TEST_FQN)).toBe('Test widget');
+    expect(widgetTypeLabel('system.cards.html_value_card')).toBe(
+      'HTML value card',
+    );
+    expect(widgetTypeLabel('system.not_in_registry')).toBe(
+      'system.not_in_registry',
+    );
+  });
+
+  it('the confirm title field prefills the type display name, not the fqn (D3)', async () => {
+    setup();
+    fireEvent.click(screen.getByText('Test widget'));
+    const titleInput = (await waitFor(() => {
+      const input = document.querySelector(
+        'input#title',
+      ) as HTMLInputElement | null;
+      expect(input).not.toBeNull();
+      return input as HTMLInputElement;
+    })) as HTMLInputElement;
+    expect(titleInput.value).toBe('Test widget');
+  });
+
   it('drawer lists registry types grouped; picking one opens the confirm step', () => {
     setup();
     expect(screen.getByTestId('add-widget-drawer')).toBeInTheDocument();
