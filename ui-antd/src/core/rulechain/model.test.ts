@@ -7,7 +7,7 @@
  *    TbRuleChainInputNode 节点 + connection）
  */
 import { describe, expect, it } from 'vitest';
-import { EntityType, type EntityIdOf } from '@/types/tb/entity';
+import { type EntityIdOf, EntityType } from '@/types/tb/entity';
 import type {
   RuleChainImport,
   RuleChainMetaData,
