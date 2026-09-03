@@ -1,25 +1,44 @@
 /**
- * RuleNodeDetailsDrawer — FROZEN PLACEHOLDER SEAM (M8 brief §3 wave C;
- * wave 3 K2 REWRITES this file with the real details form + sanitized help
- * tab + docUrl out-link — the path and prop signature below must not
- * change).
+ * RuleNodeDetailsDrawer — the real three-tab node details drawer (M8 brief
+ * §3 wave-3 K2; the wave-C path and prop signature are preserved, with the
+ * sanctioned ADDITIVE `session?` prop).
  *
- *   props: { open, node, descriptor, onClose }
+ *   props: { open, node, descriptor?, onClose, session? }
  *
- * Wave-C body: honest placeholder — shows the node identity (name / class /
- * description / configuration JSON) read-only so the wave-C browser
- * walkthrough can verify wiring, plus an explicit "wave 3" note.
+ * Tabs (ui-ngx rulechain-page drawer parity — details/events/help):
+ *  - details: node-level header fields + generated NodeConfigForm (details-tab);
+ *  - events: ONLY for saved nodes (`ruleNodeId` present) — the wave-3 D slot
+ *    component renders the DEBUG_RULE_NODE table;
+ *  - help: descriptor HTML through DOMPurify + docUrl out-link (help-tab).
+ *
+ * Checkpoint contract (M7 WidgetConfigPanel paradigm): opening the drawer
+ * takes `session.checkpoint('node-details:<uid>')`; edits write the MAIN
+ * draft live (WYSIWYG — the canvas label follows every keystroke). Apply
+ * drops the checkpoint and closes (edits stay, coalesced per channel via
+ * `${uid}:fields` / `${uid}:configuration`); Cancel and every other close
+ * path (✕ / mask / Esc) roll the whole post-open batch back as ONE group —
+ * zero residue. Switching to another node while open keeps the previous
+ * node's edits (documented M7 panel parity). Without a session the drawer is
+ * a read-only display (placeholder-compatible usage).
  */
-import { Descriptions, Drawer, Typography } from 'antd';
+import { Button, Drawer, Space, Tabs } from 'antd';
+import { useEffect, useRef } from 'react';
 import { useIntl } from 'react-intl';
-import type { CanvasNode } from '@/core/rulechain/types';
+import type { EditorCheckpoint, EditorSession } from '@/core/editor/session';
+import type { CanvasNode, CanvasRuleChain } from '@/core/rulechain/types';
 import type { RuleNodeComponentDescriptor } from '@/types/tb/rule-chain';
+
+import { RuleNodeDetailsTab } from './details-tab';
+import { RuleNodeEventsTab } from './events-tab';
+import { RuleNodeHelpTab } from './help-tab';
 
 export interface RuleNodeDetailsDrawerProps {
   open: boolean;
   node: CanvasNode;
   descriptor?: RuleNodeComponentDescriptor;
   onClose: () => void;
+  /** Absent → read-only display (wave-C placeholder compatibility). */
+  session?: EditorSession<CanvasRuleChain>;
 }
 
 export function RuleNodeDetailsDrawer({
@@ -27,60 +46,111 @@ export function RuleNodeDetailsDrawer({
   node,
   descriptor,
   onClose,
+  session,
 }: RuleNodeDetailsDrawerProps) {
   const { formatMessage } = useIntl();
+
+  // §3.9 checkpoint: taken when the drawer opens FOR a node, before any
+  // write; re-taken when another node is opened in place.
+  const checkpointRef = useRef<EditorCheckpoint | null>(null);
+  useEffect(() => {
+    checkpointRef.current =
+      open && session ? session.checkpoint(`node-details:${node.uid}`) : null;
+    return () => {
+      checkpointRef.current = null;
+    };
+  }, [session, open, node.uid]);
+
+  const closeWithRollback = (): void => {
+    checkpointRef.current?.rollback();
+    checkpointRef.current = null;
+    onClose();
+  };
+
+  const apply = (): void => {
+    // commit: drop the checkpoint, the coalesced writes stay on the stack
+    checkpointRef.current = null;
+    onClose();
+  };
+
+  const nameMissing = node.name.trim() === '';
+
+  const tabItems = [
+    {
+      key: 'details',
+      label: formatMessage({
+        id: 'editor.ruleNode.tab.details',
+        defaultMessage: 'Details',
+      }),
+      children: (
+        <RuleNodeDetailsTab
+          node={node}
+          descriptor={descriptor}
+          session={session}
+        />
+      ),
+    },
+    ...(node.ruleNodeId
+      ? [
+          {
+            key: 'events',
+            label: formatMessage({
+              id: 'editor.ruleNode.tab.events',
+              defaultMessage: 'Events',
+            }),
+            children: <RuleNodeEventsTab ruleNodeId={node.ruleNodeId.id} />,
+          },
+        ]
+      : []),
+    {
+      key: 'help',
+      label: formatMessage({
+        id: 'editor.ruleNode.tab.help',
+        defaultMessage: 'Help',
+      }),
+      children: <RuleNodeHelpTab descriptor={descriptor} clazz={node.clazz} />,
+    },
+  ];
+
   return (
     <Drawer
       open={open}
-      onClose={onClose}
+      onClose={closeWithRollback}
       title={formatMessage({
         id: 'editor.ruleChain.canvas.details.title',
         defaultMessage: 'Rule node details',
       })}
-      width={420}
+      width={560}
       destroyOnHidden
+      footer={
+        session ? (
+          <Space
+            style={{ display: 'flex', justifyContent: 'flex-end' }}
+            data-testid="rc-details-footer"
+          >
+            <Button data-testid="rc-details-cancel" onClick={closeWithRollback}>
+              {formatMessage({
+                id: 'editor.common.cancel',
+                defaultMessage: 'Cancel',
+              })}
+            </Button>
+            <Button
+              type="primary"
+              disabled={nameMissing}
+              data-testid="rc-details-apply"
+              onClick={apply}
+            >
+              {formatMessage({
+                id: 'editor.ruleNode.details.apply',
+                defaultMessage: 'Apply',
+              })}
+            </Button>
+          </Space>
+        ) : undefined
+      }
       data-testid="rc-node-details-drawer"
     >
-      <Descriptions column={1} size="small">
-        <Descriptions.Item
-          label={formatMessage({
-            id: 'editor.ruleChain.canvas.details.name',
-            defaultMessage: 'Name',
-          })}
-        >
-          {node.name}
-        </Descriptions.Item>
-        <Descriptions.Item
-          label={formatMessage({
-            id: 'editor.ruleChain.canvas.details.clazz',
-            defaultMessage: 'Type',
-          })}
-        >
-          {node.clazz}
-          {descriptor?.name ? ` (${descriptor.name})` : ''}
-        </Descriptions.Item>
-      </Descriptions>
-      {node.description ? (
-        <Typography.Paragraph type="secondary">
-          {node.description}
-        </Typography.Paragraph>
-      ) : null}
-      <Typography.Paragraph type="warning" data-testid="rc-details-placeholder">
-        {formatMessage({
-          id: 'editor.ruleChain.canvas.details.placeholder',
-          defaultMessage:
-            'The details form and help land in this drawer with M8 wave 3 (K2).',
-        })}
-      </Typography.Paragraph>
-      <Typography.Text strong>
-        {formatMessage({
-          id: 'editor.ruleChain.canvas.details.configuration',
-          defaultMessage: 'Configuration',
-        })}
-      </Typography.Text>
-      <pre style={{ fontSize: 12, whiteSpace: 'pre-wrap' }}>
-        {JSON.stringify(node.configuration, null, 2)}
-      </pre>
+      <Tabs defaultActiveKey="details" items={tabItems} />
     </Drawer>
   );
 }

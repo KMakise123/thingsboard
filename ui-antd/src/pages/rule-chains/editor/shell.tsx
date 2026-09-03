@@ -926,6 +926,7 @@ export function RuleChainEditorShell({ session }: RuleChainEditorShellProps) {
           node={detailsNode}
           descriptor={descriptors[detailsNode.clazz]}
           onClose={() => setDetailsUid(null)}
+          session={session}
         />
       ) : null}
 
