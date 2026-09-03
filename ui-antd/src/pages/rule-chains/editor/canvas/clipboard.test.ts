@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { EditorSession } from '@/core/editor/session';
 import { INPUT_NODE_UID } from '@/core/rulechain/types';
+import type { CanvasNode } from '@/core/rulechain/types';
 
 import {
   clearRuleChainClipboard,
@@ -23,7 +24,7 @@ describe('rule-chain clipboard singleton (copy tier only)', () => {
     draft.nodes['local-0'].ruleNodeId = {
       entityType: 'RULE_NODE',
       id: 'wire-0',
-    };
+    } as CanvasNode['ruleNodeId'];
     const count = copySelectionToClipboard({
       draft,
       selection: { nodeIds: ['local-0', 'local-1'], edgeIds: [] },
@@ -55,7 +56,7 @@ describe('rule-chain clipboard singleton (copy tier only)', () => {
     });
     expect(getRuleChainClipboard()?.notes).toHaveLength(1);
     expect(getRuleChainClipboard()?.notes[0].content).toBe('hello');
-    expect(getRuleChainClipboard()?.notes[0].id).toBeUndefined();
+    expect(getRuleChainClipboard()?.notes[0]).not.toHaveProperty('id');
   });
 
   it('pastes ONE group with regenerated ids and a relative offset', () => {
@@ -63,7 +64,7 @@ describe('rule-chain clipboard singleton (copy tier only)', () => {
     draft.nodes['local-0'].ruleNodeId = {
       entityType: 'RULE_NODE',
       id: 'wire-0',
-    };
+    } as CanvasNode['ruleNodeId'];
     const session = new EditorSession({ baseline: draft });
     copySelectionToClipboard({
       draft,

@@ -8,6 +8,8 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { EditorSession } from '@/core/editor/session';
+import { EntityType } from '@/types/tb/entity';
+import type { RuleChain } from '@/types/tb/rule-chain';
 import { emptyDraft, rowDraft } from '../canvas/test-helpers';
 
 const serviceMock = vi.hoisted(() => ({
@@ -26,8 +28,9 @@ function sessionWithMoves() {
   return session;
 }
 
-const CHAIN = {
-  id: { entityType: 'RULE_CHAIN' as const, id: 'rc1' },
+const CHAIN: RuleChain = {
+  id: { entityType: EntityType.RULE_CHAIN, id: 'rc1' },
+  createdTime: 0,
   name: 'Test chain',
   version: 3,
 };
@@ -45,7 +48,7 @@ function savedMeta() {
         configurationVersion: 0,
         configuration: {},
         additionalInfo: { layoutX: 42, layoutY: 0 },
-        id: { entityType: 'RULE_NODE' as const, id: 'n0' },
+        id: { entityType: EntityType.RULE_NODE, id: 'n0' },
       },
       {
         type: 'org.example.TestNode',
@@ -54,7 +57,7 @@ function savedMeta() {
         configurationVersion: 0,
         configuration: {},
         additionalInfo: { layoutX: 250, layoutY: 0 },
-        id: { entityType: 'RULE_NODE' as const, id: 'n1' },
+        id: { entityType: EntityType.RULE_NODE, id: 'n1' },
       },
     ],
     connections: [{ fromIndex: 0, toIndex: 1, type: 'Success' }],
