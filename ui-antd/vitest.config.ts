@@ -16,12 +16,7 @@ export default defineConfig({
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
     // Exclude Umi integration tests that depend on @umijs/max test infrastructure
     // These require Umi's Jest runner and cannot be used with Vitest directly
-    exclude: [
-      'src/pages/user/login/login.test.tsx',
-      'node_modules',
-      'dist',
-      '.umi',
-    ],
+    exclude: ['node_modules', 'dist', '.umi'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
@@ -32,6 +27,19 @@ export default defineConfig({
         'src/**/*.d.ts',
         'src/**/index.style.ts',
       ],
+      // Gates per docs/spec/v1-test-baseline.md §2: core/ (lines 80 /
+      // branches 70) and widgets/ pure functions (lines 85). Deliberately NO
+      // global thresholds — glob keys only gate their own files, so the
+      // component/page layer stays ungated (v8 provider, vitest >=2.2 shape).
+      thresholds: {
+        'src/core/**': {
+          lines: 80,
+          branches: 70,
+        },
+        'src/components/widgets/**': {
+          lines: 85,
+        },
+      },
     },
     passWithNoTests: true,
     testTimeout: 15000,

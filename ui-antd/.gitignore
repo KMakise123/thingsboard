@@ -52,3 +52,8 @@ docs/superpowers
 # cloudflare wrangler
 .wrangler
 requestRecord.mock.js
+
+# E2E runtime artifacts (tokens in storageState). Visual baselines STAY
+# in git (test-baseline sec.4); only failure artifacts are ignored.
+e2e/.auth/
+test-results/

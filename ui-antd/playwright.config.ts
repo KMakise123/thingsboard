@@ -28,7 +28,9 @@ export default defineConfig({
   fullyParallel: false,
   workers: process.env.CI ? 1 : 2,
   retries: 1, // flaky policy: docs/spec/v1-test-baseline.md §6
-  reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : [['list']],
+  reporter: process.env.CI
+    ? [['github'], ['html', { open: 'never' }]]
+    : [['list']],
   globalSetup: './e2e/global-setup.ts',
   use: {
     baseURL,

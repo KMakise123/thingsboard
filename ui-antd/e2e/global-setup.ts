@@ -1,7 +1,7 @@
-import { chromium, type FullConfig } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'node:fs';
+import { chromium, type FullConfig } from '@playwright/test';
 import { uiLogin } from './fixtures/login';
-import { CU, SA, TA, seed } from './seed/seed';
+import { CU, SA, seed, TA } from './seed/seed';
 
 /**
  * Global setup:
@@ -26,7 +26,11 @@ async function reachable(url: string, label: string): Promise<void> {
   }
 }
 
-async function saveStorageState(role: 'sa' | 'ta' | 'cu', email: string, password: string) {
+async function saveStorageState(
+  role: 'sa' | 'ta' | 'cu',
+  email: string,
+  password: string,
+) {
   const browser = await chromium.launch();
   const page = await browser.newPage({ baseURL });
   await page.goto(`${baseURL}/login`);
@@ -44,5 +48,8 @@ export default async function globalSetup(_config: FullConfig): Promise<void> {
   await saveStorageState('ta', TA.email, TA.password);
   await saveStorageState('cu', CU.email, CU.password);
   await saveStorageState('sa', SA.email, SA.password);
-  writeFileSync(`${AUTH_DIR}/api.json`, JSON.stringify({ SA, TA, CU, apiURL }, null, 2));
+  writeFileSync(
+    `${AUTH_DIR}/api.json`,
+    JSON.stringify({ SA, TA, CU, apiURL }, null, 2),
+  );
 }
