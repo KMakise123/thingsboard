@@ -16,6 +16,7 @@ export * from './customer';
 export * from './dashboard';
 export * from './device';
 export * from './entity-view';
+export * from './rule-chain';
 export * from './user';
 export * from './version-control';
 export * from './attributes';
