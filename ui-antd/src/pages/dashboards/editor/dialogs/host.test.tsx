@@ -42,7 +42,7 @@ describe('DialogHost seam', () => {
         />
       </RawIntlProvider>,
     );
-    expect(screen.queryByTestId('editor-dialog-placeholder')).toBeNull();
+    expect(screen.queryByTestId('dashboard-image-dialog')).toBeNull();
     // dashboard-image is self-contained (no editor session) — the cheapest
     // real dialog for the slot-swap assertion (P wave replaced the
     // placeholders, so the honest-copy assertion retired with them).
