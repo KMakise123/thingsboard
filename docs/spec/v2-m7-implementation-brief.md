@@ -47,8 +47,8 @@ routes.ts                      /dashboards/:dashboardId/editor（hideInMenu, acc
 |---|---|---|---|
 | 1 | F 地基 | core/editor（session+draft，TDD）+ locale `editor.common.*` | `src/core/editor/**`、`src/locales/{zh-CN,en-US}/editor.ts` |
 | 1 | R 渲染器 | code-editor(JSON) + form-property 渲染器（TDD） | `src/components/code-editor/**`、`src/components/form-property/**`（零 locale key——label 由 uiHints 传入） |
-| 2 | C 画布 | 路由+shell+工具栏+编辑态画布+widget 生命周期+右键菜单+热键+粘贴+对话框骨架占位+P3 证据 | `src/pages/dashboards/editor/{index,shell,canvas/**,clipboard.ts}`、`dialogs/host.tsx`（含全部对话框稳定路径的**占位组件**）、`panels/index.tsx` 占位、`contract/` 占位、routes.ts 一行、locale `editor-dashboard.ts`（`editor.dashboard.*`） |
-| 3 | P 对话框 | §3.5 对话框群全量 + §3.6 SCADA + §3.7 断点/mobile | 只填 `dialogs/` 下 P 名单文件 + locale `editor-dashboard-dialogs.ts` |
+| 2 | C 画布 | 路由+shell+工具栏+编辑态画布+widget 生命周期+右键菜单+热键+粘贴+对话框骨架占位+P3 证据 | `src/pages/dashboards/editor/{index,shell,canvas/**,clipboard.ts}`、`dialogs/host.tsx`（含其余对话框稳定路径的**占位组件**）、`dialogs/add-widget/**`（**真实现**：类型选择抽屉 + 参数/布局确认对话框，属生命周期核心）、`panels/index.tsx` 占位、`contract/` 占位、routes.ts 一行、`components/dashboard/DashboardToolbar.tsx` 一处手术式增补（只读工具栏「编辑」入口）、locale `editor-dashboard.ts`（`editor.dashboard.*`） |
+| 3 | P 对话框 | §3.5 对话框群（add-widget 除外，C 已交付）+ §3.6 SCADA + §3.7 断点/mobile | 只填 `dialogs/` 下 P 名单文件 + locale `editor-dashboard-dialogs.ts` |
 | 3 | K 面板 | §3.4 五区 + basic/advanced + 别名闭环 + settingsForm 经 form-property | 只填 `panels/**` + locale `editor-dashboard-panel.ts` |
 | 3 | D 契约 | §3.1 进入/退出两路 + §3.8 dirty/离开确认/导入导出/409 + §3.9 撤销契约细化 + P6 证据 | 只填 `contract/**` + locale `editor-dashboard-contract.ts` |
 | 4 | V 验收 | 全门禁 + 真机验收 + spec 勾账 + P7 证据 + 简报回填 | spec/简报/修订记录，不碰 src |
