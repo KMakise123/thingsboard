@@ -83,16 +83,16 @@ OAuth2（M4，验收前置：sys 已配置 provider，见 3.7）：
 ### 3.3 设备域（M1）——资产 / 实体视图 / 网关按 3.4 差分引用本节
 
 列表：
-- [ ] 分页 10/20/30 + 服务端排序 + URL 参数同步（page / pageSize / sortOrder / 过滤项），可书签恢复
-- [ ] 服务端文本搜索（防抖）
-- [ ] profile 自动补全过滤 + active 下拉（any / active / inactive）
-- [ ] URL 带 `deviceProfileId` / `active` 初始化过滤
-- [ ] 多步新建向导：profile 选择 → 名称 / label → 凭证配置（三类型）→ 连通性检查结果展示 → 完成入列
-- [ ] 凭证 dialog：按凭证类型查看 / 复制（token / 证书 / client id+secret）、重置（二次确认）
-- [ ] 连通性检查 dialog：独立入口 + 排障输出对齐 ui-ngx
-- [ ] 批量删除 / 批量分配客户 / 批量取消分配（确认弹窗 + 结果 toast）
-- [ ] CSV 导入：文件选择 → 列映射 → 导入进度 / 结果（对齐 `ImportDialogCsv`）
-- [ ] 行删除（二次确认）
+- [x] 分页 10/20/30 + 服务端排序 + URL 参数同步（page / pageSize / sortOrder / 过滤项），可书签恢复〔M1 ✅（修订记录落账 10/10，正文补勾）；M6 E2E 05 组书签往返复验〕
+- [x] 服务端文本搜索（防抖）〔M1 ✅；M6 冒烟 devices 搜索路径复验〕
+- [x] profile 自动补全过滤 + active 下拉（any / active / inactive）〔M1 ✅ 正文补勾〕
+- [x] URL 带 `deviceProfileId` / `active` 初始化过滤〔M1 ✅ 正文补勾〕
+- [x] 多步新建向导：profile 选择 → 名称 / label → 凭证配置（三类型）→ 连通性检查结果展示 → 完成入列〔M1 ✅ 正文补勾；单测 DeviceWizardModal 覆盖〕
+- [x] 凭证 dialog：按凭证类型查看 / 复制（token / 证书 / client id+secret）、重置（二次确认）〔M1 ✅ 正文补勾〕
+- [x] 连通性检查 dialog：独立入口 + 排障输出对齐 ui-ngx〔M1 ✅ 正文补勾〕
+- [x] 批量删除 / 批量分配客户 / 批量取消分配（确认弹窗 + 结果 toast）〔M1 ✅ 正文补勾；批量走扇出 fallback，BCR C-1〕
+- [x] CSV 导入：文件选择 → 列映射 → 导入进度 / 结果（对齐 `ImportDialogCsv`）〔M1 ✅ 正文补勾；单测 csv-import 覆盖〕
+- [x] 行删除（二次确认）〔M1 ✅ 正文补勾；M6 真机复验确认框插值标题〕
 
 详情 10 tab：
 - [x] `details`：编辑 / 保存 / 离开未保存确认；字段校验
@@ -168,16 +168,18 @@ OAuth2（M4，验收前置：sys 已配置 provider，见 3.7）：
 
 ### 3.11 横切验收（全页适用，M6 全绿）
 
-- [ ] 认证：401 刷新单飞（并发挂队重放、失败登出、豁免登录 / 刷新端点）；WS 首帧 AUTH、AUTH 失败刷新 → 重连 → 重发
-- [ ] WS 订阅管理器：8 族 cmd；断线重连（2s×2^n 封顶 60s，上限 10 次）后页面自动恢复，无需手动操作；零订阅 90s 关连；cmd 批量 ≤10
-- [ ] 新鲜度：本地环境遥测 / 告警变更呈现 ≤5s
-- [ ] 错误态：后端错误原文透传 + 通用壳文案（`server-error.ts`）；网络断开全局提示
-- [ ] 空态 / 加载态：每列表与详情 tab 均有；删除类操作二次确认
-- [ ] 双语：zh-CN / en-US key 全等（CI 门禁零红）；HTTP 层发 Accept-Language
-- [ ] 品牌：title / logo / favicon / 登录背景单源 `theme/brand`（三处漏风点全封，#8）
-- [ ] 三角色菜单 / 按钮门禁全覆盖（`access.ts` 对齐 Authority）
-- [ ] 遥测数字列 tabular-nums；CJK 字体栈生效（#8）
-- [ ] 列表页 URL 状态可书签恢复（分页 / 排序 / 过滤）
+> M6 验收注（2026-09-03）：10/10 勾。自动化形态 = E2E 横切专项 6 组（`ui-antd/e2e/specs/crosscutting/`，17 条）+ 单测（`core/` 全量，覆盖率 core 91.66% lines / 81.81% branches）；真机复验覆盖新鲜度闭环 537ms（推送→呈现）、空态、删除二次确认、断网全局横幅、tabular-nums / CJK 计算样式、品牌资产实测。验收中修复 1 枚缺陷：登出 / 刷新失败后被陈旧 currentUser 弹回角色默认页（token-first 守卫，604ffeff52）。
+
+- [x] 认证：401 刷新单飞（并发挂队重放、失败登出、豁免登录 / 刷新端点）；WS 首帧 AUTH、AUTH 失败刷新 → 重连 → 重发〔M6 ✅：E2E 02 组并发 401 恰发一次 refresh、新 token 重放、刷新失败统一登出四键清空；单测 client.test.ts 同域覆盖〕
+- [x] WS 订阅管理器：8 族 cmd；断线重连（2s×2^n 封顶 60s，上限 10 次）后页面自动恢复，无需手动操作；零订阅 90s 关连；cmd 批量 ≤10〔M6 ✅：E2E 03 组 offline 窗口后自动恢复遥测（不刷新页面）；状态机细节（8 族 / 退避 / 关连 / 批量）单测 manager.test.ts 覆盖〕
+- [x] 新鲜度：本地环境遥测 / 告警变更呈现 ≤5s〔M6 ✅：页面内闭环推送→呈现 537ms；M5 实测 WS 帧 81ms；告警域 M3 已验 WS 双通道 ≤5s〕
+- [x] 错误态：后端错误原文透传 + 通用壳文案（`server-error.ts`）；网络断开全局提示〔M6 ✅：E2E 04 组 500/404 原文 + 壳标题双保险；真机断网横幅出现/恢复消失；M1 登录错误透传延续〕
+- [x] 空态 / 加载态：每列表与详情 tab 均有；删除类操作二次确认〔M6 ✅：真机「暂无设备」空态 + 删除确认框（插值标题 + 取消/删除）；加载/空态由冒烟矩阵 22 条（每条含就绪断言）覆盖〕
+- [x] 双语：zh-CN / en-US key 全等（CI 门禁零红）；HTTP 层发 Accept-Language〔M6 ✅：check-locale 随 lint 门禁 exit 0；Accept-Language 绑定 locale 有单测；真机中文全站渲染〕
+- [x] 品牌：title / logo / favicon / 登录背景单源 `theme/brand`（三处漏风点全封，#8）〔M6 ✅：grep 无硬编码漏风点；真机 title/favicon/logo 实测；登录页视觉 baseline 逐像素锚定〕
+- [x] 三角色菜单 / 按钮门禁全覆盖（`access.ts` 对齐 Authority）〔M6 ✅：E2E 06 组 SA/TA/CU 落点、菜单集、越权 403 形态全断言；单测 access.test.ts 三角色逐条〕
+- [x] 遥测数字列 tabular-nums；CJK 字体栈生效（#8）〔M6 ✅：真机 getComputedStyle 最新遥测值 / ts 列 `font-variant-numeric: tabular-nums`，body 栈含 PingFang SC / Microsoft YaHei〕
+- [x] 列表页 URL 状态可书签恢复（分页 / 排序 / 过滤）〔M6 ✅：E2E 05 组操作写 URL + 书签硬载恢复（搜索/排序/页码三参数往返）；真机 sortProperty=name&sortOrder=ASC 硬载复验〕
 
 ## 4. 里程碑（每段独立可演示）
 
