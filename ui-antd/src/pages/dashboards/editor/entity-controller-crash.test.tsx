@@ -86,7 +86,8 @@ function softwareShapeDashboard(): Dashboard {
       {
         name:
           id === 'device_software_history'
-            ? 'Software history: ${entityName}'
+            ? // biome-ignore lint/suspicious/noTemplateCurlyInString: TB data literal (state-name template), not a JS template string
+              'Software history: ${entityName}'
             : id,
         root: id === 'default',
         layouts: {
@@ -121,6 +122,7 @@ function softwareShapeDashboard(): Dashboard {
                 ],
               },
             ],
+            // biome-ignore lint/suspicious/noTemplateCurlyInString: TB data literal (card HTML template), not a JS template string
             settings: { cardHtml: '<div>${waitingNumber}</div>' },
           },
         },
@@ -240,7 +242,9 @@ describe('DashboardsEditorPage — entity-controller dashboard (D1)', () => {
     await waitFor(
       () => {
         expect(
-          document.querySelector('[data-widget="system.cards.html_value_card"]'),
+          document.querySelector(
+            '[data-widget="system.cards.html_value_card"]',
+          ),
         ).not.toBeNull();
       },
       { timeout: 4000 },

@@ -29,7 +29,9 @@ function collides(
   col: number,
   sizeX: number,
   sizeY: number,
-  occupied: Array<Required<Pick<WidgetLayout, 'row' | 'col' | 'sizeX' | 'sizeY'>>>,
+  occupied: Array<
+    Required<Pick<WidgetLayout, 'row' | 'col' | 'sizeX' | 'sizeY'>>
+  >,
 ): boolean {
   const right = col + sizeX;
   const bottom = row + sizeY;

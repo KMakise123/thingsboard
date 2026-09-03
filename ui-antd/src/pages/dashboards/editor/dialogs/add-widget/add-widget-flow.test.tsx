@@ -166,16 +166,25 @@ describe('AddWidgetFlow', () => {
 
   it('prefills the confirm dialog with the first FREE slot (D2)', async () => {
     // one 8x6 widget at the origin → the default 8x6 lands at (0, 8)
-    const occupied = dashboardJson();
-    (
-      occupied.configuration.states.default.layouts.main.widgets as Record<
-        string,
-        unknown
-      >
-    ).seed = { sizeX: 8, sizeY: 6, row: 0, col: 0 };
-    (
-      occupied.configuration.widgets as Record<string, unknown>
-    ).seed = { typeFullFqn: TEST_FQN, config: {} };
+    const occupied = {
+      ...dashboardJson(),
+      configuration: {
+        widgets: { seed: { typeFullFqn: TEST_FQN, config: {} } },
+        states: {
+          default: {
+            name: 'Root',
+            root: true,
+            layouts: {
+              main: {
+                widgets: { seed: { sizeX: 8, sizeY: 6, row: 0, col: 0 } },
+                gridSettings: { columns: 24, margin: 10 },
+              },
+            },
+          },
+        },
+        entityAliases: {},
+      },
+    } as unknown as Dashboard;
     const configuration = validateAndUpdateDashboard(occupied)
       .configuration as DashboardConfiguration;
     const session = new EditorSession<DashboardConfiguration>({

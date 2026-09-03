@@ -22,10 +22,7 @@ import {
   type AddWidgetConfirmResult,
 } from './add-widget-confirm-dialog';
 import { findFirstFreePlacement } from './find-free-placement';
-import {
-  WidgetPickerDrawer,
-  widgetTypeLabel,
-} from './widget-picker-drawer';
+import { WidgetPickerDrawer, widgetTypeLabel } from './widget-picker-drawer';
 
 export interface AddWidgetFlowProps {
   session: EditorSession<DashboardConfiguration>;
