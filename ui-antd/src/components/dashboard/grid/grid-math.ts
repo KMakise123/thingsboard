@@ -16,7 +16,11 @@
  *   - desktopHide filters the desktop grid, mobileHide the mobile stack;
  *   - layout.breakpoints: viewport-bucketed full replacement of
  *     widgets/gridSettings when that bucket is defined (default when not
- *     mobile), ui-ngx MediaBreakpoints: xs<600, sm<960, md<1280, lg<1920.
+ *     mobile), ui-ngx MediaBreakpoints: xs<600, sm<960, md<1280, lg<1920;
+ *   - SCADA layouts (gridSettings.layoutType === 'scada', §3.6): never
+ *     degrade to the mobile stack, margin forced 0 + outerMargin false,
+ *     autoFill/mobileAutoFill height forced off (also forced off under
+ *     editMode — ui-ngx dashboard-layout `(isEdit || isScada) ? false`).
  *
  * Compaction: none (noCompactor) — positions render verbatim, collisions
  * block instead of squeezing (gridster pushItems:false equivalent; layout
@@ -76,6 +80,19 @@ export function resolveBreakpointOverride(
 
 export const DEFAULT_MOBILE_ROW_HEIGHT = 70;
 
+/**
+ * SCADA column clamp (ui-ngx dashboard-settings-dialog.component.ts:203-207
+ * + M7 §3.6): scada columns are multiples of 24 in 24..1008; an illegal
+ * stored value rounds UP to the next multiple (capped at 1008).
+ */
+export function scadaColumnClamp(columns: number): number {
+  const safe = Math.max(24, Math.floor(columns || 24));
+  if (safe % 24 === 0) {
+    return Math.min(1008, safe);
+  }
+  return Math.min(1008, 24 * Math.ceil(safe / 24));
+}
+
 /** Mobile stack rows of one widget (ui-ngx LayoutWidgetInfo.rows mobile arm). */
 export function mobileRowSpan(
   layout: WidgetLayout,
@@ -130,15 +147,28 @@ export interface BuildGridLayoutArgs {
   /** measured height of the scroll viewport; required for autofill math. */
   containerHeight?: number;
   isMobile: boolean;
+  /**
+   * Edit mode (editor canvas): autofill is forced off (§3.7 parity —
+   * ui-ngx dashboard-layout.component.ts autoFillHeight getter:
+   * `(isEdit || isScada) ? false : …`).
+   */
+  editMode?: boolean;
 }
 
 export function buildGridLayout(
   args: BuildGridLayoutArgs,
 ): ResolvedGridGeometry {
-  const { layout, widgets, containerWidth, containerHeight, isMobile } = args;
+  const { layout, widgets, containerWidth, containerHeight, editMode } = args;
   const gridSettings: GridSettings = layout.gridSettings ?? {};
-  const margin = gridSettings.margin ?? 10;
-  const outerMargin = gridSettings.outerMargin ?? true;
+  const isScada = gridSettings.layoutType === 'scada';
+  // SCADA layouts never degrade to the mobile single-column stack
+  // (§3.6 差异表; ui-ngx isMobileDisabled: `widgetEditMode || isScada || …`).
+  const isMobile = args.isMobile && !isScada;
+  // scada forces margin 0 + outerMargin false (full-bleed canvas);
+  // scada/edit force autofill off.
+  const margin = isScada ? 0 : (gridSettings.margin ?? 10);
+  const outerMargin = isScada ? false : (gridSettings.outerMargin ?? true);
+  const autofillAllowed = !isScada && !editMode;
   const containerPadding = outerMargin ? margin : 0;
 
   const entries: Array<{ id: string; widget: Widget; layout: WidgetLayout }> =
@@ -169,7 +199,12 @@ export function buildGridLayout(
     );
     const totalRows = spans.reduce((sum, span) => sum + span, 0);
     let rowHeight = gridSettings.mobileRowHeight ?? DEFAULT_MOBILE_ROW_HEIGHT;
-    if (gridSettings.mobileAutoFillHeight && totalRows > 0 && containerHeight) {
+    if (
+      autofillAllowed &&
+      gridSettings.mobileAutoFillHeight &&
+      totalRows > 0 &&
+      containerHeight
+    ) {
       rowHeight =
         (containerHeight - margin * (totalRows + (outerMargin ? 1 : -1))) /
         totalRows;
@@ -214,7 +249,7 @@ export function buildGridLayout(
   );
 
   let rowHeight: number;
-  if (gridSettings.autoFillHeight) {
+  if (autofillAllowed && gridSettings.autoFillHeight) {
     if (totalRows > 0 && containerHeight) {
       rowHeight =
         (containerHeight - margin * (totalRows + (outerMargin ? 1 : -1))) /
