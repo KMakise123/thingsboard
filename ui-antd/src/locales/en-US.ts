@@ -12,6 +12,7 @@ import dashboards from './en-US/dashboards';
 import deviceProfiles from './en-US/device-profiles';
 import devicesDetail from './en-US/devices/detail';
 import devicesList from './en-US/devices/list';
+import editor from './en-US/editor';
 import entityViews from './en-US/entityViews';
 import login from './en-US/login';
 import menu from './en-US/menu';
@@ -38,4 +39,5 @@ export default {
   ...users,
   ...devicesList,
   ...devicesDetail,
+  ...editor,
 };
