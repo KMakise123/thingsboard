@@ -65,10 +65,13 @@ const SINGLE_OPERATOR_CHARS = '+-*/%=<>!~?:&|^';
 export const tbelLanguage = StreamLanguage.define<TbelState>({
   startState: () => ({ inBlockComment: false, afterDot: false }),
   token(stream, state) {
-    // Any new token ends a property position (the '.' itself re-sets it).
     if (stream.eatSpace()) {
       return null;
     }
+    // A '.' arms the property position only until the next token (snapshot
+    // + reset so any non-identifier token ends it; the '.' case re-arms).
+    const afterDot = state.afterDot;
+    state.afterDot = false;
     if (state.inBlockComment) {
       if (stream.match(/^.*?\*\//)) {
         state.inBlockComment = false;
@@ -101,8 +104,7 @@ export const tbelLanguage = StreamLanguage.define<TbelState>({
       return 'tbelOperator';
     }
     if (stream.match(IDENTIFIER_RE)) {
-      if (state.afterDot) {
-        state.afterDot = false;
+      if (afterDot) {
         return 'tbelPropertyName';
       }
       const word = stream.current();
