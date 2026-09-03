@@ -29,7 +29,8 @@ async function login(email: string, password: string): Promise<TokenPair> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username: email, password }),
   });
-  if (!res.ok) throw new Error(`login ${email} failed: ${res.status} ${await res.text()}`);
+  if (!res.ok)
+    throw new Error(`login ${email} failed: ${res.status} ${await res.text()}`);
   return (await res.json()) as TokenPair;
 }
 
@@ -50,7 +51,9 @@ async function findCustomer(token: string, title: string) {
     `${API}/api/customers?pageSize=100&page=0&sortProperty=title&sortOrder=ASC&textSearch=${encodeURIComponent(title)}`,
     authed({}, token),
   );
-  const page = (await res.json()) as { data: Array<{ id: { id: string }; title: string }> };
+  const page = (await res.json()) as {
+    data: Array<{ id: { id: string }; title: string }>;
+  };
   return page.data.find((c) => c.title === title);
 }
 
@@ -62,12 +65,17 @@ async function ensureCustomerUser(ta: TokenPair): Promise<void> {
     (await (async () => {
       const res = await fetch(
         `${API}/api/customer`,
-        authed({ method: 'POST', body: JSON.stringify({ title: CUSTOMER_TITLE }) }, ta.token),
+        authed(
+          { method: 'POST', body: JSON.stringify({ title: CUSTOMER_TITLE }) },
+          ta.token,
+        ),
       );
       if (!res.ok) {
         const raced = await findCustomer(ta.token, CUSTOMER_TITLE);
         if (raced) return raced;
-        throw new Error(`create customer failed: ${res.status} ${await res.text()}`);
+        throw new Error(
+          `create customer failed: ${res.status} ${await res.text()}`,
+        );
       }
       return (await res.json()) as { id: { id: string }; title: string };
     })());
@@ -77,9 +85,22 @@ async function ensureCustomerUser(ta: TokenPair): Promise<void> {
     `${API}/api/customer/${customer.id.id}/users?pageSize=100&page=0&textSearch=${encodeURIComponent(CU.email)}`,
     authed({}, ta.token),
   );
-  const users = (await listRes.json()) as { data: Array<{ email: string; id: { id: string } }> };
+  const users = (await listRes.json()) as {
+    data: Array<{
+      email: string;
+      id: { id: string };
+      activationStatus?: string;
+    }>;
+  };
   const existing = users.data.find((u) => u.email === CU.email);
-  if (existing) return; // already activated in a previous run
+  if (existing) {
+    // Existence ≠ activated: a user left PENDING by an earlier failed run
+    // (or a raced create) can never log in — re-send the activation.
+    if (existing.activationStatus === 'PENDING') {
+      await activateUser(ta, existing.id.id);
+    }
+    return;
+  }
 
   const createRes = await fetch(
     `${API}/api/user?sendActivationMail=false`,
@@ -97,10 +118,18 @@ async function ensureCustomerUser(ta: TokenPair): Promise<void> {
       ta.token,
     ),
   );
-  if (!createRes.ok) throw new Error(`create CU failed: ${createRes.status} ${await createRes.text()}`);
+  if (!createRes.ok)
+    throw new Error(
+      `create CU failed: ${createRes.status} ${await createRes.text()}`,
+    );
   const created = (await createRes.json()) as { id: { id: string } };
+  await activateUser(ta, created.id.id);
+}
+
+/** Fetch the activation link for a (new or pending) user and set CU's password. */
+async function activateUser(ta: TokenPair, userId: string): Promise<void> {
   const activationRes = await fetch(
-    `${API}/api/user/${created.id.id}/activationLink`,
+    `${API}/api/user/${userId}/activationLink`,
     authed({}, ta.token),
   );
   // Backend answers text/plain with the full link; extract the token param.
@@ -111,10 +140,15 @@ async function ensureCustomerUser(ta: TokenPair): Promise<void> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ activateToken, password: CU.password }),
   });
-  if (!activateRes.ok) throw new Error(`activate CU failed: ${activateRes.status} ${await activateRes.text()}`);
+  if (!activateRes.ok)
+    throw new Error(
+      `activate CU failed: ${activateRes.status} ${await activateRes.text()}`,
+    );
 }
 
-async function ensureDevice(ta: TokenPair): Promise<{ id: string; token: string }> {
+async function ensureDevice(
+  ta: TokenPair,
+): Promise<{ id: string; token: string }> {
   const searchRes = await fetch(
     `${API}/api/tenant/devices?pageSize=100&page=0&textSearch=${encodeURIComponent(DEVICE_NAME)}`,
     authed({}, ta.token),
@@ -128,16 +162,35 @@ async function ensureDevice(ta: TokenPair): Promise<{ id: string; token: string 
       `${API}/api/device/${existing.id.id}/credentials`,
       authed({}, ta.token),
     );
-    return { id: existing.id.id, token: ((await credRes.json()) as { credentialsId: string }).credentialsId };
+    return {
+      id: existing.id.id,
+      token: ((await credRes.json()) as { credentialsId: string })
+        .credentialsId,
+    };
   }
   const createRes = await fetch(
     `${API}/api/device`,
-    authed({ method: 'POST', body: JSON.stringify({ name: DEVICE_NAME, type: 'default' }) }, ta.token),
+    authed(
+      {
+        method: 'POST',
+        body: JSON.stringify({ name: DEVICE_NAME, type: 'default' }),
+      },
+      ta.token,
+    ),
   );
-  if (!createRes.ok) throw new Error(`create device failed: ${createRes.status} ${await createRes.text()}`);
+  if (!createRes.ok)
+    throw new Error(
+      `create device failed: ${createRes.status} ${await createRes.text()}`,
+    );
   const device = (await createRes.json()) as { id: { id: string } };
-  const credRes = await fetch(`${API}/api/device/${device.id.id}/credentials`, authed({}, ta.token));
-  return { id: device.id.id, token: ((await credRes.json()) as { credentialsId: string }).credentialsId };
+  const credRes = await fetch(
+    `${API}/api/device/${device.id.id}/credentials`,
+    authed({}, ta.token),
+  );
+  return {
+    id: device.id.id,
+    token: ((await credRes.json()) as { credentialsId: string }).credentialsId,
+  };
 }
 
 async function ensureAlarm(ta: TokenPair, deviceId: string): Promise<void> {
@@ -165,7 +218,8 @@ async function ensureAlarm(ta: TokenPair, deviceId: string): Promise<void> {
       ta.token,
     ),
   );
-  if (!res.ok) throw new Error(`create alarm failed: ${res.status} ${await res.text()}`);
+  if (!res.ok)
+    throw new Error(`create alarm failed: ${res.status} ${await res.text()}`);
 }
 
 /** Entry point used by global-setup (and runnable standalone via tsx). */
