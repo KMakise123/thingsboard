@@ -271,7 +271,9 @@ describe('ruleChains list page', () => {
     expect(payload.id).toBeUndefined();
     // D1 regression: the created toast interpolates the actual chain name
     // (ICU straight-quote escaping used to render a bare {name})
-    expect(await screen.findByText('规则链「新建链」已创建。')).toBeInTheDocument();
+    expect(
+      await screen.findByText('规则链「新建链」已创建。'),
+    ).toBeInTheDocument();
   });
 
   it('edit prefills the name and merges additionalInfo.description', async () => {

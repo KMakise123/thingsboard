@@ -91,7 +91,7 @@ export default {
     'After the confirmation all entity messages are processed by this chain by default (the current root chain is replaced).',
   'ruleChains.list.setRootSuccess': 'The rule chain is now the root chain.',
   'ruleChains.list.deleteTitle':
-    "Are you sure you want to delete the rule chain \"{name}\"?",
+    'Are you sure you want to delete the rule chain "{name}"?',
   'ruleChains.list.deleteText':
     'Be careful, the chain becomes unrecoverable; the root chain and chains referenced by other chains cannot be deleted.',
   'ruleChains.list.toastDeleted': 'Rule chain deleted.',
@@ -102,7 +102,7 @@ export default {
   'ruleChains.list.description': 'Description',
   'ruleChains.list.ok': 'OK',
   'ruleChains.list.cancel': 'Cancel',
-  'ruleChains.list.toastCreated': "Rule chain \"{name}\" has been created.",
+  'ruleChains.list.toastCreated': 'Rule chain "{name}" has been created.',
   'ruleChains.list.toastSaved': 'Rule chain saved.',
 
   // Import dialog (spec §4.9 parity)
@@ -128,7 +128,7 @@ export default {
     'The file is a bulk export ({count} chains); only the first one is imported.',
   'ruleChains.list.importOk': 'Import and open',
   'ruleChains.list.importFailed': 'Failed to import the rule chain: {error}',
-  'ruleChains.list.toastImported': "Rule chain \"{name}\" has been imported.",
+  'ruleChains.list.toastImported': 'Rule chain "{name}" has been imported.',
 
   // Entity details dialog (list "details" action)
   'ruleChains.details.title': 'Rule chain details',

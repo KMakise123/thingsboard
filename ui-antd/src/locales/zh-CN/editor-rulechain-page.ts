@@ -90,7 +90,7 @@ export default {
   'ruleChains.list.setRootText':
     '确认后，所有实体消息默认经由根链处理（当前根链将被替换）。',
   'ruleChains.list.setRootSuccess': '已设为根链。',
-  'ruleChains.list.deleteTitle': "确认删除规则链「{name}」？",
+  'ruleChains.list.deleteTitle': '确认删除规则链「{name}」？',
   'ruleChains.list.deleteText':
     '删除后不可恢复；根链或被其他规则链引用的链无法删除。',
   'ruleChains.list.toastDeleted': '规则链已删除。',
@@ -101,7 +101,7 @@ export default {
   'ruleChains.list.description': '说明',
   'ruleChains.list.ok': '确定',
   'ruleChains.list.cancel': '取消',
-  'ruleChains.list.toastCreated': "规则链「{name}」已创建。",
+  'ruleChains.list.toastCreated': '规则链「{name}」已创建。',
   'ruleChains.list.toastSaved': '规则链已保存。',
 
   // 导入对话框（spec §4.9 parity）
@@ -124,7 +124,7 @@ export default {
     '文件为批量导出（{count} 条链），仅导入第一条。',
   'ruleChains.list.importOk': '导入并打开',
   'ruleChains.list.importFailed': '导入规则链失败：{error}',
-  'ruleChains.list.toastImported': "规则链「{name}」已导入。",
+  'ruleChains.list.toastImported': '规则链「{name}」已导入。',
 
   // 实体详情对话框（列表「详情」动作）
   'ruleChains.details.title': '规则链详情',
