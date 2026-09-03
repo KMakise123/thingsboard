@@ -55,6 +55,8 @@ async function findCustomer(token: string, title: string) {
 }
 
 async function ensureCustomerUser(ta: TokenPair): Promise<void> {
+  // Find-or-create with a re-find fallback: parallel global-setups may race
+  // on the create; the loser re-finds the winner's customer instead of dying.
   const customer =
     (await findCustomer(ta.token, CUSTOMER_TITLE)) ??
     (await (async () => {
@@ -62,7 +64,11 @@ async function ensureCustomerUser(ta: TokenPair): Promise<void> {
         `${API}/api/customer`,
         authed({ method: 'POST', body: JSON.stringify({ title: CUSTOMER_TITLE }) }, ta.token),
       );
-      if (!res.ok) throw new Error(`create customer failed: ${res.status} ${await res.text()}`);
+      if (!res.ok) {
+        const raced = await findCustomer(ta.token, CUSTOMER_TITLE);
+        if (raced) return raced;
+        throw new Error(`create customer failed: ${res.status} ${await res.text()}`);
+      }
       return (await res.json()) as { id: { id: string }; title: string };
     })());
 

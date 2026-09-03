@@ -207,7 +207,9 @@ export default defineConfig({
       },
     },
   },
-  exportStatic: {},
+  // ADR 0002 sec.4: umi default 'static/' collides with the backend-reserved
+  // /static/** path set; served assets must live under /assets/**.
+  staticPathPrefix: 'assets/',
   define: {
     'process.env.CI': process.env.CI,
     'process.env.COMMIT_HASH': commitHash,

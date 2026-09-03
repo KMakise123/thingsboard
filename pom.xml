@@ -193,7 +193,7 @@
         <module>dao</module>
         <module>edqs</module>
         <module>transport</module>
-        <module>ui-ngx</module>
+        <module>ui-antd</module>
         <module>tools</module>
         <module>application</module>
         <module>msa</module>
@@ -936,6 +936,10 @@
                             <exclude>**/valkey-certs/**</exclude>
                             <exclude>**/data/certs/**</exclude>
                             <exclude>**/*.otf</exclude>
+                            <!-- ui-antd is excluded from license header checks: ADR 0002 sec.9,
+                                 otherwise license-header-format.yml would keep adding headers to
+                                 the scaffold files and auto-commit them -->
+                            <exclude>ui-antd/**</exclude>
                         </excludes>
                         <mapping>
                             <proto>JAVADOC_STYLE</proto>
