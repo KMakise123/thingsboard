@@ -6,6 +6,7 @@
  */
 import { history, useLocation, useParams } from '@umijs/max';
 import { Alert, Spin } from 'antd';
+import { useEffect } from 'react';
 import { useIntl } from 'react-intl';
 import { DashboardPage } from '@/components/dashboard/DashboardPage';
 import { useDashboard } from '@/components/dashboard/use-dashboard';
@@ -22,6 +23,18 @@ export default function DashboardsViewPage() {
     new URLSearchParams(location.search).get('reload') ?? undefined;
 
   const { query, dashboard } = useDashboard(dashboardId);
+
+  // Empty dashboard auto-enters edit mode (spec §3.1) — tenant admins only;
+  // the fullscreen route stays a pure display surface.
+  useEffect(() => {
+    if (
+      authority === 'TENANT_ADMIN' &&
+      dashboard &&
+      Object.keys(dashboard.configuration?.widgets ?? {}).length === 0
+    ) {
+      history.replace(`/dashboards/${dashboardId}/editor`);
+    }
+  }, [authority, dashboard, dashboardId]);
 
   return (
     <PageContainer

@@ -65,9 +65,9 @@ routes.ts                      /dashboards/:dashboardId/editor（hideInMenu, acc
 
 ## 5. PoC 证据义务（回填本节）
 
-- **P3**（C）：RGL 2.2.4 编辑态实测——碰撞阻挡（pushItems:false/swap:false 语义 = preventCollision+compactor 组合）、边界夹取、dropConfig 外部拖入、displayGrid 条件挂载；结论 + API 形状记本节。
-- **P6**（D）：antd Form 受控回填 × undo 光标竞争——revision 守卫/受控 value 方案实测结论。
-- **P7**（V）：100+ widget 仪表盘 Profiler——单字段编辑仅目标 widget 重渲染（WidgetContainer memo + config 引用订阅，edit 态独立 context 通道）。
+- **P3**（C，✅ 2026-09-03 取证落地，回归测试留存 `canvas/rgl-edit-behavior.test.tsx`）：RGL 2.2.4 碰撞阻挡组合 = **compactor `{type: null, allowOverlap: false, preventCollision: true}`**（即 `{...noCompactor, preventCollision: true}`）——moveElement 遇碰撞回设旧坐标、零级联推挤，含阴性对照（去掉 preventCollision 即变推挤）；边界夹取 = 默认 `constraints [gridBounds, minMaxSize]` + `maxRows: Infinity` ⇒ 横向硬夹、纵向无限向下生长（gridster 语义）；dropConfig 落点 = `calcXY(clientX − gridRect.left − itemPixelW/2, …)` 两轴夹取；displayGrid = `react-grid-layout/extras` GridBackground 条件挂载。环境限制：happy-dom 无 offsetParent，DOM 级拖拽模拟不可行，取证在引擎函数层（moveElement/applyPositionConstraints），接线层以类名/回调断言。
+- **P6**（K→简报回填）：antd Form 受控回填 × undo 光标竞争——revision 守卫/受控 value 方案实测结论（配置面板表单面，随 Wave 3 K 交付）。
+- **P7**（V）：100+ widget 仪表盘 Profiler——单字段编辑仅目标 widget 重渲染（WidgetContainer memo 边界 C 已铺，edit 态独立 context 通道；随 Wave 4 复验）。
 
 ## 修订记录
 
