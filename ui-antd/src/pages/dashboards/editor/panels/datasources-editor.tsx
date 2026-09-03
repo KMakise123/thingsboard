@@ -57,7 +57,9 @@ export function DatasourcesEditor({
     }
     const next = [...datasources];
     const [moved] = next.splice(from, 1);
-    next.splice(Math.max(0, Math.min(to, next.length - 1)), 0, moved);
+    // insert index runs to next.length (append); clamping to length-1 would
+    // collapse "move down onto the last slot" into a no-op
+    next.splice(Math.max(0, to), 0, moved);
     onChange(next);
   });
 
@@ -237,6 +239,7 @@ export function DatasourcesEditor({
               keys={row.dataKeys ?? []}
               onChange={(next) => patchRow(index, { dataKeys: next })}
               paletteGroups={datasources.map((source) => source.dataKeys ?? [])}
+              keyTypes={alarmMode ? ['alarm'] : undefined}
               testIdPrefix={`${rowPrefix}-keys`}
             />
             {!alarmMode ? (

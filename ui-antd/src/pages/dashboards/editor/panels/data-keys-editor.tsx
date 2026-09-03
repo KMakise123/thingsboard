@@ -52,6 +52,9 @@ export interface DataKeysEditorProps {
   onChange: (next: DataKey[]) => void;
   /** Available groups for the palette cursor (dataKeys + latestDataKeys). */
   paletteGroups?: DataKey[][];
+  /** Key types this list accepts; defaults to the plain-datasource set.
+   *  alarmSource rows pass ['alarm'] (AlarmSource wire contract). */
+  keyTypes?: DataKeyType[];
   testIdPrefix: string;
 }
 
@@ -60,11 +63,12 @@ export function DataKeysEditor({
   keys,
   onChange,
   paletteGroups,
+  keyTypes = DATA_KEY_TYPES,
   testIdPrefix,
 }: DataKeysEditorProps) {
   const { formatMessage } = useIntl();
   const [newName, setNewName] = useState('');
-  const [newType, setNewType] = useState<DataKeyType>('timeseries');
+  const [newType, setNewType] = useState<DataKeyType>(keyTypes[0]);
 
   const api = useDragSort((from, to) => {
     if (from === to) {
@@ -72,7 +76,9 @@ export function DataKeysEditor({
     }
     const next = [...keys];
     const [moved] = next.splice(from, 1);
-    next.splice(Math.max(0, Math.min(to, next.length - 1)), 0, moved);
+    // insert index runs to next.length (append); clamping to length-1 would
+    // collapse "move down onto the last slot" into a no-op
+    next.splice(Math.max(0, to), 0, moved);
     onChange(next);
   });
 
@@ -146,8 +152,8 @@ export function DataKeysEditor({
             <Select<DataKeyType>
               size="small"
               style={{ minWidth: 96, flex: '0 0 auto' }}
-              value={key.type ?? 'timeseries'}
-              options={DATA_KEY_TYPES.map((type) => ({
+              value={key.type ?? keyTypes[0]}
+              options={keyTypes.map((type) => ({
                 value: type,
                 label: type,
               }))}
@@ -224,7 +230,7 @@ export function DataKeysEditor({
           size="small"
           style={{ minWidth: 96 }}
           value={newType}
-          options={DATA_KEY_TYPES.map((type) => ({ value: type, label: type }))}
+          options={keyTypes.map((type) => ({ value: type, label: type }))}
           data-testid={`${testIdPrefix}-add-type`}
           onChange={setNewType}
         />
