@@ -51,6 +51,7 @@ import {
   createDefaultDashboardTimewindow,
   type Timewindow,
 } from '@/types/tb/timewindow';
+import { BreakpointSwitcher } from './canvas/BreakpointSwitcher';
 import { EditorCanvas } from './canvas/EditorCanvas';
 import { EditorCanvasOverrideProvider } from './canvas/editor-canvas-context';
 import {
@@ -577,6 +578,9 @@ export function EditorShell({ session, dashboard }: EditorShellProps) {
             onClick={() => dialogs.openDialog('manage-layouts')}
           />
         </Tooltip>
+        {/* §3.7 断点切换组件 — hidden while only the default breakpoint
+            exists; also publishes the dialog-session registry. */}
+        <BreakpointSwitcher session={session} />
         <Tooltip
           title={formatMessage(
             t('editor.dashboard.toolbar.fullscreen', 'Fullscreen'),
