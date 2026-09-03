@@ -21,6 +21,7 @@ import {
   type AddWidgetConfirmPayload,
   type AddWidgetConfirmResult,
 } from './add-widget-confirm-dialog';
+import { findFirstFreePlacement } from './find-free-placement';
 import { WidgetPickerDrawer } from './widget-picker-drawer';
 
 export interface AddWidgetFlowProps {
@@ -45,10 +46,23 @@ export function AddWidgetFlow({
   const layouts = Object.keys(configuration.states[rootStateId]?.layouts ?? {});
 
   const onPick = (fqn: string) => {
+    // D2 (ui-ngx findPosition parity): prefill the confirm step with the
+    // first free slot of the default target layout so a new widget never
+    // stacks onto existing ones; an explicit user edit keeps its values.
+    const targetLayoutId = (layouts[0] ?? 'main') as DashboardLayoutId;
+    const targetLayout =
+      configuration.states[rootStateId]?.layouts[targetLayoutId];
+    const defaultPlacement = findFirstFreePlacement({
+      widgets: targetLayout?.widgets ?? {},
+      sizeX: 8,
+      sizeY: 6,
+      columns: targetLayout?.gridSettings?.columns ?? 24,
+    });
     setPayload({
       fqn,
       label: fqn,
       stateId: rootStateId,
+      defaultPlacement,
       layouts: layouts.map((id) => ({
         id,
         name: id,

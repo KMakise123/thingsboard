@@ -139,4 +139,60 @@ describe('AddWidgetFlow', () => {
     });
     expect(Object.keys(session.current.widgets)).toHaveLength(0);
   });
+
+  it('prefills the confirm dialog with the first FREE slot (D2)', async () => {
+    // one 8x6 widget at the origin → the default 8x6 lands at (0, 8)
+    const occupied = dashboardJson();
+    (
+      occupied.configuration.states.default.layouts.main.widgets as Record<
+        string,
+        unknown
+      >
+    ).seed = { sizeX: 8, sizeY: 6, row: 0, col: 0 };
+    (
+      occupied.configuration.widgets as Record<string, unknown>
+    ).seed = { typeFullFqn: TEST_FQN, config: {} };
+    const configuration = validateAndUpdateDashboard(occupied)
+      .configuration as DashboardConfiguration;
+    const session = new EditorSession<DashboardConfiguration>({
+      baseline: configuration,
+    });
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    render(
+      <RawIntlProvider value={intl}>
+        <AntdApp>
+          <QueryClientProvider client={queryClient}>
+            <AddWidgetFlow session={session} open onClose={vi.fn()} />
+          </QueryClientProvider>
+        </AntdApp>
+      </RawIntlProvider>,
+    );
+    fireEvent.click(screen.getByText('Test widget'));
+    const rowInput = (await waitFor(() => {
+      const input = document.querySelector(
+        'input#row',
+      ) as HTMLInputElement | null;
+      expect(input).not.toBeNull();
+      return input as HTMLInputElement;
+    })) as HTMLInputElement;
+    const colInput = document.querySelector('input#col') as HTMLInputElement;
+    expect(rowInput.value).toBe('0');
+    expect(colInput.value).toBe('8');
+    // confirming lands the widget in the prefilled free slot — no overlap
+    const okButton = document.querySelector(
+      '.ant-modal-footer .ant-btn-primary',
+    ) as HTMLButtonElement;
+    fireEvent.click(okButton);
+    await waitFor(() => {
+      expect(session.history).toHaveLength(1);
+    });
+    const ids = Object.keys(session.current.widgets).filter(
+      (id) => id !== 'seed',
+    );
+    expect(
+      session.current.states.default.layouts.main?.widgets[ids[0]],
+    ).toMatchObject({ row: 0, col: 8 });
+  });
 });

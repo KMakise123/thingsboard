@@ -19,6 +19,12 @@ export interface AddWidgetConfirmPayload {
   label: string;
   /** state the widget lands in (root state of the draft). */
   stateId: string;
+  /**
+   * First free slot of the default target layout for the default 8x6 size
+   * (D2: never stack a new widget onto existing ones; ui-ngx
+   * widgetPossiblePosition parity).
+   */
+  defaultPlacement?: { row: number; col: number };
   /** layouts offered for the target choice (multi-layout dashboards). */
   layouts: Array<{ id: string; name: string; layoutType?: string }>;
 }
@@ -132,8 +138,8 @@ export function AddWidgetConfirmDialog({
           layout="vertical"
           initialValues={{
             title: payload.label,
-            row: 0,
-            col: 0,
+            row: payload.defaultPlacement?.row ?? 0,
+            col: payload.defaultPlacement?.col ?? 0,
             sizeX: 8,
             sizeY: 6,
             layoutId: payload.layouts[0]?.id ?? 'main',
