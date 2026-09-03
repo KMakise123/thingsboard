@@ -53,6 +53,14 @@ export async function deleteRuleChain(ruleChainId: string): Promise<void> {
   await tbHttp.delete(`/api/ruleChain/${ruleChainId}`);
 }
 
+/**
+ * POST /api/ruleChain/{ruleChainId}/root — make this chain the tenant's
+ * root chain (M8 wave-3 D list page; the previous root is replaced).
+ */
+export async function setRootRuleChain(ruleChainId: string): Promise<RuleChain> {
+  return tbHttp.post<RuleChain>(`/api/ruleChain/${ruleChainId}/root`);
+}
+
 /** GET /api/ruleChain/{ruleChainId}/metadata — graph body (nodes/edges/notes). */
 export async function getRuleChainMetaData(
   ruleChainId: string,

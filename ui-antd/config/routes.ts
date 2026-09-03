@@ -126,9 +126,17 @@ export default [
     hideInMenu: true,
   },
   {
+    // M8 rule-chain list (brief §3 wave-3 D): TA-only; the editor row below
+    // is the chain page itself (ui-ngx parity — no readonly face).
+    name: 'ruleChains',
+    icon: 'partition',
+    path: '/ruleChains',
+    access: 'canTenantAdmin',
+    component: './rule-chains/list',
+  },
+  {
     // M8 rule-chain canvas editor (brief §3 wave C): the editor IS the page
-    // (ui-ngx parity — no readonly face). Hidden, TA-only; the /ruleChains
-    // list row belongs to wave 3 D.
+    // (ui-ngx parity — no readonly face). Hidden, TA-only.
     path: '/ruleChains/:ruleChainId',
     access: 'canTenantAdmin',
     component: './rule-chains/editor',
