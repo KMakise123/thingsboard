@@ -1,0 +1,15 @@
+{
+  "SA": {
+    "email": "sysadmin@thingsboard.org",
+    "password": "sysadmin"
+  },
+  "TA": {
+    "email": "tenant@thingsboard.org",
+    "password": "tenant"
+  },
+  "CU": {
+    "email": "e2e-cu@thingsboard.org",
+    "password": "Customer123!"
+  },
+  "apiURL": "http://localhost:8080"
+}
