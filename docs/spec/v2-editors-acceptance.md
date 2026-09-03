@@ -138,7 +138,7 @@ v2 交付的仪表盘编辑器、widget 编辑器、规则链画布，对 ui-ngx
 - [x] 节点拖动（dragStop 一次提交一个事务组——半受控，ADR 0004）〔单测锚：interactions.test moveNodes 一组+INPUT 不可动；canvas.perf.test dragStop 事务边界；真机旁证 dragStop 事务提交〕
 - [x] 框选 / ctrl 多选 / 全选 / 取消全选〔V 波真机 ✅：ctrl+a 全选（3 节点+便签）/esc 取消；框选与 ctrl 逐点多选未真机驱动——selection 单测锚〕
 - [ ] magnet 连线（输出桩 → 输入桩）；INPUT 节点唯一出边约束〔真机未目击（E1 环境受阻：自动化通道无法驱动 RF handle 手势，详见走查 §1 步骤 5）；事务语义单测锚：interactions.test setInputTarget 唯一出边替换/删除 + rule-chain-draft.test——**留观：人工真实鼠标连线目检一次**〕
-- [x] 多 label 边：一条边多个 label；label 编辑 / 删除小圆钮〔V 波真机 ✅：导入聚合边「False / True」渲染；label 编辑对话框真机未驱动且 dialogs/link-labels 无专项单测——缺口 D3 登记〕
+- [x] 多 label 边：一条边多个 label；label 编辑 / 删除小圆钮〔V 波真机 ✅：导入聚合边「False / True」渲染；~~label 编辑对话框真机未驱动且 dialogs/link-labels 无专项单测——缺口 D3 登记~~ → **单测缺口已补（X 波，commit 70d6896f82）**：link-labels.test 专项 7 例（候选渲染 / 多选一次回传一组 / 取消不回传 / edit 预选 initialLabels / 空选禁 OK / customRelations tags 自定义标签 / ruleChainNode 源 getRuleChainOutputLabels 拉远端候选）；真机驱动仍受限（连线需 RF handle 手势，同 E1 留观行）〕
 - [x] 节点 / 边删除〔V 波真机 ✅：Del 删节点 4→3+ctrl+z 复原；边删除单测锚 interactions.test 三类分组删除/INPUT 边经 setInputTarget(null)〕
 - [x] 节点复制 / 粘贴：粘贴为一组（guid 重生成，一个事务组）〔V 波真机 ✅：ctrl+c/v 4→5，一次 ctrl+z 整组抹掉 5→4；clipboard.test uid 重生锚〕
 
@@ -155,7 +155,7 @@ v2 交付的仪表盘编辑器、widget 编辑器、规则链画布，对 ui-ngx
 
 - [x] ctrl+r 从选中节点创建嵌套规则链〔V 波真机 ✅：对话框命名→画布替换为 TbRuleChainInputNode；API 复核子链含 TbRuleChainOutputNode+connection、父链保存；校验/重接线单测锚 nested-chain.test〕
 - [x] 右键菜单四类齐备：画布空白 / 节点 / 边 / 便签，菜单项对齐 ui-ngx〔V 波真机 ✅：pane 九项（含正确禁用态）/节点 详情·复制·删除（INPUT 无菜单）/便签 编辑·复制·删除；边菜单同源未单独目击——与 D3 同记。
-  - 缺口 D2（低）：节点**双击**不打开详情抽屉（ui-ngx `fcEventNodeDblClick` parity 缺口）；v2 仅右键菜单→详情——修复归 X 波〕
+  - ~~**D2 缺口（V 波新登记，低）：节点双击不打开详情抽屉（ui-ngx `fcEventNodeDblClick` parity 缺口）；v2 仅右键菜单→详情**~~ → **已修复（X 波，commit 674261592b）**：canvas 新增 `onNodeDoubleClick` 透传 prop，shell 复用右键菜单「详情」同一 `setDetailsUid` 路径（INPUT 只读节点与便签节点 shell 侧过滤——便签有自己的编辑对话框）；shell.test 双例锚（双击普通节点抽屉开 / 双击 INPUT 不开）；真机复验：双击 switch 节点「规则节点详情」抽屉打开、取消关闭、双击 INPUT 不开〔截图取证〕〕
 
 ### 4.5 节点配置表单与 76 节点 dry-run 统计口径
 
@@ -177,7 +177,7 @@ v2 交付的仪表盘编辑器、widget 编辑器、规则链画布，对 ui-ngx
 
 ### 4.7 节点详情与事件 / 调试
 
-- [x] 详情三 tab：details / events / help〔V 波真机 ✅：右键→详情抽屉，三 tab 在列；表单编辑实时上画布、取消零残留（疑点 S1 留观）、应用持久〕
+- [x] 详情三 tab：details / events / help〔V 波真机 ✅：右键→详情抽屉，三 tab 在列；表单编辑实时上画布、取消零残留（疑点 S1 留观 → **X 波查证结案：设计行为，不修**——`core/editor/session.ts:21-24` 契约明示 rollback「提交一个新事务组、可与 undo/redo 组合」；M7 对照同款：`WidgetConfigPanel.test:246-248` 取消后栈内恰有一个 `rollback: panel:w1` 组、canUndo 仍真；undo 再按一次 = 撤掉回滚组即恢复被取消的编辑，语义自洽。M8 抽屉取消路径与 M7 面板同一 checkpoint 范式，行为一致）、应用持久〕
 - [x] help：HTML 消毒渲染（DOMPurify）+ docUrl 外链；文案透传不翻译〔V 波真机 ✅：descriptor 英文透传 + `查看文档` 外链 thingsboard.io/docs/.../log/（_blank）；DOMPurify 管道单测锚 details.test〕
 - [x] 事件表：POST filter 端点（body 多态 eventType）、过滤字段、clear、刷新〔V 波真机 ✅（自建链）：fetch 钩子实抓 POST body `{"eventType":"DEBUG_RULE_NODE"}`→选 OUT 后 `+msgDirectionType:"OUT"`；清空→`POST …/clear` 同 filter body+自动刷新；有数据表未复现（本地无 debug 流量，Root 链不可动）——表列/空态/控件目击；debug-events-table.test 锚〕
 - [ ] 「test with this message」预填 debugIn〔真机未复现：需既有 debug 事件（本地无流量）；debugIn 端点接线单测锚 debug-events-table.test〕
@@ -198,7 +198,7 @@ v2 交付的仪表盘编辑器、widget 编辑器、规则链画布，对 ui-ngx
 ### 4.10 ruleChains 全域页面
 
 - [x] 列表 / 搜索 / 详情 tabs（含 events tab）〔V 波真机 ✅：搜索/排序（API sortProperty/sortOrder）/新建/编辑/导出/导入；根链行设为根链+删除禁用、非根链全项可用；「规则链详情」五 tab 属性/告警/事件/关联/审计日志。
-  - 缺口 D1（低）：`ruleChains.list.toastCreated`/`toastImported`（及 `deleteTitle` 同款）ICU 直引号 `'{name}'` 转义占位符，toast 显示裸 `{name}`——修复归 X 波（改中文引号/去引号，zh/en 同改）〕
+  - ~~**D1 缺口（V 波新登记，低）：`ruleChains.list.toastCreated`/`toastImported`（及 `deleteTitle` 同款）ICU 直引号 `'{name}'` 转义占位符，toast 显示裸 `{name}`**~~ → **已修复（X 波，commit 10fba18156）**：zh 改中文角引号「」/en 改双引号（ICU 单引号是转义符，双引号无歧义），zh/en locale + defaultMessage 同步三处；list.test 补创建 toast 与删除确认框的**实际插值断言**（formatMessage 带参渲染）；真机复验：新建「X 波复验链3」toast 显示「规则链「X 波复验链3」已创建。」〔截图取证〕〕
 
 ### 4.11 行为契约：规则链撤销栈
 
@@ -270,6 +270,7 @@ v2 交付的仪表盘编辑器、widget 编辑器、规则链画布，对 ui-ngx
 
 ## 修订记录
 - 2026-09-04：**M8 验收勾账（V 波）**。全量门禁：lint 绿（30 warnings 基线）、tsc 绿、check-locale 绿；`npm run test` 1427 例 1426 绿（唯一失败为 master 存量 entry.test.tsx，M7 已登记，单跑复现同失败，非 M8 回归）；rule-node 域 125/125 绿（dry-run 94 用例）。dry-run 终版复核：报告↔摘要 fixture 数字一致（76 节点、可编辑率 100%、控件级 98.7% 含 12 合法空形态、不可编辑 0、判据④ 12 类全过）。真机走查（browseros，自建 4 链已清理）：§4 共 **27 行勾选 / 3 行未勾**——未勾 = magnet 连线行（E1 环境受阻：自动化通道无法驱动 RF handle 手势，事务语义单测锚定 + 留观人工目检）与「test with this message」debugIn 行（本地无 debug 流量）；409 三选项行保持未勾（单机未复现，契约单测锚定，M7 同款处理）。新登记缺口/缺陷 3 行：D1 ruleChains toast ICU 直引号转义致 {name} 不插值（低）、D2 节点双击不开详情（ui-ngx parity，低）、D3 link-labels 对话框无专项单测+真机未驱动（低）；疑点 S1 详情抽屉取消后 undo 按钮态留观。真机走查全程记录见 [v2-m8-browser-walkthrough.md](./v2-m8-browser-walkthrough.md)。
+- 2026-09-04：**M8 D1/D2/D3 修复 + S1 结案（X 波）**。D1（commit 10fba18156）：ruleChains 列表 toast/删除确认 ICU 直引号转义缺失（react-intl 中 `'{name}'` 的单引号是转义符 → 显示裸 `{name}`）——zh 改中文角引号「」、en 改双引号（无 ICU 歧义），locale zh/en + defaultMessage 三处同改；list.test 补创建 toast 与删除确认框的实际插值断言。D2（commit 674261592b）：节点双击开详情抽屉（ui-ngx `fcEventNodeDblClick` parity）——canvas 新增 `onNodeDoubleClick` 透传，shell 复用右键菜单「详情」同一 `setDetailsUid` 调用路径，INPUT 只读节点与便签节点 shell 侧过滤（便签走自己的编辑对话框）；shell.test 双例锚（普通节点开 / INPUT 不开）。D3（commit 70d6896f82）：link-labels 对话框专项单测 7 例（候选渲染 / 多选一次回传一组 / 取消不回传 / edit 预选 initialLabels / 空选禁 OK / customRelations tags 自定义标签 / ruleChainNode 源 `getRuleChainOutputLabels` 拉远端候选）；真机驱动仍受限（连线需 RF handle 手势，同 E1 留观）。S1 结案不修（设计行为）：`core/editor/session.ts:21-24` 契约明示 rollback「提交一个新事务组、与 undo/redo 可组合」——取消后栈内留 rollback 组 → canUndo 真是契约的直接推论；M7 对照同款（`WidgetConfigPanel.test:246-248` 取消后恰有一个 `rollback: panel:w1` 组），undo 再按一次 = 撤掉回滚组恢复被取消编辑，语义自洽，与 M7 面板一致。门禁：rule-chains 域 95/95 绿、tsc 绿、biome 触及文件零告警、check-locale 绿。真机复验（browseros，自建 3 链已删、服务器恢复原状）：新建 toast 实际插值「规则链「X 波复验链3」已创建。」；双击节点「规则节点详情」抽屉打开、取消关闭、双击 INPUT 不开〔截图取证〕。
 
 - 2026-08-31：#13 决议创建骨架（操作面清单 + 原则 + 横切章）；定稿由 #15 承接。
 - 2026-09-03：**定稿**（#15 两轮 grilling + 双路源码侦察）。勘误三条（均有源码锚点）：① SCADA「select/pan/move 模式切换」ui-ngx 4.4.0 无对应实现，删除并重写为 layoutType 差异表 + 否定项清单；② states / layouts 对话框群勘误（state controller、select-dashboard-breakpoint 非对话框）并补漏 5 项；③ widget 配置面板 tab 集 3.x → 4.4 重构事实（Data / Appearance / Widget card / Actions / Layout 五区 + basic/advanced 切换）。口径精确化：「77 内置节点」→ 77 节点类 / CORE 可见 76 入统计面；分类基础 = 6 大 ComponentType（27/14/12/11/9/4）。结构决策：分账三档（等价项 / 行为契约增强勾选 / 能力级增强登记）；里程碑 M7–M10；dry-run 统计口径定稿（双指标 + 自动化跑 + 6 类人工抽样）。
