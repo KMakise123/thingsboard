@@ -243,6 +243,56 @@ export function pasteFromClipboard(args: {
 }
 
 /**
+ * ui-ngx isReferenceWidget parity: a widget is a "reference" when it has
+ * MORE THAN ONE placement entry across every state/layout/breakpoint.
+ */
+export function isReferenceWidget(
+  configuration: DashboardConfiguration,
+  widgetId: string,
+): boolean {
+  let found = 0;
+  for (const state of Object.values(configuration.states)) {
+    for (const layout of Object.values(state.layouts)) {
+      if (layout.widgets[widgetId]) {
+        found += 1;
+      }
+      const breakpoints = layout.breakpoints as
+        | Record<string, { widgets: Record<string, unknown> }>
+        | undefined;
+      if (breakpoints) {
+        for (const breakpoint of Object.values(breakpoints)) {
+          if (breakpoint?.widgets?.[widgetId]) {
+            found += 1;
+          }
+        }
+      }
+    }
+  }
+  return found > 1;
+}
+
+/**
+ * Which standard layout of `stateId` currently places the widget (menus
+ * need the owning layout for copy/reference/remove targets).
+ */
+export function findWidgetLayout(
+  configuration: DashboardConfiguration,
+  stateId: string,
+  widgetId: string,
+): DashboardLayoutId | null {
+  const state = configuration.states[stateId];
+  if (!state) {
+    return null;
+  }
+  for (const layoutId of ['main', 'right'] as const) {
+    if (state.layouts[layoutId]?.widgets[widgetId]) {
+      return layoutId;
+    }
+  }
+  return null;
+}
+
+/**
  * 引用转副本 (ui-ngx replaceReferenceWithWidgetCopy): deep-copies the
  * widget under a fresh guid, retargets THIS layout entry to the copy and
  * leaves every other placement on the shared original — one group.

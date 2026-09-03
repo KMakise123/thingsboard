@@ -25,7 +25,8 @@
  * wrapper, so selecting never re-renders widget content.
  */
 
-import { theme } from 'antd';
+import type { MenuProps } from 'antd';
+import { Dropdown, theme } from 'antd';
 import { memo, useState } from 'react';
 import {
   type Compactor,
@@ -84,6 +85,8 @@ export interface EditorGridProps {
   onSelectWidget: (widgetId: string | null) => void;
   /** Context menu payload for a widget (Unit 5 wires the Dropdown). */
   onWidgetContextMenu?: (widgetId: string) => void;
+  /** Builds the widget-level context menu (antd Dropdown, contextMenu trigger). */
+  widgetMenu?: (widgetId: string) => MenuProps;
   dashboardTimewindow: Timewindow;
   aliases: AliasResolution;
   states: StatesController;
@@ -141,6 +144,7 @@ export function EditorGrid({
   selectedWidgetId,
   onSelectWidget,
   onWidgetContextMenu,
+  widgetMenu,
   dashboardTimewindow,
   aliases,
   states,
@@ -353,45 +357,61 @@ export function EditorGrid({
               }}
               onLayoutChange={reconcileLayout}
             >
-              {geometry.placed.map((entry) => (
-                <div
-                  key={entry.id}
-                  data-testid="editor-widget"
-                  data-editor-widget={entry.id}
-                  data-selected={selectedWidgetId === entry.id || undefined}
-                  style={{
-                    overflow: 'hidden',
-                    height: '100%',
-                    outline:
-                      selectedWidgetId === entry.id
-                        ? `2px solid ${token.colorPrimary}`
-                        : undefined,
-                    cursor: 'pointer',
-                  }}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    onSelectWidget(entry.id);
-                  }}
-                  onContextMenu={(event) => {
-                    event.stopPropagation();
-                    onSelectWidget(entry.id);
-                    onWidgetContextMenu?.(entry.id);
-                  }}
-                >
-                  <WidgetCellInner
-                    widgetId={entry.id}
-                    widget={entry.widget}
-                    layoutEntry={entry.layout}
-                    filters={
-                      configuration.filters as Record<string, DashboardFilter>
-                    }
-                    dashboardTimewindow={dashboardTimewindow}
-                    aliases={aliases}
-                    states={states}
-                    isMobile={isMobile}
-                  />
-                </div>
-              ))}
+              {geometry.placed.map((entry) => {
+                const cell = (
+                  <div
+                    key={entry.id}
+                    data-testid="editor-widget"
+                    data-editor-widget={entry.id}
+                    data-selected={selectedWidgetId === entry.id || undefined}
+                    style={{
+                      overflow: 'hidden',
+                      height: '100%',
+                      outline:
+                        selectedWidgetId === entry.id
+                          ? `2px solid ${token.colorPrimary}`
+                          : undefined,
+                      cursor: 'pointer',
+                    }}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onSelectWidget(entry.id);
+                    }}
+                    onContextMenu={(event) => {
+                      // the cell-level Dropdown owns this event; stopping
+                      // propagation keeps the dashboard-level menu shut
+                      event.stopPropagation();
+                      onSelectWidget(entry.id);
+                      onWidgetContextMenu?.(entry.id);
+                    }}
+                  >
+                    <WidgetCellInner
+                      widgetId={entry.id}
+                      widget={entry.widget}
+                      layoutEntry={entry.layout}
+                      filters={
+                        configuration.filters as Record<string, DashboardFilter>
+                      }
+                      dashboardTimewindow={dashboardTimewindow}
+                      aliases={aliases}
+                      states={states}
+                      isMobile={isMobile}
+                    />
+                  </div>
+                );
+                const menu = widgetMenu?.(entry.id);
+                return menu ? (
+                  <Dropdown
+                    key={entry.id}
+                    menu={menu}
+                    trigger={['contextMenu']}
+                  >
+                    {cell}
+                  </Dropdown>
+                ) : (
+                  cell
+                );
+              })}
             </GridLayout>
           </div>
         </>

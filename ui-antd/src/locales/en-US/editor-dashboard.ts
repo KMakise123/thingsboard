@@ -42,4 +42,16 @@ export default {
   'editor.dashboard.selectLayout.title': 'Select target layout',
   'editor.dashboard.layout.main': 'Main layout',
   'editor.dashboard.layout.right': 'Right layout',
+  'editor.dashboard.menu.edit': 'Edit',
+  'editor.dashboard.menu.replaceReference': 'Replace reference with copy',
+  'editor.dashboard.menu.copy': 'Copy',
+  'editor.dashboard.menu.copyReference': 'Copy reference',
+  'editor.dashboard.menu.paste': 'Paste',
+  'editor.dashboard.menu.pasteReference': 'Paste reference',
+  'editor.dashboard.menu.remove': 'Delete',
+  'editor.dashboard.menu.moveAllWidgets': 'Move all widgets',
+  'editor.dashboard.widget.removeTitle': 'Remove widget',
+  'editor.dashboard.widget.removeText':
+    'The widget will be removed from the layout.',
+  'editor.dashboard.widget.remove': 'Remove',
 };

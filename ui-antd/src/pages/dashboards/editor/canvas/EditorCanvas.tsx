@@ -4,6 +4,8 @@
  * resolution (same chain as the readonly DashboardPage) and renders an
  * EditorGrid per active layout (main + optional right side-by-side).
  */
+
+import type { MenuProps } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import { useStatesController } from '@/components/dashboard/use-states-controller';
 import {
@@ -23,6 +25,7 @@ export interface EditorCanvasProps {
   selectedWidgetId: string | null;
   onSelectWidget: (widgetId: string | null) => void;
   onWidgetContextMenu?: (widgetId: string) => void;
+  widgetMenu?: (widgetId: string) => MenuProps;
   /** runtime timewindow bound by the shell toolbar (never a draft write). */
   dashboardTimewindow: Timewindow;
   showRightLayout: boolean;
@@ -35,6 +38,7 @@ export function EditorCanvas({
   selectedWidgetId,
   onSelectWidget,
   onWidgetContextMenu,
+  widgetMenu,
   dashboardTimewindow,
   showRightLayout,
   containerWidth,
@@ -109,6 +113,7 @@ export function EditorCanvas({
           selectedWidgetId={selectedWidgetId}
           onSelectWidget={onSelectWidget}
           onWidgetContextMenu={onWidgetContextMenu}
+          widgetMenu={widgetMenu}
           dashboardTimewindow={dashboardTimewindow}
           aliases={aliases}
           states={states}
@@ -125,6 +130,7 @@ export function EditorCanvas({
             selectedWidgetId={selectedWidgetId}
             onSelectWidget={onSelectWidget}
             onWidgetContextMenu={onWidgetContextMenu}
+            widgetMenu={widgetMenu}
             dashboardTimewindow={dashboardTimewindow}
             aliases={aliases}
             states={states}
