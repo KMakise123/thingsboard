@@ -31,7 +31,7 @@ function Harness(props: {
 }
 
 describe('DialogHost seam', () => {
-  it('openDialog renders the lazy placeholder; closeDialog clears the slot', async () => {
+  it('openDialog renders the dialog; closeDialog clears the slot', async () => {
     let controller!: ReturnType<typeof useEditorDialogs>;
     render(
       <RawIntlProvider value={intl}>
@@ -43,19 +43,20 @@ describe('DialogHost seam', () => {
       </RawIntlProvider>,
     );
     expect(screen.queryByTestId('editor-dialog-placeholder')).toBeNull();
+    // dashboard-image is self-contained (no editor session) — the cheapest
+    // real dialog for the slot-swap assertion (P wave replaced the
+    // placeholders, so the honest-copy assertion retired with them).
     act(() => {
-      controller.openDialog('dashboard-settings');
+      controller.openDialog('dashboard-image', { dashboardId: 'd1' });
     });
     await waitFor(() => {
-      expect(screen.getByText('Dashboard settings')).toBeInTheDocument();
+      expect(screen.getByTestId('dashboard-image-dialog')).toBeInTheDocument();
     });
-    // honest copy — never promises a future capability
-    expect(screen.getByText('该面板暂无可执行操作。')).toBeInTheDocument();
     act(() => {
       controller.closeDialog();
     });
     await waitFor(() => {
-      expect(screen.queryByTestId('editor-dialog-placeholder')).toBeNull();
+      expect(screen.queryByTestId('dashboard-image-dialog')).toBeNull();
     });
   });
 
