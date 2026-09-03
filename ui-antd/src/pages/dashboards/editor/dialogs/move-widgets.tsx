@@ -124,7 +124,10 @@ export function MoveWidgetsDialog({
       })}
       onOk={onOk}
       onCancel={onClose}
-      okButtonProps={{ disabled: !hasWidgets, 'data-testid': 'move-widgets-ok' }}
+      okButtonProps={{
+        disabled: !hasWidgets,
+        'data-testid': 'move-widgets-ok',
+      }}
       cancelButtonProps={{ 'data-testid': 'move-widgets-cancel' }}
       destroyOnHidden
       maskClosable={false}

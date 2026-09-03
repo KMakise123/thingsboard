@@ -6,7 +6,13 @@
  * action. (The displayGrid 'always' force while the dialog is open is
  * pinned in canvas/editor-grid.test.tsx — "move-widgets override channel".)
  */
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import { createIntl, RawIntlProvider } from 'react-intl';
 import { afterEach, describe, expect, it } from 'vitest';
 import { validateAndUpdateDashboard } from '@/core/dashboard/model';
@@ -16,10 +22,7 @@ import zhEditorDashboard from '@/locales/zh-CN/editor-dashboard';
 import zhDialogs from '@/locales/zh-CN/editor-dashboard-dialogs';
 import type { Dashboard, DashboardConfiguration } from '@/types/tb/dashboard';
 import { MoveWidgetsDialog } from './move-widgets';
-import {
-  clearDialogSession,
-  publishDialogSession,
-} from './use-dialog-session';
+import { clearDialogSession, publishDialogSession } from './use-dialog-session';
 
 const intl = createIntl({
   locale: 'zh-CN',
@@ -65,7 +68,7 @@ function setup() {
   return { session };
 }
 
-function renderDialog(session: EditorSession<DashboardConfiguration>) {
+function renderDialog(_session: EditorSession<DashboardConfiguration>) {
   render(
     <RawIntlProvider value={intl}>
       <MoveWidgetsDialog open payload={undefined} onClose={() => undefined} />
@@ -123,9 +126,9 @@ describe('MoveWidgetsDialog', () => {
       expect(session.history).toHaveLength(0);
     });
     expect(session.dirty).toBe(false);
-    expect(session.current.states.default.layouts?.main?.widgets.w1).toMatchObject(
-      { row: 2, col: 3 },
-    );
+    expect(
+      session.current.states.default.layouts?.main?.widgets.w1,
+    ).toMatchObject({ row: 2, col: 3 });
   });
 
   it('negative offsets clamp so no widget crosses the grid origin', async () => {
@@ -155,17 +158,19 @@ describe('MoveWidgetsDialog', () => {
     });
     renderDialog(session);
     await pickSelectOption('右侧布局');
+    fireEvent.change(spinbuttons()[0], { target: { value: '3' } });
+    fireEvent.change(spinbuttons()[1], { target: { value: '2' } });
     fireEvent.click(screen.getByTestId('move-widgets-ok'));
     await waitFor(() => {
       expect(session.history).toHaveLength(2);
     });
-    expect(session.current.states.default.layouts?.right?.widgets.w1).toMatchObject(
-      { row: 3, col: 4 },
-    );
+    expect(
+      session.current.states.default.layouts?.right?.widgets.w1,
+    ).toMatchObject({ row: 3, col: 4 });
     // main untouched
-    expect(session.current.states.default.layouts?.main?.widgets.w1).toMatchObject(
-      { row: 2, col: 3 },
-    );
+    expect(
+      session.current.states.default.layouts?.main?.widgets.w1,
+    ).toMatchObject({ row: 2, col: 3 });
   });
 
   it('disables the move action on an empty layout', () => {

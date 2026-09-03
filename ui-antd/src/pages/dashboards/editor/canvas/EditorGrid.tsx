@@ -38,7 +38,10 @@ import {
   useContainerWidth,
 } from 'react-grid-layout';
 import { GridBackground } from 'react-grid-layout/extras';
-import { buildGridLayout } from '@/components/dashboard/grid/grid-math';
+import {
+  buildGridLayout,
+  scadaColumnClamp,
+} from '@/components/dashboard/grid/grid-math';
 import type { StatesController } from '@/components/dashboard/use-states-controller';
 import { WidgetContainer } from '@/components/widgets/WidgetContainer';
 import type { AliasResolution } from '@/core/dashboard/alias-resolver';
@@ -52,11 +55,12 @@ import { useEditorSession } from '@/core/editor/use-editor-session';
 import type {
   DashboardConfiguration,
   DashboardFilter,
+  DashboardLayout,
   DashboardLayoutId,
 } from '@/types/tb/dashboard';
 import type { Timewindow } from '@/types/tb/timewindow';
 import type { Widget, WidgetLayout } from '@/types/tb/widget';
-
+import { usePreviewBreakpoint } from './BreakpointSwitcher';
 import { useEditorCanvasOverride } from './editor-canvas-context';
 
 /** gridster pushItems:false / swap:false semantics (P3-proven shape). */
@@ -160,15 +164,53 @@ export function EditorGrid({
   const configuration = snapshot.current;
 
   const state = configuration.states[stateId];
-  const layout = state?.layouts[layoutId];
+  const rawLayout = state?.layouts[layoutId];
 
-  const geometry = layout
+  // §3.7 断点预览: the toolbar switcher forces a breakpoint bucket's
+  // override layout regardless of the actual viewport width ('default' =
+  // width-driven resolution, i.e. no forced override in the editor).
+  const previewBreakpoint = usePreviewBreakpoint();
+  const previewOverride =
+    previewBreakpoint !== 'default'
+      ? (rawLayout?.breakpoints?.[previewBreakpoint] as
+          | {
+              widgets: Record<string, WidgetLayout>;
+              gridSettings: DashboardLayout['gridSettings'];
+            }
+          | undefined)
+      : undefined;
+  const layout = rawLayout
+    ? previewOverride
+      ? {
+          ...rawLayout,
+          widgets: previewOverride.widgets,
+          gridSettings: previewOverride.gridSettings,
+        }
+      : rawLayout
+    : undefined;
+
+  // §3.6 SCADA columns: multiples of 24 in 24..1008; an illegal stored
+  // value rounds UP (ui-ngx dashboard-settings-dialog clamp) — clamped at
+  // the layout boundary so geometry math stays consistent.
+  const effectiveLayout =
+    layout && layout.gridSettings.layoutType === 'scada'
+      ? {
+          ...layout,
+          gridSettings: {
+            ...layout.gridSettings,
+            columns: scadaColumnClamp(layout.gridSettings.columns ?? 24),
+          },
+        }
+      : layout;
+
+  const geometry = effectiveLayout
     ? buildGridLayout({
-        layout,
+        layout: effectiveLayout,
         widgets: configuration.widgets,
         containerWidth: width,
         containerHeight,
         isMobile: false, // the editor always edits the default (desktop) layout
+        editMode: true,
       })
     : null;
 
@@ -301,6 +343,8 @@ export function EditorGrid({
       data-testid="editor-grid"
       data-editor-grid={layoutId}
       data-editor-display-grid={showGrid ? 'visible' : 'hidden'}
+      data-editor-cols={geometry.cols}
+      data-editor-margin={geometry.margin}
       style={{
         width: '100%',
         position: 'relative',

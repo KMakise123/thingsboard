@@ -49,7 +49,13 @@ export function AddWidgetFlow({
       fqn,
       label: fqn,
       stateId: rootStateId,
-      layouts: layouts.map((id) => ({ id, name: id })),
+      layouts: layouts.map((id) => ({
+        id,
+        name: id,
+        layoutType:
+          configuration.states[rootStateId]?.layouts[id as DashboardLayoutId]
+            ?.gridSettings.layoutType,
+      })),
     });
   };
 
@@ -64,7 +70,12 @@ export function AddWidgetFlow({
       addWidget({
         widget: {
           typeFullFqn: payload.fqn,
-          config: result.title ? { title: result.title } : {},
+          config: {
+            ...(result.title ? { title: result.title } : {}),
+            // scada auto-instrumentation defaults from the confirm step
+            // (spec §3.6: 去标题/去阴影/透明背景/锁定宽高比)
+            ...(result.scadaDefaults ?? {}),
+          },
         },
         stateId: payload.stateId,
         layoutId,
