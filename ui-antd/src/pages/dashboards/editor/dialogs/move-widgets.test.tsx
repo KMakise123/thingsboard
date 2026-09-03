@@ -112,7 +112,7 @@ describe('MoveWidgetsDialog', () => {
       expect(session.history).toHaveLength(1);
     });
     expect(session.history[0].label).toBe('move widgets');
-    const widgets = session.current.states.default.layouts?.main?.widgets!;
+    const widgets = session.current.states.default.layouts.main!.widgets;
     expect(widgets.w1).toMatchObject({ row: 4, col: 6 });
     expect(widgets.w2).toMatchObject({ row: 12, col: 12 });
     expect(session.dirty).toBe(true);
@@ -140,7 +140,7 @@ describe('MoveWidgetsDialog', () => {
     await waitFor(() => {
       expect(session.history).toHaveLength(1);
     });
-    const widgets = session.current.states.default.layouts?.main?.widgets!;
+    const widgets = session.current.states.default.layouts.main!.widgets;
     // minCol 3 + (-50) clamps to shift -3; minRow 2 + (-5) clamps to shift -2
     expect(widgets.w1).toMatchObject({ row: 0, col: 0 });
     expect(widgets.w2).toMatchObject({ row: 8, col: 6 });

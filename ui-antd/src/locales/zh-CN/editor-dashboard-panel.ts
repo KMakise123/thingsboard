@@ -19,7 +19,8 @@ export default {
   'editor.dashboard.panel.data.displayTimewindow': '显示时间窗',
   'editor.dashboard.panel.data.alarmFilter': '告警过滤器',
   'editor.dashboard.panel.data.alarmFilterNone': '无过滤器',
-  'editor.dashboard.panel.data.alarmFilterInline': '内联过滤器（来自仪表盘 JSON）',
+  'editor.dashboard.panel.data.alarmFilterInline':
+    '内联过滤器（来自仪表盘 JSON）',
   'editor.dashboard.panel.data.alarmFilterNew': '新建过滤器',
   'editor.dashboard.panel.data.datasources': '数据源',
   'editor.dashboard.panel.data.alarmSource': '告警源',

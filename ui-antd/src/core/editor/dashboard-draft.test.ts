@@ -21,12 +21,12 @@ import {
   setLayouts,
   updateDashboardConfigField,
   updateDashboardSettings,
-  upsertFilter,
   updateGridSettings,
   updateState,
   updateWidgetConfig,
   updateWidgetLayout,
   upsertEntityAlias,
+  upsertFilter,
   writeDraft,
 } from './dashboard-draft';
 import { EditorSession } from './session';
