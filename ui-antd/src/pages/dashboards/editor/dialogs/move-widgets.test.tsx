@@ -155,6 +155,8 @@ describe('MoveWidgetsDialog', () => {
     });
     renderDialog(session);
     await pickSelectOption('右侧布局');
+    fireEvent.change(spinbuttons()[0], { target: { value: '3' } });
+    fireEvent.change(spinbuttons()[1], { target: { value: '2' } });
     fireEvent.click(screen.getByTestId('move-widgets-ok'));
     await waitFor(() => {
       expect(session.history).toHaveLength(2);
