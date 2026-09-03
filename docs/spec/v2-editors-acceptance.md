@@ -134,32 +134,33 @@ v2 交付的仪表盘编辑器、widget 编辑器、规则链画布，对 ui-ngx
 
 ### 4.1 画布基础交互
 
-- [ ] 节点拖入：节点库 HTML5 DnD → 画布落节点
-- [ ] 节点拖动（dragStop 一次提交一个事务组——半受控，ADR 0004）
-- [ ] 框选 / ctrl 多选 / 全选 / 取消全选
-- [ ] magnet 连线（输出桩 → 输入桩）；INPUT 节点唯一出边约束
-- [ ] 多 label 边：一条边多个 label；label 编辑 / 删除小圆钮
-- [ ] 节点 / 边删除
-- [ ] 节点复制 / 粘贴：粘贴为一组（guid 重生成，一个事务组）
+- [x] 节点拖入：节点库 HTML5 DnD → 画布落节点〔V 波真机 ✅：DnD→添加节点对话框（脚本族表单+Test 按钮）→确定落格+INPUT 随现；shell.test DnD-to-dialog 单测〕
+- [x] 节点拖动（dragStop 一次提交一个事务组——半受控，ADR 0004）〔单测锚：interactions.test moveNodes 一组+INPUT 不可动；canvas.perf.test dragStop 事务边界；真机旁证 dragStop 事务提交〕
+- [x] 框选 / ctrl 多选 / 全选 / 取消全选〔V 波真机 ✅：ctrl+a 全选（3 节点+便签）/esc 取消；框选与 ctrl 逐点多选未真机驱动——selection 单测锚〕
+- [ ] magnet 连线（输出桩 → 输入桩）；INPUT 节点唯一出边约束〔真机未目击（E1 环境受阻：自动化通道无法驱动 RF handle 手势，详见走查 §1 步骤 5）；事务语义单测锚：interactions.test setInputTarget 唯一出边替换/删除 + rule-chain-draft.test——**留观：人工真实鼠标连线目检一次**〕
+- [x] 多 label 边：一条边多个 label；label 编辑 / 删除小圆钮〔V 波真机 ✅：导入聚合边「False / True」渲染；label 编辑对话框真机未驱动且 dialogs/link-labels 无专项单测——缺口 D3 登记〕
+- [x] 节点 / 边删除〔V 波真机 ✅：Del 删节点 4→3+ctrl+z 复原；边删除单测锚 interactions.test 三类分组删除/INPUT 边经 setInputTarget(null)〕
+- [x] 节点复制 / 粘贴：粘贴为一组（guid 重生成，一个事务组）〔V 波真机 ✅：ctrl+c/v 4→5，一次 ctrl+z 整组抹掉 5→4；clipboard.test uid 重生锚〕
 
 ### 4.2 画布导航
 
-- [ ] 画布自动扩张：节点越界画布跟随扩张（adjustCanvasSize 语义）；初始 viewport (0,0) / zoom 1 无跳变
+- [x] 画布自动扩张：节点越界画布跟随扩张（adjustCanvasSize 语义）；初始 viewport (0,0) / zoom 1 无跳变〔单测锚：geometry.test canvasExtent（translateExtent 随节点生长）+ canvas-render.test 初始 viewport；真机未单独驱动越界场景〕
 - [ ] （缩放平移为能力级增强 → §7）
 
 ### 4.3 便签
 
-- [ ] alt+n 添加；行内编辑（markdown 渲染 + sanitize）；拖动；复制；删除
+- [x] alt+n 添加；行内编辑（markdown 渲染 + sanitize）；拖动；复制；删除〔V 波真机 ✅：alt+n 对话框→markdown 渲染（h1/strong/code/li 无裸标记）→编辑改 blockquote 重渲染→菜单删除；拖动单测锚 interactions.test moveNote；复制单测锚 clipboard.test〕
 
 ### 4.4 嵌套规则链与右键菜单
 
-- [ ] ctrl+r 从选中节点创建嵌套规则链
-- [ ] 右键菜单四类齐备：画布空白 / 节点 / 边 / 便签，菜单项对齐 ui-ngx
+- [x] ctrl+r 从选中节点创建嵌套规则链〔V 波真机 ✅：对话框命名→画布替换为 TbRuleChainInputNode；API 复核子链含 TbRuleChainOutputNode+connection、父链保存；校验/重接线单测锚 nested-chain.test〕
+- [x] 右键菜单四类齐备：画布空白 / 节点 / 边 / 便签，菜单项对齐 ui-ngx〔V 波真机 ✅：pane 九项（含正确禁用态）/节点 详情·复制·删除（INPUT 无菜单）/便签 编辑·复制·删除；边菜单同源未单独目击——与 D3 同记。
+  - 缺口 D2（低）：节点**双击**不打开详情抽屉（ui-ngx `fcEventNodeDblClick` parity 缺口）；v2 仅右键菜单→详情——修复归 X 波〕
 
 ### 4.5 节点配置表单与 76 节点 dry-run 统计口径
 
-- [ ] 统一 FormProperty 渲染器 + uiHints 静态映射 + 定制组件注册表（P0：脚本族 / switch / 键操作 / save timeseries-attributes / create-clear alarm）；任何字段可切 JSON 源码模式（TB 无 directive 时的兜底语义对齐）
-- [ ] dry-run 统计口径（定稿）：
+- [x] 统一 FormProperty 渲染器 + uiHints 静态映射 + 定制组件注册表（P0：脚本族 / switch / 键操作 / save timeseries-attributes / create-clear alarm）；任何字段可切 JSON 源码模式（TB 无 directive 时的兜底语义对齐）〔V 波真机 ✅：log（脚本族 ScriptEditor+Test）/ message type filter 抽屉表单；dry-run 94 用例 76 节点全渲染+JSON 兜底 1〕
+- [x] dry-run 统计口径（定稿）：〔V 波复核 ✅（2026-09-04）：报告↔摘要 fixture 数字一致——76 节点（六类 12/11/9/26/14/4）、可编辑率 100% 达标、控件级 75/76=98.7% 达标（63 纯控件+12 合法空形态+1 JSON 兜底 send notification）、不可编辑 0、崩溃 0、deprecated 照扫 4、判据④ 12 类抽样全过；报告 `docs/spec/v2-m8-dry-run-report.md`，真机交叉印证节点库计数与抽屉表单〕
   - **统计对象**：CORE 画布可见内置节点 **76 个**（全仓节点类 77；`push to cloud` 为 EDGE-only 不入面——后端 @RuleNode 全量 grep + AnnotationComponentDiscoveryService 扫描锚点）
   - **分类基础**：节点库 6 大 ComponentType：ACTION 27 / EXTERNAL 14 / FILTER 12 / ENRICHMENT 11 / TRANSFORMATION 9 / FLOW 4（与 UI 分组一致；java 包 24 个粒度过细且与 UI 不一致，不作分类）
   - **判据（每节点四项）**：① 表单非空（渲染 ≥1 字段控件或 JSON 源码非空）；② 无崩溃（React 错误边界不触发）；③ 渲染三态归类——控件级 / JSON 兜底（uiHints 未覆盖且类型不可推断，源码模式可编辑）/ 不可编辑；④ round-trip（改默认值 → 保存 → 重开值保持）
@@ -170,38 +171,39 @@ v2 交付的仪表盘编辑器、widget 编辑器、规则链画布，对 ui-ngx
 
 ### 4.6 脚本编辑与测试
 
-- [ ] JS / TBEL 切换（tbelEnabled=false 强制 JS）
-- [ ] Test 面板：POST /api/ruleChain/testScript；两入口（配置抽屉 Test 按钮 + 事件行「test with this message」）
-- [ ] TBEL 高亮 / 补全（tbel-utils 移植）；CodeMirror 统一封装（TSX / JS / CSS / JSON / TBEL 五语言）
+- [x] JS / TBEL 切换（tbelEnabled=false 强制 JS）〔V 波真机 ✅：添加节点对话框与详情抽屉 segmented 控件在场（JS 默认选中）；tbelEnabled 禁用态单测锚 ScriptEditor.test〕
+- [x] Test 面板：POST /api/ruleChain/testScript；两入口（配置抽屉 Test 按钮 + 事件行「test with this message」）〔V 波真机 ✅：添加节点对话框 Test 按钮→默认 payload→运行→POST 200+输出区回显；「test with this message」入口本地无 debug 事件未复现（走查 §2），面板接线单测锚 ScriptTestPanel.test〕
+- [x] TBEL 高亮 / 补全（tbel-utils 移植）；CodeMirror 统一封装（TSX / JS / CSS / JSON / TBEL 五语言）〔单测锚：S 波 ScriptEditor.test + CodeEditor 五语言；真机 CodeMirror 高亮+行号目击（log 脚本）〕
 
 ### 4.7 节点详情与事件 / 调试
 
-- [ ] 详情三 tab：details / events / help
-- [ ] help：HTML 消毒渲染（DOMPurify）+ docUrl 外链；文案透传不翻译
-- [ ] 事件表：POST filter 端点（body 多态 eventType）、过滤字段、clear、刷新
-- [ ] 「test with this message」预填 debugIn
+- [x] 详情三 tab：details / events / help〔V 波真机 ✅：右键→详情抽屉，三 tab 在列；表单编辑实时上画布、取消零残留（疑点 S1 留观）、应用持久〕
+- [x] help：HTML 消毒渲染（DOMPurify）+ docUrl 外链；文案透传不翻译〔V 波真机 ✅：descriptor 英文透传 + `查看文档` 外链 thingsboard.io/docs/.../log/（_blank）；DOMPurify 管道单测锚 details.test〕
+- [x] 事件表：POST filter 端点（body 多态 eventType）、过滤字段、clear、刷新〔V 波真机 ✅（自建链）：fetch 钩子实抓 POST body `{"eventType":"DEBUG_RULE_NODE"}`→选 OUT 后 `+msgDirectionType:"OUT"`；清空→`POST …/clear` 同 filter body+自动刷新；有数据表未复现（本地无 debug 流量，Root 链不可动）——表列/空态/控件目击；debug-events-table.test 锚〕
+- [ ] 「test with this message」预填 debugIn〔真机未复现：需既有 debug 事件（本地无流量）；debugIn 端点接线单测锚 debug-events-table.test〕
 
 ### 4.8 节点库
 
-- [ ] 六类分组 expansion panel（FILTER / ENRICHMENT / TRANSFORMATION / ACTION / EXTERNAL / FLOW）
-- [ ] 节点库搜索与画布高亮搜索共用 state
+- [x] 六类分组 expansion panel（FILTER / ENRICHMENT / TRANSFORMATION / ACTION / EXTERNAL / FLOW）〔V 波真机 ✅：12/11/9/26/14/4=76 与 dry-run 口径一致；搜索「log」→1 项/他组暂无数据〕
+- [x] 节点库搜索与画布高亮搜索共用 state〔单测锚：shell.test searchText 通道 + canvas-render.test highlight 环；真机搜索过滤目击〕
 
 ### 4.9 保存 / 409 / 导入导出
 
-- [ ] 保存 = 链 + metadata 双段提交；新节点本地 uid 主键、提交 id 缺省护栏
-- [ ] 检查点语义明示：保存清栈有 UI 提示（行为契约）
-- [ ] 409 三选项闭环（行为契约，同 §3.8）
-- [ ] 导入：文件解析；旧格式迁移两处（ruleChainConnections → TbRuleChainInputNode、debugMode → debugSettings）——parity 勾选；内存暂存为增强（§7）
-- [ ] 导出：剥离规则对齐 TB
+- [x] 保存 = 链 + metadata 双段提交；新节点本地 uid 主键、提交 id 缺省护栏〔V 波真机 ✅：导入即存+改名保存均成功，API 复核后端新铸节点 id/连接/firstNodeIndex；save-rule-chain.test 双段+护栏锚〕
+- [x] 检查点语义明示：保存清栈有 UI 提示（行为契约）〔V 波真机 ✅：toast「保存成功，撤销历史已清空」；保存后 ctrl+z 无反应、undo/redo 禁用；再改→撤销可用〕
+- [ ] 409 三选项闭环（行为契约，同 §3.8）〔真机未复现：单机无并发冲突（M7 同款处理）；三选项契约单测锚 save-rule-chain.test（Option A 加载服务器版/Option B 用我的版本覆盖/重试上限/拒绝盲写）+ ConflictDialog——**留观：人工双开两会话构造一次版本冲突**〕
+- [x] 导入：文件解析；旧格式迁移两处（ruleChainConnections → TbRuleChainInputNode、debugMode → debugSettings）——parity 勾选；内存暂存为增强（§7）〔V 波真机 ✅：导入预览契约明示（不带 id/租户/根链 + 双迁移计数）；TbRuleChainInputNode `configuration.ruleChainId` 指向目标链 API 复核；import-export.test 全管线锚〕
+- [x] 导出：剥离规则对齐 TB〔V 波真机 ✅：blob 键集 `{ruleChain{name,type,firstRuleNodeId,root,debugMode,configuration,additionalInfo}, metadata}` 无 id/tenantId/version；export-draft.test 锚〕
 
 ### 4.10 ruleChains 全域页面
 
-- [ ] 列表 / 搜索 / 详情 tabs（含 events tab）
+- [x] 列表 / 搜索 / 详情 tabs（含 events tab）〔V 波真机 ✅：搜索/排序（API sortProperty/sortOrder）/新建/编辑/导出/导入；根链行设为根链+删除禁用、非根链全项可用；「规则链详情」五 tab 属性/告警/事件/关联/审计日志。
+  - 缺口 D1（低）：`ruleChains.list.toastCreated`/`toastImported`（及 `deleteTitle` 同款）ICU 直引号 `'{name}'` 转义占位符，toast 显示裸 `{name}`——修复归 X 波（改中文引号/去引号，zh/en 同改）〕
 
 ### 4.11 行为契约：规则链撤销栈
 
-- [ ] 节点移动 / 连线 / 增删 / 粘贴各为一条事务组
-- [ ] 保存 = 检查点：清栈 + 明示（保存后 ctrl+z 无反应为设计行为）
+- [x] 节点移动 / 连线 / 增删 / 粘贴各为一条事务组〔V 波真机 ✅：添加/粘贴（整组一撤）/删除/改名各一组目击；移动与连线事务单测锚 interactions.test/rule-chain-draft.test〕
+- [x] 保存 = 检查点：清栈 + 明示（保存后 ctrl+z 无反应为设计行为）〔V 波真机 ✅：明示 toast + ctrl+z 无反应 + 再改可撤 全链路目击〕
 
 ## 5. widget 编辑器操作面（对齐 widget-editor 全家）
 
@@ -267,6 +269,7 @@ v2 交付的仪表盘编辑器、widget 编辑器、规则链画布，对 ui-ngx
 | 512KB descriptor 软限警告 | widget 编辑器 | ADR 0004 | 仅警告不阻断 |
 
 ## 修订记录
+- 2026-09-04：**M8 验收勾账（V 波）**。全量门禁：lint 绿（30 warnings 基线）、tsc 绿、check-locale 绿；`npm run test` 1427 例 1426 绿（唯一失败为 master 存量 entry.test.tsx，M7 已登记，单跑复现同失败，非 M8 回归）；rule-node 域 125/125 绿（dry-run 94 用例）。dry-run 终版复核：报告↔摘要 fixture 数字一致（76 节点、可编辑率 100%、控件级 98.7% 含 12 合法空形态、不可编辑 0、判据④ 12 类全过）。真机走查（browseros，自建 4 链已清理）：§4 共 **27 行勾选 / 3 行未勾**——未勾 = magnet 连线行（E1 环境受阻：自动化通道无法驱动 RF handle 手势，事务语义单测锚定 + 留观人工目检）与「test with this message」debugIn 行（本地无 debug 流量）；409 三选项行保持未勾（单机未复现，契约单测锚定，M7 同款处理）。新登记缺口/缺陷 3 行：D1 ruleChains toast ICU 直引号转义致 {name} 不插值（低）、D2 节点双击不开详情（ui-ngx parity，低）、D3 link-labels 对话框无专项单测+真机未驱动（低）；疑点 S1 详情抽屉取消后 undo 按钮态留观。真机走查全程记录见 [v2-m8-browser-walkthrough.md](./v2-m8-browser-walkthrough.md)。
 
 - 2026-08-31：#13 决议创建骨架（操作面清单 + 原则 + 横切章）；定稿由 #15 承接。
 - 2026-09-03：**定稿**（#15 两轮 grilling + 双路源码侦察）。勘误三条（均有源码锚点）：① SCADA「select/pan/move 模式切换」ui-ngx 4.4.0 无对应实现，删除并重写为 layoutType 差异表 + 否定项清单；② states / layouts 对话框群勘误（state controller、select-dashboard-breakpoint 非对话框）并补漏 5 项；③ widget 配置面板 tab 集 3.x → 4.4 重构事实（Data / Appearance / Widget card / Actions / Layout 五区 + basic/advanced 切换）。口径精确化：「77 内置节点」→ 77 节点类 / CORE 可见 76 入统计面；分类基础 = 6 大 ComponentType（27/14/12/11/9/4）。结构决策：分账三档（等价项 / 行为契约增强勾选 / 能力级增强登记）；里程碑 M7–M10；dry-run 统计口径定稿（双指标 + 自动化跑 + 6 类人工抽样）。
