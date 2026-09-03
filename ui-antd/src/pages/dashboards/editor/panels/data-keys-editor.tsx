@@ -6,7 +6,7 @@
  * widget config (coalesced updateWidgetConfig path).
  */
 import { Button, Input, Select, Space, Typography } from 'antd';
-import { useId, useState } from 'react';
+import { useState } from 'react';
 import { useIntl } from 'react-intl';
 
 import type { DataKey, DataKeyType } from '@/types/tb/widget';
@@ -52,6 +52,9 @@ export interface DataKeysEditorProps {
   onChange: (next: DataKey[]) => void;
   /** Available groups for the palette cursor (dataKeys + latestDataKeys). */
   paletteGroups?: DataKey[][];
+  /** Key types this list accepts; defaults to the plain-datasource set.
+   *  alarmSource rows pass ['alarm'] (AlarmSource wire contract). */
+  keyTypes?: DataKeyType[];
   testIdPrefix: string;
 }
 
@@ -60,12 +63,12 @@ export function DataKeysEditor({
   keys,
   onChange,
   paletteGroups,
+  keyTypes = DATA_KEY_TYPES,
   testIdPrefix,
 }: DataKeysEditorProps) {
   const { formatMessage } = useIntl();
   const [newName, setNewName] = useState('');
-  const [newType, setNewType] = useState<DataKeyType>('timeseries');
-  const baseId = useId();
+  const [newType, setNewType] = useState<DataKeyType>(keyTypes[0]);
 
   const api = useDragSort((from, to) => {
     if (from === to) {
@@ -73,7 +76,9 @@ export function DataKeysEditor({
     }
     const next = [...keys];
     const [moved] = next.splice(from, 1);
-    next.splice(Math.max(0, Math.min(to, next.length - 1)), 0, moved);
+    // insert index runs to next.length (append); clamping to length-1 would
+    // collapse "move down onto the last slot" into a no-op
+    next.splice(Math.max(0, to), 0, moved);
     onChange(next);
   });
 
@@ -93,9 +98,7 @@ export function DataKeysEditor({
   };
 
   const patchKey = (index: number, patch: Partial<DataKey>) => {
-    onChange(
-      keys.map((key, i) => (i === index ? { ...key, ...patch } : key)),
-    );
+    onChange(keys.map((key, i) => (i === index ? { ...key, ...patch } : key)));
   };
 
   const removeKey = (index: number) => {
@@ -109,7 +112,8 @@ export function DataKeysEditor({
       </Typography.Text>
       {keys.map((key, index) => (
         <div
-          key={`${baseId}-${index}`}
+          // biome-ignore lint/suspicious/noArrayIndexKey: wire DataKey carries no stable id (ui-ngx parity) — rows are positional; all inputs are controlled so removal re-values in place
+          key={index}
           {...api.rowProps(index)}
           style={{
             border: '1px solid rgba(128,128,128,0.25)',
@@ -120,7 +124,11 @@ export function DataKeysEditor({
           data-testid={`${testIdPrefix}-key-${index}`}
         >
           <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-            <DragSortHandle api={api} index={index} testIdPrefix={`${testIdPrefix}-key-${index}`} />
+            <DragSortHandle
+              api={api}
+              index={index}
+              testIdPrefix={`${testIdPrefix}-key-${index}`}
+            />
             <UndoSafeInput
               value={key.label ?? key.name ?? ''}
               onEdit={(next) =>
@@ -144,13 +152,23 @@ export function DataKeysEditor({
             <Select<DataKeyType>
               size="small"
               style={{ minWidth: 96, flex: '0 0 auto' }}
-              value={key.type ?? 'timeseries'}
-              options={DATA_KEY_TYPES.map((type) => ({ value: type, label: type }))}
+              value={key.type ?? keyTypes[0]}
+              options={keyTypes.map((type) => ({
+                value: type,
+                label: type,
+              }))}
               data-testid={`${testIdPrefix}-key-${index}-type`}
               onChange={(next) => patchKey(index, { type: next })}
             />
           </div>
-          <div style={{ display: 'flex', gap: 4, alignItems: 'center', marginTop: 4 }}>
+          <div
+            style={{
+              display: 'flex',
+              gap: 4,
+              alignItems: 'center',
+              marginTop: 4,
+            }}
+          >
             <PanelColor
               value={key.color}
               onEdit={(next) => patchKey(index, { color: next })}
@@ -171,7 +189,9 @@ export function DataKeysEditor({
               value={key.decimals}
               min={0}
               max={15}
-              onEdit={(next) => patchKey(index, { decimals: next ?? undefined })}
+              onEdit={(next) =>
+                patchKey(index, { decimals: next ?? undefined })
+              }
               testId={`${testIdPrefix}-key-${index}-decimals`}
             />
             <Space size={2} style={{ marginLeft: 'auto' }}>
@@ -210,7 +230,7 @@ export function DataKeysEditor({
           size="small"
           style={{ minWidth: 96 }}
           value={newType}
-          options={DATA_KEY_TYPES.map((type) => ({ value: type, label: type }))}
+          options={keyTypes.map((type) => ({ value: type, label: type }))}
           data-testid={`${testIdPrefix}-add-type`}
           onChange={setNewType}
         />

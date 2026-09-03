@@ -14,29 +14,26 @@ import { Segmented, Typography } from 'antd';
 import { useState } from 'react';
 import { useIntl } from 'react-intl';
 
-import { writeDraft } from '@/core/editor/dashboard-draft';
-import type { EditorSession } from '@/core/editor/session';
-import type {
-  DashboardBreakpointId,
-  DashboardConfiguration,
-} from '@/types/tb/dashboard';
+import { updateWidgetLayout, writeDraft } from '@/core/editor/dashboard-draft';
+import type { DashboardBreakpointId } from '@/types/tb/dashboard';
+import type { WidgetLayout } from '@/types/tb/widget';
 import { PanelNumber, PanelRow, PanelSwitch } from './panel-fields';
-import type { PanelSectionProps } from './section-data';
 import {
   breakpointLayoutOf,
   panelGridSettingsOf,
   panelLayoutOf,
   updateWidgetBreakpointLayout,
 } from './panel-target';
+import type { PanelSectionProps } from './section-data';
 
 export function SectionLayout({
   session,
   configuration,
   target,
-  widget,
 }: PanelSectionProps) {
   const { formatMessage } = useIntl();
-  const [breakpoint, setBreakpoint] = useState<DashboardBreakpointId>('default');
+  const [breakpoint, setBreakpoint] =
+    useState<DashboardBreakpointId>('default');
 
   const layout = panelLayoutOf(configuration, target);
   const gridSettings = panelGridSettingsOf(configuration, target);
@@ -46,24 +43,18 @@ export function SectionLayout({
       ?.breakpoints ?? {},
   ) as DashboardBreakpointId[];
 
-  const patchDefault = (patch: Record<string, unknown>) => {
+  const patchDefault = (patch: Partial<WidgetLayout>) => {
     writeDraft(
       session,
-      // updateWidgetLayout merges the non-geometry flag set on the default
-      // placement entry; coalesceKey intentionally absent (discrete switches).
-      {
-        label: 'update widget layout',
-        recipe: (draft: DashboardConfiguration) => {
-          const entry =
-            draft.states[target.stateId]?.layouts[target.layoutId]?.widgets[
-              target.widgetId
-            ];
-          if (!entry) {
-            throw new Error('widget layout entry disappeared');
-          }
-          Object.assign(entry, patch);
-        },
-      },
+      // Shared recipe (dashboard-draft.ts): merges the non-geometry flag set
+      // on the default placement entry; coalesceKey intentionally absent
+      // (discrete switches).
+      updateWidgetLayout({
+        widgetId: target.widgetId,
+        stateId: target.stateId,
+        layoutId: target.layoutId,
+        layout: patch,
+      }),
     );
   };
 
@@ -125,7 +116,9 @@ export function SectionLayout({
                   ...breakpointIds.map((id) => ({ value: id, label: id })),
                 ]}
                 data-testid="panel-layout-breakpoint"
-                onChange={(next) => setBreakpoint(next as DashboardBreakpointId)}
+                onChange={(next) =>
+                  setBreakpoint(next as DashboardBreakpointId)
+                }
               />
             </div>
           ) : null}

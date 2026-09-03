@@ -15,9 +15,9 @@
  */
 import { getRootStateId } from '@/core/dashboard/model';
 import {
+  type DashboardDraftWrite,
   updateWidgetConfig,
   writeDraft,
-  type DashboardDraftWrite,
 } from '@/core/editor/dashboard-draft';
 import type { EditorSession } from '@/core/editor/session';
 import type {
@@ -72,9 +72,8 @@ export function panelLayoutOf(
   configuration: DashboardConfiguration,
   target: PanelTarget,
 ): WidgetLayout | undefined {
-  return configuration.states[target.stateId]?.layouts[
-    target.layoutId
-  ]?.widgets[target.widgetId];
+  return configuration.states[target.stateId]?.layouts[target.layoutId]
+    ?.widgets[target.widgetId];
 }
 
 /** Grid settings of the layout the targeted widget lives in. */
@@ -100,16 +99,17 @@ export function patchWidgetConfig(
  * widgetCss…) live on WidgetConfig's index signature (`unknown`) — sections
  * go through these accessors instead of sprinkling casts.
  */
-export function cfgStr(
-  config: WidgetConfig,
-  key: string,
-): string | undefined {
+export function cfgStr(config: WidgetConfig, key: string): string | undefined {
   const value = (config as Record<string, unknown>)[key];
   return typeof value === 'string' ? value : undefined;
 }
 
 /** cfgStr with a fallback ('' for free inputs). */
-export function cfgStrOr(config: WidgetConfig, key: string, fallback: string): string {
+export function cfgStrOr(
+  config: WidgetConfig,
+  key: string,
+  fallback: string,
+): string {
   return cfgStr(config, key) ?? fallback;
 }
 
@@ -125,9 +125,7 @@ export function breakpointLayoutOf(
   target: PanelTarget,
   breakpoint: DashboardBreakpointId,
 ): WidgetLayout | undefined {
-  const layout = configuration.states[target.stateId]?.layouts[
-    target.layoutId
-  ];
+  const layout = configuration.states[target.stateId]?.layouts[target.layoutId];
   const breakpoints = layout?.breakpoints as
     | Partial<Record<DashboardBreakpointId, BreakpointLayoutEntry>>
     | undefined;

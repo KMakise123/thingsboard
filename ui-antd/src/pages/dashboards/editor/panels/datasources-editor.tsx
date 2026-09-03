@@ -57,7 +57,9 @@ export function DatasourcesEditor({
     }
     const next = [...datasources];
     const [moved] = next.splice(from, 1);
-    next.splice(Math.max(0, Math.min(to, next.length - 1)), 0, moved);
+    // insert index runs to next.length (append); clamping to length-1 would
+    // collapse "move down onto the last slot" into a no-op
+    next.splice(Math.max(0, to), 0, moved);
     onChange(next);
   });
 
@@ -111,15 +113,20 @@ export function DatasourcesEditor({
             data-testid={rowPrefix}
           >
             <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-              <DragSortHandle api={api} index={index} testIdPrefix={rowPrefix} />
+              <DragSortHandle
+                api={api}
+                index={index}
+                testIdPrefix={rowPrefix}
+              />
               <Select<DatasourceType>
                 size="small"
                 style={{ minWidth: 88 }}
                 value={row.type ?? 'entity'}
                 disabled={alarmMode}
-                options={(alarmMode ? (['alarm'] as DatasourceType[]) : DATASOURCE_TYPES).map(
-                  (type) => ({ value: type, label: type }),
-                )}
+                options={(alarmMode
+                  ? (['alarm'] as DatasourceType[])
+                  : DATASOURCE_TYPES
+                ).map((type) => ({ value: type, label: type }))}
                 data-testid={`${rowPrefix}-type`}
                 onChange={(next) => {
                   if (next === 'entity') {
@@ -165,7 +172,10 @@ export function DatasourcesEditor({
                     data-testid={`${rowPrefix}-alias-new`}
                     onClick={() =>
                       aliasTrigger.createAlias((aliasId) =>
-                        patchRow(index, { entityAliasId: aliasId, name: undefined }),
+                        patchRow(index, {
+                          entityAliasId: aliasId,
+                          name: undefined,
+                        }),
                       )
                     }
                   />
@@ -179,7 +189,9 @@ export function DatasourcesEditor({
                         defaultMessage: 'Edit alias',
                       })}
                       data-testid={`${rowPrefix}-alias-edit`}
-                      onClick={() => aliasTrigger.editAlias(row.entityAliasId as string)}
+                      onClick={() =>
+                        aliasTrigger.editAlias(row.entityAliasId as string)
+                      }
                     />
                   ) : null}
                 </Space>
@@ -227,6 +239,7 @@ export function DatasourcesEditor({
               keys={row.dataKeys ?? []}
               onChange={(next) => patchRow(index, { dataKeys: next })}
               paletteGroups={datasources.map((source) => source.dataKeys ?? [])}
+              keyTypes={alarmMode ? ['alarm'] : undefined}
               testIdPrefix={`${rowPrefix}-keys`}
             />
             {!alarmMode ? (

@@ -12,8 +12,8 @@ import { useIntl } from 'react-intl';
 
 import { builtinWidgetEntry } from '@/components/widgets/registry';
 import { UndoSafeInput, UndoSafeTextArea } from './panel-fields';
-import type { PanelSectionProps } from './section-data';
 import { patchWidgetConfig } from './panel-target';
+import type { PanelSectionProps } from './section-data';
 import { actionSourcesFromMeta } from './widget-meta';
 
 /** ui-ngx WidgetActionType subset editable in the panel (M7 scope). */
@@ -45,11 +45,7 @@ function newActionId(): string {
     : `action-${Math.random().toString(36).slice(2)}`;
 }
 
-export function SectionActions({
-  session,
-  target,
-  widget,
-}: PanelSectionProps) {
+export function SectionActions({ session, target, widget }: PanelSectionProps) {
   const { formatMessage } = useIntl();
   const baseId = useId();
 
@@ -101,7 +97,10 @@ export function SectionActions({
     });
   };
 
-  const typeOptions = ACTION_TYPES.map((type) => ({ value: type, label: type }));
+  const typeOptions = ACTION_TYPES.map((type) => ({
+    value: type,
+    label: type,
+  }));
 
   return (
     <div data-testid="panel-section-actions">
@@ -160,7 +159,12 @@ export function SectionActions({
                   />
                 </div>
                 <div
-                  style={{ display: 'flex', gap: 4, alignItems: 'center', marginTop: 4 }}
+                  style={{
+                    display: 'flex',
+                    gap: 4,
+                    alignItems: 'center',
+                    marginTop: 4,
+                  }}
                 >
                   <UndoSafeInput
                     value={action.icon ?? ''}

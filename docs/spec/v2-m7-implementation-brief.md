@@ -66,7 +66,7 @@ routes.ts                      /dashboards/:dashboardId/editor（hideInMenu, acc
 ## 5. PoC 证据义务（回填本节）
 
 - **P3**（C，✅ 2026-09-03 取证落地，回归测试留存 `canvas/rgl-edit-behavior.test.tsx`）：RGL 2.2.4 碰撞阻挡组合 = **compactor `{type: null, allowOverlap: false, preventCollision: true}`**（即 `{...noCompactor, preventCollision: true}`）——moveElement 遇碰撞回设旧坐标、零级联推挤，含阴性对照（去掉 preventCollision 即变推挤）；边界夹取 = 默认 `constraints [gridBounds, minMaxSize]` + `maxRows: Infinity` ⇒ 横向硬夹、纵向无限向下生长（gridster 语义）；dropConfig 落点 = `calcXY(clientX − gridRect.left − itemPixelW/2, …)` 两轴夹取；displayGrid = `react-grid-layout/extras` GridBackground 条件挂载。环境限制：happy-dom 无 offsetParent，DOM 级拖拽模拟不可行，取证在引擎函数层（moveElement/applyPositionConstraints），接线层以类名/回调断言。
-- **P6**（K→简报回填）：antd Form 受控回填 × undo 光标竞争——revision 守卫/受控 value 方案实测结论（配置面板表单面，随 Wave 3 K 交付）。
+- **P6**（K，✅ 2026-09-03 取证落地，回归测试留存 `panels/WidgetConfigPanel.test.tsx`「undo landing under a focused field」）：antd Form 受控回填 × undo 光标竞争实测结论 = **不引 antd Form 实例（ADR 0004），纯受控 value + 焦点镜像 hook**。配置面板全部文本输入经 `panels/undo-safe-value.ts` 的 `useUndoSafeValue(incoming, onEdit)` 绑定 session 草稿：① 聚焦期间本地 override 遮蔽外来 value；② 用「回声 ref」（最后向外传播的字符串）做分歧检测——incoming ≠ echo 即外部提交（undo/redo/他处 coalesce 回写），当 render 中清掉镜像（React 官方 "adjust state when a prop changes" 模式），字段同帧采纳回退值、无崩溃；③ 普通打字永不分歧（echo === 传播值），故受控 DOM value 不被改写，光标零跳动；④ blur 丢镜像。**revision 数字守卫不必要**：字符串回声比较已足够且对 coalesce 合并天然鲁棒；undo 粒度 = coalesce 组（1s 窗），同一测试组内验证连续打字合入一组后再 undo，字段回显组前值。
 - **P7**（V）：100+ widget 仪表盘 Profiler——单字段编辑仅目标 widget 重渲染（WidgetContainer memo 边界 C 已铺，edit 态独立 context 通道；随 Wave 4 复验）。
 
 ## 修订记录

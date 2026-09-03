@@ -20,8 +20,9 @@
  * through a panel-local DialogHost with their frozen payloads
  * ({aliasId?, onSaved?}); the dialog bodies themselves are P-wave files.
  */
-import { Button, Empty, Segmented, Space, Typography } from 'antd';
+
 import { useQuery } from '@tanstack/react-query';
+import { Button, Empty, Segmented, Space, Typography } from 'antd';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 
@@ -63,14 +64,6 @@ const SECTION_ORDER: PanelSectionId[] = [
   'layout',
 ];
 
-const SECTION_TESTIDS: Record<PanelSectionId, string> = {
-  data: 'panel-tab-data',
-  appearance: 'panel-tab-appearance',
-  card: 'panel-tab-card',
-  actions: 'panel-tab-actions',
-  layout: 'panel-tab-layout',
-};
-
 export function WidgetConfigPanel({
   session,
   widgetId,
@@ -88,9 +81,13 @@ export function WidgetConfigPanel({
   const widget = widgetId ? configuration.widgets[widgetId] : undefined;
 
   const [section, setSection] = useState<PanelSectionId>('data');
-  useEffect(() => {
+  // Reset to Data when the selection changes — the documented "adjust state
+  // when a prop changes" render pattern (same paint, no effect needed).
+  const [prevWidgetId, setPrevWidgetId] = useState(widgetId);
+  if (prevWidgetId !== widgetId) {
+    setPrevWidgetId(widgetId);
     setSection('data');
-  }, [widgetId]);
+  }
 
   // §3.9 checkpoint: taken exactly when the panel opens for a widget,
   // BEFORE any panel write can happen.
@@ -193,7 +190,10 @@ export function WidgetConfigPanel({
       }}
     >
       <Space direction="vertical" size={4} style={{ width: '100%' }}>
-        <Space size={4} style={{ width: '100%', justifyContent: 'space-between' }}>
+        <Space
+          size={4}
+          style={{ width: '100%', justifyContent: 'space-between' }}
+        >
           <Typography.Text strong ellipsis style={{ maxWidth: 250 }}>
             {widget.typeFullFqn}
           </Typography.Text>
@@ -241,16 +241,13 @@ export function WidgetConfigPanel({
             value: id,
             label: sectionLabels[id],
           }))}
-          data-testid={SECTION_TESTIDS[section]}
+          data-testid="panel-section-tabs"
           onChange={setSection}
         />
       </Space>
 
       {configMode === 'basic' && basicMode ? (
-        <BasicConfig
-          {...sectionProps}
-          basic={basicMode}
-        />
+        <BasicConfig {...sectionProps} basic={basicMode} />
       ) : (
         <div style={{ flex: 1, minWidth: 0 }}>
           {section === 'data' && <SectionData {...sectionProps} />}
