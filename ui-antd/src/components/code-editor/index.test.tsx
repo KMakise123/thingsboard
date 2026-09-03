@@ -3,10 +3,18 @@
  * (it measures layout, which happy-dom cannot do) — these tests pin the
  * wrapper's own contract: controlled value flow, language→extension mapping,
  * readOnly plumbing and pass-through extensions.
+ *
+ * `./javascript-language` is mocked at the same boundary: it is the one file
+ * that imports @codemirror/lang-javascript (installed by the M8 wave-1 F
+ * agent), so the wrapper suite must not load the real one.
  */
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CodeEditor } from './index';
+
+vi.mock('./javascript-language', () => ({
+  javascriptExtensions: () => ['__js-lang-stub__'],
+}));
 
 vi.mock('@uiw/react-codemirror', () => {
   interface StubProps {
@@ -22,6 +30,9 @@ vi.mock('@uiw/react-codemirror', () => {
       <textarea
         data-testid="codemirror-stub"
         data-extensions={String(props.extensions?.length ?? -1)}
+        data-extension-types={(props.extensions ?? [])
+          .map((e) => typeof e)
+          .join(',')}
         data-readonly={String(props.readOnly === true)}
         data-height={props.height ?? ''}
         value={props.value ?? ''}
@@ -55,6 +66,24 @@ describe('CodeEditor', () => {
       'data-extensions',
       '0',
     );
+  });
+
+  it('routes the javascript language through javascript-language module', () => {
+    render(<CodeEditor value="var x = 1;" language="javascript" />);
+    const stub = screen.getByTestId('codemirror-stub');
+    expect(stub).toHaveAttribute('data-extensions', '1');
+    // The mock factory above returns a string sentinel — proving the map
+    // pulled the extension from ./javascript-language, not a local entry.
+    expect(stub).toHaveAttribute('data-extension-types', 'string');
+  });
+
+  it('maps the tbel language to the TBEL language support extension', () => {
+    render(<CodeEditor value="return msg.temperature > 20;" language="tbel" />);
+    const stub = screen.getByTestId('codemirror-stub');
+    expect(stub).toHaveAttribute('data-extensions', '1');
+    // The real TBEL extension is a LanguageSupport object (not the string
+    // sentinel), i.e. the entry comes from ./tbel, not the JS indirection.
+    expect(stub).toHaveAttribute('data-extension-types', 'object');
   });
 
   it('forwards onChange with the edited text (json language stays text-in/text-out)', () => {

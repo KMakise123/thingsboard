@@ -2,9 +2,10 @@
  * CodeEditor — thin controlled CodeMirror 6 wrapper (ADR 0004 §3 bullet 2).
  *
  * The editor suite (dashboard / rule-chain / widget editors) shares this one
- * component; M7 ships the `json` language only, and further languages
- * (TSX/JS/CSS/TBEL) drop in later as new entries in `LANGUAGE_EXTENSIONS`
- * plus a widened `CodeEditorLanguage` union — no API change.
+ * component; languages drop in as new entries in `LANGUAGE_EXTENSIONS` plus
+ * a widened `CodeEditorLanguage` union — no API change. M8 adds
+ * `javascript` (@codemirror/lang-javascript, via ./javascript-language) and
+ * `tbel` (in-house stream language, see ./tbel).
  *
  * Text-in/text-out by design: JSON typing (parse/stringify/error surface) is
  * the caller's job (see src/components/form-property/JsonFieldFallback).
@@ -15,14 +16,19 @@
 import { json } from '@codemirror/lang-json';
 import CodeMirror, { type Extension } from '@uiw/react-codemirror';
 
-export type CodeEditorLanguage = 'json';
+import { javascriptExtensions } from './javascript-language';
+import { tbel } from './tbel';
+
+export type CodeEditorLanguage = 'json' | 'javascript' | 'tbel';
 
 /**
- * language → extension map. Adding a language later (M8/M9) is one entry
+ * language → extension map. Adding a language later (M9) is one entry
  * here; the component contract stays untouched.
  */
 const LANGUAGE_EXTENSIONS: Record<CodeEditorLanguage, Extension[]> = {
   json: [json()],
+  javascript: javascriptExtensions(),
+  tbel: [tbel()],
 };
 
 export interface CodeEditorProps {
