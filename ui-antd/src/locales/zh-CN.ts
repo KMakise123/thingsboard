@@ -16,9 +16,13 @@ import devicesDetail from './zh-CN/devices/detail';
 import devicesList from './zh-CN/devices/list';
 import editor from './zh-CN/editor';
 import editorDashboard from './zh-CN/editor-dashboard';
+<<<<<<< HEAD
 
 import editorDashboardContract from './zh-CN/editor-dashboard-contract';
 import editorDashboardDialogs from './zh-CN/editor-dashboard-dialogs';
+=======
+import editorDashboardPanel from './zh-CN/editor-dashboard-panel';
+>>>>>>> worktree-agent-a6db5538d29d72e3f
 import entityViews from './zh-CN/entityViews';
 import login from './zh-CN/login';
 import menu from './zh-CN/menu';
@@ -47,6 +51,10 @@ export default {
   ...devicesDetail,
   ...editor,
   ...editorDashboard,
+<<<<<<< HEAD
   ...editorDashboardContract,
   ...editorDashboardDialogs,
+=======
+  ...editorDashboardPanel,
+>>>>>>> worktree-agent-a6db5538d29d72e3f
 };

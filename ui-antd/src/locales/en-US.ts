@@ -14,9 +14,13 @@ import devicesDetail from './en-US/devices/detail';
 import devicesList from './en-US/devices/list';
 import editor from './en-US/editor';
 import editorDashboard from './en-US/editor-dashboard';
+<<<<<<< HEAD
 
 import editorDashboardContract from './en-US/editor-dashboard-contract';
 import editorDashboardDialogs from './en-US/editor-dashboard-dialogs';
+=======
+import editorDashboardPanel from './en-US/editor-dashboard-panel';
+>>>>>>> worktree-agent-a6db5538d29d72e3f
 import entityViews from './en-US/entityViews';
 import login from './en-US/login';
 import menu from './en-US/menu';
@@ -45,6 +49,10 @@ export default {
   ...devicesDetail,
   ...editor,
   ...editorDashboard,
+<<<<<<< HEAD
   ...editorDashboardContract,
   ...editorDashboardDialogs,
+=======
+  ...editorDashboardPanel,
+>>>>>>> worktree-agent-a6db5538d29d72e3f
 };
