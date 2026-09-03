@@ -102,7 +102,9 @@ routes.ts              /ruleChains（canTenantAdmin）+ /ruleChains/:ruleChainId
 ## 5. PoC 证据义务（回填本节）
 
 - **P4**（C，ADR 附录 A）：React Flow 半受控 + dragStop 事务提交 + undo 后受控回灌端到端；500 节点场景按诚实证据原则交重渲染拓扑（参照 P7 先例：happy-dom 无 fps 管线，交 memo/dragStop 粒度证据 + 引擎层断言），回归测试留存。
+  - **V 波回填（2026-09-04，已交付）**：证据测试 `ui-antd/src/pages/rule-chains/editor/canvas/canvas.perf.test.tsx`（commit `101848131c`），500 节点画布 + 渲染计数探针（nodeTypes 测试 seam），四条结论：① 500 节点挂载全量达 DOM、RF transform 管线完整；② 单节点 dragStop 恰好提交一个 `moveNodes` 事务组（拖拽中间态永不进 session）；③ undo 经受控 props 回灌，session draft 与画布渲染双侧还原；④ **重渲染拓扑 = 每次 move 写入只重渲染被移动节点的视图**——reconciling derive（reconcile.ts 变更键）保持其余全部元素引用不变，React Flow memoized 包装器整体跳过（500 节点中 499 个零重渲染）。诚实证词：happy-dom 无布局/绘制管线，不交 fps 数字，交「一次写入=一个事务组=一个节点重渲染」的拓扑证据。V 波真机旁证：添加/粘贴/删除/改名各为一个 undo 组、保存检查点清栈（走查记录 §1 步骤 6/10）。
 
 ## 修订记录
 
 - 2026-09-04：创建（M8 开工，三路侦察定稿现状盘点，四波作业计划 + 稳定入口纪律）。
+- 2026-09-04：**V 波验收收口**。门禁全绿（test 1427 例 1426 绿，唯一失败为 master 存量 entry.test.tsx；lint/tsc/check-locale 绿；rule-node 125/125）；§5 P4 证据回填（500 节点重渲染拓扑，canvas.perf.test）；真机走查完成——spec §4 勾账 27 勾/3 未勾（magnet 连线 E1 环境受阻、debugIn 预填本地无数据、409 单机未复现，均注明单测锚与留观项），登记 D1 toast ICU 直引号插值丢失（低）/D2 双击详情 parity 缺口（低）/D3 link-labels 对话框无专项单测（低）/S1 取消后 undo 按钮态疑点；dry-run 报告↔fixture 复核一致。走查记录见 [v2-m8-browser-walkthrough.md](./v2-m8-browser-walkthrough.md)。
