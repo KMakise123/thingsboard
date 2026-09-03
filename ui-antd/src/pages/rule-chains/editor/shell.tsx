@@ -72,7 +72,7 @@ import {
   buildNestedChainMetadata,
   validateNestedChainSelection,
 } from './canvas/nested-chain';
-import { saveRuleChainDraft } from './contract/save-rule-chain';
+import { useRuleChainSave } from './contract/use-rule-chain-save';
 import { RuleNodeDetailsDrawer } from './details';
 import { DialogHost, useRuleChainDialogs } from './dialogs/host';
 import { NodeLibrary } from './node-library';
@@ -115,7 +115,6 @@ export function RuleChainEditorShell({ session }: RuleChainEditorShellProps) {
   const [contextMenu, setContextMenu] = useState<CanvasContextMenuState | null>(
     null,
   );
-  const [saving, setSaving] = useState(false);
   const dialogs = useRuleChainDialogs();
   const commandsRef = useRef<CanvasCommands | null>(null);
 
@@ -130,47 +129,16 @@ export function RuleChainEditorShell({ session }: RuleChainEditorShellProps) {
   useLeaveGuard({ session, enabled: true });
 
   // ------------------------------------------------------------------
-  // save (contract slot; wave-3 D adds the 409 three-option dialog)
+  // save + §3.8 409 three-option resolution (wave-3 D contract flow)
   // ------------------------------------------------------------------
-  const save = useCallback(async (): Promise<boolean> => {
-    setSaving(true);
-    try {
-      const outcome = await saveRuleChainDraft({
-        session,
-        chain: session.current.chain,
-      });
-      if (outcome.status === 'saved') {
-        // 检查点语义: rule-chain save() clears the undo history — always
-        // SAY so (brief §2 行为契约).
-        message.success(
-          formatMessage({
-            id: 'editor.ruleChain.checkpointCleared',
-            defaultMessage: 'Saved — undo history has been reset',
-          }),
-        );
-        return true;
-      }
-      if (outcome.status === 'conflict') {
-        message.warning(
-          formatMessage({
-            id: 'editor.ruleChain.canvas.saveConflict',
-            defaultMessage:
-              'Version conflict: the rule chain changed on the server. The conflict dialog arrives with M8 wave 3.',
-          }),
-        );
-        return false;
-      }
-      message.error(
-        `${formatMessage({
-          id: 'editor.ruleChain.canvas.toolbar.saveFailed',
-          defaultMessage: 'Save failed',
-        })}: ${serverErrorText(outcome.error)}`,
-      );
-      return false;
-    } finally {
-      setSaving(false);
-    }
-  }, [session, message, formatMessage]);
+  const { saving, save, conflictDialog } = useRuleChainSave({
+    session,
+    // Option C with an unknown server state: abandon the draft and exit.
+    onAbandon: () => {
+      entryCheckpoint.rollbackToEntry();
+      history.push('/ruleChains');
+    },
+  });
 
   const exitEditor = () => {
     const discardAndExit = () => {
@@ -934,6 +902,7 @@ export function RuleChainEditorShell({ session }: RuleChainEditorShellProps) {
         state={contextMenu}
         onClose={() => setContextMenu(null)}
       />
+      {conflictDialog}
       <DialogHost controller={dialogs} />
     </div>
   );

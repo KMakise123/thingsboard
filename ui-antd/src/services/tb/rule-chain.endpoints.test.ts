@@ -27,6 +27,7 @@ import {
   getTbelEnabled,
   saveRuleChain,
   saveRuleChainMetaData,
+  setRootRuleChain,
   testRuleNodeScript,
 } from './rule-chain';
 
@@ -76,6 +77,9 @@ describe('rule chain transport endpoints', () => {
     } as never;
     await saveRuleChain(payload);
     expect(post).toHaveBeenCalledWith('/api/ruleChain', payload);
+
+    await setRootRuleChain('rc1');
+    expect(post).toHaveBeenCalledWith('/api/ruleChain/rc1/root');
 
     await deleteRuleChain('rc1');
     expect(del).toHaveBeenCalledWith('/api/ruleChain/rc1');

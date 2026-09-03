@@ -48,6 +48,16 @@ export interface ScriptTestPanelProps {
   onRun(params: TestScriptParams): Promise<TestScriptResult>;
   tbelEnabled?: boolean;
   testIdPrefix?: string;
+  /**
+   * M8 wave-3 D (additive): initial payload prefill for the
+   * "test with this message" flow (debug event row → panel). Omitted
+   * fields keep the brief §1 defaults; an empty initialMetadata string
+   * yields `{}`.
+   */
+  initialMsg?: string;
+  /** JSON object text; unparsable text falls back to the default. */
+  initialMetadata?: string;
+  initialMsgType?: string;
 }
 
 /**
@@ -77,6 +87,11 @@ function parseJsonObject(
   }
 }
 
+/** True when the text parses as a JSON object (prefill guard). */
+function isJsonObjectText(text: string): boolean {
+  return parseJsonObject(text).reason === null;
+}
+
 export function ScriptTestPanel({
   scriptType,
   argNames,
@@ -85,11 +100,20 @@ export function ScriptTestPanel({
   onRun,
   tbelEnabled = true,
   testIdPrefix = 'script-test',
+  initialMsg,
+  initialMetadata,
+  initialMsgType,
 }: ScriptTestPanelProps) {
   const { formatMessage } = useIntl();
-  const [msgType, setMsgType] = useState(DEFAULT_TEST_MSG_TYPE);
-  const [msgText, setMsgText] = useState(DEFAULT_TEST_MSG);
-  const [metadataText, setMetadataText] = useState(DEFAULT_TEST_METADATA);
+  const [msgType, setMsgType] = useState(
+    initialMsgType ?? DEFAULT_TEST_MSG_TYPE,
+  );
+  const [msgText, setMsgText] = useState(initialMsg || DEFAULT_TEST_MSG);
+  const [metadataText, setMetadataText] = useState(
+    initialMetadata !== undefined && isJsonObjectText(initialMetadata)
+      ? initialMetadata
+      : DEFAULT_TEST_METADATA,
+  );
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<TestScriptResult | null>(null);

@@ -20,6 +20,7 @@ export default {
   'menu.users': '用户',
   'menu.alarms': '告警',
   'menu.dashboards': '仪表盘',
+  'menu.ruleChains': '规则链',
   'menu.dashboards.view': '仪表盘详情',
   'menu.usage': '使用统计',
   'menu.gateways': '网关',
