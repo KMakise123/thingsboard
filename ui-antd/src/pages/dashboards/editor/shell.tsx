@@ -81,6 +81,22 @@ export interface EditorShellProps {
   dashboard: Dashboard;
 }
 
+/** True when the keystroke belongs to a text editor, not the canvas. */
+export function isTypingTarget(target: EventTarget | null): boolean {
+  const el = target as HTMLElement | null;
+  if (!el) {
+    return false;
+  }
+  const tag = el.tagName;
+  return (
+    tag === 'INPUT' ||
+    tag === 'TEXTAREA' ||
+    tag === 'SELECT' ||
+    el.isContentEditable ||
+    Boolean(el.closest?.('.cm-editor'))
+  );
+}
+
 /** Self-wrapped native Fullscreen API (ADR 0004 §1 — no library). */
 function useFullscreen(target: RefObject<HTMLDivElement | null>) {
   const [fullscreen, setFullscreen] = useState(false);
@@ -428,21 +444,6 @@ export function EditorShell({ session, dashboard }: EditorShellProps) {
   } as MenuProps;
 
   /** True when the keystroke belongs to a text editor, not the canvas. */
-  const isTypingTarget = (target: EventTarget | null): boolean => {
-    const el = target as HTMLElement | null;
-    if (!el) {
-      return false;
-    }
-    const tag = el.tagName;
-    return (
-      tag === 'INPUT' ||
-      tag === 'TEXTAREA' ||
-      tag === 'SELECT' ||
-      el.isContentEditable ||
-      Boolean(el.closest?.('.cm-editor'))
-    );
-  };
-
   const hotkeyGuard = {
     enabled: (event: KeyboardEvent) => !isTypingTarget(event.target),
   };

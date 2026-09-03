@@ -1,0 +1,142 @@
+/**
+ * Add-widget flow tests (spec §3.2): drawer (grouped + searched builtin
+ * registry) → confirm dialog (title/size/position) → addWidget committed
+ * as ONE transaction group with a fresh widget-map guid.
+ */
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
+import { App as AntdApp } from 'antd';
+import { createIntl, RawIntlProvider } from 'react-intl';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { WIDGET_REGISTRY } from '@/components/widgets/registry';
+import { validateAndUpdateDashboard } from '@/core/dashboard/model';
+import { EditorSession } from '@/core/editor/session';
+import zhEditorCommon from '@/locales/zh-CN/editor';
+import zhEditorDashboard from '@/locales/zh-CN/editor-dashboard';
+import type { Dashboard, DashboardConfiguration } from '@/types/tb/dashboard';
+
+import { AddWidgetFlow } from './index';
+
+const TEST_FQN = 'system.test.add_flow';
+
+const intl = createIntl({
+  locale: 'zh-CN',
+  messages: { ...zhEditorCommon, ...zhEditorDashboard },
+});
+
+vi.mock('@/services/tb/dashboard', () => ({
+  getWidgetTypeByFqn: vi.fn(),
+}));
+
+beforeEach(() => {
+  WIDGET_REGISTRY[TEST_FQN] = {
+    component: Object.assign(vi.fn(), {
+      preload: () => undefined,
+    }),
+    meta: { label: 'Test widget' },
+  } as never;
+});
+
+function dashboardJson(): Dashboard {
+  return {
+    id: { entityType: 'DASHBOARD', id: 'd1' },
+    title: 'Demo',
+    configuration: {
+      widgets: {},
+      states: {
+        default: {
+          name: 'Root',
+          root: true,
+          layouts: {
+            main: {
+              widgets: {},
+              gridSettings: { columns: 24, margin: 10 },
+            },
+          },
+        },
+      },
+      entityAliases: {},
+    },
+  } as unknown as Dashboard;
+}
+
+function setup() {
+  const configuration = validateAndUpdateDashboard(dashboardJson())
+    .configuration as DashboardConfiguration;
+  const session = new EditorSession<DashboardConfiguration>({
+    baseline: configuration,
+  });
+  const onClose = vi.fn();
+  const onAdded = vi.fn();
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  render(
+    <RawIntlProvider value={intl}>
+      <AntdApp>
+        <QueryClientProvider client={queryClient}>
+          <AddWidgetFlow
+            session={session}
+            open
+            onClose={onClose}
+            onAdded={onAdded}
+          />
+        </QueryClientProvider>
+      </AntdApp>
+    </RawIntlProvider>,
+  );
+  return { session, onClose, onAdded };
+}
+
+describe('AddWidgetFlow', () => {
+  it('drawer lists registry types grouped; picking one opens the confirm step', () => {
+    setup();
+    expect(screen.getByTestId('add-widget-drawer')).toBeInTheDocument();
+    expect(screen.getByText('Test widget')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('Test widget'));
+    expect(screen.getByTestId('add-widget-confirm')).toBeInTheDocument();
+  });
+
+  it('search filters the registry list', () => {
+    setup();
+    fireEvent.change(screen.getByTestId('add-widget-search'), {
+      target: { value: 'no-such-widget' },
+    });
+    expect(screen.queryByText('Test widget')).toBeNull();
+  });
+
+  it('confirming commits addWidget as ONE group with a fresh guid', async () => {
+    const { session, onClose, onAdded } = setup();
+    fireEvent.click(screen.getByText('Test widget'));
+    const okButton: HTMLButtonElement = await waitFor(() => {
+      const button = document.querySelector(
+        '.ant-modal-footer .ant-btn-primary',
+      );
+      expect(button).not.toBeNull();
+      return button as HTMLButtonElement;
+    });
+    fireEvent.click(okButton);
+    await waitFor(() => {
+      expect(session.history).toHaveLength(1);
+    });
+    const after = session.current;
+    const ids = Object.keys(after.widgets);
+    expect(ids).toHaveLength(1);
+    expect(after.widgets[ids[0]].typeFullFqn).toBe(TEST_FQN);
+    const entry = after.states.default.layouts.main?.widgets[ids[0]];
+    expect(entry).toMatchObject({ sizeX: 8, sizeY: 6, row: 0, col: 0 });
+    expect(onClose).toHaveBeenCalled();
+    expect(onAdded).toHaveBeenCalledWith(ids[0]);
+    // undo reverts the add in one step
+    act(() => {
+      session.undo();
+    });
+    expect(Object.keys(session.current.widgets)).toHaveLength(0);
+  });
+});

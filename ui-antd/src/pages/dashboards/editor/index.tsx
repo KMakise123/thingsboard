@@ -10,7 +10,7 @@
  */
 import { history, useParams } from '@umijs/max';
 import { Alert, Spin } from 'antd';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
 
 import { useDashboard } from '@/components/dashboard/use-dashboard';
@@ -31,20 +31,17 @@ export default function DashboardsEditorPage() {
 
   // Enter once per dashboard: the draft must survive react-query
   // background refetches (a new configuration object from the server must
-  // never silently reset the user's undo stack mid-edit).
-  const enteredIdRef = useRef<string | undefined>(undefined);
+  // never silently reset the user's undo stack mid-edit). The entered id
+  // is STATE so the shell renders right after the enter effect commits.
+  const [enteredId, setEnteredId] = useState<string | undefined>(undefined);
   useEffect(() => {
-    if (
-      dashboard?.configuration &&
-      dashboardId &&
-      enteredIdRef.current !== dashboardId
-    ) {
+    if (dashboard?.configuration && dashboardId && enteredId !== dashboardId) {
       session.enter(dashboard.configuration);
-      enteredIdRef.current = dashboardId;
+      setEnteredId(dashboardId);
     }
-  }, [dashboard, dashboardId, session]);
+  }, [dashboard, dashboardId, session, enteredId]);
 
-  const entered = enteredIdRef.current === dashboardId;
+  const entered = enteredId === dashboardId;
 
   const backToView = (dashboardMeta: Dashboard) => {
     history.push(`/dashboards/${dashboardMeta.id?.id ?? dashboardId}`);

@@ -134,7 +134,7 @@ export function canPasteWidgetReference(args: {
   layoutId?: DashboardLayoutId;
 }): boolean {
   const clip = current;
-  if (!clip || clip.mode !== 'reference') {
+  if (clip?.mode !== 'reference') {
     return false;
   }
   if (
@@ -185,8 +185,10 @@ export function pasteWidgetReferences(input: {
           draft.states[clip.sourceInfo.stateId]?.layouts[
             clip.sourceInfo.layoutId
           ]?.widgets[id];
+        // draft reads are immer proxies — never structuredClone them; a
+        // spread/json round-trip unwraps to plain data
         target.widgets[id] = sourceEntry
-          ? structuredClone(sourceEntry)
+          ? { ...sourceEntry }
           : { row: 0, col: 0, sizeX: 8, sizeY: 6 };
       }
     },
@@ -313,12 +315,14 @@ export function replaceReferenceWithCopy(input: {
       if (!widget || !layout || !entry) {
         return;
       }
-      const copy = structuredClone(widget);
+      // dashboard configuration is pure JSON — a json round-trip is the
+      // deep copy (and unwraps immer proxies, which cannot be cloned)
+      const copy = JSON.parse(JSON.stringify(widget)) as typeof widget;
       const newId = globalThis.crypto?.randomUUID
         ? globalThis.crypto.randomUUID()
         : `widget-${Math.random().toString(36).slice(2)}`;
       draft.widgets[newId] = copy;
-      layout.widgets[newId] = structuredClone(entry);
+      layout.widgets[newId] = { ...entry };
       delete layout.widgets[widgetId];
     },
   };

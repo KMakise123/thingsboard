@@ -281,6 +281,7 @@ export function EditorGrid({
     return (
       <div
         ref={containerRef}
+        data-testid="editor-grid"
         data-editor-grid={layoutId}
         style={{ width: '100%' }}
       />
@@ -297,6 +298,7 @@ export function EditorGrid({
   return (
     <div
       ref={containerRef}
+      data-testid="editor-grid"
       data-editor-grid={layoutId}
       data-editor-display-grid={showGrid ? 'visible' : 'hidden'}
       style={{
@@ -358,7 +360,26 @@ export function EditorGrid({
               onLayoutChange={reconcileLayout}
             >
               {geometry.placed.map((entry) => {
-                const cell = (
+                const content = (
+                  <WidgetCellInner
+                    widgetId={entry.id}
+                    widget={entry.widget}
+                    layoutEntry={entry.layout}
+                    filters={
+                      configuration.filters as Record<string, DashboardFilter>
+                    }
+                    dashboardTimewindow={dashboardTimewindow}
+                    aliases={aliases}
+                    states={states}
+                    isMobile={isMobile}
+                  />
+                );
+                const menu = widgetMenu?.(entry.id);
+                // The Dropdown must NOT be the direct RGL child: the
+                // Resizable wrapper injects a second child (the resize
+                // handle) into the direct child, which antd Dropdown
+                // (single-child only) cannot host.
+                return (
                   <div
                     key={entry.id}
                     data-testid="editor-widget"
@@ -385,31 +406,14 @@ export function EditorGrid({
                       onWidgetContextMenu?.(entry.id);
                     }}
                   >
-                    <WidgetCellInner
-                      widgetId={entry.id}
-                      widget={entry.widget}
-                      layoutEntry={entry.layout}
-                      filters={
-                        configuration.filters as Record<string, DashboardFilter>
-                      }
-                      dashboardTimewindow={dashboardTimewindow}
-                      aliases={aliases}
-                      states={states}
-                      isMobile={isMobile}
-                    />
+                    {menu ? (
+                      <Dropdown menu={menu} trigger={['contextMenu']}>
+                        {content}
+                      </Dropdown>
+                    ) : (
+                      content
+                    )}
                   </div>
-                );
-                const menu = widgetMenu?.(entry.id);
-                return menu ? (
-                  <Dropdown
-                    key={entry.id}
-                    menu={menu}
-                    trigger={['contextMenu']}
-                  >
-                    {cell}
-                  </Dropdown>
-                ) : (
-                  cell
                 );
               })}
             </GridLayout>
