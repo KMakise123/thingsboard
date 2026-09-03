@@ -15,9 +15,13 @@
  *
  * Never rendered in v1: edit FAB, update-image, filters, entities-select,
  * powered-by footer (embedded only anyway).
+ *
+ * M7: one surgical addition — the 编辑 entry (TA, not embedded, not the
+ * fullscreen single page) navigating to /dashboards/:id/editor.
  */
 import {
   DownloadOutlined,
+  EditOutlined,
   ExpandOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
@@ -147,6 +151,21 @@ export function DashboardToolbar({
       </Space>
 
       <Space wrap align="center" size={4}>
+        {isTenantAdmin && !embedded && !singlePageMode ? (
+          <Tooltip
+            title={formatMessage({
+              id: 'editor.common.edit',
+              defaultMessage: 'Edit',
+            })}
+          >
+            <Button
+              size="small"
+              icon={<EditOutlined />}
+              data-testid="dashboard-toolbar-edit"
+              onClick={() => history.push(`/dashboards/${dashboardId}/editor`)}
+            />
+          </Tooltip>
+        ) : null}
         {isMobile && hasRightLayout ? (
           <Button
             size="small"

@@ -44,16 +44,19 @@
  * this environment (drag wiring itself is asserted at class level in
  * editor-grid.test.tsx).
  */
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render } from '@testing-library/react';
 import {
   calcWH,
   calcXY,
+  GridLayout,
   type Layout,
   moveElement,
   noCompactor,
 } from 'react-grid-layout';
-import { defaultConstraints, applyPositionConstraints } from 'react-grid-layout/core';
-import { GridLayout } from 'react-grid-layout';
+import {
+  applyPositionConstraints,
+  defaultConstraints,
+} from 'react-grid-layout/core';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 afterEach(cleanup);
@@ -124,8 +127,18 @@ describe('P3: RGL 2.2.4 collision blocking (gridster pushItems:false semantics)'
       24,
       false,
     );
-    const a = result.find((item) => item.i === 'a') as { x: number; y: number; w: number; h: number };
-    const b = result.find((item) => item.i === 'b') as { x: number; y: number; w: number; h: number };
+    const a = result.find((item) => item.i === 'a') as {
+      x: number;
+      y: number;
+      w: number;
+      h: number;
+    };
+    const b = result.find((item) => item.i === 'b') as {
+      x: number;
+      y: number;
+      w: number;
+      h: number;
+    };
     const overlaps =
       a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
     expect(overlaps).toBe(false);
@@ -160,14 +173,16 @@ describe('P3: RGL 2.2.4 boundary clamp (default constraints [gridBounds, minMaxS
   it('constrainSize keeps resize inside the grid via gridBounds', () => {
     const item = { i: 'a', x: 20, y: 10, w: 8, h: 6 };
     const gridBounds = defaultConstraints[0];
-    expect(gridBounds.constrainSize).toBeDefined();
+    const constrainSize = gridBounds.constrainSize;
+    expect(constrainSize).toBeDefined();
+    if (!constrainSize) return;
     // 'se': maxW = cols - x = 4; maxH = maxRows - y = ∞ (canvas grows down)
-    expect(gridBounds.constrainSize!(item, 40, 30, 'se', ctx)).toEqual({
+    expect(constrainSize(item, 40, 30, 'se', ctx)).toEqual({
       w: 4,
       h: 30,
     });
     // 'nw': growing up/left is bounded by the item's own origin
-    expect(gridBounds.constrainSize!(item, 40, 30, 'nw', ctx)).toEqual({
+    expect(constrainSize(item, 40, 30, 'nw', ctx)).toEqual({
       w: 28, // x + w
       h: 16, // y + h
     });
@@ -206,7 +221,13 @@ describe('P3: RGL 2.2.4 dropConfig external drop lands at grid coords', () => {
           defaultItem: { w: 4, h: 2 },
         }}
         layout={[]}
-        onDrop={onDrop as (layout: Layout, item: Layout[number] | undefined, e: Event) => void}
+        onDrop={
+          onDrop as (
+            layout: Layout,
+            item: Layout[number] | undefined,
+            e: Event,
+          ) => void
+        }
       >
         <div key="none" />
       </GridLayout>,
