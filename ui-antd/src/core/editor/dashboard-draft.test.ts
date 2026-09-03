@@ -21,7 +21,7 @@ import {
   setLayouts,
   updateDashboardConfigField,
   updateDashboardSettings,
-  updateFilter,
+  upsertFilter,
   updateGridSettings,
   updateState,
   updateWidgetConfig,
@@ -388,11 +388,11 @@ describe('dashboard draft: aliases & filters', () => {
     expect(session.current.entityAliases.a1).toBeUndefined();
   });
 
-  it('updateFilter / removeFilter manage the filters record', () => {
+  it('upsertFilter / removeFilter manage the filters record', () => {
     const { session } = newSession();
     writeDraft(
       session,
-      updateFilter({ id: 'f1', filter: 'Demo filter', keyFilters: [] }),
+      upsertFilter({ id: 'f1', filter: 'Demo filter', keyFilters: [] }),
     );
     expect(session.current.filters?.f1?.filter).toBe('Demo filter');
     writeDraft(session, removeFilter('f1'));

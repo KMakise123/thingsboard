@@ -348,9 +348,9 @@ export function removeEntityAlias(aliasId: string): DashboardDraftWrite {
 }
 
 /** Insert-or-update a dashboard filter; consecutive edits coalesce per filter. */
-export function updateFilter(filter: DashboardFilter): DashboardDraftWrite {
+export function upsertFilter(filter: DashboardFilter): DashboardDraftWrite {
   return {
-    label: 'update filter',
+    label: 'upsert filter',
     coalesceKey: `filter:${filter.id}`,
     recipe: (draft): void => {
       draft.filters ??= {};
