@@ -50,7 +50,15 @@ export interface ScriptTestPanelProps {
   testIdPrefix?: string;
 }
 
-function parseJsonObject(text: string): Record<string, string> | null {
+/**
+ * Parses a payload field that must be a JSON object (msg → TbMsg data,
+ * metadata → string map). Returns the object or the reason it is not one.
+ */
+function parseJsonObject(
+  text: string,
+):
+  | { value: Record<string, string>; reason: null }
+  | { value: null; reason: string } {
   try {
     const parsed: unknown = JSON.parse(text);
     if (
@@ -58,12 +66,15 @@ function parseJsonObject(text: string): Record<string, string> | null {
       typeof parsed === 'object' &&
       !Array.isArray(parsed)
     ) {
-      return parsed as Record<string, string>;
+      return { value: parsed as Record<string, string>, reason: null };
     }
-  } catch {
-    // fall through to null
+    return { value: null, reason: 'not an object' };
+  } catch (cause) {
+    return {
+      value: null,
+      reason: cause instanceof Error ? cause.message : String(cause),
+    };
   }
-  return null;
 }
 
 export function ScriptTestPanel({
@@ -90,14 +101,15 @@ export function ScriptTestPanel({
   const run = () => {
     const msg = parseJsonObject(msgText);
     const metadata = parseJsonObject(metadataText);
-    if (msg === null || metadata === null) {
+    if (msg.reason !== null || metadata.reason !== null) {
+      const detail =
+        msg.reason !== null
+          ? `${formatMessage({ id: 'editor.script.test.msg' })}: ${msg.reason}`
+          : `${formatMessage({ id: 'editor.script.test.metadata' })}: ${metadata.reason}`;
       setJsonError(
-        formatMessage(
-          { id: 'editor.script.test.invalidJson' },
-          {
-            message: 'JSON.parse',
-          },
-        ),
+        formatMessage({ id: 'editor.script.test.invalidJson' }, {
+          message: detail,
+        }),
       );
       return;
     }
@@ -109,7 +121,7 @@ export function ScriptTestPanel({
       scriptType,
       argNames,
       msg: msgText,
-      metadata,
+      metadata: metadata.value,
       msgType,
     })
       .then((nextResult) => {
