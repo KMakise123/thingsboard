@@ -22,6 +22,7 @@ import editorScript from './en-US/editor-script';
 import entityViews from './en-US/entityViews';
 import login from './en-US/login';
 import menu from './en-US/menu';
+import ruleNode from './en-US/rule-node';
 import settings from './en-US/settings';
 import tenantProfiles from './en-US/tenant-profiles';
 import tenants from './en-US/tenants';
@@ -52,4 +53,5 @@ export default {
   ...editorDashboardPanel,
   ...editorRulechain,
   ...editorScript,
+  ...ruleNode,
 };

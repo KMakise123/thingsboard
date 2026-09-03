@@ -24,6 +24,7 @@ import editorScript from './zh-CN/editor-script';
 import entityViews from './zh-CN/entityViews';
 import login from './zh-CN/login';
 import menu from './zh-CN/menu';
+import ruleNode from './zh-CN/rule-node';
 import settings from './zh-CN/settings';
 import tenantProfiles from './zh-CN/tenant-profiles';
 import tenants from './zh-CN/tenants';
@@ -54,4 +55,5 @@ export default {
   ...editorDashboardPanel,
   ...editorRulechain,
   ...editorScript,
+  ...ruleNode,
 };
