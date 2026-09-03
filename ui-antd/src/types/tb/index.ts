@@ -20,6 +20,7 @@ export * from './device';
 export * from './entity';
 export * from './entity-view';
 export * from './page';
+export * from './rule-chain';
 export * from './telemetry';
 export * from './timewindow';
 export * from './user';
