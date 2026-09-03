@@ -84,9 +84,9 @@ describe('ImportDashboardDialog — pick stage', () => {
     setup();
     await pickFile(jsonFile('a.json', importedDashboardPayload()));
     await waitFor(() => {
-      expect(screen.getByTestId('editor-import-widget-count')).toHaveTextContent(
-        '1',
-      );
+      expect(
+        screen.getByTestId('editor-import-widget-count'),
+      ).toHaveTextContent('1');
     });
     expect(screen.getByTestId('editor-import-apply')).toBeInTheDocument();
   });
@@ -116,15 +116,16 @@ describe('ImportDashboardDialog — confirm stage + 补录', () => {
       screen.getByTestId('editor-import-alias-name-alias-1'),
     ).toBeInTheDocument();
 
-    fireEvent.change(
-      screen.getByTestId('editor-import-alias-name-alias-1'),
-      { target: { value: '补录的别名' } },
-    );
+    fireEvent.change(screen.getByTestId('editor-import-alias-name-alias-1'), {
+      target: { value: '补录的别名' },
+    });
     fireEvent.click(screen.getByTestId('editor-import-apply'));
 
     await waitFor(() => expect(onApply).toHaveBeenCalledTimes(1));
-    const [configuration, created] = onApply.mock
-      .calls[0] as [DashboardConfiguration, EntityAlias[]];
+    const [configuration, created] = onApply.mock.calls[0] as [
+      DashboardConfiguration,
+      EntityAlias[],
+    ];
     expect(Object.keys(configuration.widgets)).toHaveLength(1); // normalized map
     expect(created).toEqual([
       {

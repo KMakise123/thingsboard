@@ -9,10 +9,12 @@
  * The timewindow picker binds RUNTIME state only — it never reaches the
  * session writer (§3.9 不入栈项).
  *
- * Exit semantics (§3.1): save → naive save → back to the readonly view
- * route; cancel → session reset to the entry baseline → back. Both paths
- * end in readonly; the D wave layers the leave-guard + 409 flow on top
- * (contract/ placeholders already wired).
+ * Exit semantics (§3.1, D wave): 保存退出 → saveDashboardDraft → success
+ * navigates to the readonly view, 409 opens the three-option conflict dialog
+ * first (an overwrite success still lands on the view); 取消退出 → dirty
+ * confirm (§3.8) → entry-checkpoint rollback (prevDashboard semantics) →
+ * view. Import swaps the draft through ONE undoable group (draft-only until
+ * save); export downloads the current draft JSON.
  */
 import {
   AppstoreOutlined,
@@ -45,8 +47,11 @@ import { getRootStateId } from '@/core/dashboard/model';
 import { removeWidget, writeDraft } from '@/core/editor/dashboard-draft';
 import type { EditorSession } from '@/core/editor/session';
 import { useEditorSession } from '@/core/editor/use-editor-session';
-import { exportDashboardToFile } from '@/pages/dashboards/list/import-export';
-import type { Dashboard, DashboardConfiguration } from '@/types/tb/dashboard';
+import type {
+  Dashboard,
+  DashboardConfiguration,
+  EntityAlias,
+} from '@/types/tb/dashboard';
 import {
   createDefaultDashboardTimewindow,
   type Timewindow,
@@ -65,12 +70,16 @@ import {
   replaceReferenceWithCopy,
 } from './clipboard';
 import { ConflictDialog } from './contract/ConflictDialog';
-import { importDashboardIntoEditor } from './contract/import-dashboard';
+import { exportDraftDashboard } from './contract/export-draft';
+import { ImportDashboardDialog } from './contract/import-dialog';
 import {
+  loadServerVersion,
+  overwriteWithLocalDraft,
   type SaveOutcome,
   saveDashboardDraft,
 } from './contract/save-with-conflict';
-import { useLeaveGuard } from './contract/use-leave-guard';
+import { useEditorEntryCheckpoint } from './contract/use-editor-entry-checkpoint';
+import { shouldPromptLeave, useLeaveGuard } from './contract/use-leave-guard';
 import { AddWidgetFlow } from './dialogs/add-widget';
 import { DialogHost, useEditorDialogs } from './dialogs/host';
 import { WidgetConfigPanel } from './panels';
@@ -126,17 +135,26 @@ export function EditorShell({ session, dashboard }: EditorShellProps) {
 
   const [meta, setMeta] = useState<Dashboard>(dashboard);
   const [saving, setSaving] = useState(false);
-  const [conflictOpen, setConflictOpen] = useState(false);
+  /** Non-null while the §3.8 three-option conflict dialog is open. */
+  const [conflict, setConflict] = useState<{
+    serverDashboard: Dashboard | null;
+  } | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
   const [showRightLayout, setShowRightLayout] = useState(false);
   const [selectedWidgetId, setSelectedWidgetId] = useState<string | null>(null);
   const [addWidgetOpen, setAddWidgetOpen] = useState(false);
 
-  // entry baseline for the cancel path (ui-ngx prevDashboard semantics):
-  // captured once at edit-mode entry, BEFORE any edit or save.
-  const [entryBaseline] = useState<DashboardConfiguration>(
-    () => session.current,
-  );
+  // §3.1 cancel-exit (ui-ngx prevDashboard semantics): the entry checkpoint
+  // reverts every post-entry write as ONE rollback group; the leave-guard
+  // layers the §3.8 dirty confirm + hard-navigation beforeunload on top.
+  const entryCheckpoint = useEditorEntryCheckpoint({ session, enabled: true });
   useLeaveGuard({ session, enabled: true });
+  /**
+   * Set by 保存退出: after a conflict is resolved through the dialog, a
+   * successful save still lands back on the readonly view (dialog-first
+   * exit). Cleared when the dialog is dismissed without resolving.
+   */
+  const pendingExitRef = useRef(false);
 
   // Runtime-only timewindow: bound to the picker, never written to the draft.
   const [timewindow, setTimewindow] = useState<Timewindow>(
@@ -151,31 +169,154 @@ export function EditorShell({ session, dashboard }: EditorShellProps) {
   );
 
   const shellRef = useRef<HTMLDivElement | null>(null);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const { fullscreen, toggle: toggleFullscreen } = useFullscreen(shellRef);
 
   const backToView = () => {
     history.push(`/dashboards/${meta.id?.id}`);
   };
 
-  const applyOutcome = async (outcome: SaveOutcome): Promise<boolean> => {
-    if (outcome.status === 'saved') {
-      setMeta(outcome.dashboard);
-      await queryClient.invalidateQueries({
-        queryKey: ['dashboard', 'full', outcome.dashboard.id?.id],
-      });
-      await queryClient.invalidateQueries({ queryKey: ['dashboards', 'list'] });
-      message.success(
-        formatMessage({
-          id: 'editor.dashboard.toolbar.saved',
-          defaultMessage: 'Saved',
-        }),
+  /** Common 2xx landing: re-anchor meta, refresh caches, toast. */
+  const applySavedOutcome = async (
+    outcome: Extract<SaveOutcome, { status: 'saved' }>,
+  ): Promise<void> => {
+    setMeta(outcome.dashboard);
+    await queryClient.invalidateQueries({
+      queryKey: ['dashboard', 'full', outcome.dashboard.id?.id],
+    });
+    await queryClient.invalidateQueries({ queryKey: ['dashboards', 'list'] });
+    message.success(
+      formatMessage({
+        id: 'editor.dashboard.toolbar.saved',
+        defaultMessage: 'Saved',
+      }),
+    );
+  };
+
+  const save = async (): Promise<boolean> => {
+    setSaving(true);
+    try {
+      const outcome = await saveDashboardDraft({ session, dashboard: meta });
+      if (outcome.status === 'saved') {
+        await applySavedOutcome(outcome);
+        return true;
+      }
+      if (outcome.status === 'conflict') {
+        // §3.8 409: surface the three-option dialog with the fetched server
+        // snapshot; the session stays dirty until the user resolves it.
+        setConflict({ serverDashboard: outcome.serverDashboard });
+        return false;
+      }
+      message.error(
+        `${formatMessage({
+          id: 'editor.dashboard.toolbar.saveFailed',
+          defaultMessage: 'Save failed',
+        })}: ${serverErrorText(outcome.error)}`,
       );
-      return true;
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const exitWithSave = async () => {
+    pendingExitRef.current = true;
+    if (await save()) {
+      pendingExitRef.current = false;
+      backToView();
+    }
+    // a conflict keeps the shell open — the dialog owns the rest of the
+    // exit flow (overwrite success → navigate, option A/C → stay/leave)
+  };
+
+  const exitWithCancel = () => {
+    // §3.1 取消退出 = entry-baseline rollback (prevDashboard semantics) with
+    // the §3.8 confirm in front while the guard would prompt. Undo-to-bottom
+    // leaves the draft reference-clean ⇒ no confirm, straight exit.
+    const discardAndExit = () => {
+      entryCheckpoint.rollbackToEntry();
+      backToView();
+    };
+    if (!shouldPromptLeave(session)) {
+      discardAndExit();
+      return;
+    }
+    modal.confirm({
+      title: formatMessage(
+        t('editor.dashboard.contract.discardTitle', 'Unsaved changes'),
+      ),
+      content: formatMessage(
+        t(
+          'editor.dashboard.contract.discardText',
+          'The draft has unsaved changes; exiting edit mode discards them.',
+        ),
+      ),
+      okText: formatMessage(
+        t('editor.dashboard.contract.discardOk', 'Discard changes'),
+      ),
+      okButtonProps: { danger: true },
+      cancelText: formatMessage({
+        id: 'editor.common.cancel',
+        defaultMessage: 'Cancel',
+      }),
+      onOk: discardAndExit,
+    });
+  };
+
+  // ------------------------------------------------------------------
+  // §3.8 409 three-option resolution (ADR 0004 §2)
+  // ------------------------------------------------------------------
+  const closeConflict = () => {
+    setConflict(null);
+    pendingExitRef.current = false;
+  };
+
+  /** Option A — 加载服务器版: adopt the server entity as the new baseline. */
+  const handleConflictLoadServer = () => {
+    const server = conflict?.serverDashboard;
+    closeConflict();
+    if (!server) {
+      // conflict-time GET failed — the adoption target is unknown
+      message.error(
+        formatMessage(
+          t(
+            'editor.dashboard.contract.conflict.loadFailed',
+            'Failed to load the server version',
+          ),
+        ),
+      );
+      return;
+    }
+    loadServerVersion(session, server);
+    setMeta(server);
+    setSelectedWidgetId(null);
+  };
+
+  /** Option B — 用我的版本覆盖: fresh-version force-save, capped retry. */
+  const handleConflictOverwrite = async () => {
+    const outcome = await overwriteWithLocalDraft({ session, dashboard: meta });
+    if (outcome.status === 'saved') {
+      setConflict(null);
+      await applySavedOutcome(outcome);
+      // dialog-first exit: a pending 保存退出 lands on the view now
+      if (pendingExitRef.current) {
+        pendingExitRef.current = false;
+        backToView();
+      }
+      return;
     }
     if (outcome.status === 'conflict') {
-      setConflictOpen(true);
-      return false;
+      // retry cap exhausted — refresh the dialog snapshot and force an
+      // explicit decision (dialog stays open per ADR)
+      setConflict({ serverDashboard: outcome.serverDashboard });
+      message.warning(
+        formatMessage(
+          t(
+            'editor.dashboard.contract.conflict.overwriteFailed',
+            'Overwrite failed: the server version kept changing (3 retries used). Pick another option.',
+          ),
+        ),
+      );
+      return;
     }
     message.error(
       `${formatMessage({
@@ -183,55 +324,58 @@ export function EditorShell({ session, dashboard }: EditorShellProps) {
         defaultMessage: 'Save failed',
       })}: ${serverErrorText(outcome.error)}`,
     );
-    return false;
   };
 
-  const save = async (): Promise<boolean> => {
-    setSaving(true);
-    try {
-      return await applyOutcome(
-        await saveDashboardDraft({ session, dashboard: meta }),
-      );
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const exitWithSave = async () => {
-    if (await save()) {
+  /** Option C — 导出本地 JSON 后放弃: download the draft, then adopt server. */
+  const handleConflictExportLocal = () => {
+    exportDraftDashboard({ dashboard: meta, configuration: session.current });
+    const server = conflict?.serverDashboard;
+    closeConflict();
+    if (server) {
+      // the server truth replaces the abandoned draft in the editor
+      loadServerVersion(session, server);
+      setMeta(server);
+      setSelectedWidgetId(null);
+    } else {
+      // server state unknown — give up cleanly and leave the editor
+      entryCheckpoint.rollbackToEntry();
       backToView();
     }
-  };
-
-  const exitWithCancel = () => {
-    // 整体撤回进入前的基线 — a fresh enter() resets draft + history.
-    session.enter(entryBaseline);
-    backToView();
+    message.success(
+      formatMessage(
+        t('editor.dashboard.contract.export.done', 'Draft JSON exported'),
+      ),
+    );
   };
 
   const undo = () => session.undo();
   const redo = () => session.redo();
 
-  const onImportFile = async (file: File) => {
-    try {
-      const imported = await importDashboardIntoEditor(file);
-      session.enter(
-        imported.configuration ?? {
-          widgets: {},
-          states: {},
-          entityAliases: {},
-        },
-      );
-      setMeta(imported);
-      setSelectedWidgetId(null);
-    } catch (error) {
-      message.error(
-        `${formatMessage({
-          id: 'editor.dashboard.toolbar.importFailed',
-          defaultMessage: 'Import failed',
-        })}: ${serverErrorText(error)}`,
-      );
-    }
+  /**
+   * §3.8 导入落编辑器: ONE undoable `import-dashboard` group replaces the
+   * whole configuration content (widgets/states/entityAliases plus the
+   * optional timewindow/settings/filters set), merging the 补录 alias stubs
+   * created in the dialog. Draft-only: meta (id/title/version) is untouched
+   * and no query is invalidated until a real save.
+   */
+  const applyImportedConfiguration = (
+    configuration: DashboardConfiguration,
+    createdAliases: EntityAlias[],
+  ): void => {
+    session.write('import-dashboard', (draft) => {
+      for (const key of Object.keys(draft)) {
+        delete draft[key];
+      }
+      Object.assign(draft, configuration);
+      if (!draft.entityAliases) {
+        draft.entityAliases = {};
+      }
+      const aliases = draft.entityAliases;
+      for (const stub of createdAliases) {
+        aliases[stub.id] = stub;
+      }
+    });
+    setSelectedWidgetId(null);
   };
 
   const t = (id: string, defaultMessage: string) => ({ id, defaultMessage });
@@ -644,23 +788,9 @@ export function EditorShell({ session, dashboard }: EditorShellProps) {
             size="small"
             icon={<UploadOutlined />}
             data-testid="editor-toolbar-import"
-            onClick={() => fileInputRef.current?.click()}
+            onClick={() => setImportOpen(true)}
           />
         </Tooltip>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="application/json,.json"
-          style={{ display: 'none' }}
-          data-testid="editor-import-input"
-          onChange={(event) => {
-            const file = event.target.files?.[0];
-            event.target.value = '';
-            if (file) {
-              void onImportFile(file);
-            }
-          }}
-        />
         <Tooltip
           title={formatMessage(t('editor.dashboard.toolbar.export', 'Export'))}
         >
@@ -669,7 +799,20 @@ export function EditorShell({ session, dashboard }: EditorShellProps) {
             icon={<DownloadOutlined />}
             data-testid="editor-toolbar-export"
             onClick={() => {
-              void exportDashboardToFile(meta.id?.id ?? '');
+              // §3.8 export the CURRENT DRAFT (what the user sees), never a
+              // re-fetched server copy
+              exportDraftDashboard({
+                dashboard: meta,
+                configuration: snapshot.current,
+              });
+              message.success(
+                formatMessage(
+                  t(
+                    'editor.dashboard.contract.export.done',
+                    'Draft JSON exported',
+                  ),
+                ),
+              );
             }}
           />
         </Tooltip>
@@ -734,12 +877,17 @@ export function EditorShell({ session, dashboard }: EditorShellProps) {
       </div>
 
       <ConflictDialog
-        open={conflictOpen}
-        serverDashboard={null}
-        onLoadServer={() => setConflictOpen(false)}
-        onOverwrite={() => setConflictOpen(false)}
-        onExportLocal={() => setConflictOpen(false)}
-        onClose={() => setConflictOpen(false)}
+        open={conflict !== null}
+        serverDashboard={conflict?.serverDashboard ?? null}
+        onLoadServer={() => handleConflictLoadServer()}
+        onOverwrite={() => void handleConflictOverwrite()}
+        onExportLocal={() => handleConflictExportLocal()}
+        onClose={closeConflict}
+      />
+      <ImportDashboardDialog
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        onApply={applyImportedConfiguration}
       />
       <AddWidgetFlow
         session={session}

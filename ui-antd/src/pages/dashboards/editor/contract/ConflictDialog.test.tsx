@@ -37,7 +37,9 @@ function setup(serverDashboardArg?: Dashboard | null) {
       <ConflictDialog
         open
         serverDashboard={
-          serverDashboardArg === undefined ? serverDashboard() : serverDashboardArg
+          serverDashboardArg === undefined
+            ? serverDashboard()
+            : serverDashboardArg
         }
         {...handlers}
       />

@@ -7,10 +7,7 @@
  * must stay in lockstep with ui-ngx prepareDashboardExport. No query
  * invalidation, no POST — export is a pure download.
  */
-import type {
-  Dashboard,
-  DashboardConfiguration,
-} from '@/types/tb/dashboard';
+import type { Dashboard, DashboardConfiguration } from '@/types/tb/dashboard';
 
 /** prepareExport parity: drop identity/audit fields the import reassigns. */
 export function prepareDraftExport(

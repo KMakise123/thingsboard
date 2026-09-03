@@ -8,10 +8,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { EditorSession } from '@/core/editor/session';
 import type { Dashboard, DashboardConfiguration } from '@/types/tb/dashboard';
 import {
-  MAX_OVERWRITE_ATTEMPTS,
-  type SaveOutcome,
   loadServerVersion,
+  MAX_OVERWRITE_ATTEMPTS,
   overwriteWithLocalDraft,
+  type SaveOutcome,
   saveDashboardDraft,
 } from './save-with-conflict';
 

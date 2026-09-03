@@ -66,7 +66,10 @@ export function ConflictDialog({
       primary: false,
       danger: true,
       label: formatMessage(
-        t('editor.dashboard.contract.conflict.overwrite', 'Overwrite with mine'),
+        t(
+          'editor.dashboard.contract.conflict.overwrite',
+          'Overwrite with mine',
+        ),
       ),
       text: formatMessage(
         t(

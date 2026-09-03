@@ -20,7 +20,6 @@
  * Aliases dialog) or SKIPS (the dangling reference survives and renders as
  * empty data, exactly the v1 behavior for that widget).
  */
-import { validateAndUpdateDashboard } from '@/core/dashboard/model';
 import { parseDashboardImport } from '@/pages/dashboards/list/import-export';
 import type {
   Dashboard,

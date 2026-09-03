@@ -41,9 +41,9 @@ export function useEditorEntryCheckpoint({
   session,
   enabled,
 }: UseEditorEntryCheckpointOptions): EditorEntryCheckpoint {
-  const handleRef = useRef<ReturnType<EditorSession<DashboardConfiguration>['checkpoint']> | null>(
-    null,
-  );
+  const handleRef = useRef<ReturnType<
+    EditorSession<DashboardConfiguration>['checkpoint']
+  > | null>(null);
 
   useEffect(() => {
     handleRef.current = enabled ? session.checkpoint('editor entry') : null;

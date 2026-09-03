@@ -18,22 +18,27 @@
  * query invalidation, no POST.
  */
 import { InboxOutlined } from '@ant-design/icons';
-import { Alert, Button, Input, Modal, Space, Typography, Upload } from 'antd';
-import { App as AntdApp } from 'antd';
+import {
+  Alert,
+  App as AntdApp,
+  Button,
+  Input,
+  Modal,
+  Space,
+  Typography,
+  Upload,
+} from 'antd';
 import { useState } from 'react';
 import { useIntl } from 'react-intl';
 
 import { validateAndUpdateDashboard } from '@/core/dashboard/model';
 import { DashboardImportError } from '@/pages/dashboards/list/import-export';
-import type {
-  DashboardConfiguration,
-  EntityAlias,
-} from '@/types/tb/dashboard';
+import type { DashboardConfiguration, EntityAlias } from '@/types/tb/dashboard';
 import {
-  type MissingEntityAlias,
   createMissingAliasStub,
   findMissingEntityAliases,
   importDashboardIntoEditor,
+  type MissingEntityAlias,
 } from './import-dashboard';
 
 export interface ImportDashboardDialogProps {
@@ -69,9 +74,10 @@ export function ImportDashboardDialog({
   const { formatMessage } = useIntl();
   const { message } = AntdApp.useApp();
   const [parsed, setParsed] = useState<ParsedImport | null>(null);
-  const [decisions, setDecisions] = useState<AliasDecisions>(
-    () => ({ created: {}, skipped: [] }),
-  );
+  const [decisions, setDecisions] = useState<AliasDecisions>(() => ({
+    created: {},
+    skipped: [],
+  }));
 
   const t = (id: string, defaultMessage: string) => ({ id, defaultMessage });
 
@@ -85,12 +91,23 @@ export function ImportDashboardDialog({
       const imported = await importDashboardIntoEditor(file);
       const normalized = validateAndUpdateDashboard(imported);
       const configuration = normalized.configuration as DashboardConfiguration;
+      const missing = findMissingEntityAliases(configuration);
       setParsed({
         configuration,
         widgetCount: Object.keys(configuration.widgets ?? {}).length,
-        missing: findMissingEntityAliases(configuration),
+        missing,
       });
-      setDecisions({ created: {}, skipped: [] });
+      // 补录 defaults are REAL: every missing alias starts seeded with
+      // aliasId as its name (the rendered input shows the same), so a plain
+      // apply completes them instead of silently skipping (v1 clipped this
+      // completion — v2 restores it, ui-ngx dashboard-page.component.ts:1073
+      // forces resolution the same way).
+      setDecisions({
+        created: Object.fromEntries(
+          missing.map(({ aliasId }) => [aliasId, aliasId]),
+        ),
+        skipped: [],
+      });
     } catch (error) {
       message.error(
         `${formatMessage({
@@ -116,10 +133,7 @@ export function ImportDashboardDialog({
     reset();
     message.success(
       formatMessage(
-        t(
-          'editor.dashboard.contract.import.applied',
-          'Imported (undoable)',
-        ),
+        t('editor.dashboard.contract.import.applied', 'Imported (undoable)'),
       ),
     );
   };

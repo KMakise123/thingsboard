@@ -89,8 +89,9 @@ describe('exportDraftDashboard', () => {
     expect(clickSpy).toHaveBeenCalledTimes(1);
     expect(revokeSpy).toHaveBeenCalledWith('blob:mock');
     expect(createObjectURLSpy).toHaveBeenCalledTimes(1);
-    const blob = createObjectURLSpy.mock
-      .calls[0][0] as unknown as { text(): Promise<string> };
+    const blob = createObjectURLSpy.mock.calls[0][0] as unknown as {
+      text(): Promise<string>;
+    };
     // the exported payload must NOT carry the stripped identity fields
     void blob;
   });

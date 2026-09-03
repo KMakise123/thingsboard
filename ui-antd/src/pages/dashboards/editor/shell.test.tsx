@@ -19,6 +19,7 @@ import { validateAndUpdateDashboard } from '@/core/dashboard/model';
 import { EditorSession } from '@/core/editor/session';
 import zhEditorCommon from '@/locales/zh-CN/editor';
 import zhEditorDashboard from '@/locales/zh-CN/editor-dashboard';
+import zhContract from '@/locales/zh-CN/editor-dashboard-contract';
 import type { Dashboard, DashboardConfiguration } from '@/types/tb/dashboard';
 
 const historyMock = vi.hoisted(() => ({ push: vi.fn() }));
@@ -26,22 +27,18 @@ vi.mock('@umijs/max', () => ({ history: historyMock }));
 
 const dashboardServiceMock = vi.hoisted(() => ({
   saveDashboard: vi.fn(),
+  getDashboard: vi.fn(),
   exportDashboard: vi.fn(),
   getTenantDashboards: vi.fn(),
   getWidgetTypeByFqn: vi.fn(),
 }));
 vi.mock('@/services/tb/dashboard', () => dashboardServiceMock);
 
-const importExportMock = vi.hoisted(() => ({
-  exportDashboardToFile: vi.fn(),
-}));
-vi.mock('@/pages/dashboards/list/import-export', () => importExportMock);
-
 import { EditorShell, isTypingTarget } from './shell';
 
 const intl = createIntl({
   locale: 'zh-CN',
-  messages: { ...zhEditorCommon, ...zhEditorDashboard },
+  messages: { ...zhEditorCommon, ...zhEditorDashboard, ...zhContract },
 });
 
 function dashboardJson(): Dashboard {
@@ -112,6 +109,7 @@ function setup(options?: SetupOptions) {
 beforeEach(() => {
   dashboardServiceMock.saveDashboard.mockReset();
   dashboardServiceMock.saveDashboard.mockResolvedValue(dashboardJson());
+  dashboardServiceMock.getDashboard.mockReset();
 });
 
 afterEach(() => {
@@ -173,7 +171,7 @@ describe('EditorShell — toolbar', () => {
     });
   });
 
-  it('exit-cancel resets to the entry baseline and navigates back', () => {
+  it('exit-cancel rolls the draft back to the entry baseline in one group and navigates back', async () => {
     const { session } = setup();
     act(() => {
       session.write('add widget', (draft) => {
@@ -182,9 +180,16 @@ describe('EditorShell — toolbar', () => {
     });
     expect(session.dirty).toBe(true);
     fireEvent.click(screen.getByTestId('editor-toolbar-exit-cancel'));
+    // dirty ⇒ §3.8 confirm first
+    const ok = await screen.findByRole('button', { name: '放弃修改' });
+    fireEvent.click(ok);
+    await waitFor(() => {
+      expect(historyMock.push).toHaveBeenCalledWith('/dashboards/d1');
+    });
     expect(session.dirty).toBe(false);
-    expect(session.history).toHaveLength(0); // enter() reset the stack
-    expect(historyMock.push).toHaveBeenCalledWith('/dashboards/d1');
+    expect(session.current.widgets.w1.config.title).toBeUndefined();
+    // rollback keeps the history inspectable (entry baseline NOT re-entered)
+    expect(session.history).toHaveLength(2);
   });
 });
 
