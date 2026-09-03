@@ -151,6 +151,13 @@ export interface RuleChainData {
   [key: string]: unknown;
 }
 
+/** Single-chain import/export file bundle (ui-ngx `RuleChainImport`). */
+export interface RuleChainImport {
+  ruleChain: RuleChain;
+  metadata: RuleChainMetaData;
+  [key: string]: unknown;
+}
+
 /** Result row of a bulk rule chain import (`RuleChainImportResult`). */
 export interface RuleChainImportResult {
   ruleChainId?: EntityIdOf<EntityType.RULE_CHAIN>;
