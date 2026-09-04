@@ -25,8 +25,9 @@
  * wave-S shell tests stub the transport module with `saveWidgetType` alone
  * and a static named import of any other export would throw on the mock.
  */
-import type { WidgetTypeDetails } from '@/types/tb/widget-type';
 
+import type { EditorSession } from '@/core/editor/session';
+import type { WidgetTypeDetails } from '@/types/tb/widget-type';
 import {
   draftToWidgetType,
   type WidgetEditorDoc,
@@ -76,6 +77,29 @@ export function exportWidgetTypeDraft(doc: WidgetEditorDoc): void {
 // ---------------------------------------------------------------------------
 // import
 // ---------------------------------------------------------------------------
+
+/**
+ * Commits an imported doc into the open session as ONE undoable transaction
+ * group (the §5.7 import confirm semantics — same group shape the
+ * dashboards import uses). The session stays DIRTY afterwards: nothing
+ * reaches the server until the user saves.
+ */
+export function writeImportedDoc(
+  session: EditorSession<WidgetEditorDoc>,
+  doc: WidgetEditorDoc,
+): void {
+  session.write('import:widget', (target) => {
+    target.widgetTypeId = doc.widgetTypeId;
+    target.fqn = doc.fqn;
+    target.name = doc.name;
+    target.source = doc.source;
+    target.settingsForm = doc.settingsForm;
+    target.defaultConfig = doc.defaultConfig;
+    target.meta = doc.meta;
+    target.version = doc.version;
+    target.descriptorPassthrough = doc.descriptorPassthrough;
+  });
+}
 
 /** Machine-readable import refusal codes (the dialog maps them to copy). */
 export type WidgetImportErrorCode =

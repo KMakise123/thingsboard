@@ -21,17 +21,21 @@
  *   (through the leave guard) · "?" opens the shortcuts help (non-typing
  *   focus only).
  *
- * Dialogs go through the single-slot DialogHost (new / derive / save-as);
- * the leave guard + entry checkpoint are the shared core/editor contract
- * pieces (M7/M8 parity).
+ * Dialogs go through the single-slot DialogHost (new / derive / save-as /
+ * import); the leave guard + entry checkpoint are the shared core/editor
+ * contract pieces (M7/M8 parity). The toolbar also carries the wave-3 D
+ * areas: 恢复上次保存 (restore last saved) and 导入/导出 (§5.7 file ops).
  */
 
 import {
+  DownloadOutlined,
   FullscreenExitOutlined,
   FullscreenOutlined,
   RedoOutlined,
+  RollbackOutlined,
   SaveOutlined,
   UndoOutlined,
+  UploadOutlined,
 } from '@ant-design/icons';
 import { history } from '@umijs/max';
 import type { TabsProps } from 'antd';
@@ -49,10 +53,19 @@ import {
 } from '@/core/editor/contract/use-leave-guard';
 import type { EditorSession } from '@/core/editor/session';
 import { useEditorSession } from '@/core/editor/use-editor-session';
+import type { ImportWidgetDialogPayload } from './contract/import-dialog';
 import type { SaveAsWidgetDialogPayload } from './contract/save-as-dialog';
+import { useRestoreSaved } from './contract/use-restore-saved';
 import { useWidgetSave } from './contract/use-widget-save';
 import { DialogHost, useWidgetEditorDialogs } from './dialog-host';
 import type { WidgetEditorDoc } from './draft-convert';
+import {
+  exportWidgetTypeDraft,
+  importWidgetTypeFile,
+  type WidgetImport,
+  WidgetImportError,
+  writeImportedDoc,
+} from './import-export';
 import { WidgetMetadataPanel } from './metadata';
 import type { WidgetConsoleEntry, WidgetPreviewError } from './preview';
 import { WidgetPreview } from './preview';
@@ -223,6 +236,80 @@ export function WidgetEditorShell({
       history.push('/dashboards');
     },
   });
+
+  // ---- wave-3 D toolbar area 1: restore last saved (§5.2) ----
+  const { canRestore, restore } = useRestoreSaved({ session });
+
+  const handleRestore = useCallback(() => {
+    modal.confirm({
+      title: formatMessage({
+        id: 'editor.widget.io.restoreTitle',
+        defaultMessage: 'Restore the last saved version?',
+      }),
+      content: formatMessage({
+        id: 'editor.widget.io.restoreText',
+        defaultMessage: 'The draft reverts to the most recently saved state.',
+      }),
+      okText: formatMessage({
+        id: 'editor.widget.io.restoreOk',
+        defaultMessage: 'Restore',
+      }),
+      onOk: () => {
+        restore();
+        message.success(
+          formatMessage({
+            id: 'editor.widget.io.restored',
+            defaultMessage: 'Restored to the last saved version',
+          }),
+        );
+      },
+    });
+  }, [modal, formatMessage, message, restore]);
+
+  // ---- wave-3 D toolbar area 2: import / export (§5.7) ----
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleExport = useCallback(() => {
+    exportWidgetTypeDraft(session.current);
+  }, [session]);
+
+  const handleImportFile = useCallback(
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      // reset so picking the same file again re-fires change
+      event.target.value = '';
+      if (!file) {
+        return;
+      }
+      try {
+        const result: WidgetImport = await importWidgetTypeFile(file);
+        dialogs.openDialog('import', {
+          result,
+          onConfirm: (doc: WidgetEditorDoc) => writeImportedDoc(session, doc),
+        } satisfies ImportWidgetDialogPayload);
+      } catch (error) {
+        if (error instanceof WidgetImportError) {
+          const keyId =
+            error.code.charAt(0).toUpperCase() + error.code.slice(1);
+          message.error(
+            formatMessage({
+              id: `editor.widget.io.import${keyId}`,
+              defaultMessage: 'Import refused',
+            }),
+          );
+        } else {
+          console.error('[widget import] read failed', error);
+          message.error(
+            formatMessage({
+              id: 'editor.widget.io.importReadFailed',
+              defaultMessage: 'Reading the file failed.',
+            }),
+          );
+        }
+      }
+    },
+    [dialogs, session, message, formatMessage],
+  );
 
   const run = useCallback(() => {
     setRunId((current) => current + 1);
@@ -591,6 +678,20 @@ export function WidgetEditorShell({
         </Tooltip>
         <Tooltip
           title={formatMessage({
+            id: 'editor.widget.io.restore',
+            defaultMessage: 'Restore last saved',
+          })}
+        >
+          <Button
+            size="small"
+            icon={<RollbackOutlined />}
+            disabled={!canRestore}
+            data-testid="we-toolbar-restore"
+            onClick={handleRestore}
+          />
+        </Tooltip>
+        <Tooltip
+          title={formatMessage({
             id: 'editor.widget.editor.toolbar.run',
             defaultMessage: 'Run',
           })}
@@ -621,6 +722,40 @@ export function WidgetEditorShell({
             })}
           </Button>
         </Tooltip>
+        <Tooltip
+          title={formatMessage({
+            id: 'editor.widget.io.import',
+            defaultMessage: 'Import',
+          })}
+        >
+          <Button
+            size="small"
+            icon={<UploadOutlined />}
+            data-testid="we-toolbar-import"
+            onClick={() => fileInputRef.current?.click()}
+          />
+        </Tooltip>
+        <Tooltip
+          title={formatMessage({
+            id: 'editor.widget.io.export',
+            defaultMessage: 'Export JSON',
+          })}
+        >
+          <Button
+            size="small"
+            icon={<DownloadOutlined />}
+            data-testid="we-toolbar-export"
+            onClick={handleExport}
+          />
+        </Tooltip>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".json,application/json"
+          onChange={(event) => void handleImportFile(event)}
+          hidden
+          data-testid="we-toolbar-import-input"
+        />
         <Tooltip
           title={formatMessage({
             id: 'editor.widget.editor.toolbar.undo',
