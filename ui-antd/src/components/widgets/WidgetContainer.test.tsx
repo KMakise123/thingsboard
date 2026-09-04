@@ -6,12 +6,14 @@
  */
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { App as AntdApp } from 'antd';
 import { lazy } from 'react';
 import { createIntl, RawIntlProvider } from 'react-intl';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { StatesController } from '@/components/dashboard/use-states-controller';
 import type { DashboardStateParams } from '@/core/dashboard/states';
 import zhDashboards from '@/locales/zh-CN/dashboards';
+import zhWidgetKit from '@/locales/zh-CN/widget-kit';
 import { EntityType } from '@/types/tb/entity';
 import type { Timewindow } from '@/types/tb/timewindow';
 import type { Widget, WidgetLayout } from '@/types/tb/widget';
@@ -20,7 +22,10 @@ import { PendingWidgetPlaceholder } from './placeholders';
 import { WIDGET_REGISTRY } from './registry';
 import { WidgetContainer } from './WidgetContainer';
 
-const intl = createIntl({ locale: 'zh-CN', messages: { ...zhDashboards } });
+const intl = createIntl({
+  locale: 'zh-CN',
+  messages: { ...zhDashboards, ...zhWidgetKit },
+});
 
 /**
  * W2 fills the builtin registry with real widgets, so the container tests
@@ -29,8 +34,8 @@ const intl = createIntl({ locale: 'zh-CN', messages: { ...zhDashboards } });
 const TEST_PENDING_FQN = 'system.test.pending_widget';
 
 const getWidgetTypeByFqn = vi.hoisted(() => vi.fn());
-vi.mock('@/services/tb/dashboard', () => ({
-  getWidgetTypeByFqn: (...args: unknown[]) => getWidgetTypeByFqn(...args),
+vi.mock('@/services/tb/widget-type', () => ({
+  getWidgetTypeByFullFqn: (...args: unknown[]) => getWidgetTypeByFqn(...args),
 }));
 
 /** Capture the contract props the builtin entry receives. */
@@ -92,19 +97,21 @@ function renderContainer(widget: Widget) {
   return render(
     <RawIntlProvider value={intl}>
       <QueryClientProvider client={queryClient}>
-        <WidgetContainer
-          widgetId="w1"
-          widget={widget}
-          layout={layout}
-          dashboardTimewindow={dashboardTimewindow}
-          aliases={{
-            'alias-1': [
-              { entityType: EntityType.DEVICE, id: 'dev-1', name: 'Dev 1' },
-            ],
-          }}
-          states={statesStub}
-          isMobile={false}
-        />
+        <AntdApp>
+          <WidgetContainer
+            widgetId="w1"
+            widget={widget}
+            layout={layout}
+            dashboardTimewindow={dashboardTimewindow}
+            aliases={{
+              'alias-1': [
+                { entityType: EntityType.DEVICE, id: 'dev-1', name: 'Dev 1' },
+              ],
+            }}
+            states={statesStub}
+            isMobile={false}
+          />
+        </AntdApp>
       </QueryClientProvider>
     </RawIntlProvider>,
   );
@@ -171,19 +178,46 @@ describe('WidgetContainer', () => {
     ).toBeInTheDocument();
   });
 
-  it('maps a react-1 descriptor to unsupported-custom', async () => {
+  it('compiles and renders a react-1 custom widget through the resolver', async () => {
     getWidgetTypeByFqn.mockResolvedValue({
       fqn: 'system.custom.foo',
-      descriptor: { runtime: 'react-1' },
+      version: 2,
+      descriptor: {
+        runtime: 'react-1',
+        schemaVersion: 1,
+        source: {
+          tsx: [
+            'export default function Foo() {',
+            '  return <div data-testid="custom-foo">compiled ok</div>;',
+            '}',
+          ].join('\n'),
+        },
+      },
     });
     renderContainer(makeWidget('system.custom.foo'));
     await waitFor(() => {
+      expect(screen.getByTestId('custom-foo')).toBeInTheDocument();
+    });
+    expect(screen.getByText('compiled ok')).toBeInTheDocument();
+  });
+
+  it('maps a broken react-1 source to the compile-broken panel (no crash)', async () => {
+    getWidgetTypeByFqn.mockResolvedValue({
+      fqn: 'system.custom.bad',
+      version: 1,
+      descriptor: {
+        runtime: 'react-1',
+        schemaVersion: 1,
+        source: { tsx: 'const broken = ;' },
+      },
+    });
+    renderContainer(makeWidget('system.custom.bad'));
+    await waitFor(() => {
       expect(
-        document.querySelector(
-          '[data-widget-placeholder="unsupported-custom"]',
-        ),
+        document.querySelector('[data-widget-broken="compile"]'),
       ).not.toBeNull();
     });
+    expect(screen.getByText('自定义组件编译失败')).toBeInTheDocument();
   });
 
   it('expands datasources for the widget context (alias resolved)', async () => {

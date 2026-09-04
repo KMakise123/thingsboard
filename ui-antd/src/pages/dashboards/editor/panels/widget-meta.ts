@@ -72,9 +72,9 @@ export function settingsSchemaFromMeta(meta: unknown): FormProperty[] | null {
 }
 
 /**
- * ② probed digest (services/tb/dashboard WidgetTypeDigest). Only react-1
- * descriptors carry a React-consumable settingsForm; CE (Angular) bodies
- * never qualify.
+ * ② probed widget type (services/tb/widget-type getWidgetTypeByFullFqn).
+ * Only react-1 descriptors carry a React-consumable settingsForm; CE
+ * (Angular) bodies never qualify.
  */
 export function settingsSchemaFromDigest(
   digest: unknown,

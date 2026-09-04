@@ -33,6 +33,7 @@ import settings from './zh-CN/settings';
 import tenantProfiles from './zh-CN/tenant-profiles';
 import tenants from './zh-CN/tenants';
 import users from './zh-CN/users';
+import widgetKit from './zh-CN/widget-kit';
 
 export default {
   ...common,
@@ -64,4 +65,5 @@ export default {
   ...editorWidgetEditor,
   ...editorRulechainPage,
   ...ruleNode,
+  ...widgetKit,
 };

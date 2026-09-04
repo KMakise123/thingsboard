@@ -52,11 +52,9 @@ vi.mock('@/pages/dashboards/editor/dialogs/host', () => ({
 
 const probeGetWidgetType = vi.hoisted(() => vi.fn());
 
-vi.mock('@/services/tb/dashboard', async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import('@/services/tb/dashboard')>();
-  return { ...actual, getWidgetTypeByFqn: probeGetWidgetType };
-});
+vi.mock('@/services/tb/widget-type', () => ({
+  getWidgetTypeByFullFqn: probeGetWidgetType,
+}));
 
 /** react-1 descriptor bodies the probe answers with (spec §3.4 ②). */
 function stubProbe(): void {

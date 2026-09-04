@@ -31,8 +31,8 @@ const intl = createIntl({
   messages: { ...zhEditorCommon, ...zhEditorDashboard },
 });
 
-vi.mock('@/services/tb/dashboard', () => ({
-  getWidgetTypeByFqn: vi.fn(),
+vi.mock('@/services/tb/widget-type', () => ({
+  getWidgetTypeByFullFqn: vi.fn(),
 }));
 
 beforeEach(() => {

@@ -36,10 +36,9 @@ import { tbHttp } from './http';
  * BAD_REQUEST_PARAMS). Returns the base WidgetType — descriptor included,
  * image/description/tags/resources absent.
  *
- * Named `…ByFullFqn` (not `…ByFqn`) because `services/tb/dashboard.ts`
- * already exports a v1 `getWidgetTypeByFqn` existence probe over the same
- * endpoint; this typed version is the M9 surface the resolver chain and
- * editor consume.
+ * The M9 wave-2 registry resolver folded the old v1 dashboard-service
+ * existence probe (`getWidgetTypeByFqn` in services/tb/dashboard.ts) into
+ * this typed function — the single widgetType-by-fqn read path.
  */
 export async function getWidgetTypeByFullFqn(fqn: string): Promise<WidgetType> {
   return tbHttp.get<WidgetType>('/api/widgetType', { fqn });

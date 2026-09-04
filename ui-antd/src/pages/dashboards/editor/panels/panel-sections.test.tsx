@@ -51,14 +51,9 @@ vi.mock('@/pages/dashboards/editor/dialogs/host', () => ({
   }),
 }));
 
-vi.mock('@/services/tb/dashboard', async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import('@/services/tb/dashboard')>();
-  return {
-    ...actual,
-    getWidgetTypeByFqn: vi.fn(() => Promise.reject(new Error('not found'))),
-  };
-});
+vi.mock('@/services/tb/widget-type', () => ({
+  getWidgetTypeByFullFqn: vi.fn(() => Promise.reject(new Error('not found'))),
+}));
 
 function renderPanel(
   setup: PanelTestSetup,

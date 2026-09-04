@@ -34,7 +34,7 @@ const commitHash =
  */
 const PUBLIC_PATH: string = '/';
 
-export default defineConfig({
+const umiConfig: ReturnType<typeof defineConfig> = defineConfig({
   alias: {
     '@root': join(__dirname, '..'),
   },
@@ -220,3 +220,5 @@ export default defineConfig({
     __UTOO_VERSION__: require('@utoo/pack/package.json').version,
   },
 });
+
+export default umiConfig;

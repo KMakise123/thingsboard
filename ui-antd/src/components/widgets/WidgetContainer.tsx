@@ -1,12 +1,16 @@
 /**
  * WidgetContainer — the runtime shell around one widget instance
- * (ADR 0003). Responsibilities:
+ * (ADR 0003; M9 wave-2 resolution-driven). Responsibilities:
  *   - resolve the widget type: builtin registry → lazy component; otherwise
- *     probe GET /api/widgetType?fqn and map to one of the three placeholder
- *     states (unsupported-angular / unsupported-custom / missing);
+ *     fetch the type through the typed transport (getWidgetTypeByFullFqn)
+ *     and map it to a resolution: compiled custom widget ('custom'),
+ *     compile-broken card ('custom-broken'), or the placeholder states
+ *     (unsupported-angular / missing);
  *   - compute the widget runtime context (effective timewindow, expanded
- *     datasources) so W2 widget components only consume `ctx`;
- *   - render inside Suspense while lazy chunks load.
+ *     datasources) so widget components only consume `ctx`;
+ *   - render inside Suspense while lazy chunks load;
+ *   - publish the edit-mode marker to compiled custom widgets via context
+ *     (the resolution identity must not change when edit mode flips).
  *
  * The container knows nothing about grid geometry (TbGridLayout positions
  * it) or copy (placeholders read the dashboards locale domain).
@@ -17,7 +21,7 @@ import { Suspense, useMemo } from 'react';
 import type { StatesController } from '@/components/dashboard/use-states-controller';
 import type { AliasResolution } from '@/core/dashboard/alias-resolver';
 import { expandWidgetDatasources } from '@/core/dashboard/datasources';
-import { getWidgetTypeByFqn } from '@/services/tb/dashboard';
+import { getWidgetTypeByFullFqn } from '@/services/tb/widget-type';
 import type { DashboardFilter } from '@/types/tb/dashboard';
 import type { Timewindow } from '@/types/tb/timewindow';
 import type { Widget, WidgetLayout } from '@/types/tb/widget';
@@ -26,8 +30,10 @@ import {
   type WidgetComponentProps,
   type WidgetRuntimeContext,
 } from './contract';
+import { CustomWidgetBrokenPanel } from './custom-widget-broken';
+import { CustomWidgetEditContext } from './custom-widget-host';
 import { WidgetPlaceholder } from './placeholders';
-import { builtinWidgetEntry, resolveProbedWidgetType } from './registry';
+import { builtinWidgetEntry, resolveWidgetTypeResolution } from './registry';
 
 export interface WidgetContainerProps {
   widgetId: string;
@@ -39,6 +45,8 @@ export interface WidgetContainerProps {
   filters?: Record<string, DashboardFilter>;
   states: StatesController;
   isMobile: boolean;
+  /** dashboard edit-mode marker surfaced to compiled custom widget ctx. */
+  isEdit?: boolean;
 }
 
 function isNotFound(error: unknown): boolean {
@@ -59,13 +67,14 @@ export function WidgetContainer({
   filters,
   states,
   isMobile,
+  isEdit = false,
 }: WidgetContainerProps) {
   const fqn = widget.typeFullFqn;
   const entry = builtinWidgetEntry(fqn);
 
   const probe = useQuery({
     queryKey: ['widgetType', fqn],
-    queryFn: () => getWidgetTypeByFqn(fqn),
+    queryFn: () => getWidgetTypeByFullFqn(fqn),
     enabled: !entry,
     retry: false,
     staleTime: Number.POSITIVE_INFINITY,
@@ -84,6 +93,14 @@ export function WidgetContainer({
       isMobile,
     }),
     [widget, dashboardTimewindow, aliases, filters, states, isMobile],
+  );
+
+  const resolution = useMemo(
+    () =>
+      probe.data === undefined
+        ? undefined
+        : resolveWidgetTypeResolution(fqn, probe.data),
+    [fqn, probe.data],
   );
 
   const body = (() => {
@@ -110,16 +127,41 @@ export function WidgetContainer({
       }
       return <WidgetPlaceholder reason="missing" fqn={fqn} />;
     }
-    const resolution = resolveProbedWidgetType(fqn, probe.data);
-    if (resolution.kind === 'unsupported-custom') {
-      return <WidgetPlaceholder reason="unsupported-custom" fqn={fqn} />;
+    if (!resolution) {
+      return <Spin size="small" />;
     }
-    return <WidgetPlaceholder reason="unsupported-angular" fqn={fqn} />;
+    switch (resolution.kind) {
+      case 'custom': {
+        const Component = resolution.component;
+        return (
+          <Component
+            fqn={fqn}
+            widgetId={widgetId}
+            widget={widget}
+            layout={layout}
+            ctx={ctx}
+          />
+        );
+      }
+      case 'custom-broken':
+        return (
+          <CustomWidgetBrokenPanel
+            fqn={resolution.fqn}
+            error={resolution.error}
+          />
+        );
+      case 'unsupported-angular':
+        return <WidgetPlaceholder reason="unsupported-angular" fqn={fqn} />;
+      default:
+        return <WidgetPlaceholder reason="missing" fqn={fqn} />;
+    }
   })();
 
   return (
-    <div style={{ height: '100%', width: '100%' }}>
-      <Suspense fallback={<Spin size="small" />}>{body}</Suspense>
-    </div>
+    <CustomWidgetEditContext.Provider value={isEdit}>
+      <div style={{ height: '100%', width: '100%' }}>
+        <Suspense fallback={<Spin size="small" />}>{body}</Suspense>
+      </div>
+    </CustomWidgetEditContext.Provider>
   );
 }

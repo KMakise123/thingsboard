@@ -31,6 +31,7 @@ import settings from './en-US/settings';
 import tenantProfiles from './en-US/tenant-profiles';
 import tenants from './en-US/tenants';
 import users from './en-US/users';
+import widgetKit from './en-US/widget-kit';
 
 export default {
   ...common,
@@ -62,4 +63,5 @@ export default {
   ...editorWidgetEditor,
   ...editorRulechainPage,
   ...ruleNode,
+  ...widgetKit,
 };

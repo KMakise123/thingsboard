@@ -1,0 +1,61 @@
+{
+  "title": "M9 custom widget render fixture",
+  "configuration": {
+    "entityAliases": {
+      "alias-1": {
+        "id": "alias-1",
+        "alias": "Thermostats",
+        "filter": {
+          "entityType": "DEVICE",
+          "resolveMultiple": true,
+          "deviceTypes": [{ "deviceType": "thermostat" }]
+        }
+      }
+    },
+    "filters": {},
+    "widgets": {
+      "w1": {
+        "typeFullFqn": "tenant.temp_gauge",
+        "sizeX": 4,
+        "sizeY": 3,
+        "row": 0,
+        "col": 0,
+        "config": {
+          "title": "Temperature gauge",
+          "showTitle": true,
+          "useDashboardTimewindow": true,
+          "datasources": [
+            {
+              "type": "entity",
+              "entityAliasId": "alias-1",
+              "dataKeys": [
+                {
+                  "name": "temperature",
+                  "type": "timeseries",
+                  "label": "Temperature",
+                  "units": "°C",
+                  "decimals": 1
+                }
+              ]
+            }
+          ],
+          "settings": { "theme": "dark" },
+          "actions": {}
+        }
+      }
+    },
+    "states": {
+      "default": {
+        "name": "Default",
+        "root": true,
+        "layouts": {
+          "main": {
+            "widgets": {
+              "w1": { "sizeX": 4, "sizeY": 3, "row": 0, "col": 0 }
+            }
+          }
+        }
+      }
+    }
+  }
+}
