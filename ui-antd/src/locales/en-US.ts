@@ -7,6 +7,7 @@ import alarms from './en-US/alarms';
 import assetProfiles from './en-US/asset-profiles';
 import assets from './en-US/assets';
 import common from './en-US/common';
+import crashGuard from './en-US/crash-guard';
 import customers from './en-US/customers';
 import dashboards from './en-US/dashboards';
 import deviceProfiles from './en-US/device-profiles';
@@ -37,6 +38,7 @@ import widgetKit from './en-US/widget-kit';
 
 export default {
   ...common,
+  ...crashGuard,
   ...login,
   ...menu,
   ...account,

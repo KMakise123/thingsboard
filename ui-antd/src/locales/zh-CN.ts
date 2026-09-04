@@ -9,6 +9,7 @@ import alarms from './zh-CN/alarms';
 import assetProfiles from './zh-CN/asset-profiles';
 import assets from './zh-CN/assets';
 import common from './zh-CN/common';
+import crashGuard from './zh-CN/crash-guard';
 import customers from './zh-CN/customers';
 import dashboards from './zh-CN/dashboards';
 import deviceProfiles from './zh-CN/device-profiles';
@@ -39,6 +40,7 @@ import widgetKit from './zh-CN/widget-kit';
 
 export default {
   ...common,
+  ...crashGuard,
   ...login,
   ...menu,
   ...account,
