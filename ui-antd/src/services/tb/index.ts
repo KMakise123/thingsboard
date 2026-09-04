@@ -18,6 +18,7 @@ export * from './device';
 export * from './entity-view';
 export * from './rule-chain';
 export * from './user';
+export * from './widget-type';
 export * from './version-control';
 export * from './attributes';
 export * from './alarm-rules';

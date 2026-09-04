@@ -1,0 +1,108 @@
+/**
+ * Widget-type transport (M9 wave-1 F surface).
+ *
+ * Endpoints verified against backend WidgetTypeController.java
+ * (application/.../controller/WidgetTypeController.java, SA/TA-scoped,
+ * list also CUSTOMER_USER) and the openapi snapshot:
+ *
+ *   GET    /api/widgetType?fqn={scope-qualified fqn}  → WidgetType
+ *          (hidden upstream, present in the openapi snapshot; NOTE it
+ *          returns the BASE entity — descriptor included, details fields
+ *          absent — exactly what the registry resolver chain needs)
+ *   GET    /api/widgetType/{id}?includeResources=     → WidgetTypeDetails
+ *   POST   /api/widgetType?updateExistingByFqn=       → WidgetTypeDetails
+ *          (upsert: with id = update, without = create; tenantId is
+ *          force-overwritten server-side; fqn is immutable on update)
+ *   DELETE /api/widgetType/{id}                       → 200, void
+ *   GET    /api/widgetTypes?pageSize&page&…           → PageData<WidgetTypeInfo>
+ */
+
+import type { PageData, PageLink } from '@/types/tb/page';
+import { pageLinkToQueryParams } from '@/types/tb/page';
+import type {
+  WidgetType,
+  WidgetTypeDetails,
+  WidgetTypeInfo,
+  WidgetTypeListQuery,
+} from '@/types/tb/widget-type';
+
+import { tbHttp } from './http';
+
+/**
+ * GET /api/widgetType?fqn= — read by FQN. `fqn` must be scope-qualified
+ * (`tenant.my_widget` / `system.my_widget`), i.e. the form carried by
+ * dashboards' `Widget.typeFullFqn`; the entity's own `fqn` field is the
+ * short scope-less name and will NOT work here (backend throws
+ * BAD_REQUEST_PARAMS). Returns the base WidgetType — descriptor included,
+ * image/description/tags/resources absent.
+ *
+ * Named `…ByFullFqn` (not `…ByFqn`) because `services/tb/dashboard.ts`
+ * already exports a v1 `getWidgetTypeByFqn` existence probe over the same
+ * endpoint; this typed version is the M9 surface the resolver chain and
+ * editor consume.
+ */
+export async function getWidgetTypeByFullFqn(fqn: string): Promise<WidgetType> {
+  return tbHttp.get<WidgetType>('/api/widgetType', { fqn });
+}
+
+/**
+ * GET /api/widgetType/{widgetTypeId} — full details (editor entry /
+ * /widgets/editor/:widgetTypeId load). `includeResources` attaches the
+ * resource export metadata for round-trip exports (P10 half-item).
+ */
+export async function getWidgetTypeById(
+  widgetTypeId: string,
+  options?: { includeResources?: boolean },
+): Promise<WidgetTypeDetails> {
+  return options?.includeResources
+    ? tbHttp.get<WidgetTypeDetails>(`/api/widgetType/${widgetTypeId}`, {
+        includeResources: true,
+      })
+    : tbHttp.get<WidgetTypeDetails>(`/api/widgetType/${widgetTypeId}`);
+}
+
+/**
+ * POST /api/widgetType — create or update (upsert; server forces tenantId,
+ * rejects fqn changes). Returns the SAVED details with the new optimistic-
+ * lock `version` backfilled. `updateExistingByFqn` updates an existing
+ * type matched by fqn instead of creating a new one. A stale `version`
+ * surfaces as a 409 ServerError (conflict handling is the caller's job).
+ */
+export async function saveWidgetType(
+  details: WidgetTypeDetails,
+  updateExistingByFqn?: boolean,
+): Promise<WidgetTypeDetails> {
+  return updateExistingByFqn === undefined
+    ? tbHttp.post<WidgetTypeDetails>('/api/widgetType', details)
+    : tbHttp.post<WidgetTypeDetails>('/api/widgetType', details, {
+        updateExistingByFqn,
+      });
+}
+
+/** DELETE /api/widgetType/{widgetTypeId} — dashboards referencing the fqn degrade to placeholders. */
+export async function deleteWidgetType(widgetTypeId: string): Promise<void> {
+  await tbHttp.delete(`/api/widgetType/${widgetTypeId}`);
+}
+
+/**
+ * GET /api/widgetTypes — paged WidgetTypeInfo list (NO descriptor; the
+ * restricted-derivation source for built-in types). Sort property accepts
+ * `createdTime | name | deprecated | tenantId` via `pageLink.sortOrder`.
+ */
+export async function getWidgetTypes(
+  pageLink: PageLink,
+  query?: WidgetTypeListQuery,
+): Promise<PageData<WidgetTypeInfo>> {
+  return tbHttp.get<PageData<WidgetTypeInfo>>('/api/widgetTypes', {
+    ...pageLinkToQueryParams(pageLink),
+    ...(query?.tenantOnly === undefined ? {} : { tenantOnly: query.tenantOnly }),
+    ...(query?.fullSearch === undefined ? {} : { fullSearch: query.fullSearch }),
+    ...(query?.deprecatedFilter === undefined
+      ? {}
+      : { deprecatedFilter: query.deprecatedFilter }),
+    ...(query?.widgetTypeList?.length
+      ? { widgetTypeList: query.widgetTypeList.join(',') }
+      : {}),
+    ...(query?.scadaFirst === undefined ? {} : { scadaFirst: query.scadaFirst }),
+  });
+}
