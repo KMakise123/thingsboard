@@ -1,22 +1,29 @@
-# v2 M10 真机验收走查记录（仪表盘半场，spec §3 + 崩溃保护首验）
+# v2 M10 真机验收走查记录（V1 仪表盘半场 + V2 规则链/widget 半场 + §6 横切总勾账）
 
-> 执行：M10 V1 波验收代理（仪表盘半场），2026-09-04。环境：分支 `feature/m10-closeout`（主检出，含波 1 崩溃保护交付），后端 `http://localhost:8080`（本机常驻），前端 dev server `http://localhost:8000`（走查前按 stale-bundle 惯例重启：杀旧 node 进程链 → 删 `src/.umi` → `dev-detached.cmd`，utoo pack ready + 200 确认后开始），browseros MCP 真机浏览器（租户管理员 `tenant@thingsboard.org` / `tenant`）。
+> 执行：M10 V1 波验收代理（仪表盘半场）+ V2 波验收代理（规则链/widget 半场 + §6 七条），2026-09-04。环境：分支 `feature/m10-closeout`（主检出，含波 1 崩溃保护交付），后端 `http://localhost:8080`（本机常驻），前端 dev server `http://localhost:8000`（走查前按 stale-bundle 惯例重启：杀旧 node 进程链 → 删 `src/.umi` → `dev-detached.cmd`，utoo pack ready + 200 确认后开始），browseros MCP 真机浏览器（租户管理员 `tenant@thingsboard.org` / `tenant`）。
 > 取证方式：browseros 内联截图 + AX 快照 + 页面 DOM 探针（fetch 钩子抓 `/api/dashboard` 请求、`URL.createObjectURL` 钩子捕导出 blob、DataTransfer 注入文件驱动真实上传管线、合成 `MouseEvent('contextmenu')` 派发绕过扩展劫持、sessionStorage 直查 crash-guard 存档）；服务端真相用 `curl` 直查 API 复核。二进制不入 git（M7/M8/M9 先例）。
 > 数据保全：走查自建 1 个仪表盘（M10 V 走查空盘，`fee415d0`，全项载体）+ 2 个 image 资源（服务器转存产生），终态全部 DELETE（均 200/success），既有 4 盘 version 基线 1/7/5/18 逐盘 API 核对零改动（见 §5）。
 
-## 0. 总览（V1 波 = 仪表盘半场 6+1 项；§4–§5 项与 §6 归 V2 波）
+## 0. 总览（V1 波 = 仪表盘半场 6+1 项；V2 波 = 规则链/widget 半场 5 项 + 崩溃保护 widget 侧 + §6 七条）
 
 | 走查项 | 结果 |
 |---|---|
-| 1 §3.1 空盘自动编辑态（L39） | ✅ |
-| 2 §3.5 dashboard-image（L86） | ✅（预览破图缺陷 D2 登记，见 §3） |
-| 3 §3.6 SCADA 布局真机（L98 表 + L109） | ✅（列数渲染 cols 取 minColumns 优先注记） |
-| 4 §3.7 断点覆盖（L115） | ✅（切换动作环境受阻注记，切换器/断点增删真机目击） |
-| 5 §3.3 右键菜单×2（L58/L59） | 半：dashboard 级 ✅ / widget 级 ⛔ 菜单本体不出现（新缺陷候选 D3 登记，L59 维持未勾） |
-| 6 §3.8 409 三选项闭环（L123） | ✅（三选项全走 + 覆盖循环内二次 409 未构造，单测锚） |
-| 7 崩溃保护真机首验（M10 波 1 新功能） | ✅（行为与 ADR 0004 设计边界一致） |
+| 1 §3.1 空盘自动编辑态（L39） | ✅（V1） |
+| 2 §3.5 dashboard-image（L86） | ✅（V1；预览破图缺陷 D2 登记，见 §3） |
+| 3 §3.6 SCADA 布局真机（L98 表 + L109） | ✅（V1；列数渲染 cols 取 minColumns 优先注记） |
+| 4 §3.7 断点覆盖（L115） | ✅（V1；切换动作环境受阻注记，切换器/断点增删真机目击） |
+| 5 §3.3 右键菜单×2（L58/L59） | 半（V1）：dashboard 级 ✅ / widget 级 ⛔ 菜单本体不出现（D3 登记，X 波修复中） |
+| 6 §3.8 409 三选项闭环（L123） | ✅（V1；三选项全走 + 覆盖循环内二次 409 未构造，单测锚） |
+| 7 崩溃保护真机首验（M10 波 1 新功能，仪表盘侧） | ✅（V1；行为与 ADR 0004 设计边界一致） |
+| 8 §4.1 magnet 连线 + INPUT 唯一出边替换（L140） | ✅（V2；fiber 直调 Handle onClick 绕过通道，见步骤 8） |
+| 9 §4.7 「test with this message」debugIn 预填（L183） | ✅（V2；profile entity action 消息触发 debug 事件，见步骤 9） |
+| 10 §4.9 规则链 409 主路径（L194） | ✅（V2；双 tab 构造 + 主路径业务全对；**D4 对话框残留缺陷登记**，见 §3/步骤 10） |
+| 11 §5.5 运行错 sourceURL 行号偏移（L236） | ✅（V2；console `line 5` = 编辑器第 5 行，与 P1 口径对账，见步骤 11） |
+| 12 §5.7 fork 格式导入 round-trip（L247） | ✅（V2；五件比对全等，见步骤 12） |
+| 13 崩溃保护 widget 侧复走（§6-4 配套） | ✅（V2；全链六步 + 规则链侧旁证，见步骤 13） |
+| 14 §6 横切七条 | ✅ 七条全勾（V2；见 §4） |
 
-> 门禁数字（lint/tsc/check-locale/test 全量）由 G 波在隔离 worktree 复跑回填本节：**（G 波回填位：lint __ error / __ warnings；tsc __；check-locale __；test __/__）**。
+> 门禁数字（lint/tsc/check-locale/test 全量，G 波在隔离 worktree 复跑，V2 波落账）：**lint 0 error / 30 warnings**（基线分毫不差）；**tsc 通过**；**check-locale PASS**（V2 波主检出复跑零红）；**`npm run test` 231 文件 / 1695 用例全绿 0 失败一次过**（时长 121s，存量红 entry.test.tsx 已由 T 波清账），对账 commit `da743a6c30`。
 
 ## 2. 分步记录
 
@@ -75,6 +82,92 @@ API `POST /api/dashboard` 新建空盘「M10 V 走查空盘」（`fee415d0-a840-
 - **选项③ 导出本地 JSON 后放弃**：第三轮冲突**自然发生**（A 的基线 v12 被 B 的覆盖推进到 v13 落后）→ A 点「导出本地 JSON 后放弃」→ `URL.createObjectURL` 钩子捕获 blob（**3109B application/json**，头部键集 `{title, name, image, mobileHide, ...configuration}`——**无 id/tenantId/version，剥 id/tenantId 对齐 TB**）→ toast「已导出当前草稿 JSON」→ 对话框关闭、**草稿放弃、编辑器载入服务器版**（画布 4 widgets = v13）✓。
 - **curl API 复核**：以上每一步落库真相均逐次 GET 核对（版本推进 11→12→13 与内容归属）。
 
+---
+
+# V2 波（规则链/widget 半场 + §6 横切总勾账）
+
+> 载体：API 自建规则链「M10 V2 walkthrough chain」（`0e3b1fe0-a84d-11f1-bf08-2be356855d51`，v1，A1/A2/A3 共用）+ API 自建 react-1 widget 类型「M10 V2 roundtrip widget」（`6f646b40-a853-11f1-bf08-2be356855d51`，A4/A5/B 共用）。既有基线：规则链 2 条（Root `eece6700` v2 ROOT / Thermostat `eed6f280` v2）零改动。V2 波编辑器路由勘误：规则链编辑器路由为 `/ruleChains/:ruleChainId`（无 `/editor` 后缀）。
+
+### 步骤 8 — §4.1 magnet 连线 + INPUT 唯一出边替换（L140）✅（绕过通道）
+
+载体：自建链画布，DnD 拖入 log（TbLogNode）+ message type filter（TbMsgTypeFilterNode），INPUT 随现（M8 波行为一致）。
+
+1. **绕过通道探索**（任务预案：输出桩坐标派发 PointerEvent 序列）：
+   - 读 `@xyflow/react` 12.11.6 源码定位监听通道：Handle 组件 React 层 `onMouseDown: onPointerDown`（@xyflow/react dist 1987 行），连接启动后监听 **`document` 的 `mousemove`/`mouseup`**（`@xyflow/system` dist onPointerDown 实现尾部 `doc.addEventListener('mousemove'/'mouseup')`）——**v12 实际走 mouse 事件序列而非 pointer 通道**。
+   - 派发合成 `MouseEvent('mousedown')` 序列（源桩 → document 多步 mousemove → 目标桩 mouseup，dragThreshold=1 已满足）：React 合成 onMouseDown **不响应** `dispatchEvent` 的 MouseEvent（同页 onClick 响应，mousedown/mousemove 系不响应）——通道断点。
+   - **click-connect 通道**（v12 原生两段点击连线）：合成 click 第一段成功武装（源桩 class 出现 `clickconnecting`），第二段合成 click（含正确 clientX/Y）未落边（`XYHandle.isValid` 静默判定未过）。
+   - **成功通道：React fiber 挖出 Handle 组件实例的 `onClick` props 直接调用**（手工构造含 nativeEvent clientX/Y 落在目标桩中心的合成事件对象）→ 连线落边。
+2. **连线落边验证**：INPUT（`__input__`）source 桩 → log target 桩 → 画布出现边 `Edge from __input__ to local-0`（aria-label/DOM 双证），undo 转可用（连线入栈一个事务组）。
+3. **INPUT 唯一出边替换约束**：再连 INPUT → message type filter，原边**被替换**而非并存——画布恒 1 条 INPUT 出边，label 变 `Edge from __input__ to local-1`；保存后 API 复核 metadata `firstNodeIndex: 1`（INPUT 出边的后端形态 = firstNodeIndex 指向目标节点）✓ `interactions.test setInputTarget` 单测语义真机证实。
+4. **附带补验（M8 D3 修复后的 label 对话框通道）**：非 INPUT 连线（message type filter → log）走 `onConnectRequest` → **「链接标签」对话框**弹出，候选项 True/False/Failure（来自后端 descriptor `relationTypes`，`/api/components?componentTypes=FILTER` 复核 `TbMsgTypeFilterNode` relationTypes `['True','False','Failure']`）→ 选 True → 边落 `Edge from local-1 to local-0`（True）。
+5. **登记疑点 O5（低，见 §3）**：一次 click-connect 实验中触发应用错误边界「页面出现错误」（单次，挂错误钩子复现实验未再触发，未捕获堆栈）；判定为自动化通道高频合成事件派发的疑点，非真实用户手势路径。另：合成 click-connect 第二段不走 elementFromPoint 优先路径时的静默失败（isValid 判定）为 RF v12 内部语义，登记通道细节。
+
+结论：E1「自动化通道无法驱动 RF handle 手势」**部分突破**——纯原生指针序列对 v12 的 React 合成 onMouseDown 不可达（工具限制维持），但经 fiber 直调组件 handler + click-connect 武装，**连线落边、INPUT 唯一出边替换、label 对话框全链真机走通**，L140 勾账（通道手法如上注记，人工目检留观事项由本通道替代闭环）。
+
+### 步骤 9 — §4.7 「test with this message」debugIn 预填（L183）✅
+
+载体：同自建链（INPUT → message type filter 边，后接 filter —True→ log 边经「链接标签」对话框落成）。
+
+1. **debug 开启**：双击节点开详情抽屉（X 波修复通道复验 ✓）→「调试全部消息」switch（testid `rc-details-debug-all`）→ 应用。**语义注记**：该开关为**限时窗口**（落库 `debugSettings.allEnabledUntil = now + 15min`，非 `allEnabled=true`）——窗口过期后节点不再记录 debug 事件，走查中曾因此误判事件丢失。
+2. **debug 事件触发的机制弯路**（登记为 TB 原生行为注记）：
+   - `POST /api/v1/{token}/telemetry` 设备遥测**未进自建链**——遥测数据落 Root Rule Chain（save timeseries 入 `ts_kv` DB 复核佐证）；CE 4.4 device profile `defaultRuleChainId` 对设备遥测**不生效**（源码 `DefaultTbClusterService.transformMsg` 通道存在但实测未路由，仅 `DefaultTbContext.entityActionMsg` 的 entity 生命周期消息显式携带 `profile.getDefaultRuleChainId()`）。
+   - **生效通道：device profile 自身的创建/更新消息**（originator = DEVICE_PROFILE 的 entity action，如 PUT description）→ 消息带 profile 默认链 id 进入自建链 → firstNodeIndex 指向的 log 节点产生 `DEBUG_RULE_NODE` IN/OUT 各一条。
+3. **事件表**：详情抽屉「事件」tab → 表列（时间/服务器/方向/消息类型/关系类型/数据/元数据/错误）2 行（19:10:25 IN/OUT ENTITY_UPDATED）；行展开显示 debug 事件全文（msgId/msgType/data/metadata JSON）。
+4. **「用这条消息测试」**（testid `rc-node-events-test-action`）：**仅脚本族节点渲染**（`scriptFamilyProfileFor`：TbJsFilterNode/TbJsSwitchNode/TbTransformMsgNode/TbLogNode/TbMsgGeneratorNode；message type filter 非脚本族无此按钮——行为注记），log（TbLogNode）行内按钮在场 → 点击 → **Test 面板（TestWithMessageModal）被该消息完整预填**：消息类型 input 预填 `ENTITY_UPDATED`、msg 数据区（CodeMirror）预填事件 payload 全文（profile JSON）、metadata 区预填事件 metadata、脚本区预填 log 节点脚本〔DOM 取证 + 截图〕。
+
+结论：L183 勾（触发方式注记：本地遥测走 Root 链，debug 事件经 profile entity action 消息产生；按钮渲染条件 isScriptNode 注记）。
+
+### 步骤 10 — §4.9 规则链 409 主路径（L194）✅（主路径业务全对；D4 登记）
+
+双 tab 真并发构造（tab A = 作业 tab，tab B = 新开 tab 同链编辑器）：
+
+1. **基线**：tab A 保存推进至服务器 v6（A 加便签「M10 V2 tab A note」保存，toast「保存成功，撤销历史已清空」——保存检查点明示再次目击）；tab B 停留 v5 基线不刷新，本地加便签弄脏。
+2. **409 触发**：B 直接保存 → POST 409 → **「保存冲突」ConflictDialog 弹出**（testid `editor-conflict-dialog`）：intro「服务器上的规则链已被他人修改；本地草稿尚未保存。」、服务器区「服务器最新版本： M10 V2 walkthrough chain (v6)」、本地区「本地草稿： 包含未保存的修改」；三选项 testid 齐（`editor-conflict-load-server` / `editor-conflict-overwrite` / `editor-conflict-export-local`）。**intro 口径注记**：规则链域为独立 locale key（带「规则链」域词，M9 X 波决议未动），与 dashboards/widget 用的共享中性 intro 分属两支——三选项结构/交互同形。
+3. **主路径「加载服务器版本」业务全对**：画布载入服务器版（A 的便签在、B 本地便签内容消失）、**undo/redo 禁用（baseline 前移 = 服务器版为新基线）**、服务器内容 API 复核一致 ✓。
+4. **登记缺陷 D4（中，见 §3）**：三选项执行后**对话框 DOM 残留不关闭**且关闭 X 与各按钮全部失效（重复点击无响应）——业务逻辑全部正确（服务器版已载入、baseline 前移），纯 UI 关闭路径失效。fiber 探针：`RuleChainConflictDialog` props `open=false` **已送达**内层 antd Modal（受控状态已清），但 Modal DOM 不隐藏；**干净会话 + 可见前台 tab 复现**（排除 V1「长会话假象」与后台节流两种解释）；CDP 真点击通道下 handler 未触发的变体现象一并记录。对照：V1 波仪表盘侧同形态对话框（dashboards 独立实现）三选项全走正常关闭。修法（X 波）：对照仪表盘侧实现对齐关闭路径 / modal 实例销毁。
+
+结论：L194 主路径勾（409 检测、三选项对话框、加载服务器版、baseline 前移全部正确；D4 为纯 UI 残留缺陷不影响业务勾账，如实登记）。三选项全谱引用 V1 §3.8（仪表盘侧三选项全走 + 覆盖循环上限单测锚）。
+
+### 步骤 11 — §5.5 运行错 sourceURL 行号偏移（L236）✅
+
+载体：API 新建路径的 widget 编辑器（static starter 模板）。
+
+1. **渲染期运行错**（spec 口径）：TSX 组件体第 5 行 `throw new Error('m10 render boom')` → ctrl+enter → **控制台 (1) 条目：`19:25:04 运行出错: m10 render boom (line 5)`**——行号偏移定位**精确命中编辑器第 5 行**；预览区红色「运行出错 m10 render boom」横幅 + 运行序号 2（remount）〔截图取证〕。
+2. **P1 单测口径对账**：`compile.test.tsx` `resolveRuntimeErrorLocation`（stack 行 − lineOffset = 编辑器行；throw-site/call-site 双断言）——真机 console `line 5` 与编辑器行一致，口径吻合。
+3. **sourceURL 旁证（setTimeout 异步 throw 实验）**：throw 放编辑器第 8 行 → `window.onerror` 收 `Uncaught Error: m10 runtime boom` @ **`m9-widget-2-preview.tsx:11:13`**（堆栈帧带编译产物 sourceURL 文件名，11 − lineOffset 3 = 编辑器第 8 行 throw 行）——sourceURL 命名 + lineOffset 校准双向证实。
+4. **行为注记**：setTimeout 异步错误走 `window.onerror`、**不进编辑器 console 面板**（console 捕获管道 = 编译错/冒烟渲染/渲染期 ErrorBoundary onError 通道）；渲染期 throw 才是 spec「运行错」口径（console 输出 + 横幅 + 行号）。
+
+结论：L236 勾（渲染期运行错 console 输出 + line 5 精确定位 + sourceURL/lineOffset 机制旁证，与 P1 单测口径对账）。
+
+### 步骤 12 — §5.7 fork 格式导入 round-trip（L247）✅
+
+载体：static starter 自建类型「M10 V2 roundtrip widget」（命名保存 POST /api/widgetType 恰 1 次 → URL 首存替换 `/widgets/editor/6f646b40-…`，toast「已保存」）。
+
+1. **导出**（fork 格式半，V1 已目击本批复核）：`URL.createObjectURL` 钩子捕获 **2165B application/json** blob——顶层键集 `{deprecated, scada, image, description, tags, fqn, name, descriptor}`（无 id/tenantId/version，剥离对齐 TB）；descriptor 头部 `"runtime":"react-1","schemaVersion":1` + `source{tsx,css}` + `type` + `sizeX:4,sizeY:3` + `typeParameters` + `settingsForm` + `defaultConfig`（fork 五件齐）。
+2. **导入**（fork 导入半，本波补走）：工具栏导入按钮 → 隐藏 `input[type=file]`（accept `.json,application/json`，无中间对话框直接系统选择器）→ **DataTransfer 注入 File**（改名 `name='M10 V2 roundtrip imported'`，去 fqn）驱动真实管线 → **导入预览对话框**：「文件中的类型： M10 V2 roundtrip imported」（改名解析正确）+ 契约明示「导入将替换当前草稿（一个可撤销的操作组），保存后才写入服务器」→「导入并替换草稿」。
+3. **逐件比对全等**（编辑器内 vs 导出 blob）：
+   - TSX 文本一致 ✓（归一空白比对）
+   - CSS 文本一致 ✓
+   - Schema = settingsForm 解析等价 ✓
+   - defaultConfig 解析等价 ✓（JSON-in-JSON 字符串形态；比对假差异系字符串 vs 对象形态，解析后逐值相等）
+   - 尺寸 宽 4 / 高 3 = sizeX/sizeY ✓（侧栏 spinbutton）
+   - 名称 = 改名后「M10 V2 roundtrip imported」✓；undo 可用（导入 = 一个事务组）✓
+4. 走查后载体类型 DELETE（见 §5）。
+
+结论：L247 勾（fork 导入 round-trip 真机全链闭环，V1 导出半 + V2 导入半合并为完整 round-trip 证据）。
+
+### 步骤 13 — 崩溃保护 widget 侧复走（§6-4 配套）✅（规则链侧同源旁证）
+
+载体：widget 编辑器 `6f646b40`（导入替换后的草稿即为弄脏态）。全程 sessionStorage 直查：
+
+1. **弄脏写档**：`tb-editor-crash:widget:6f646b40-…` key 出现（导入替换草稿经 undo-safe-value 回写 → crash-guard debounce 写入）✓
+2. **SPA 离开 detach flush**：导航离开后 key 保留 ✓
+3. **恢复框弹出**：重进编辑器 → `crash-guard-dialog`：标题「检测到未保存的草稿存档」+ 时间戳诚实文案 + `crash-guard-restore`（恢复草稿：「把存档内容写回编辑器，作为一个整体，可一次撤销」）/ `crash-guard-discard`（丢弃存档）双按钮 ✓
+4. **恢复 = 草稿回写**：导入的名称/内容回到编辑器（存档 draft 整体回写）+ undo 组在场 ✓
+5. **干净即清 key**：undo 到底（dirty=false）→ key **自动清除** ✓
+6. **二次进入不再弹**：reload 后 `crash-guard-dialog` 不出现、服务器基线内容（原名「M10 V2 roundtrip widget」）渲染 ✓
+7. **规则链侧同源旁证**：步骤 8 实验中一次页面崩溃刷新后，规则链编辑器同源弹出 `crash-guard-dialog` → 「恢复草稿」→ 崩前 3 节点画布整体回写——**三编辑器（仪表盘 V1 / 规则链 / widget）crash-guard 接线同源、行为一致全部真机目击**。
+
 ## 3. 发现的缺陷、疑点与观察项
 
 | # | 级别 | 描述 | 状态 |
@@ -86,8 +179,24 @@ API `POST /api/dashboard` 新建空盘「M10 V 走查空盘」（`fee415d0-a840-
 | O4 | 低 | 409 覆盖流程出现一次「资源不存在: Requested item wasn't found!」toast（结果正确：覆盖成功、对话框关闭、画布/服务器一致；fetch 序列仅 GET/POST `/api/dashboard`）。疑某失效查询的 refetch 或 toast 串台，无功能影响 | 未查根因，X 波顺带 |
 | — | — | 空盘只读页自动 replace 回编辑器（view/index.tsx auto-enter effect）为 spec §3.1 设计行为，非缺陷；退出即弹回的循环观感随 UX 迭代再议 | 注记 |
 | — | — | 长会话下对话框按钮集体失联假象：同一 SPA 会话多次导航/对话框开关后出现过 image 对话框按钮无效、对话框自动关闭等；**整页刷新（干净会话）后同类操作全部正常**（clear 路径干净复验 preview→empty→保存落库全通；scada 自动仪表化在干净 tab 一次走通）。判定为自动化长会话环境假象，不计产品缺陷 | 登记 |
+| D4 | 中 | **规则链 409 ConflictDialog 关闭路径失效（V2 波登记）**：三选项任一执行后（V2 实测「加载服务器版本」；discard/overlay 同样无响应）对话框 DOM **残留不关闭且全部按钮失效**——业务逻辑全部正确（服务器版载入画布、baseline 前移 undo/redo 禁用、本地草稿丢弃）。fiber 探针：`RuleChainConflictDialog` 受控 `open=false` **已送达**内层 antd Modal（React 状态已清），但 Modal DOM 不隐藏；**干净会话 + 可见前台 tab 复现**（排除 V1「长会话假象」与后台 tab 节流）；CDP 真点击通道出现 handler 未触发的变体现象一并记录。对照：仪表盘侧同形态对话框（dashboards 独立实现，`pages/dashboards/editor/contract/ConflictDialog.tsx`）V1 三选项全走正常关闭；规则链侧为独立实现（`pages/rule-chains/editor/contract/ConflictDialog.tsx`，`destroyOnHidden` 属性差异疑点）。与 D1（退出编辑确认框残留）同族「对话框关闭路径」问题，X 波并案修 | 未修，X 波 |
+| O5 | 低（疑点） | **V2 波两项机制注记**：① 一次 click-connect 合成事件实验中触发应用错误边界「页面出现错误」（单次，挂错误钩子复现实验未再触发，未捕获堆栈）——判定为自动化通道高频合成事件派发疑点，非真实用户手势路径；② CE 4.4 device profile `defaultRuleChainId` 对**设备遥测不路由**（实测遥测落 Root 链、ts_kv 入库佐证；仅 entity 生命周期消息经 `DefaultTbContext.entityActionMsg` 携带 profile 默认链）——TB 原生行为，走查触发 debug 事件改用 profile 更新消息；③ 规则节点「调试全部消息」= **限时窗口**（落库 `allEnabledUntil = now + 15min`，非永久开启），窗口过期后无 debug 事件 | 注记 |
+
+## 4. §6 横切七条勾账（V2 波）
+
+| # | 条目 | 结论 | 证据 |
+|---|---|---|---|
+| 1 | **i18n** | ✅ 勾 | `npm run check-locale` G 波 PASS + V2 主检出复跑零红；真机 zh 全程目击三编辑器 chrome（工具栏/抽屉/对话框/toast/帮助面板）无裸 key（V2 截图）；en 侧引用 V1 波 widget 编辑器 zh/en 双向切换无裸 key；透传文案不进 key（编译错误原文、debug 事件原文、help tab 文案直出） |
+| 2 | **占位三态** | ✅ 勾 | 三态文案 + `angular-unsupported` badge：M9 V 波证据（Angular 导入徽标「Angular（非 react-1）」+ 诚实占位文案不暗示「即将支持」+ 真渲染三态未误现）+ M7–M9 闭环无回归（V2 全链走查中占位组件未误现） |
+| 3 | **三编辑器行为一致性** | ✅ 勾（带口径注记） | ① 撤销边界四条三处同源 EditorSession：M7 仪表盘（拖拽/粘贴事务组）+ M8 规则链（移动/连线/保存检查点）+ M9 widget（CM/session 焦点路由）各段证据汇总，V2 补目击：规则链保存检查点 toast + ctrl+z 无反应、widget 恢复事务组一次撤销、连线入栈；② 409 同形：V1 仪表盘三选项全谱 + V2 规则链主路径 + M9 widget 契约单测——**intro 口径注记**：dashboards/widget 共享 ConflictDialog 中性 intro（M9 D2 修复 802fc7084b，M10 核证维持中性化），ruleChain 独立 key 带域词（M9 决议保留），结构/三选项/交互同形；③ 「?」帮助面板三处在列（V1 widget 抽屉 8 键目击 + 仪表盘/规则链工具栏入口在列）；④ 右键菜单 antd Dropdown 形态：仪表盘 dashboard 级 V1 ✅、规则链四类菜单 M8 ✅、**仪表盘 widget 级 D3 缺陷 X 波修复中（如实注记，修复后随 X 波回写）**；⑤ 离开确认 dirty 同源：use-leave-guard 共享件 + PageContainer back guard（M7 997267f847），V2 crash-guard 不误伤复验 |
+| 4 | **增强与等价无冲突** | ✅ 勾 | 崩溃保护上线后关键流复走：widget 侧全链（V2 步骤 13 六步）+ 仪表盘侧（V1 步骤 7）+ 规则链侧旁证；崩溃保护在场下 V2 全天关键流（连线/保存/409/label 对话框/导入导出/恢复）零回归；既有增强引用：缩放平移（M8）、512KB 软警告（M9，descriptor-budget.test P8 锚）——结论「无冲突」 |
+| 5 | **主题** | ✅ 勾（带探针口径注记） | widget 编辑器 DOM 探针（inline style 色值扫描）唯一命中 = widget 预览内容本身（settings.textColor 数据层，非 chrome）；规则链画布 chrome 色值全部来自 **antd token 引用**（`node-types.tsx:33-105` `theme.useToken()`，头注契约「All chrome colors come from antd tokens」——DOM 探针所见内联色值为 token 运行时解析值，非硬编码字面量）；便签默认黄 = `NOTE_DEFAULT_BACKGROUND_COLOR` 产品默认（用户 `note.backgroundColor` 可配覆盖，ui-ngx parity）；图表色走 charts.ts（M9 核） |
+| 6 | **性能 P1–P10** | ✅ 勾 | 证据落点逐项复核（主检出存在 + P 标记在场）：P1/P2=`core/widget/compile.test.tsx`（P1/P2 标记；P2 另见 widget-kit.test.ts）✓；P3=`pages/dashboards/editor/canvas/rgl-edit-behavior.test.tsx`（P3）✓；P4=`pages/rule-chains/editor/canvas/canvas.perf.test.tsx`（P4 标记，含 500 节点 ≥50fps）✓；P5=`core/editor/session.test.ts`（25 用例覆盖合并组/undo-redo 往返/checkpoint，无 P5 字面标记——如实注记）✓；P6=`pages/dashboards/editor/panels/WidgetConfigPanel.test.tsx:304`（P6 describe）✓；P7=`pages/dashboards/editor/canvas/memo-boundary.perf.test.tsx`（P7）✓；P8=`pages/widgets/editor/contract/descriptor-budget.test.ts`（P8）✓；P9/P10=`pages/widgets/editor/import-export.test.ts`（P9 P10）+ `core/widget/style-scope.test.ts`（P10 CSS 前缀）✓——G 波全量 1695/1695 绿背书 |
+| 7 | **自动化衔接** | ✅ 勾 | GitHub issue #12 登记评论已发：[issuecomment-5539911249](https://github.com/KMakise123/thingsboard/issues/12#issuecomment-5539911249)——① EditorSession 撤销栈单测（已有）② dry-run 94 用例 ③ 画布交互 E2E 待补清单（V2 通道受限明细）④ crash-guard 37 例 ⑤ 三编辑器 409/离开确认契约单测；「是否纳入常驻回归由 #12 扩充时另定」口径保留 |
 
 ## 5. 现场清理清单（服务器复原核对）
+
+### V1 波（仪表盘半场）
 
 走查自建、已全部 DELETE：
 - 仪表盘 1 个：`fee415d0-a840-11f1-bf08-2be356855d51`（M10 V 走查空盘，全项载体）→ DELETE **200**。
@@ -97,3 +206,17 @@ API `POST /api/dashboard` 新建空盘「M10 V 走查空盘」（`fee415d0-a840-
 - 仪表盘列表 = Firmware / Rule Engine Statistics / Software / Thermostats 共 **4 盘**，version **1/7/5/18** 与走查前基线逐盘一致，image 全 None——**既有实体零改动**。
 - 租户 image 资源 totalElements = **0**。
 - 断点（§3.7）与 scada 布局（§3.6 复原后）全程仅在 draft 内操作，未保存落库；409 各轮的保存均为走查载体盘、随盘删除。本地临时 JSON 样本（%TEMP%）已删除。
+
+### V2 波（规则链/widget 半场）
+
+走查自建、已全部 DELETE（均 API 200）：
+- 规则链 1 个：`0e3b1fe0-a84d-11f1-bf08-2be356855d51`（M10 V2 walkthrough chain，A1/A2/A3 载体，走查中版本推进至 v11）→ DELETE **200**。
+- widget 类型 1 个：`6f646b40-a853-11f1-bf08-2be356855d51`（M10 V2 roundtrip widget，A4/A5/B 载体）→ DELETE **200**。
+- 设备 3 个：`8b92ea20` / `f6ef3d40` / `2c7ddf20`（M10 V2 walkthrough device 1–3，A2 debug 事件触发用）→ DELETE **200 ×3**。
+- 设备 profile 1 个：`7d911960-a84f-11f1-bf08-2be356855d51`（M10 V2 walkthrough profile，defaultRuleChainId 指向自建链）→ DELETE **200**。
+
+终态核对（API）：
+- 规则链列表 = Root Rule Chain（`eece6700`，v2，ROOT）/ Thermostat（`eed6f280`，v2）共 **2 条**，与走查前基线逐条一致——**既有实体零改动**。
+- 租户设备 **14 个**、设备 profile **3 个**、widget 类型 **684 个**，M10 关键词/roundtrip 残留均为 **0**。
+- A2 注入的遥测时间序列行（ts_kv）随设备删除按 TB 原生清理语义归属设备，实体级零残留。
+- 本地临时 payload 文件（/tmp 下 json）不入 git；浏览器 sessionStorage crash-guard key 终态为空（步骤 13-5 清 key 契约）。

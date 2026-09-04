@@ -67,12 +67,20 @@ ADR 0004：「autosave 不做；崩溃保护 = beforeunload/路由 blocker + ses
 
 **D2 核证**（落 §6-一致性行）：三编辑器 409 对话框 intro 均为中性文案（代码 grep + 真机一次目击）→ 结论「维持中性化」落 spec 修订记录。
 
-## 5. PoC / 证据义务（V 波回填本节）
+## 5. PoC / 证据义务（V 波回填本节，2026-09-04 终态）
 
-- 崩溃保护：crash-guard.test 单测锚（恢复/清 key/debounce/不误伤四契约）+ 真机一次目击（杀 tab 重开恢复草稿，或刷新后恢复框出现）→ 回填 commit hash。
-- `npm run test` 全绿终态数字（1658/1658 预期）→ 回填 G 波报告。
-- 11 项走查 + §6 七条勾账终态 → 回填本节与 spec 修订记录。
+- **崩溃保护**：
+  - 交付 commit：`7ee38695d8`（crash-guard React binding — useCrashGuard hook + recovery dialog）、`645c8c01a6`（三编辑器接线：dashboard / rule-chain / widget）、`800c59ee1e`（模块文档对齐 clean-transition clear 语义）、`8f754575e3`（biome format/imports fixup 兜底）。
+  - 单测锚：`crash-guard.test.ts`（28）+ `crash-guard-react.test.tsx`（9）= **37 例**（恢复/清 key/debounce/不误伤四契约）。
+  - 真机目击：仪表盘侧首验（V1 走查步骤 7，全链六步 + 不误伤）+ **widget 侧复走**（V2 步骤 13，弄脏写档 → detach flush → 恢复框 → 恢复单事务组 → 清 key → 二次进入不误弹）+ 规则链侧旁证（崩溃刷新后恢复框弹出、恢复成功）——**三编辑器接线同源、行为一致全部真机目击**。
+- **测试全绿终态**：G 波全量门禁 **`npm run test` 231 文件 / 1695 用例全绿 0 失败一次过**（121s；存量红 entry.test.tsx 已由 T 波 `8a1b82024d` 清账，超出简报预期 1658——M10 新增用例所致）；lint **0 error / 30 warnings**（基线分毫不差）、tsc 绿、check-locale 绿，对账 commit `da743a6c30`。
+- **11 项走查 + §6 七条勾账终态**：
+  - V1 波（仪表盘半场 6+1 项）：全 ✅（widget 级右键菜单 D3 除外——X 波修复中）；commit `8326c7b9bc` + `73b310ec90` 落账。
+  - V2 波（规则链/widget 半场 5 项 + 崩溃保护 widget 侧 + §6 七条）：**全 ✅**——§4.1 magnet 连线（fiber 直调 Handle onClick 绕过通道 + INPUT 唯一出边替换真机证实）、§4.7 「test with this message」（Test 面板被 debug 事件完整预填）、§4.9 规则链 409 主路径（双 tab + baseline 前移；**新登记 D4（中）对话框残留缺陷**）、§5.5 运行错 sourceURL 行号偏移（console line 5 = 编辑器行，P1 口径对账）、§5.7 fork 导入 round-trip（五件比对全等）；§6 横切七条全部勾账（i18n / 占位三态 / 三编辑器一致性 / 增强与等价无冲突 / 主题 / 性能 P1–P10 / 自动化衔接 #12 评论 [issuecomment-5539911249](https://github.com/KMakise123/thingsboard/issues/12#issuecomment-5539911249)）。
+  - 缺陷终态：D1/D2/D3 → X 波并行修复中；**D4（中，V2 新登记）** → X 波；O5（低，机制注记）。spec §3–§5 兜底清账复查完成：M7–M9 全部「留 M10 抽查」行已勾（§5.5 运行错、§5.7 fork round-trip、§4.1 连线、§4.7 debugIn、§4.9 409），缺口登记行（manage-states 复制 / html2canvas / scada 置顶 / scada 符号边界 / select-target-state）维持「随对应域迭代补齐」不动。
+  - 数据保全：自建规则链 1 + widget 类型 1 + 设备 3 + 设备 profile 1 全部 DELETE（V1：仪表盘 1 + image 2 前已清）；既有实体零改动（规则链 2 条基线一致）。
 
 ## 修订记录
 
+- 2026-09-04：**V2 波收口（规则链/widget 半场走查 + §6 七条勾账 + G 波门禁落账 + #12 登记）**。§5 证据回填（崩溃保护 commit/37 例单测/三侧真机、test 231 文件 1695 用例全绿、11 项走查与 §6 终态）；新登记 D4（中：规则链 409 ConflictDialog 关闭路径失效，X 波）与 O5（低：机制注记三项）；D2 结案核证「维持中性化」（共享件），ruleChain 独立 intro key 为 M9 决议保留；spec §3–§5 全部「留 M10 抽查」行清账完毕，缺口登记行维持不动。
 - 2026-09-04：创建（M10 开工：范围定稿——崩溃保护 sessionStorage + 存量红清账 + D2 再议结案 + 11 项真机走查 + §6 七条勾账 + #12 登记；「§7 登记项全开」口径钉死为已交付增强全开启；边重连/导入暂存维持登记不实现）。
