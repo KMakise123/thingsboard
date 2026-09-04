@@ -16,6 +16,7 @@ import { useIntl } from 'react-intl';
 import { useDashboard } from '@/components/dashboard/use-dashboard';
 import { serverErrorText } from '@/components/entities/server-error-text';
 import PageContainer from '@/components/layout/page-container';
+import { useCrashGuard } from '@/core/editor/crash-guard-react';
 import { EditorSession } from '@/core/editor/session';
 import { useEditorSession } from '@/core/editor/use-editor-session';
 import type { Dashboard, DashboardConfiguration } from '@/types/tb/dashboard';
@@ -48,6 +49,16 @@ export default function DashboardsEditorPage() {
 
   const entered = enteredId === dashboardId;
 
+  // Crash protection (M10): archive the draft into sessionStorage while
+  // editing; a drifted archive from a crashed visit opens the recovery
+  // dialog. Read-only vs the leave guard — no second leave interception.
+  const { crashGuardDialog } = useCrashGuard<DashboardConfiguration>({
+    domain: 'dashboard',
+    entityId: dashboardId,
+    session,
+    enabled: entered,
+  });
+
   const backToView = (dashboardMeta: Dashboard) => {
     history.push(`/dashboards/${dashboardMeta.id?.id ?? dashboardId}`);
   };
@@ -73,6 +84,7 @@ export default function DashboardsEditorPage() {
       ) : dashboard && entered ? (
         <EditorShell session={session} dashboard={dashboard} />
       ) : null}
+      {crashGuardDialog}
     </PageContainer>
   );
 }

@@ -28,6 +28,7 @@ import { useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { serverErrorText } from '@/components/entities/server-error-text';
 import PageContainer from '@/components/layout/page-container';
+import { useCrashGuard } from '@/core/editor/crash-guard-react';
 import { EditorSession } from '@/core/editor/session';
 import { useEditorSession } from '@/core/editor/use-editor-session';
 import { getWidgetTypeById } from '@/services/tb/widget-type';
@@ -95,6 +96,20 @@ export default function WidgetsEditorPage() {
 
   const entered = enteredId !== undefined && enteredId === (widgetTypeId ?? '');
   const enteredDoc = entered ? session.current : null;
+
+  // Crash protection (M10): archive the draft into sessionStorage while
+  // editing; a drifted archive from a crashed visit opens the recovery
+  // dialog. The storage write is debounced so the four-tab code-text path
+  // (per-keystroke coalesced session writes) lands as one write per pause.
+  // Read-only vs the leave guard — no second leave interception. The create
+  // route has no id yet — its archive lives in the `new` key space.
+  const { crashGuardDialog } = useCrashGuard<WidgetEditorDoc>({
+    domain: 'widget',
+    entityId: widgetTypeId ?? '',
+    session,
+    enabled: entered,
+    debounceMs: 500,
+  });
   // Angular marker = descriptor without `runtime: 'react-1'` (ADR 0004 §4),
   // read from the loaded wire entity (the conversion absorbs runtime away).
   // The create route has no loaded entity — never the Angular placeholder.
@@ -208,6 +223,7 @@ export default function WidgetsEditorPage() {
           <WidgetEditorShell session={session} onSaved={handleSaved} />
         )
       ) : null}
+      {crashGuardDialog}
     </PageContainer>
   );
 }

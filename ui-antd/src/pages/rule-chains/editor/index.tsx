@@ -19,6 +19,7 @@ import { useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { serverErrorText } from '@/components/entities/server-error-text';
 import PageContainer from '@/components/layout/page-container';
+import { useCrashGuard } from '@/core/editor/crash-guard-react';
 import { EditorSession } from '@/core/editor/session';
 import { useEditorSession } from '@/core/editor/use-editor-session';
 import { metadataToCanvas } from '@/core/rulechain/model';
@@ -67,6 +68,16 @@ export default function RuleChainsEditorPage() {
   }, [chainQuery.data, metadataQuery.data, ruleChainId, session, enteredId]);
 
   const entered = enteredId === ruleChainId;
+
+  // Crash protection (M10): archive the draft into sessionStorage while
+  // editing; a drifted archive from a crashed visit opens the recovery
+  // dialog. Read-only vs the leave guard — no second leave interception.
+  const { crashGuardDialog } = useCrashGuard<CanvasRuleChain>({
+    domain: 'ruleChain',
+    entityId: ruleChainId,
+    session,
+    enabled: entered,
+  });
   const loading = chainQuery.isPending || metadataQuery.isPending;
   const error = chainQuery.error ?? metadataQuery.error;
 
@@ -91,6 +102,7 @@ export default function RuleChainsEditorPage() {
       ) : entered ? (
         <RuleChainEditorShell session={session} />
       ) : null}
+      {crashGuardDialog}
     </PageContainer>
   );
 }
