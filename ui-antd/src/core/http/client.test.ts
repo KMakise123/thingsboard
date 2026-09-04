@@ -288,6 +288,21 @@ describe('tb http client', () => {
     ).resolves.toBeUndefined();
   });
 
+  it('responseType blob returns the raw body and keeps auth semantics', async () => {
+    const payload = new Blob(['png-bytes'], { type: 'image/png' });
+    responses.push(new Response(payload, { status: 200 }));
+    const blob = await client.request<Blob>('/api/images/tenant/key', {
+      method: 'GET',
+      responseType: 'blob',
+    });
+    expect(blob).toBeInstanceOf(Blob);
+    expect(await blob.text()).toBe('png-bytes');
+    const headers = new Headers(calls[0].init?.headers);
+    expect(headers.get('Authorization')).toBe(
+      `Bearer ${tokenStore.getToken()}`,
+    );
+  });
+
   it('normalizes error body into ServerError fields', async () => {
     responses.push(
       jsonResponse(403, {
