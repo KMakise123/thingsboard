@@ -4,7 +4,7 @@
 > 取证方式：browseros 内联截图 + AX 快照 + 页面 DOM 探针（fetch 钩子抓 `/api/dashboard` 请求、`URL.createObjectURL` 钩子捕导出 blob、DataTransfer 注入文件驱动真实上传管线、合成 `MouseEvent('contextmenu')` 派发绕过扩展劫持、sessionStorage 直查 crash-guard 存档）；服务端真相用 `curl` 直查 API 复核。二进制不入 git（M7/M8/M9 先例）。
 > 数据保全：走查自建 1 个仪表盘（M10 V 走查空盘，`fee415d0`，全项载体）+ 2 个 image 资源（服务器转存产生），终态全部 DELETE（均 200/success），既有 4 盘 version 基线 1/7/5/18 逐盘 API 核对零改动（见 §5）。
 
-## 0. 总览（V1 波 = 仪表盘半场 6+1 项；V2 波 = 规则链/widget 半场 5 项 + 崩溃保护 widget 侧 + §6 七条）
+## 0. 总览（V1 波 = 仪表盘半场 6+1 项；V2 波 = 规则链/widget 半场 5 项 + 崩溃保护 widget 侧 + §6 七条；V3 波 = X 波修复真机复验四组全过 + 收口落账，见文末 V3 附录）
 
 | 走查项 | 结果 |
 |---|---|
@@ -172,14 +172,14 @@ API `POST /api/dashboard` 新建空盘「M10 V 走查空盘」（`fee415d0-a840-
 
 | # | 级别 | 描述 | 状态 |
 |---|---|---|---|
-| D1 | 中（UX） | **「退出编辑」确认对话框残留失效**：dashboard 编辑器「退出编辑」（`shell.tsx:244` `modal.confirm`，App.useApp() 通道）在 onOk/onCancel 执行后，若发生路由离开（放弃修改 → backToView），确认框 DOM **残留屏幕且按钮失效**（点击无响应——holder 所属 React 子树随路由切换卸载、事件委托断连）。业务逻辑本身全部正确（rollbackToEntry / 导航 / 服务器数据 / crash-guard 清 key 均验证无误），纯 UI 残留：用户离开编辑器后被遮罩+对话框挡住，必须整页刷新。复现：编辑态弄脏 → 退出编辑 → 放弃修改（3+ 次复现）。M7 未发现：当时只验「弹窗出现」「干净退出不弹」，未点过框内按钮。空盘场景叠加 view 页 auto-enter 弹回（设计行为）加重观感。修法（X 波）：confirm 返回实例先 `destroy()` 再导航，或将 App context modal holder 提到路由树外，或改受控 Modal 组件 | 未修，X 波 |
-| D2 | 中 | **dashboard-image 预览破图（tb-image link 未解析）**：服务器把上传 dataURL 转存资源库并写回 `tb-image;/api/images/tenant/...` link；对话框 `<img src={image}>`（`dialogs/dashboard-image.tsx:119-125`）不剥离 `tb-image;` 前缀 → 相对路径 404 → 预览破图（`naturalWidth: 0`）。全仓 grep `tb-image` 零命中（v2 无 ui-ngx 的 image link resolver 管道）。影响：已设 image 的盘再次打开对话框预览不可用；新上传（dataURL 直接渲染）不受影响。修法：渲染前剥 `tb-image;` 前缀取相对 URL（或随资源库子系统统一 resolver 复查） | 未修，X 波 |
-| D3 | 中（疑似） | **widget 右键菜单不出现**：`editor-widget` cell 右键（合成与 CDP 真事件双通道）触发 `onContextMenu`（widget 选中、面板联动正常），但菜单本体（`editor-widget-menu-<id>`）从不挂载（DOM 全量核查 0 holder，含隐藏态）；对照 dashboard 级菜单（`shell.tsx:539` 稳定引用 + 无 setState）同通道正常打开。疑点：`shell.tsx:416` `widgetMenu()` 每次调用重建 menu 对象引用 + `EditorGrid.tsx:445` onContextMenu 内 `onSelectWidget` setState 重渲染打断 rc-trigger contextMenu 打开。修法：menu 引用稳定化（useMemo）或 contextmenu 时不同步 select | 未修，X 波（L59 维持未勾） |
+| D1 | 中（UX） | **「退出编辑」确认对话框残留失效**：dashboard 编辑器「退出编辑」（`shell.tsx:244` `modal.confirm`，App.useApp() 通道）在 onOk/onCancel 执行后，若发生路由离开（放弃修改 → backToView），确认框 DOM **残留屏幕且按钮失效**（点击无响应——holder 所属 React 子树随路由切换卸载、事件委托断连）。业务逻辑本身全部正确（rollbackToEntry / 导航 / 服务器数据 / crash-guard 清 key 均验证无误），纯 UI 残留：用户离开编辑器后被遮罩+对话框挡住，必须整页刷新。复现：编辑态弄脏 → 退出编辑 → 放弃修改（3+ 次复现）。M7 未发现：当时只验「弹窗出现」「干净退出不弹」，未点过框内按钮。空盘场景叠加 view 页 auto-enter 弹回（设计行为）加重观感。修法（X 波）：confirm 返回实例先 `destroy()` 再导航，或将 App context modal holder 提到路由树外，或改受控 Modal 组件 | **已修复（X 波，commit 2af4adc49a：shell 受控 Modal `editor-exit-confirm`）+ V3 真机复验 ✅**：放弃修改 → 回只读页且 `.ant-modal-root`/mask/wrap 计数全 0（rAF 冻结环境 = 卸载不依赖动画的最严苛检验）+ crash-guard 清 key；取消 → 留编辑器且按钮持续有效（与旧缺陷「按钮失效」对照）；干净草稿退出不弹框直接退（见 V3 附录组 1） |
+| D2 | 中 | **dashboard-image 预览破图（tb-image link 未解析）**：服务器把上传 dataURL 转存资源库并写回 `tb-image;/api/images/tenant/...` link；对话框 `<img src={image}>`（`dialogs/dashboard-image.tsx:119-125`）不剥离 `tb-image;` 前缀 → 相对路径 404 → 预览破图（`naturalWidth: 0`）。全仓 grep `tb-image` 零命中（v2 无 ui-ngx 的 image link resolver 管道）。影响：已设 image 的盘再次打开对话框预览不可用；新上传（dataURL 直接渲染）不受影响。修法：渲染前剥 `tb-image;` 前缀取相对 URL（或随资源库子系统统一 resolver 复查） | **已修复（X 波，commit 1ebe5ffa07：tb-image 资源 link 解析为 blob URL）+ V3 真机复验 ✅**：已持久化 `tb-image;/api/images/tenant/...` link 的盘开「更新仪表盘图片」对话框，预览 `<img>` 以 blob URL **真渲染（naturalWidth=1）**；保存后 API 复核 image 字段仍为原 `tb-image;` 链接（v3→4，未动图保存不改 image）（见 V3 附录组 1） |
+| D3 | 中（疑似） | **widget 右键菜单不出现**：`editor-widget` cell 右键（合成与 CDP 真事件双通道）触发 `onContextMenu`（widget 选中、面板联动正常），但菜单本体（`editor-widget-menu-<id>`）从不挂载（DOM 全量核查 0 holder，含隐藏态）；对照 dashboard 级菜单（`shell.tsx:539` 稳定引用 + 无 setState）同通道正常打开。疑点：`shell.tsx:416` `widgetMenu()` 每次调用重建 menu 对象引用 + `EditorGrid.tsx:445` onContextMenu 内 `onSelectWidget` setState 重渲染打断 rc-trigger contextMenu 打开。修法：menu 引用稳定化（useMemo）或 contextmenu 时不同步 select | **已修复（X 波，commit e17436d6f8：Dropdown 宿主改挂 plain DOM element）+ V3 真机复验 ✅**：widget 上合成 contextmenu → holder `editor-widget-menu-<id>` 挂载 + Dropdown 打开（编辑/复制/复制引用/删除 四项；非引用件无「引用转副本」条件渲染正确）+ 选中态与面板联动；空白处右键仍为 dashboard 级菜单（互斥）；L59 已勾（见 V3 附录组 1） |
 | O3 | 观察（口径） | **scada 列数渲染优先级**：画布 cols 取 `minColumns ?? columns`（grid-math.ts:235 + 头注明示，TB gridster fallback 原生语义）——minColumns 存量 24 时夹取后的 columns=48 不反映到渲染；`columns=minColumns=48` 时画布 48 列渲染验证通过（196px DOM 探针）。与 spec「非法值向上取整」验收不冲突（夹取落在对话框显示层 + 保存层，均有单测锚 + 真机目击），登记口径防止后续误判 | 注记 |
 | O4 | 低 | 409 覆盖流程出现一次「资源不存在: Requested item wasn't found!」toast（结果正确：覆盖成功、对话框关闭、画布/服务器一致；fetch 序列仅 GET/POST `/api/dashboard`）。疑某失效查询的 refetch 或 toast 串台，无功能影响 | 未查根因，X 波顺带 |
 | — | — | 空盘只读页自动 replace 回编辑器（view/index.tsx auto-enter effect）为 spec §3.1 设计行为，非缺陷；退出即弹回的循环观感随 UX 迭代再议 | 注记 |
 | — | — | 长会话下对话框按钮集体失联假象：同一 SPA 会话多次导航/对话框开关后出现过 image 对话框按钮无效、对话框自动关闭等；**整页刷新（干净会话）后同类操作全部正常**（clear 路径干净复验 preview→empty→保存落库全通；scada 自动仪表化在干净 tab 一次走通）。判定为自动化长会话环境假象，不计产品缺陷 | 登记 |
-| D4 | 中 | **规则链 409 ConflictDialog 关闭路径失效（V2 波登记）**：三选项任一执行后（V2 实测「加载服务器版本」；discard/overlay 同样无响应）对话框 DOM **残留不关闭且全部按钮失效**——业务逻辑全部正确（服务器版载入画布、baseline 前移 undo/redo 禁用、本地草稿丢弃）。fiber 探针：`RuleChainConflictDialog` 受控 `open=false` **已送达**内层 antd Modal（React 状态已清），但 Modal DOM 不隐藏；**干净会话 + 可见前台 tab 复现**（排除 V1「长会话假象」与后台 tab 节流）；CDP 真点击通道出现 handler 未触发的变体现象一并记录。对照：仪表盘侧同形态对话框（dashboards 独立实现，`pages/dashboards/editor/contract/ConflictDialog.tsx`）V1 三选项全走正常关闭；规则链侧为独立实现（`pages/rule-chains/editor/contract/ConflictDialog.tsx`，`destroyOnHidden` 属性差异疑点）。与 D1（退出编辑确认框残留）同族「对话框关闭路径」问题，X 波并案修 | 未修，X 波 |
+| D4 | 中 | **规则链 409 ConflictDialog 关闭路径失效（V2 波登记）**：三选项任一执行后（V2 实测「加载服务器版本」；discard/overlay 同样无响应）对话框 DOM **残留不关闭且全部按钮失效**——业务逻辑全部正确（服务器版载入画布、baseline 前移 undo/redo 禁用、本地草稿丢弃）。fiber 探针：`RuleChainConflictDialog` 受控 `open=false` **已送达**内层 antd Modal（React 状态已清），但 Modal DOM 不隐藏；**干净会话 + 可见前台 tab 复现**（排除 V1「长会话假象」与后台 tab 节流）；CDP 真点击通道出现 handler 未触发的变体现象一并记录。对照：仪表盘侧同形态对话框（dashboards 独立实现，`pages/dashboards/editor/contract/ConflictDialog.tsx`）V1 三选项全走正常关闭；规则链侧为独立实现（`pages/rule-chains/editor/contract/ConflictDialog.tsx`，`destroyOnHidden` 属性差异疑点）。与 D1（退出编辑确认框残留）同族「对话框关闭路径」问题，X 波并案修 | **已修复（X 波，commit 4973c57f06：关闭即 unmount，不再 motion-hide）+ V3 真机复验 ✅（四轮双 tab 构造）**：「加载服务器版本」点击后对话框 DOM 完全消失（`.ant-modal-root`/mask 计数 0）——且复验发生在页面后台 rAF 冻结、关闭动画必然无法推进的环境 = **卸载不依赖动画**的直接证明（修复前该环境 DOM 永久残留）；X 关闭、Esc 关闭同样即时消失；业务面逐轮正确（服务器版载入 + baseline 前移 undo/redo 禁用）；Option B 覆盖契约回归（POST 409 → GET metadata → POST 强制保存，服务器 v5 = A 草稿，对话框无残留）（见 V3 附录组 4） |
 | O5 | 低（疑点） | **V2 波两项机制注记**：① 一次 click-connect 合成事件实验中触发应用错误边界「页面出现错误」（单次，挂错误钩子复现实验未再触发，未捕获堆栈）——判定为自动化通道高频合成事件派发疑点，非真实用户手势路径；② CE 4.4 device profile `defaultRuleChainId` 对**设备遥测不路由**（实测遥测落 Root 链、ts_kv 入库佐证；仅 entity 生命周期消息经 `DefaultTbContext.entityActionMsg` 携带 profile 默认链）——TB 原生行为，走查触发 debug 事件改用 profile 更新消息；③ 规则节点「调试全部消息」= **限时窗口**（落库 `allEnabledUntil = now + 15min`，非永久开启），窗口过期后无 debug 事件 | 注记 |
 
 ## 4. §6 横切七条勾账（V2 波）
@@ -220,3 +220,90 @@ API `POST /api/dashboard` 新建空盘「M10 V 走查空盘」（`fee415d0-a840-
 - 租户设备 **14 个**、设备 profile **3 个**、widget 类型 **684 个**，M10 关键词/roundtrip 残留均为 **0**。
 - A2 注入的遥测时间序列行（ts_kv）随设备删除按 TB 原生清理语义归属设备，实体级零残留。
 - 本地临时 payload 文件（/tmp 下 json）不入 git；浏览器 sessionStorage crash-guard key 终态为空（步骤 13-5 清 key 契约）。
+
+---
+
+# V3 波（X 波修复真机复验 + M10 收口落账）
+
+> 执行：M10 V3 波复验代理，2026-09-04。环境：分支 `feature/m10-closeout` 主检出，HEAD `bfb057496e`（含 X 波全部 6 个修复 commit：`2af4adc49a`/`d0c3a07bb5`/`5f4347e69b`/`1ebe5ffa07`/`e17436d6f8`/`4973c57f06`）。dev server 按 stale-bundle 铁律重启（杀旧 node/umi 进程链 → 删 `src/.umi` → `dev-detached.cmd`，utoo pack ready 11.4s + 200 确认）；后端 `http://localhost:8080` 常驻探活 200；browseros 真机（tenant@thingsboard.org）。
+> 复验载体：API 自建盘「M10 V3 reverify dash」（`2e64b170-a85a-11f1-bf08-2be356855d51`）+ API 自建链「M10 V3 reverify chain」（`8b4d4d40-a85d-11f1-bf08-2be356855d51`）+ API 自建 react-1 widget 类型「M10 V3 reverify widget」（`b182d650-a85e-11f1-bf08-2be356855d51`）；既有实体基线走查前快照留存、走查后逐项 API 核对零改动。
+> **关键环境事实（本次复验的检验强度来源）**：BrowserOS 标签页处于后台态时 `document.visibilityState = 'hidden'`、requestAnimationFrame 冻结——antd Modal 的关闭动画永久停在 `ant-zoom-leave-start`/`ant-fade-leave-start`，全屏 wrap+mask 冻结残留并遮挡画布（rc-motion 下一帧切换依赖 rAF）。该现象**不计产品缺陷**（前台可见时所有对话框动画正常推进卸载，本次多次取证），但恰好构成 D4「卸载不依赖动画」断言的**最严苛检验场**：修复前形态在该环境必然永久残留，修复后若复验通过即为不依赖动画的直接证明。复验中所有「DOM 消失」探针均在 hidden 态取得。
+
+## V3-0. 四组复验结果总览（全部通过）
+
+| 组 | 复验项 | 结果 |
+|---|---|---|
+| 1 | 仪表盘退出确认（D1）：弄脏 → `editor-exit-confirm` → 放弃 → 只读页无残留 | ✅ |
+| 1 | 仪表盘退出确认：取消留编辑器；干净草稿退出不弹框直接退 | ✅ |
+| 1 | dashboard-image（D2）：已存 `tb-image;` link 预览真渲染 + 保存不动 image 字段 | ✅ |
+| 1 | widget 右键菜单（D3）：菜单挂载 + 选中联动 + 空白处 dashboard 菜单互斥 | ✅ |
+| 2 | 规则链退出确认（D1 同族 `d0c3a07bb5`）：取消留编辑器；放弃回列表页无残留 | ✅ |
+| 3 | widget 退出确认（D1 同族 `5f4347e69b`）：取消留编辑器；放弃无残留 | ✅ |
+| 3 | 恢复上次保存确认框行为回归 | ✅ |
+| 4 | 规则链 409（D4）：「加载服务器版本」后对话框 DOM 立即消失（核心断言） | ✅ |
+| 4 | 规则链 409（D4）：X 关闭、Esc 关闭同样即时消失 | ✅ |
+| 4 | 规则链 409：Option B 覆盖契约回归（fetch 序列 + 无残留） | ✅ |
+
+## V3-1. 组 1 — 仪表盘（D1 / D2 / D3）
+
+载体：自建盘（v1→v2 走查中保存 1 个 HTML value card，v3 API 设 image，v4 对话框保存复核）。
+
+**组 1a 退出确认（D1 修复 `2af4adc49a`）**：
+1. 弄脏：设置对话框切「显示仪表盘标题」→ 保存进 draft（undo 转可用、crash key 写入）。
+2. `editor-toolbar-exit-cancel` → **`editor-exit-confirm` 受控 Modal 弹出**（「未保存的修改 当前草稿有未保存的修改，退出编辑将放弃这些修改。」，按钮 `editor-exit-confirm-cancel`/`editor-exit-confirm-ok`）。
+3. **取消分支**：留在编辑器（路由不变、退出按钮在场）、草稿保持脏、**确认框按钮持续有效**（可再次点退出重开确认框——与旧缺陷「路由离开后 holder 断连按钮失效」形态对照鲜明）。取消后的 DOM 卸载依赖关闭动画，在 hidden 环境冻结（环境注记，前台动画正常时卸载——本次 crash-guard 恢复框、设置对话框、add-widget 确认框在前台窗口期均正常关闭且 roots=0 取证）。
+4. **放弃分支（核心断言）**：重开确认框点「放弃修改」→ 回只读页（`/dashboards/:id`）+ **`.ant-modal-root`=0、`.ant-modal-mask`=0、`.ant-modal-wrap`=0**（探针无任何残留遮罩）+ **crash-guard key 同步清除**（放弃 = rollbackToEntry → clean 契约）。该探针在 hidden/rAF 冻结态取得 = DOM 清除不依赖动画推进（受控 Modal 随 shell 卸载整组摘除——正是修复意图）。
+5. **干净退出**：重进编辑器（undo 禁用 = 干净）→ 点退出 → **不弹框直接回只读页**（confirmAppeared=false）。
+
+**组 1b dashboard-image（D2 修复 `1ebe5ffa07`）**：
+1. API PUT 盘 image = 1×1 PNG dataURL → 服务器转存：`image = tb-image;/api/images/tenant/m10_v3_reverify_dash_dashboard_image.png`（v2→3）。
+2. 只读页 `dashboard-toolbar-image` → 对话框「更新仪表盘图片」→ **预览 `<img>` 真渲染：src = blob URL、naturalWidth = 1**（V1 波 D2 缺陷形态为 src 直塞 `tb-image;` link 相对路径 404、naturalWidth 0）。
+3. 点「保 存」→ API 复核 v3→4、**image 字段仍为原 `tb-image;` 链接逐字不变**（不动图保存不改 image 字段）。
+
+**组 1c widget 右键菜单（D3 修复 `e17436d6f8`）**：
+1. 编辑器加 HTML value card（确认框标题预填「HTML value card」= M7 D3 修复持续在场）→ 落格。
+2. widget cell 中心合成 `MouseEvent('contextmenu')` 派发 → **holder `editor-widget-menu-2f992b5b-…` 挂载 + Dropdown 打开**（DOM 几何 rect {x:480,y:315,w:88,h:136} 取证；V1 波同通道 holder 恒 0）。
+3. 菜单四项：**编辑 / 复制 / 复制引用 / 删除**；该 widget 非引用件 → 「引用转副本」不渲染 = 条件渲染正确（对照 spec L59 清单）。
+4. **选中联动**：widget 选中态（蓝色边框）+ 右侧配置面板（system.cards.html_value_card 五区）同步出现。
+5. **空白处互斥**：画布空白派发 contextmenu → `editor-dashboard-menu` 五项（粘贴/粘贴引用 disabled = 剪贴板空守卫）打开，widget 菜单未开。
+
+## V3-2. 组 2 — 规则链退出确认（D1 同族 `d0c3a07bb5`）
+
+载体：自建链（v1）。alt+n 便签「M10 V3 reverify note」弄脏（undo 转可用）。
+1. `rc-toolbar-exit` → **`rc-exit-confirm` 弹出**（「有未保存的更改 草稿存在未保存的更改，退出将丢弃这些更改。」，按钮 `rc-exit-confirm-cancel`/`rc-exit-confirm-ok`）。
+2. **取消**：留在编辑器、草稿保留、**按钮持续有效**（再次点退出重开确认框成功）。
+3. **放弃**：回 `/ruleChains` 列表页 + **`.ant-modal-root`=0、`.ant-modal-mask`=0**（hidden 态探针 = 卸载不依赖动画）。
+
+## V3-3. 组 3 — widget 退出确认（D1 同族 `5f4347e69b`）+ 恢复上次保存
+
+载体：API 自建 react-1 类型（见 V3-5 数据注记：初版 payload settingsForm 误用 `{schema,ui}` 对象形态，编辑器对非 `FormProperty[]` 防御性 throw 进错误边界——**测试数据形态错误，非产品缺陷**；修正为 `[]` 后编辑器正常打开）。UI 新建对话框 starter 路径同步验证可用（CodeMirror + 全工具栏 + 无错误边界）——顺带证明 X 波 widget 编辑器改动（`5f4347e69b`）无挂载回归。
+1. 名称改「…DIRTY」弄脏 → `we-toolbar-exit` → **`we-exit-confirm` 弹出**（同款文案，按钮 `we-exit-confirm-cancel`/`we-exit-confirm-ok`）。
+2. **取消**：留编辑器、DIRTY 名称保留（草稿不回滚）。
+3. **放弃**：离开编辑器（widget 编辑器放弃后回 `/dashboards`，PageContainer onBack 语义）+ **roots=0、masks=0** 无残留。
+4. **恢复上次保存**：重进（名称回服务器版「M10 V3 reverify widget」= 放弃生效旁证）→ 名称改「…RESTORE-TEST」弄脏 → `we-toolbar-restore` → 确认框「恢复到上次保存的版本？当前草稿将回退到最近一次保存的状态。回退本身是一步可撤销的操作。」→ 点「恢 复」→ **名称回滚至服务器基线**（RESTORE-TEST 消失）——行为与 V1 波目击一致（回退 = 一个可撤销事务组契约文案在场）。
+
+## V3-4. 组 4 — 规则链 409（D4 修复 `4973c57f06`）
+
+双 tab 真并发（tab A = page 49 基线 v1 弄脏 A 便签不刷新；tab B = page 58 保存推进）。服务器版本推进 v1→v3（B 两便签）→ A 直接保存 409 起四轮，每轮独立构造冲突（服务器 v3→v4→v5）：
+1. **轮 1「加载服务器版本」（D4 核心断言）**：A 保存 → POST 409 → ConflictDialog 弹出（intro「服务器上的规则链已被他人修改；本地草稿尚未保存。」、服务器区「M10 V3 reverify chain (v3)」、三选项 testid 齐）→ 点 `editor-conflict-load-server` → **`.ant-modal-root`/mask 计数归 0、dialog DOM 消失**（hidden/rAF 冻结态下取得 = 卸载不依赖动画；修复前形态在该环境 DOM 永久残留且按钮全失效）。业务面：A 本地便签丢、服务器 2 条 B 便签载入画布、**undo/redo 禁用（baseline 前移）**、退出按钮在场可交互。
+2. **轮 2 X 关闭**：再构造（服务器 v4）→ 409 → 点对话框 X（`ant-modal-close`）→ **dialog DOM 消失 + roots/masks 归 0**。
+3. **轮 3 Esc 关闭**：A 保持脏 → 409（v4）→ 派发 Escape → **dialog DOM 消失 + roots/masks 归 0**。
+4. **轮 4 Option B 覆盖契约回归**：A 再保存 409 → 点 `editor-conflict-overwrite` → fetch 钩子捕获序列 **`POST /api/ruleChain/metadata?updateRelated=false`（409）→ `GET …/metadata` → `GET …/metadata` → `POST …/metadata?updateRelated=false`（强制保存）** → toast「保存成功，撤销历史已清空」→ 对话框关闭（roots/masks 0）；API 复核服务器 **v5 含 A 的「A probe X close」便签**（A 草稿覆盖成功）。覆盖循环内二次 409 上限行为未真机构造（单机时序限制，V1 波同款口径），MAX_OVERWRITE_ATTEMPTS=3 单测锚不变。
+5. **顺带核证（非缺陷）**：规则链便签在保存 payload 顶层 `notes[]` 齐全（内容/几何/配色），`GET /api/ruleChain/{id}/metadata` 返回 notes 正常；`GET /api/ruleChain/{id}` 实体端点 metadata 不回 notes 为 TB 原生端点形态差异，不判缺陷。
+
+## V3-5. 现场清理清单（V3 波数据保全）
+
+走查自建、已全部 DELETE（均 API 200/success）：
+- 仪表盘 1 个：`2e64b170-a85a-11f1-bf08-2be356855d51`（M10 V3 reverify dash，组 1 载体，走查中推进至 v4）→ DELETE **200**。
+- image 资源 1 个：`m10_v3_reverify_dash_dashboard_image.png`（组 1b 服务器转存产生）→ `DELETE /api/images/tenant/{key}` **success**（references null）。
+- 规则链 1 个：`8b4d4d40-a85d-11f1-bf08-2be356855d51`（M10 V3 reverify chain，组 2/4 载体，走查中推进至 v5）→ DELETE **200**。
+- widget 类型 1 个：`b182d650-a85e-11f1-bf08-2be356855d51`（M10 V3 reverify widget，组 3 载体）→ DELETE **200**。
+- UI 新建对话框创建的「M10 V3 UI starter」仅进编辑器草稿、**未保存**（无 POST），无服务器实体。
+
+终态核对（API）：
+- 仪表盘列表 = Firmware / Rule Engine Statistics / Software / Thermostats 共 **4 盘**，version **1/7/5/18** 与走查前基线逐盘一致，image 全 None——**既有实体零改动**。
+- 规则链列表 = Root Rule Chain（v2 ROOT）/ Thermostat（v2）共 **2 条**，与基线一致——零改动。
+- widget 类型 **684 个**与 V2 波终态基线一致，M10 关键词残留 **0**（初查 16 命中均为「PM10」子串误报，已排除）。
+- 租户 image 资源 totalElements = **0**。
+- 浏览器 sessionStorage crash-guard key 终态为空（V3 组 1a 放弃退出清 key 契约；后续浏览过程无新增存档 key）。
+
