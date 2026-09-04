@@ -17,11 +17,11 @@
 
 import type { UploadFile } from 'antd';
 import { Button, Modal, Upload } from 'antd';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 
 import { getDashboard, saveDashboard } from '@/services/tb/dashboard';
-
+import { resolveDashboardImageSrc } from './dashboard-image-resolver';
 import type { EditorDialogProps } from './host';
 
 export interface DashboardImagePayload {
@@ -50,6 +50,16 @@ export function DashboardImageDialog({
   const [image, setImage] = useState<string | undefined>(scope?.currentImage);
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [saving, setSaving] = useState(false);
+  /**
+   * M10 D2: the persisted value may be a `tb-image;` resource link that no
+   * browser can render directly — the preview resolves it (authed fetch →
+   * object URL) while `image` itself keeps the server truth for saving.
+   */
+  const [preview, setPreview] = useState<{
+    src: string | null;
+    ready: boolean;
+  }>({ src: null, ready: false });
+  const previewRef = useRef<{ src: string | null; ready: boolean }>(preview);
 
   const disabled = !scope?.dashboardId;
 
@@ -72,6 +82,44 @@ export function DashboardImageDialog({
       cancelled = true;
     };
   }, [open, scope]);
+
+  // Resolve the preview whenever the image value changes (server link,
+  // fresh upload, clear). Only blob: URLs need revoking; data:/http: pass
+  // through the resolver untouched.
+  useEffect(() => {
+    const releasePreview = (src: string | null) => {
+      if (src?.startsWith('blob:')) {
+        URL.revokeObjectURL(src);
+      }
+    };
+    if (!image) {
+      releasePreview(previewRef.current.src);
+      previewRef.current = { src: null, ready: false };
+      setPreview({ src: null, ready: false });
+      return undefined;
+    }
+    let stale = false;
+    resolveDashboardImageSrc(image).then((src) => {
+      if (stale) {
+        releasePreview(src);
+        return;
+      }
+      releasePreview(previewRef.current.src);
+      previewRef.current = { src, ready: true };
+      setPreview({ src, ready: true });
+    });
+    return () => {
+      stale = true;
+    };
+  }, [image]);
+  useEffect(
+    () => () => {
+      if (previewRef.current.src?.startsWith('blob:')) {
+        URL.revokeObjectURL(previewRef.current.src);
+      }
+    },
+    [],
+  );
 
   const save = async (): Promise<void> => {
     if (!scope) {
@@ -116,10 +164,10 @@ export function DashboardImageDialog({
       maskClosable={false}
       data-testid="dashboard-image-dialog"
     >
-      {image ? (
+      {image && (preview.ready ? preview.src !== null : true) ? (
         <img
           alt=""
-          src={image}
+          src={preview.src ?? undefined}
           style={{ maxWidth: '100%', marginBottom: 12 }}
           data-testid="dashboard-image-preview"
         />

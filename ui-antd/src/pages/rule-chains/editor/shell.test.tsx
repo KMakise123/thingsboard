@@ -16,6 +16,7 @@ import {
   waitFor,
 } from '@testing-library/react';
 import { App as AntdApp } from 'antd';
+import { useEffect, useState } from 'react';
 import { createIntl, RawIntlProvider } from 'react-intl';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { EditorSession } from '@/core/editor/session';
@@ -23,6 +24,7 @@ import zhEditor from '@/locales/zh-CN/editor';
 import zhRulechain from '@/locales/zh-CN/editor-rulechain';
 import zhCanvas from '@/locales/zh-CN/editor-rulechain-canvas';
 import type { RuleNodeComponentDescriptor } from '@/types/tb/rule-chain';
+import type { CanvasRuleChain } from '@/core/rulechain/types';
 
 import { RULE_NODE_DROP_MIME } from './canvas';
 import { rowDraft } from './canvas/test-helpers';
@@ -34,6 +36,12 @@ const serviceMock = vi.hoisted(() => ({
   getRuleNodeComponents: vi.fn(),
 }));
 vi.mock('@/services/tb/rule-chain', () => serviceMock);
+
+const historyMock = vi.hoisted(() => ({ push: vi.fn() }));
+vi.mock('@umijs/max', () => ({ history: historyMock }));
+
+/** Navigation sink shared between the D1-family harness and mocked history. */
+const exitRouteListeners = new Set<() => void>();
 
 const intl = createIntl({
   locale: 'zh-CN',
@@ -196,5 +204,93 @@ describe('RuleChainEditorShell — selection hotkeys + context menu', () => {
     });
     expect(screen.getByText('全选')).toBeInTheDocument();
     expect(screen.getByText('添加便签')).toBeInTheDocument();
+  });
+});
+
+describe('RuleChainEditorShell — exit-confirm ownership (M10 D1 family)', () => {
+  /**
+   * Mimics the real provider nesting: umi mounts the antd <App> ONCE above
+   * the router (plugin-antd innerProvider), so a navigation swaps the page
+   * underneath a PERSISTENT App. A dialog owned by the page must unmount
+   * with it; an imperative App-context confirm would survive the swap.
+   */
+  function ExitRouteHarness({
+    session,
+  }: {
+    session: EditorSession<CanvasRuleChain>;
+  }) {
+    const [exited, setExited] = useState(false);
+    useEffect(() => {
+      const onPush = () => setExited(true);
+      exitRouteListeners.add(onPush);
+      return () => {
+        exitRouteListeners.delete(onPush);
+      };
+    }, []);
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    return (
+      <RawIntlProvider value={intl}>
+        <AntdApp>
+          <QueryClientProvider client={queryClient}>
+            {exited ? (
+              <div data-testid="rc-list-view" />
+            ) : (
+              <RuleChainEditorShell session={session} />
+            )}
+          </QueryClientProvider>
+        </AntdApp>
+      </RawIntlProvider>
+    );
+  }
+
+  it('discarding navigates away and leaves NO confirm dialog residue', async () => {
+    const session = new EditorSession({ baseline: rowDraft(2, true) });
+    render(<ExitRouteHarness session={session} />);
+    await waitFor(() => {
+      expect(serviceMock.getRuleNodeComponents).toHaveBeenCalled();
+    });
+    act(() => {
+      session.write('edit note', (draft) => {
+        draft.chain.name = 'changed';
+      });
+    });
+    fireEvent.click(screen.getByTestId('rc-toolbar-exit'));
+    const ok = await screen.findByTestId('rc-exit-confirm-ok');
+    historyMock.push.mockImplementation(() => {
+      for (const listener of exitRouteListeners) {
+        listener();
+      }
+    });
+    fireEvent.click(ok);
+    await waitFor(() => {
+      expect(historyMock.push).toHaveBeenCalledWith('/ruleChains');
+    });
+    expect(screen.getByTestId('rc-list-view')).toBeInTheDocument();
+    // the confirm is owned by the editor face: navigation unmounts it
+    // atomically — no mask, no dead dialog may outlive the page
+    expect(document.querySelector('.ant-modal-root')).toBeNull();
+    historyMock.push.mockReset();
+  });
+
+  it('canceling the confirm keeps the editor mounted without navigating', async () => {
+    const session = setup();
+    act(() => {
+      session.write('edit note', (draft) => {
+        draft.chain.name = 'changed';
+      });
+    });
+    fireEvent.click(screen.getByTestId('rc-toolbar-exit'));
+    expect(await screen.findByTestId('rc-exit-confirm')).toBeInTheDocument();
+    fireEvent.click(await screen.findByTestId('rc-exit-confirm-cancel'));
+    // the controlled open state flipped: antd starts the close transition
+    // synchronously (happy-dom never finishes the animation itself)
+    expect(document.querySelector('.ant-modal-mask')?.className).toContain(
+      'leave',
+    );
+    expect(historyMock.push).not.toHaveBeenCalled();
+    expect(session.dirty).toBe(true);
+    expect(screen.getByTestId('rc-toolbar-exit')).toBeInTheDocument();
   });
 });

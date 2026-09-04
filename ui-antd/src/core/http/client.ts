@@ -67,6 +67,12 @@ export interface RequestOptions {
   headers?: Record<string, string>;
   /** Skip bearer injection and 401 refresh handling (login/token/noauth). */
   authExempt?: boolean;
+  /**
+   * 'blob' returns the raw response body as a Blob (binary downloads, e.g.
+   * the TB image subsystem) instead of JSON/text parsing. Auth, 401 refresh
+   * and 429 retry semantics are identical to JSON requests.
+   */
+  responseType?: 'json' | 'blob';
 }
 
 export interface TbHttpClient {
@@ -366,6 +372,9 @@ export function createTbHttpClient(
 
       if (!response.ok) {
         throw await toServerError(response);
+      }
+      if (requestOptions.responseType === 'blob') {
+        return (await response.blob()) as T;
       }
       return (await parseBody(response)) as T;
     }

@@ -13,6 +13,7 @@ import {
   waitFor,
 } from '@testing-library/react';
 import { App as AntdApp } from 'antd';
+import { useEffect, useState } from 'react';
 import { createIntl, RawIntlProvider } from 'react-intl';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { validateAndUpdateDashboard } from '@/core/dashboard/model';
@@ -83,6 +84,9 @@ function normalize(json: Dashboard): DashboardConfiguration {
   return validateAndUpdateDashboard(json)
     .configuration as DashboardConfiguration;
 }
+
+/** Navigation sink shared between the D1 harness and the mocked history. */
+const exitRouteListeners = new Set<() => void>();
 
 interface SetupOptions {
   dashboard?: Dashboard;
@@ -266,5 +270,115 @@ describe('EditorShell — empty dashboard (spec §3.1 自动进入编辑态)', (
     // born in edit mode
     expect(screen.getByTestId('editor-shell')).toBeInTheDocument();
     expect(screen.getByTestId('editor-toolbar-add-widget')).toBeInTheDocument();
+  });
+});
+
+describe('EditorShell — widget context menu (M10 D3)', () => {
+  it('right-clicking a widget mounts the real shell widget menu', async () => {
+    setup();
+    const cell = screen
+      .getAllByTestId('editor-widget')
+      .find((el) => el.getAttribute('data-editor-widget') === 'w1');
+    if (!cell?.firstElementChild) {
+      throw new Error('widget cell w1 with content not found');
+    }
+    fireEvent.contextMenu(cell.firstElementChild);
+    expect(
+      await screen.findByTestId('editor-widget-menu-w1'),
+    ).toBeInTheDocument();
+  });
+});
+
+describe('EditorShell — exit-cancel confirm ownership (M10 D1)', () => {
+  /**
+   * Mimics the real provider nesting: umi mounts the antd <App> ONCE above
+   * the router (plugin-antd innerProvider), so a navigation swaps the page
+   * underneath a PERSISTENT App. Whatever dialog lives in the App-level
+   * modal holder therefore survives the page swap unless the page itself
+   * owns it — exactly the D1 residue class.
+   */
+  function ExitRouteHarness({
+    session,
+    dashboard,
+  }: {
+    session: EditorSession<DashboardConfiguration>;
+    dashboard: Dashboard;
+  }) {
+    const [exited, setExited] = useState(false);
+    useEffect(() => {
+      const onPush = () => setExited(true);
+      exitRouteListeners.add(onPush);
+      return () => {
+        exitRouteListeners.delete(onPush);
+      };
+    }, []);
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    return (
+      <RawIntlProvider value={intl}>
+        <AntdApp>
+          <QueryClientProvider client={queryClient}>
+            {exited ? (
+              <div data-testid="readonly-view" />
+            ) : (
+              <EditorShell session={session} dashboard={dashboard} />
+            )}
+          </QueryClientProvider>
+        </AntdApp>
+      </RawIntlProvider>
+    );
+  }
+
+  it('discarding navigates away and leaves NO confirm dialog residue', async () => {
+    const dashboard = dashboardJson();
+    const session = new EditorSession<DashboardConfiguration>({
+      baseline: normalize(dashboard),
+    });
+    render(<ExitRouteHarness session={session} dashboard={dashboard} />);
+    act(() => {
+      session.write('add widget', (draft) => {
+        draft.widgets.w1.config.title = 'changed';
+      });
+    });
+    fireEvent.click(screen.getByTestId('editor-toolbar-exit-cancel'));
+    const ok = await screen.findByRole('button', { name: '放弃修改' });
+    historyMock.push.mockImplementation(() => {
+      for (const listener of exitRouteListeners) {
+        listener();
+      }
+    });
+    fireEvent.click(ok);
+    await waitFor(() => {
+      expect(historyMock.push).toHaveBeenCalledWith('/dashboards/d1');
+    });
+    expect(screen.getByTestId('readonly-view')).toBeInTheDocument();
+    // the confirm is owned by the editor face: navigation unmounts it
+    // atomically — no mask, no dead dialog may outlive the page
+    expect(document.querySelector('.ant-modal-root')).toBeNull();
+    historyMock.push.mockReset();
+  });
+
+  it('canceling the confirm keeps the editor mounted without navigating', async () => {
+    const { session } = setup();
+    act(() => {
+      session.write('add widget', (draft) => {
+        draft.widgets.w1.config.title = 'changed';
+      });
+    });
+    fireEvent.click(screen.getByTestId('editor-toolbar-exit-cancel'));
+    expect(
+      await screen.findByTestId('editor-exit-confirm'),
+    ).toBeInTheDocument();
+    const cancel = await screen.findByTestId('editor-exit-confirm-cancel');
+    fireEvent.click(cancel);
+    // the controlled open state flipped: antd starts the close transition
+    // synchronously (happy-dom never finishes the animation itself)
+    expect(document.querySelector('.ant-modal-mask')?.className).toContain(
+      'leave',
+    );
+    expect(historyMock.push).not.toHaveBeenCalled();
+    expect(session.dirty).toBe(true);
+    expect(screen.getByTestId('editor-shell')).toBeInTheDocument();
   });
 });

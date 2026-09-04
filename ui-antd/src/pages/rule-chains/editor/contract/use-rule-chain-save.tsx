@@ -172,25 +172,34 @@ export function useRuleChainSave({
     );
   }, [session, conflict, closeConflict, onAbandon, message, formatMessage]);
 
-  const conflictDialog = (
-    <RuleChainConflictDialog
-      open={conflict !== null}
-      // null descriptor = unknown server state (the dialog's Option-C-only
-      // warning branch); only a fetched snapshot renders the server side.
-      serverEntity={
-        conflict?.serverMeta
-          ? {
-              title: session.current.chain.name,
-              version: conflict.serverMeta.version,
-            }
-          : null
-      }
-      onLoadServer={handleLoadServer}
-      onOverwrite={() => void handleOverwrite()}
-      onExportLocal={handleExportLocal}
-      onClose={closeConflict}
-    />
-  );
+  // M10 D4: the dialog is MOUNTED ONLY WHILE a conflict is open (open
+  // hardwired true). A persistent mount that just flips open=false closes
+  // through antd's hide-motion chain — in the M10 V2 walkthrough that chain
+  // froze mid-teardown on this page, stranding the visible dialog and its
+  // full-viewport mask over the editor with every button dead. Unmounting
+  // on close removes the portal DOM synchronously through React, with no
+  // animation dependency, in every environment. The retry-cap refresh (B)
+  // keeps `conflict` non-null, so the dialog stays open there (M7 parity).
+  const conflictDialog =
+    conflict !== null ? (
+      <RuleChainConflictDialog
+        open
+        // null descriptor = unknown server state (the dialog's Option-C-only
+        // warning branch); only a fetched snapshot renders the server side.
+        serverEntity={
+          conflict.serverMeta
+            ? {
+                title: session.current.chain.name,
+                version: conflict.serverMeta.version,
+              }
+            : null
+        }
+        onLoadServer={handleLoadServer}
+        onOverwrite={() => void handleOverwrite()}
+        onExportLocal={handleExportLocal}
+        onClose={closeConflict}
+      />
+    ) : null;
 
   return { saving, save, conflictDialog };
 }

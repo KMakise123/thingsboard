@@ -6,7 +6,13 @@
  * state) or abandons the editor (unknown state). The checkpoint notice is
  * surfaced on both successful save paths.
  */
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import { App as AntdApp } from 'antd';
 import { createIntl, RawIntlProvider } from 'react-intl';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -138,6 +144,43 @@ describe('useRuleChainSave — 409 three-option loop', () => {
     expect(session.dirty).toBe(false);
     expect(session.current.chain.version).toBe(7);
     expect(session.current.nodes['local-0'].ruleNodeId?.id).toBe('n0');
+  });
+
+  it('Option A closes the dialog and REMOVES its DOM (M10 D4)', async () => {
+    await conflictSave(serverMeta(7));
+    expect(screen.getByTestId('editor-conflict-dialog')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId('editor-conflict-load-server'));
+
+    // closing must not depend on the antd hide-motion chain: in the M10 V2
+    // walkthrough a frozen leave animation left the dialog (and its
+    // full-viewport mask) stranded over the editor with every button dead.
+    // The dialog unmounts on close, so React removes the DOM synchronously
+    // in every environment.
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId('editor-conflict-dialog'),
+      ).not.toBeInTheDocument();
+    });
+    expect(document.querySelector('.ant-modal-root')).toBeNull();
+  });
+
+  it('closing via X removes the dialog DOM too (M10 D4)', async () => {
+    await conflictSave(serverMeta(7));
+    expect(screen.getByTestId('editor-conflict-dialog')).toBeInTheDocument();
+
+    const close = document.querySelector('.ant-modal-close');
+    if (!close) {
+      throw new Error('conflict dialog close button not found');
+    }
+    fireEvent.click(close);
+
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId('editor-conflict-dialog'),
+      ).not.toBeInTheDocument();
+    });
+    expect(document.querySelector('.ant-modal-root')).toBeNull();
   });
 
   it('Option B overwrites with the fresh server version and checkpoints', async () => {

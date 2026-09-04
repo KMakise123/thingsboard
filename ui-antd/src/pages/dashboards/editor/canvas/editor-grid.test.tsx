@@ -238,3 +238,48 @@ describe('EditorGrid — rendering + no spurious writes', () => {
     expect(widgetMenu).toHaveBeenCalledWith('w2');
   });
 });
+
+describe('EditorGrid — widget context menu (M10 D3)', () => {
+  it('right-clicking a widget mounts its Dropdown menu', async () => {
+    const { session } = setup();
+    renderGrid(session, {
+      widgetMenu: (id) =>
+        ({
+          items: [{ key: 'edit', label: '编辑' }],
+          'data-testid': `menu-${id}`,
+        }) as MenuProps,
+    });
+    const cell = screen
+      .getAllByTestId('editor-widget')
+      .find((el) => el.getAttribute('data-editor-widget') === 'w1');
+    // the event must originate INSIDE the cell (as a real right-click on the
+    // widget content does) so it reaches the Dropdown trigger host first
+    if (!cell?.firstElementChild) {
+      throw new Error('widget cell w1 with content not found');
+    }
+    fireEvent.contextMenu(cell.firstElementChild);
+    expect(await screen.findByTestId('menu-w1')).toBeInTheDocument();
+  });
+
+  it('right-click still selects the widget and keeps the canvas menu shut', async () => {
+    const { session } = setup();
+    const onSelect = vi.fn();
+    renderGrid(session, {
+      onSelectWidget: onSelect,
+      widgetMenu: (id) =>
+        ({
+          items: [{ key: 'edit', label: '编辑' }],
+          'data-testid': `menu-${id}`,
+        }) as MenuProps,
+    });
+    const cell = screen
+      .getAllByTestId('editor-widget')
+      .find((el) => el.getAttribute('data-editor-widget') === 'w1');
+    if (!cell?.firstElementChild) {
+      throw new Error('widget cell w1 with content not found');
+    }
+    fireEvent.contextMenu(cell.firstElementChild);
+    expect(onSelect).toHaveBeenCalledWith('w1');
+    expect(await screen.findByTestId('menu-w1')).toBeInTheDocument();
+  });
+});

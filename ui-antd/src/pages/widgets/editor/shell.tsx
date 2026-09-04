@@ -39,7 +39,16 @@ import {
 } from '@ant-design/icons';
 import { history } from '@umijs/max';
 import type { TabsProps } from 'antd';
-import { App, Button, Drawer, Space, Tabs, Tooltip, Typography } from 'antd';
+import {
+  App,
+  Button,
+  Drawer,
+  Modal,
+  Space,
+  Tabs,
+  Tooltip,
+  Typography,
+} from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { useIntl } from 'react-intl';
@@ -215,6 +224,12 @@ export function WidgetEditorShell({
   const [activeTab, setActiveTab] = useState<WidgetEditorTab>('tsx');
   const [metadataOpen, setMetadataOpen] = useState(true);
   const [helpOpen, setHelpOpen] = useState(false);
+  /**
+   * M10 D1 family: the §3.8 exit confirm is a CONTROLLED Modal owned by
+   * this shell (see discardAndExit) — never an imperative App-context
+   * confirm, whose close sequence runs decoupled from this page.
+   */
+  const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
   const [runId, setRunId] = useState(0);
   const [previewError, setPreviewError] = useState<WidgetPreviewError | null>(
     null,
@@ -331,37 +346,19 @@ export function WidgetEditorShell({
     [],
   );
 
+  const discardAndExit = () => {
+    entryCheckpoint.rollbackToEntry();
+    // the widget-library listing belongs to the resources subsystem
+    // (brief §0) — land on the TA dashboards face for now.
+    history.push('/dashboards');
+  };
+
   const exitEditor = () => {
-    const discardAndExit = () => {
-      entryCheckpoint.rollbackToEntry();
-      // the widget-library listing belongs to the resources subsystem
-      // (brief §0) — land on the TA dashboards face for now.
-      history.push('/dashboards');
-    };
     if (!shouldPromptLeave(session)) {
       discardAndExit();
       return;
     }
-    modal.confirm({
-      title: formatMessage({
-        id: 'editor.widget.editor.toolbar.exitDirtyTitle',
-        defaultMessage: 'Unsaved changes',
-      }),
-      content: formatMessage({
-        id: 'editor.widget.editor.toolbar.exitDirtyText',
-        defaultMessage: 'The draft has unsaved changes; exiting discards them.',
-      }),
-      okText: formatMessage({
-        id: 'editor.widget.editor.toolbar.exitDirtyOk',
-        defaultMessage: 'Discard changes',
-      }),
-      okButtonProps: { danger: true },
-      cancelText: formatMessage({
-        id: 'editor.common.cancel',
-        defaultMessage: 'Cancel',
-      }),
-      onOk: discardAndExit,
-    });
+    setExitConfirmOpen(true);
   };
 
   const handleSave = useCallback(async () => {
@@ -943,6 +940,41 @@ export function WidgetEditorShell({
       </Drawer>
 
       {conflictDialog}
+      {/* M10 D1 family: controlled exit confirm (see discardAndExit) —
+          owned by this page, so navigation unmounts it with the editor. */}
+      <Modal
+        open={exitConfirmOpen}
+        title={formatMessage({
+          id: 'editor.widget.editor.toolbar.exitDirtyTitle',
+          defaultMessage: 'Unsaved changes',
+        })}
+        okText={formatMessage({
+          id: 'editor.widget.editor.toolbar.exitDirtyOk',
+          defaultMessage: 'Discard changes',
+        })}
+        okButtonProps={{
+          danger: true,
+          'data-testid': 'we-exit-confirm-ok',
+        }}
+        cancelText={formatMessage({
+          id: 'editor.common.cancel',
+          defaultMessage: 'Cancel',
+        })}
+        cancelButtonProps={{ 'data-testid': 'we-exit-confirm-cancel' }}
+        onOk={() => {
+          setExitConfirmOpen(false);
+          discardAndExit();
+        }}
+        onCancel={() => setExitConfirmOpen(false)}
+        maskClosable={false}
+        data-testid="we-exit-confirm"
+      >
+        {formatMessage({
+          id: 'editor.widget.editor.toolbar.exitDirtyText',
+          defaultMessage:
+            'The draft has unsaved changes; exiting discards them.',
+        })}
+      </Modal>
       <DialogHost controller={dialogs} />
     </div>
   );

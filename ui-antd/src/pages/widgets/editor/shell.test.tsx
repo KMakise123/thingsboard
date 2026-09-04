@@ -9,8 +9,15 @@
  * mocked at the module boundary. The exit route target and the dialogs are
  * covered through their data-testids.
  */
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import { App as AntdApp } from 'antd';
+import { useEffect, useState } from 'react';
 import { createIntl, RawIntlProvider } from 'react-intl';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FormPropertyType } from '@/components/form-property/types';
@@ -306,5 +313,89 @@ describe('WidgetEditorShell — hotkeys & ctrl+z focus routing', () => {
       expect(umiMock.history.push).toHaveBeenCalledWith('/dashboards');
     });
     expect(session.current.source.tsx).toBe(TSX_SOURCE); // rolled back to entry
+  });
+});
+
+describe('WidgetEditorShell — exit-confirm ownership (M10 D1 family)', () => {
+  /** Navigation sink shared between the route-swap harness and the mock. */
+  const exitRouteListeners = new Set<() => void>();
+
+  /**
+   * Mimics the real provider nesting: umi mounts the antd <App> ONCE above
+   * the router (plugin-antd innerProvider), so a navigation swaps the page
+   * underneath a PERSISTENT App. A dialog owned by the page must unmount
+   * with it; an imperative App-context confirm would survive the swap.
+   */
+  function ExitRouteHarness({
+    session,
+  }: {
+    session: EditorSession<WidgetEditorDoc>;
+  }) {
+    const [exited, setExited] = useState(false);
+    useEffect(() => {
+      const onPush = () => setExited(true);
+      exitRouteListeners.add(onPush);
+      return () => {
+        exitRouteListeners.delete(onPush);
+      };
+    }, []);
+    return (
+      <RawIntlProvider value={intl}>
+        <AntdApp>
+          {exited ? (
+            <div data-testid="we-list-view" />
+          ) : (
+            <WidgetEditorShell session={session} />
+          )}
+        </AntdApp>
+      </RawIntlProvider>
+    );
+  }
+
+  it('discarding navigates away and leaves NO confirm dialog residue', async () => {
+    const session = new EditorSession<WidgetEditorDoc>({
+      baseline: baseDoc(),
+    });
+    render(<ExitRouteHarness session={session} />);
+    act(() => {
+      session.write('edit', (draft) => {
+        draft.name = 'changed';
+      });
+    });
+    fireEvent.click(screen.getByTestId('we-toolbar-exit'));
+    const ok = await screen.findByTestId('we-exit-confirm-ok');
+    umiMock.history.push.mockImplementation(() => {
+      for (const listener of exitRouteListeners) {
+        listener();
+      }
+    });
+    fireEvent.click(ok);
+    await waitFor(() => {
+      expect(umiMock.history.push).toHaveBeenCalledWith('/dashboards');
+    });
+    expect(screen.getByTestId('we-list-view')).toBeInTheDocument();
+    // the confirm is owned by the editor face: navigation unmounts it
+    // atomically — no mask, no dead dialog may outlive the page
+    expect(document.querySelector('.ant-modal-root')).toBeNull();
+  });
+
+  it('canceling the confirm keeps the editor mounted without navigating', async () => {
+    const session = setup();
+    act(() => {
+      session.write('edit', (draft) => {
+        draft.name = 'changed';
+      });
+    });
+    fireEvent.click(screen.getByTestId('we-toolbar-exit'));
+    expect(await screen.findByTestId('we-exit-confirm')).toBeInTheDocument();
+    fireEvent.click(await screen.findByTestId('we-exit-confirm-cancel'));
+    // the controlled open state flipped: antd starts the close transition
+    // synchronously (happy-dom never finishes the animation itself)
+    expect(document.querySelector('.ant-modal-mask')?.className).toContain(
+      'leave',
+    );
+    expect(umiMock.history.push).not.toHaveBeenCalled();
+    expect(session.dirty).toBe(true);
+    expect(screen.getByTestId('we-toolbar-exit')).toBeInTheDocument();
   });
 });
