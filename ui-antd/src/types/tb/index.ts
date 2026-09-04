@@ -25,3 +25,4 @@ export * from './telemetry';
 export * from './timewindow';
 export * from './user';
 export * from './widget';
+export * from './widget-type';
