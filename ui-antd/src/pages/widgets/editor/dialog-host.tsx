@@ -6,11 +6,13 @@
  * signatures — do not rename):
  *
  *   ids            : WidgetEditorDialogId = 'new' | 'derive' | 'save-as'
+ *                    | 'import'   (wave-3 D: §5.7 import confirm dialog)
  *   dialog props   : WidgetEditorDialogProps<P> =
  *                    { open: boolean; payload?: P; onClose: () => void }
  *   payload types  : NewWidgetDialogPayload    (./new-dialog)
  *                    DeriveWidgetDialogPayload (./derive-dialog)
  *                    SaveAsWidgetDialogPayload (./contract/save-as-dialog)
+ *                    ImportWidgetDialogPayload (./contract/import-dialog)
  *   dialog files   : the lazy map below.
  *
  * The host owns one "active dialog" slot: openDialog(id, payload?) swaps
@@ -21,7 +23,7 @@
 import { Spin } from 'antd';
 import { lazy, Suspense, useState } from 'react';
 
-export type WidgetEditorDialogId = 'new' | 'derive' | 'save-as';
+export type WidgetEditorDialogId = 'new' | 'derive' | 'save-as' | 'import';
 
 /** Frozen prop signature of every widget editor dialog. */
 export interface WidgetEditorDialogProps<P = unknown> {
@@ -63,6 +65,11 @@ const DIALOG_COMPONENTS: Record<WidgetEditorDialogId, DialogComponent> = {
   'save-as': lazy(() =>
     import('./contract/save-as-dialog').then((m) => ({
       default: m.SaveAsWidgetDialog,
+    })),
+  ),
+  import: lazy(() =>
+    import('./contract/import-dialog').then((m) => ({
+      default: m.ImportWidgetDialog,
     })),
   ),
 };
