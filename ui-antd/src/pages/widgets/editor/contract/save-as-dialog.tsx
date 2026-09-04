@@ -10,6 +10,11 @@
  * chance to pick it). Confirm mints a COPY of the draft with the identity
  * triple reset — widgetTypeId / fqn / version — so the shell's immediate
  * save lands as a CREATE; the descriptor payload itself is untouched.
+ *
+ * entityPassthrough (description / tags / image / …) RIDES ALONG on the
+ * copy — ui-ngx parity: saveWidgetAs renames the WHOLE entity and re-posts
+ * it (widget-editor.component.ts saveWidgetAs → saveWidgetTypeDetails),
+ * so the duplicate is a full clone with a new name, not a stripped one.
  */
 
 import { Form, Input, Modal } from 'antd';
@@ -58,6 +63,7 @@ export function SaveAsWidgetDialog({
       widgetTypeId: null,
       version: null,
       descriptorPassthrough: { ...source.descriptorPassthrough },
+      entityPassthrough: { ...source.entityPassthrough },
     });
     onClose();
   };

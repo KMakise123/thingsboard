@@ -30,6 +30,7 @@ function setup() {
   draft.name = 'My gauge';
   draft.version = 4;
   draft.descriptorPassthrough = { resources: [{ url: '/r.js' }] };
+  draft.entityPassthrough = { description: 'kept on the copy' };
   const onConfirm = vi.fn();
   render(
     <RawIntlProvider value={intl}>
@@ -63,6 +64,11 @@ describe('SaveAsWidgetDialog — identity reset on confirm', () => {
     // the payload itself survives untouched
     expect(copy.descriptorPassthrough).toEqual({
       resources: [{ url: '/r.js' }],
+    });
+    // entity-level extras ride along (ui-ngx saveWidgetAs parity: the whole
+    // entity is renamed and re-posted)
+    expect(copy.entityPassthrough).toEqual({
+      description: 'kept on the copy',
     });
     expect(copy.source).toEqual(draftCopySource());
   });

@@ -98,6 +98,7 @@ export function writeImportedDoc(
     target.meta = doc.meta;
     target.version = doc.version;
     target.descriptorPassthrough = doc.descriptorPassthrough;
+    target.entityPassthrough = doc.entityPassthrough;
   });
 }
 

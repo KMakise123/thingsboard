@@ -7,6 +7,15 @@
  *     along in `WidgetEditorDoc.descriptorPassthrough` and are re-merged
  *     verbatim on save — this is the passthrough channel the frozen
  *     WidgetEditorDraft doc comment promises (core/widget/types.ts);
+ *   - TOP-LEVEL entity keys no draft field represents (description, tags,
+ *     image, deprecated, scada, unknown future keys…) ride along in
+ *     `WidgetEditorDoc.entityPassthrough` and are re-merged verbatim on
+ *     save (wave-3 D data-loss fix: an editor save must not wipe fields
+ *     set outside the editor). Server-owned / export-only top-level fields
+ *     are STRIPPED here (never re-posted): createdTime, tenantId,
+ *     customerId, externalId and the details-level `resources` export
+ *     payload — the descriptor-level `resources[]` is the durable channel
+ *     and keeps riding descriptorPassthrough;
  *   - `defaultConfig` stays a JSON STRING end-to-end;
  *   - `settingsForm` narrows once here: the wire side is a free
  *     `Array<Record<string, unknown>>` (types/tb must not import UI types),
@@ -41,6 +50,14 @@ import type {
 export interface WidgetEditorDoc extends WidgetEditorDraft {
   /** see module doc — never edited by the UI, re-merged verbatim on save. */
   descriptorPassthrough: Record<string, unknown>;
+  /**
+   * TOP-LEVEL entity fields no draft field represents (description, tags,
+   * image, deprecated, scada, unknown future keys) — captured on load,
+   * re-merged verbatim on save. Optional: hand-written docs without it
+   * simply carry no passthrough fields. Save-as keeps it (ui-ngx parity:
+   * the whole entity is renamed and re-posted — see save-as-dialog).
+   */
+  entityPassthrough?: Record<string, unknown>;
 }
 
 /**
@@ -54,6 +71,22 @@ export const DEFAULT_WIDGET_META: WidgetEditorMeta = {
   sizeY: 6,
 };
 
+/**
+ * Top-level entity fields that are SERVER-OWNED or EXPORT-ONLY payloads —
+ * stripped at load so they can never be re-posted. Everything else the
+ * draft has no field for rides `entityPassthrough`.
+ */
+const STRIPPED_ENTITY_FIELDS = [
+  'createdTime',
+  'tenantId',
+  'customerId',
+  'externalId',
+  // details-level resource EXPORT payload (only attached via
+  // ?includeResources=true); the descriptor-level resources[] is the
+  // durable channel and keeps riding descriptorPassthrough
+  'resources',
+] as const;
+
 /** Empty draft for the create path (new-dialog deliverer, wave-3 D). */
 export function emptyWidgetEditorDoc(): WidgetEditorDoc {
   return {
@@ -66,6 +99,7 @@ export function emptyWidgetEditorDoc(): WidgetEditorDoc {
     meta: { ...DEFAULT_WIDGET_META },
     version: null,
     descriptorPassthrough: {},
+    entityPassthrough: {},
   };
 }
 
@@ -88,6 +122,20 @@ export function widgetTypeToDraft(details: WidgetTypeDetails): WidgetEditorDoc {
     source,
     ...passthrough
   } = descriptor;
+  const {
+    id: _id,
+    fqn: _fqn,
+    name: _name,
+    version: _version,
+    descriptor: _descriptor,
+    ...entityRest
+  } = details;
+  const entityPassthrough: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(entityRest)) {
+    if (!(STRIPPED_ENTITY_FIELDS as readonly string[]).includes(key)) {
+      entityPassthrough[key] = value;
+    }
+  }
   return {
     widgetTypeId: details.id?.id ?? null,
     fqn: details.fqn ?? '',
@@ -110,6 +158,7 @@ export function widgetTypeToDraft(details: WidgetTypeDetails): WidgetEditorDoc {
     },
     version: details.version ?? null,
     descriptorPassthrough: passthrough,
+    entityPassthrough,
   };
 }
 
@@ -142,6 +191,9 @@ export function draftToWidgetType(doc: WidgetEditorDoc): WidgetTypeDetails {
     defaultConfig: doc.defaultConfig,
   };
   return {
+    // entity-level passthrough first; the KNOWN fields below always win so
+    // a polluted passthrough can never override the draft's identity/desc
+    ...doc.entityPassthrough,
     ...(doc.widgetTypeId
       ? {
           id: { entityType: EntityType.WIDGET_TYPE, id: doc.widgetTypeId },

@@ -61,6 +61,7 @@ export function useRestoreSaved({
         doc.meta = restored.meta;
         doc.version = restored.version;
         doc.descriptorPassthrough = restored.descriptorPassthrough;
+        doc.entityPassthrough = restored.entityPassthrough;
       });
       // content now equals the baseline but sits on a fresh reference —
       // re-anchor (no POST) so dirty reads honest (M7/M8 parity)

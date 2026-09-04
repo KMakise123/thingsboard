@@ -118,6 +118,26 @@ describe('export — strip rule + fork markers (ui-ngx prepareExport parity)', (
 });
 
 describe('import — react-1 fork JSON round trip (P10 half-item)', () => {
+  it('captures top-level entity extras into entityPassthrough (save keeps them)', () => {
+    const withDescription = {
+      ...JSON.parse(serializeWidgetTypeExport(reactDoc())),
+      description: 'imported description',
+      tags: ['a', 'b'],
+    };
+    const imported = parseWidgetTypeImport(JSON.stringify(withDescription));
+    if (imported.kind !== 'react-1') {
+      throw new Error('expected react-1');
+    }
+    expect(imported.doc.entityPassthrough).toMatchObject({
+      description: 'imported description',
+      tags: ['a', 'b'],
+    });
+    // …and the next save re-merges them into the POST body
+    const outgoing = draftToWidgetType(imported.doc);
+    expect(outgoing.description).toBe('imported description');
+    expect(outgoing.tags).toEqual(['a', 'b']);
+  });
+
   it('preserves resources[] and unknown descriptor keys verbatim', () => {
     const json = serializeWidgetTypeExport(reactDoc());
     const imported: WidgetImport = parseWidgetTypeImport(json);
