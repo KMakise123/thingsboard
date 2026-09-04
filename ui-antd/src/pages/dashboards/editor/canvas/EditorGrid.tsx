@@ -423,6 +423,15 @@ export function EditorGrid({
                 // Resizable wrapper injects a second child (the resize
                 // handle) into the direct child, which antd Dropdown
                 // (single-child only) cannot host.
+                //
+                // M10 D3: the Dropdown's child must be a PLAIN DOM element.
+                // rc-trigger attaches its contextMenu open-handler via
+                // cloneElement on the child — a component child (WidgetCellInner)
+                // drops that prop, so the trigger never fires and the menu
+                // never mounts. The wrapper div receives the cloned handler;
+                // the event then keeps bubbling to the cell wrapper below,
+                // which selects the widget and stops before the
+                // dashboard-level menu.
                 return (
                   <div
                     key={entry.id}
@@ -452,7 +461,7 @@ export function EditorGrid({
                   >
                     {menu ? (
                       <Dropdown menu={menu} trigger={['contextMenu']}>
-                        {content}
+                        <div style={{ height: '100%' }}>{content}</div>
                       </Dropdown>
                     ) : (
                       content
