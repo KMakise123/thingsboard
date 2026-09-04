@@ -38,6 +38,8 @@ export default {
   'editor.widget.editor.tab.css': 'CSS',
   'editor.widget.editor.tab.schema': 'Schema',
   'editor.widget.editor.tab.defaultConfig': 'defaultConfig',
+  'editor.widget.editor.tab.schemaInvalid':
+    'Invalid JSON — kept locally until it parses',
 
   // preview + console
   'editor.widget.editor.preview.title': 'Preview',

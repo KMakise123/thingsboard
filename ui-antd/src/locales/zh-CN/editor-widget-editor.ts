@@ -40,6 +40,8 @@ export default {
   'editor.widget.editor.tab.css': 'CSS',
   'editor.widget.editor.tab.schema': 'Schema',
   'editor.widget.editor.tab.defaultConfig': 'defaultConfig',
+  'editor.widget.editor.tab.schemaInvalid':
+    'JSON 无效 — 解析通过前仅保留在本页',
 
   // preview + console
   'editor.widget.editor.preview.title': '预览',
