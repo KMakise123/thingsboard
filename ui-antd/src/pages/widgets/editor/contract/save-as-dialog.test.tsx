@@ -53,7 +53,7 @@ describe('SaveAsWidgetDialog — identity reset on confirm', () => {
     fireEvent.click(
       screen
         .getByTestId('widget-save-as-dialog')
-        .querySelector('.ant-btn-primary')!,
+        .querySelector('.ant-btn-primary') as HTMLButtonElement,
     );
     expect(onConfirm).toHaveBeenCalledTimes(1);
     const copy = onConfirm.mock.calls[0][0];
@@ -84,7 +84,7 @@ describe('SaveAsWidgetDialog — identity reset on confirm', () => {
     fireEvent.click(
       screen
         .getByTestId('widget-save-as-dialog')
-        .querySelector('.ant-btn-primary')!,
+        .querySelector('.ant-btn-primary') as HTMLButtonElement,
     );
     expect(onConfirm.mock.calls[0][0].fqn).toBe('my_gauge_copy');
   });

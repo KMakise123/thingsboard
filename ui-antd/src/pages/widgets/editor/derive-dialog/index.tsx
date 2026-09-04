@@ -67,18 +67,20 @@ export function DeriveWidgetDialog({
     enabled: open && mode === 'custom',
     staleTime: Infinity,
     queryFn: async (): Promise<WidgetTypeDetails[]> => {
-      const infoRows: Array<{ id?: { id: string } }> = [];
+      const infoIds: string[] = [];
       for (let page = 0; page < MAX_PAGES; page += 1) {
         const pageData = await getWidgetTypes({ pageSize: 100, page });
-        infoRows.push(
-          ...pageData.data.filter((row) => typeof row.id?.id === 'string'),
-        );
+        for (const row of pageData.data) {
+          if (typeof row.id?.id === 'string') {
+            infoIds.push(row.id.id);
+          }
+        }
         if (!pageData.hasNext) {
           break;
         }
       }
       const details = await Promise.all(
-        infoRows.map((row) => getWidgetTypeById(row.id!.id)),
+        infoIds.map((id) => getWidgetTypeById(id)),
       );
       return details.filter(
         (details_) => details_.descriptor?.runtime === 'react-1',

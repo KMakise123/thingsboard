@@ -89,7 +89,10 @@ describe('export — strip rule + fork markers (ui-ngx prepareExport parity)', (
 
   it('exports carry the runtime/schemaVersion markers (TB-import safe)', () => {
     const exported = prepareWidgetTypeExport(draftToWidgetType(reactDoc()));
-    const exportedDescriptor = exported.descriptor!;
+    const exportedDescriptor = exported.descriptor;
+    if (exportedDescriptor === undefined || exportedDescriptor === null) {
+      throw new Error('expected descriptor');
+    }
     expect(exportedDescriptor.runtime).toBe('react-1');
     expect(exportedDescriptor.schemaVersion).toBe(1);
     expect(exportedDescriptor.source).toEqual({

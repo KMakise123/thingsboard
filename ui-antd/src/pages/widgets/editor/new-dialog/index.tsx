@@ -24,7 +24,7 @@ import { useState } from 'react';
 import { useIntl } from 'react-intl';
 import type { WidgetEditorDialogProps } from '../dialog-host';
 import type { WidgetEditorDoc } from '../draft-convert';
-import { STARTER_KIND_ORDER, starterToDoc } from '../templates';
+import { starterToDoc } from '../templates';
 
 export type WidgetStarterKind =
   | 'latest'

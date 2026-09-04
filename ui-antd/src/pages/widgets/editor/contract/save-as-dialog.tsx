@@ -45,7 +45,6 @@ export function SaveAsWidgetDialog({
   const [name, setName] = useState(typed?.draft.name ?? '');
   const [fqn, setFqn] = useState('');
 
-  const fqnTouched = fqn.trim() !== '';
   const nameOk = name.trim().length > 0;
   const fqnOk = FQN_PATTERN.test(fqn.trim());
   const canConfirm = nameOk && fqnOk;

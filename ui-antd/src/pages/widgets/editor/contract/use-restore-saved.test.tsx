@@ -3,10 +3,10 @@
  * last-saved snapshot as ONE undoable group (re-anchor keeps dirty honest);
  * a mid-session save moves the restore target; undo brings the edits back.
  */
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, render } from '@testing-library/react';
 import { App as AntdApp } from 'antd';
 import { createIntl, RawIntlProvider } from 'react-intl';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { EditorSession } from '@/core/editor/session';
 import zhCommon from '@/locales/zh-CN/editor';
 import zhWidgetEditor from '@/locales/zh-CN/editor-widget-editor';
@@ -95,7 +95,7 @@ describe('useRestoreSaved — rewind to the last saved state', () => {
   });
 
   it('the restore target follows a mid-session save (not the entry state)', async () => {
-    const { session, hook, confirmRestore } = setup();
+    const { session, confirmRestore } = setup();
     // edit -> save (baseline advances) -> more edits -> restore
     act(() => {
       session.write('meta.name', (doc) => {
@@ -119,7 +119,7 @@ describe('useRestoreSaved — rewind to the last saved state', () => {
   });
 
   it('undoing the restore group brings the user edits back', async () => {
-    const { session, hook, confirmRestore } = setup();
+    const { session, confirmRestore } = setup();
     act(() => {
       session.write('meta.name', (doc) => {
         doc.name = 'Dirty name';
@@ -135,7 +135,7 @@ describe('useRestoreSaved — rewind to the last saved state', () => {
   });
 
   it('restore is a no-op on a clean session', async () => {
-    const { session, hook, confirmRestore } = setup();
+    const { session, confirmRestore } = setup();
     await confirmRestore();
     expect(session.history).toHaveLength(0);
     expect(session.dirty).toBe(false);
