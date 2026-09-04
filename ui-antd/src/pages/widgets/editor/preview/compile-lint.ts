@@ -7,7 +7,7 @@
  * extension at all (empty diagnostics) — typing clears the stale mark and
  * the next ctrl+enter re-lints through the fresh error object.
  */
-import { linter, type Diagnostic } from '@codemirror/lint';
+import { type Diagnostic, linter } from '@codemirror/lint';
 import type { Extension, Text } from '@codemirror/state';
 import { useMemo } from 'react';
 
@@ -45,8 +45,6 @@ export function useCompileErrorExtensions(
     if (error === null || error.kind !== 'compile') {
       return [];
     }
-    return [
-      linter((view) => compileErrorDiagnostics(view.state.doc, error)),
-    ];
+    return [linter((view) => compileErrorDiagnostics(view.state.doc, error))];
   }, [error]);
 }

@@ -19,8 +19,8 @@ import {
 import { App as AntdApp } from 'antd';
 import { createIntl, RawIntlProvider } from 'react-intl';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { releaseAllWidgetStyles } from '@/core/widget/style-scope';
 import { FormPropertyType } from '@/components/form-property/types';
+import { releaseAllWidgetStyles } from '@/core/widget/style-scope';
 import zhEditor from '@/locales/zh-CN/editor-widget-editor';
 import zhPreview from '@/locales/zh-CN/editor-widget-preview';
 import { FUNCTION_TICK_MS } from './function-subscription';
@@ -175,7 +175,10 @@ describe('WidgetPreview — runtime error channel (§5.5)', () => {
     const call = channels.onError.mock.calls.find(
       (entry) => (entry[0] as { kind: string } | null)?.kind === 'runtime',
     );
-    expect((call?.[0] as { line?: number }).line).toBe(2);
+    if (!call) {
+      throw new Error('no runtime error captured');
+    }
+    expect((call[0] as { line?: number }).line).toBe(2);
     expect(channels.onConsoleEntry).toHaveBeenCalledWith(
       expect.objectContaining({ level: 'error' }),
     );
@@ -207,7 +210,10 @@ describe('WidgetPreview — runtime error channel (§5.5)', () => {
     const call = channels.onError.mock.calls.find(
       (entry) => (entry[0] as { kind: string } | null)?.kind === 'runtime',
     );
-    expect((call?.[0] as { line?: number }).line).toBeUndefined();
+    if (!call) {
+      throw new Error('no runtime error captured');
+    }
+    expect((call[0] as { line?: number }).line).toBeUndefined();
     spy.mockRestore();
   });
 
@@ -309,7 +315,12 @@ describe('WidgetPreview — WYSIWYG settings write-back (§5.4)', () => {
   it('merges edited settings back into the defaultConfig JSON string', async () => {
     const channels = setup({
       settingsForm: [
-        { id: 'threshold', name: 'threshold', type: FormPropertyType.number, default: 1 },
+        {
+          id: 'threshold',
+          name: 'threshold',
+          type: FormPropertyType.number,
+          default: 1,
+        },
       ],
       defaultConfig: JSON.stringify({ title: 'gauge', settings: {} }),
     });
@@ -334,7 +345,14 @@ describe('WidgetPreview — WYSIWYG settings write-back (§5.4)', () => {
     ].join('\n');
     const channels = setup({
       tsx: ECHO_TSX,
-      settingsForm: [{ id: 'label', name: 'label', type: FormPropertyType.text, default: '' }],
+      settingsForm: [
+        {
+          id: 'label',
+          name: 'label',
+          type: FormPropertyType.text,
+          default: '',
+        },
+      ],
       defaultConfig: JSON.stringify({ settings: { label: 'a' } }),
     });
     await screen.findByTestId('w-label');
