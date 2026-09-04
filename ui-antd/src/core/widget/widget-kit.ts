@@ -25,8 +25,6 @@ export * as antd from 'antd';
 
 import dayjs from 'dayjs';
 
-export { dayjs };
-
 export * as recharts from 'recharts';
-
 export { formatValue } from './format-value';
+export { dayjs };

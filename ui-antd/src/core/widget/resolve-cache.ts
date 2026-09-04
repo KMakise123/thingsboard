@@ -15,7 +15,7 @@
  * cache" contract from ADR 0004 §4.
  */
 
-import { type WidgetCompileResult, compileWidget } from './compile';
+import { compileWidget, type WidgetCompileResult } from './compile';
 
 const cache = new Map<string, WidgetCompileResult>();
 

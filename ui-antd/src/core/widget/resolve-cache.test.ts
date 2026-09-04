@@ -8,11 +8,9 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { compileWidget } from './compile';
 import { clearWidgetCompileCache, compileWidgetCached } from './resolve-cache';
 
-const SOURCE = [
-  'export default function W() {',
-  '  return null;',
-  '}',
-].join('\n');
+const SOURCE = ['export default function W() {', '  return null;', '}'].join(
+  '\n',
+);
 
 afterEach(() => {
   clearWidgetCompileCache();

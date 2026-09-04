@@ -4,11 +4,11 @@
  * the export face (P2's other half lives in compile.test.ts: the SAME antd
  * component objects must reach compiled code).
  */
-import { describe, expect, it } from 'vitest';
 
 import * as hostAntd from 'antd';
-import * as hostRecharts from 'recharts';
 import hostDayjs from 'dayjs';
+import * as hostRecharts from 'recharts';
+import { describe, expect, it } from 'vitest';
 
 import { formatValue } from './format-value';
 import * as widgetKit from './widget-kit';
