@@ -1,17 +1,18 @@
 /**
- * SaveAsWidgetDialog — "save as" dialog of the widget editor (M9 brief §3
- * wave S item 9). FROZEN CONTRACT for wave-3 D: registered in the shell
- * DialogHost under the id `save-as`; D may replace the body (ui-ngx
- * save-widget-type-as-dialog parity — new fqn/alias handling) WITHOUT
- * changing the payload signature.
+ * SaveAsWidgetDialog — "save as" dialog of the widget editor (spec §5.2;
+ * ui-ngx anchor save-widget-type-as-dialog.component.ts). Registered in the
+ * shell DialogHost under the id `save-as`; the payload signature is the
+ * frozen wave-S seam.
  *
- * The placeholder already delivers the working semantic: confirm mints a
- * COPY of the draft with id/version/fqn reset (the server derives a fresh
- * fqn from the new name on the next save); the shell re-enters the session
- * with it and saves immediately.
+ * Wave-3 D body: the dialog asks for the NEW NAME (required) and the NEW
+ * fqn short name (optional — empty lets the server derive a unique one
+ * from the name; once saved the fqn is immutable, so this is the only
+ * chance to pick it). Confirm mints a COPY of the draft with the identity
+ * triple reset — widgetTypeId / fqn / version — so the shell's immediate
+ * save lands as a CREATE; the descriptor payload itself is untouched.
  */
 
-import { Input, Modal } from 'antd';
+import { Form, Input, Modal } from 'antd';
 import { useState } from 'react';
 import { useIntl } from 'react-intl';
 import type { WidgetEditorDialogProps } from '../dialog-host';
@@ -24,6 +25,9 @@ export interface SaveAsWidgetDialogPayload {
   onConfirm: (draft: WidgetEditorDoc) => void;
 }
 
+/** The backend fqn slug shape (WidgetTypeDataValidator); empty = derive. */
+const FQN_PATTERN = /^[a-z0-9_]*$/;
+
 export function SaveAsWidgetDialog({
   open,
   payload,
@@ -34,18 +38,24 @@ export function SaveAsWidgetDialog({
   // present at mount (M8 house pattern: one assertion at the boundary).
   const typed = payload as SaveAsWidgetDialogPayload | undefined;
   const [name, setName] = useState(typed?.draft.name ?? '');
+  const [fqn, setFqn] = useState('');
+
+  const fqnTouched = fqn.trim() !== '';
+  const nameOk = name.trim().length > 0;
+  const fqnOk = FQN_PATTERN.test(fqn.trim());
+  const canConfirm = nameOk && fqnOk;
 
   const confirm = () => {
     const source = typed?.draft;
-    if (!source || !name.trim()) {
+    if (!source || !canConfirm) {
       return;
     }
     typed?.onConfirm({
       ...source,
       name: name.trim(),
-      // fresh identity: create path (server derives the new fqn)
+      // fresh identity: create path (empty fqn = server derives from name)
+      fqn: fqn.trim(),
       widgetTypeId: null,
-      fqn: '',
       version: null,
       descriptorPassthrough: { ...source.descriptorPassthrough },
     });
@@ -63,22 +73,58 @@ export function SaveAsWidgetDialog({
         id: 'editor.widget.editor.dialog.saveAs.ok',
         defaultMessage: 'Create draft copy',
       })}
-      okButtonProps={{ disabled: !name.trim() }}
+      okButtonProps={{ disabled: !canConfirm }}
       onCancel={onClose}
       onOk={confirm}
       destroyOnHidden
       data-testid="widget-save-as-dialog"
     >
-      <Input
-        value={name}
-        autoFocus
-        data-testid="widget-save-as-name"
-        onChange={(event) => setName(event.target.value)}
-        placeholder={formatMessage({
-          id: 'editor.widget.editor.dialog.saveAs.name',
-          defaultMessage: 'New name',
-        })}
-      />
+      <Form layout="vertical">
+        <Form.Item
+          label={formatMessage({
+            id: 'editor.widget.editor.metadata.name',
+            defaultMessage: 'Name',
+          })}
+          required
+        >
+          <Input
+            value={name}
+            autoFocus
+            data-testid="widget-save-as-name"
+            onChange={(event) => setName(event.target.value)}
+            placeholder={formatMessage({
+              id: 'editor.widget.editor.dialog.saveAs.name',
+              defaultMessage: 'New name',
+            })}
+          />
+        </Form.Item>
+        <Form.Item
+          label={formatMessage({
+            id: 'editor.widget.editor.dialog.saveAs.fqn',
+            defaultMessage: 'New fqn (short name, optional)',
+          })}
+          validateStatus={fqnOk ? undefined : 'error'}
+          help={
+            fqnOk
+              ? formatMessage({
+                  id: 'editor.widget.editor.dialog.saveAs.fqnHint',
+                  defaultMessage:
+                    'Leave empty and the server derives one from the name.',
+                })
+              : formatMessage({
+                  id: 'editor.widget.editor.dialog.saveAs.fqnInvalid',
+                  defaultMessage: 'Lowercase letters, digits, underscores only',
+                })
+          }
+        >
+          <Input
+            value={fqn}
+            data-testid="widget-save-as-fqn"
+            onChange={(event) => setFqn(event.target.value)}
+            placeholder="my_widget_copy"
+          />
+        </Form.Item>
+      </Form>
     </Modal>
   );
 }
