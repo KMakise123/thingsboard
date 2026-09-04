@@ -1,22 +1,31 @@
 /**
- * Widget-type registry + resolver (ADR 0003 §1.3).
+ * Widget-type registry + resolver (ADR 0003 §1.3; M9 wave-2 react-1 upgrade).
  *
  * v1 builtin set = the anchor widgets (docs/spec M5 brief §6): the 7 fqns
- * used by the four demo dashboards + the gauge representative. Every entry
- * currently points at the pending placeholder; W2 replaces entries one by
- * one with `lazy(() => import('./<widget>'))` implementations — the registry
- * shape and the resolution chain below are stable.
+ * used by the four demo dashboards + the gauge representative.
  *
- * Resolution chain for an unknown fqn:
- *   GET /api/widgetType?fqn=… →
- *     descriptor.runtime === 'react-1' → 'unsupported-custom' (v2 editor
- *     compiles custom widgets; v1 never does)
- *     runtime missing (CE descriptors are Angular) → 'unsupported-angular'
- *     404 / probe failure → 'missing'
+ * Resolution chain for an unknown fqn (ADR 0003, upgraded by ADR 0004 §4):
+ *   GET /api/widgetType?fqn=… (typed transport, full fqn) →
+ *     404 / fetch failure            → 'missing'
+ *     descriptor.runtime missing     → 'unsupported-angular' (CE descriptors)
+ *     runtime === 'react-1'          → compile (`fqn@version` cached) →
+ *                                      'custom' with the CustomWidgetHost
+ *                                      adapter wrapped lazy — the SAME
+ *                                      registration face as builtins
+ *     react-1 but compile failed     → 'custom-broken' (readable error,
+ *                                      dashboard never crashes on it)
+ *
+ * Placeholder copy stays centralized in placeholders.tsx (dashboards locale
+ * domain); the compile-broken state carries its own copy in the widget-kit
+ * locale domain because it is a fork-widget state, not an ADR 0003 state.
  */
 import { type LazyExoticComponent, lazy } from 'react';
 
+import type { WidgetCompileError } from '@/core/widget/compile';
+import { compileWidgetCached } from '@/core/widget/resolve-cache';
+import type { WidgetType } from '@/types/tb/widget-type';
 import type { WidgetComponent } from './contract';
+import { createCustomWidgetHost } from './custom-widget-host';
 
 export interface WidgetRegistryEntry {
   component: LazyExoticComponent<WidgetComponent>;
@@ -70,8 +79,19 @@ export const WIDGET_REGISTRY: Record<string, WidgetRegistryEntry> = {
 export type WidgetResolution =
   | { kind: 'builtin'; component: LazyExoticComponent<WidgetComponent> }
   | { kind: 'pending'; component: LazyExoticComponent<WidgetComponent> }
+  | {
+      /** compiled react-1 custom widget, adapter-wrapped (WidgetComponentProps in, CustomWidgetProps mapped). */
+      kind: 'custom';
+      component: LazyExoticComponent<WidgetComponent>;
+      fqn: string;
+    }
+  | {
+      /** react-1 widget whose source does not compile — readable error, no crash. */
+      kind: 'custom-broken';
+      fqn: string;
+      error: WidgetCompileError;
+    }
   | { kind: 'unsupported-angular'; fqn: string }
-  | { kind: 'unsupported-custom'; fqn: string }
   | { kind: 'missing'; fqn: string };
 
 export function builtinWidgetEntry(
@@ -80,14 +100,68 @@ export function builtinWidgetEntry(
   return WIDGET_REGISTRY[fqn];
 }
 
-/** Maps the /api/widgetType probe result onto a placeholder resolution. */
-export function resolveProbedWidgetType(
+/**
+ * Map a fetched widget type onto a resolution. Synchronous — the compile
+ * itself is synchronous (Sucrase + new Function); caching happens inside
+ * `compileWidgetCached` (`fqn@version`).
+ */
+export function resolveWidgetTypeResolution(
   fqn: string,
-  descriptor: { descriptor?: Record<string, unknown> } | undefined,
+  widgetType: WidgetType | undefined,
 ): WidgetResolution {
-  const runtime = descriptor?.descriptor?.runtime;
-  if (runtime === 'react-1') {
-    return { kind: 'unsupported-custom', fqn };
+  if (!widgetType) {
+    return { kind: 'missing', fqn };
   }
-  return { kind: 'unsupported-angular', fqn };
+  const descriptor = widgetType.descriptor;
+  if (descriptor?.runtime !== 'react-1') {
+    // CE/upstream descriptors are Angular script payloads (runtime absent)
+    return { kind: 'unsupported-angular', fqn };
+  }
+  const source = descriptor.source?.tsx;
+  if (!source) {
+    return {
+      kind: 'custom-broken',
+      fqn,
+      error: {
+        stage: 'transform',
+        message:
+          'descriptor.runtime is "react-1" but descriptor.source.tsx is missing — the type was not saved by the widget editor.',
+      },
+    };
+  }
+  const compiled = compileWidgetCached(fqn, widgetType.version, source);
+  if ('error' in compiled) {
+    return { kind: 'custom-broken', fqn, error: compiled.error };
+  }
+  const host = hostForCompiled(compiled, descriptor.source?.css);
+  return {
+    kind: 'custom',
+    fqn,
+    component: lazy(async () => ({ default: host as WidgetComponent })),
+  };
+}
+
+/**
+ * One host component per cached compiled module — N dashboard containers
+ * of the same `fqn@version` share the registered component identity (same
+ * registration face semantics as the builtin registry entries).
+ */
+const hostPerCompiled = new WeakMap<object, WidgetComponent>();
+
+function hostForCompiled(
+  compiled: {
+    component: Parameters<typeof createCustomWidgetHost>[0]['component'];
+  },
+  typeCss: string | undefined,
+): WidgetComponent {
+  const cached = hostPerCompiled.get(compiled.component);
+  if (cached) {
+    return cached;
+  }
+  const host = createCustomWidgetHost({
+    component: compiled.component,
+    typeCss,
+  });
+  hostPerCompiled.set(compiled.component, host);
+  return host;
 }
