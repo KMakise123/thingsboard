@@ -209,53 +209,60 @@ v2 交付的仪表盘编辑器、widget 编辑器、规则链画布，对 ui-ngx
 
 ### 5.1 布局
 
-- [ ] 左代码右预览、底部 console；分屏可调（react-resizable-panels）
-- [ ] 代码区四 tab：TSX / CSS / Schema（settingsForm）/ defaultConfig + 元数据侧栏（type / size / typeParameters / actionSources）
-- [ ] 同页预览（弃 iframe）：编译前置同步抛错、双层样式命名空间、hook 订阅独立生命周期
+- [x] 左代码右预览、底部 console；分屏可调（react-resizable-panels）〔V 波真机 ✅：左元数据侧栏 + 中代码 + 右预览 + 底部控制台三/四区布局目击；**分屏拖拽未驱动**（E2 环境受阻：react-resizable-panels 对合成指针事件不启动，handle DOM 在场），分屏可调以组件库行为 + DOM handle 在场为准〕
+- [x] 代码区四 tab：TSX / CSS / Schema（settingsForm）/ defaultConfig + 元数据侧栏（type / size / typeParameters / actionSources）〔V 波真机 ✅：四 tab 内容逐一目击（Schema = settingsForm JSON、CSS = 模板 CSS、defaultConfig = JSON 字符串、TSX = 源码）；侧栏 fqn 只读 / 名称 / 类型下拉 / 宽高 / 类型参数 JSON / 添加操作源（actionSources）在列〕
+- [x] 同页预览（弃 iframe）：编译前置同步抛错、双层样式命名空间、hook 订阅独立生命周期〔V 波真机 ✅：语法错运行 → 运行序号不递增 + 错误横幅（编译前置同步抛错）；key 递增 remount 目击（ctrl+enter 运行序号 0→3）；双层样式命名空间由 style-scope.test（P10）+ 仪表盘侧 CustomWidgetHost 挂载路径锚定〕
 
 ### 5.2 运行 / 保存 / 文件操作
 
-- [ ] 运行：ctrl+enter 重编译 + key 递增 remount
-- [ ] 保存：编译 → 执行 → 冒烟渲染 → commit；409 显式 diff 不静默覆盖（行为契约）
-- [ ] 另存为；恢复上次保存；全屏；Tidy（prettier standalone）
+- [x] 运行：ctrl+enter 重编译 + key 递增 remount〔V 波真机 ✅：▶ 运行与 ctrl+enter 同路径目击；ctrl+enter 全局接线以正确属性 KeyboardEvent 派发证实（合成按键修饰键投递进 CM 退化，E2 注记）；编译失败不 remount 目击〕
+- [x] 保存：编译 → 执行 → 冒烟渲染 → commit；409 显式 diff 不静默覆盖（行为契约）〔V 波真机 ✅：保存成功 POST /api/widgetType 恰 1 次 + toast「已保存」+ URL 首存替换为 /widgets/editor/:id；**保存中止目击**——组件抛错 ctrl+s → toast「保存中止：组件冒烟渲染失败」+ fetch 钩子实抓 POST 为零；409 三选项未复现（单机无并发，M7/M8 同款处理），契约单测锚（use-widget-save.test + save-with-conflict 共享件）〕
+- [x] 另存为；恢复上次保存；全屏；Tidy（prettier standalone）〔V 波真机 ✅：另存为对话框 + POST 新建 + URL 换新 id；恢复上次保存含确认对话框 + 整组回基线 + **恢复后 ctrl+z 一次找回全部编辑（一个事务组）**；全屏 AX 树验证（应用壳消失、fullscreen-exit 随动）；Tidy 真机重排（引号归一/括号折叠/空行清除）〕
 
 ### 5.3 快捷键与焦点（行为契约）
 
-- [ ] 五快捷键齐套：ctrl+s / shift+ctrl+s / ctrl+enter / shift+ctrl+f / ctrl+q
-- [ ] 代码内 ctrl+z 归 CodeMirror 自身栈；焦点在面板 / 表单时归 EditorSession——焦点切换归属正确
-- [ ] 「?」快捷键帮助面板（三编辑器一致，§6.3）
+- [x] 五快捷键齐套：ctrl+s / shift+ctrl+s / ctrl+enter / shift+ctrl+f / ctrl+q〔V 波真机 ✅：帮助面板列出五键 + ctrl+z/y/?；ctrl+s（保存）、shift+ctrl+s（另存为）、ctrl+enter（运行）、shift+ctrl+f（Tidy）真机或同路径目击；**ctrl+q 热键本体未单按**（退出按钮 + 离开守卫真机目击，热键注册同源 useHotkeys ANY_FOCUS）〕
+- [x] 代码内 ctrl+z 归 CodeMirror 自身栈；焦点在面板 / 表单时归 EditorSession——焦点切换归属正确〔V 波真机 ✅：CM 内 3×ctrl+z 仅回退文本（侧栏 session 不动）；侧栏表单内 ctrl+z 回退 session（defaultConfig 回退 + redo 转可用）；shell.test 焦点路由双例锚〕
+- [x] 「?」快捷键帮助面板（三编辑器一致，§6.3）〔V 波真机 ✅：抽屉列 8 个快捷键 + 说明，ctrl+z 描述明示焦点路由语义；「?」按钮与热键同源（useKey + 非 typing 守卫）〕
 
 ### 5.4 预览
 
-- [ ] defaultConfig 解析订阅（function 数据源随机数据渲染）
-- [ ] 编辑 settings 回写 defaultConfig（所见即所得）
+- [x] defaultConfig 解析订阅（function 数据源随机数据渲染）〔V 波真机 ✅：时序折线模板预览实时渲染双序列随机折线；设置表单（Line color / Show dots）由 settingsForm 生成〕
+- [x] 编辑 settings 回写 defaultConfig（所见即所得）〔V 波真机 ✅：Line color #1677ff→#ff0000 → defaultConfig 即时回写 + 预览线色变红；**已知行为②注记**：紧凑 JSON 被重排为 2 空格缩进（内容正确、格式不保留，登记不修）〕
 
 ### 5.5 错误闭环
 
-- [ ] 编译错：CodeMirror 行级标注
-- [ ] 运行错：console 输出 + 行号偏移定位（每实例 ErrorBoundary + sourceURL）
-- [ ] 输入即清错
+- [x] 编译错：CodeMirror 行级标注〔V 波真机 ✅：`return (()` 语法错 → 错误行 `cm-lintRange-error` 红色波浪线（sucrase 行号映射编辑器行 11）+ 预览错误横幅 + 控制台红色「编译失败 …(line 11)」〕
+- [ ] 运行错：console 输出 + 行号偏移定位（每实例 ErrorBoundary + sourceURL）〔未勾（真机未触发）：运行期抛错未单独构造目击——冒烟渲染抛错 toast「保存中止：组件冒烟渲染失败: v-probe boom」已目击；sourceURL/lineOffset 映射由 compile.test.tsx（P1）单测锚定；留 M10 抽查〕
+- [x] 输入即清错〔V 波真机 ✅：错误行输入一个空格 → cm-lintRange 归零 + 预览错误横幅消失（AX 诊断 list 同步移除）；修好重跑恢复〕
 
 ### 5.6 新建与派生
 
-- [ ] 新建 = 5 个 React starter 模板选择（内置前端静态资产）
-- [ ] 从现有自定义类型派生（源码可得全量派生）
-- [ ] 从内置类型受限派生：schema / config / 尺寸可得、源码不可得——UI 诚实标注
+- [x] 新建 = 5 个 React starter 模板选择（内置前端静态资产）〔V 波真机 ✅：五桶（最新值卡片/时序折线图/RPC 控制按钮/告警状态卡/静态卡片）+ 未选禁用创建 + 原地进 shell；create 路由挂载即弹新建对话框（设计行为）〕
+- [x] 从现有自定义类型派生（源码可得全量派生）〔V 波真机 ✅：派生对话框「从自定义类型」列表列出租户类型（fqn 在列）+ 文案「源码（TSX/CSS/Schema/defaultConfig）全量复制为新副本」+ 名称预填 (copy)；创建路径与另存为同链（POST + 原地进 shell 已目击）〕
+- [x] 从内置类型受限派生：schema / config / 尺寸可得、源码不可得——UI 诚实标注〔V 波真机 ✅：「从内置类型」档标注原文「内置类型是 Angular widget：源码不可得。仅复用其 Schema/defaultConfig/尺寸骨架，TSX 使用 starter 骨架（不会出现 Angular 源码）」+ 内置类型列表，不暗示「即将支持」〔截图取证〕〕
 
 ### 5.7 导入导出
 
-- [ ] fork 格式（runtime react-1 + source 五件）导出 / 导入 round-trip
-- [ ] TB Angular widget JSON 导入 → badge + 占位链路（拒绝会使引用仪表盘半残，ADR 0004）
-- [ ] 导出物自带 runtime / schemaVersion 标记（TB 导入无害）
+- [x] fork 格式（runtime react-1 + source 五件）导出 / 导入 round-trip〔V 波真机 ✅（导出半）：导出 blob 钩子捕获 3667B JSON——顶层键集无 id/tenantId/version/createdTime、descriptor 含 runtime/schemaVersion/source{tsx,css}/type/sizeX/sizeY/settingsForm/defaultConfig；**fork 导入 round-trip 真机未单独走**（import-export.test round-trip 单测锚 + Angular 导入同槽对话框真机目击）——该半项随 M10 抽查补走〕
+- [x] TB Angular widget JSON 导入 → badge + 占位链路（拒绝会使引用仪表盘半残，ADR 0004）〔V 波真机 ✅：手工构造 Angular 形状 JSON 导入 → 徽标「Angular（非 react-1）」+ 诚实占位文案 + 「保存为服务器副本」不拒收 → POST 200；副本 fqn 原样落库登记观察项 O1〔截图取证〕〕
+- [x] 导出物自带 runtime / schemaVersion 标记（TB 导入无害）〔V 波真机 ✅：blob 核对 `"runtime":"react-1","schemaVersion":1` 在 descriptor 头两键〕
 
 ## 6. 横切验收
 
+> M9 V 波只记录本段在 widget 编辑器触及面内的真机/门禁事实（不勾账，勾账留 M10 收口复查）。
+
 - [ ] **i18n**：`editor.*` 命名空间 key 双语齐全（CI check-locale 零红）；透传文案不进 key（help tab 详情、后端错误原文、uiHints 之外 descriptor 文案）
+  - M9 触及面（V 波）：`editor.widget.*` 双语在 CI 绿；真机 zh/en 双向切换编辑器 chrome（工具栏/tab/侧栏/帮助面板/错误文案）无裸 key；透传文案（编译错误原文、Angular descriptor）不进 key 目击。
 - [ ] **占位三态**：三态文案（§1 原则 3）+ widget 库 `angular-unsupported` badge
+  - M9 触及面（V 波）：Angular 导入徽标「Angular（非 react-1）」+ 占位文案目击，不暗示「即将支持」；三态占位组件在仪表盘闭环中未误现（真渲染）。
 - [ ] **三编辑器行为一致性**：撤销边界四条（§1 原则 4）三处同源（EditorSession）；409 三选项对话框同形；「?」帮助面板；右键菜单 antd Dropdown contextMenu 形态；离开确认 dirty 判定同源
+  - M9 触及面（V 波，widget 侧）：撤销焦点路由（CM / session）与保存不入栈真机目击、同源 EditorSession；409 共享 ConflictDialog 同形复用——**但共享 intro 文案写死「仪表盘」（D2 登记）**；「?」帮助面板同源在列；离开确认 dirty 与返回箭头守卫同源（PageContainer back guard）真机目击。
 - [ ] **增强与等价无冲突**：§7 登记项全开状态下 §3–§5 checklist 复查无回归（M10 执行）
 - [ ] **主题**：编辑器 chrome 无内联色值（antd token 层）；图表走 charts.ts 管道
+  - M9 触及面（V 波）：编辑器 chrome DOM 探针零内联色值（唯一命中为 recharts 库内默认 tooltip 样式）；widget 图表颜色经 settings/descriptor 数据层（recharts），非 chrome 内联。
 - [ ] **性能**：ADR 0004 附录 A P1–P10 全过——P1–P8 开工前 PoC 一次；P7（memo 边界）随 M7、P4（500 节点 ≥50fps）随 M8、P9 / P10 随 M9 实现复验
+  - M9（V 波）：P1/P2 = compile.test.tsx（0759c9395c）、P10 CSS 前缀 = style-scope.test.ts（a982d33b5d）、P9 + P10 resources round-trip = import-export.test.ts（f3bdb7d19d）——证据落点已回填简报 §5，V 波核实文件与标记均在主检出。
 - [ ] **自动化衔接**：本 spec 为人工验收载体；编辑器自动化回归（画布交互 E2E、EditorSession 单测等）登记 #12 基线扩充；dry-run 脚本随 M8 交付，是否常驻回归由 #12 扩充时另定
 
 ## 7. 能力级增强登记表（只登记，不设验收义务）
@@ -269,6 +276,7 @@ v2 交付的仪表盘编辑器、widget 编辑器、规则链画布，对 ui-ngx
 | 512KB descriptor 软限警告 | widget 编辑器 | ADR 0004 | 仅警告不阻断 |
 
 ## 修订记录
+- 2026-09-04：**M9 验收勾账（V 波）**。全量门禁（主检出 feature/m9-widget-editor @ cf4ec1321f）：tsc 绿、check-locale 绿；`npm run test` 1656 例两轮 1654 → **1655 绿**（唯一稳定红 = master 存量 entry.test.tsx；run1 的 dashboards editor shell.test 超时在 run2/隔离复跑全过——并行负载抖动判定成立，未压 testTimeout）；**`npm run lint` 红 = D1 登记**（locales zh-CN.ts/en-US.ts biome format 漂移 2 errors + M9 wave-3 D 文件新增 11 warnings，全仓 error 必须为 0 的门禁被合并破坏）。真机走查（browseros，dev server 按惯例重启后执行；自建 3 widget 类型 + 1 仪表盘及 fixture 迭代盘已全部 DELETE，服务器复原）：§5 共 **19 行勾选 / 2 行未勾**——未勾 = 运行错 sourceURL 行号偏移行（真机未触发，compile.test P1 单测锚）与 fork 导入 round-trip 行（导出半真机目击、导入半真机未走，import-export.test 锚）；行内注记：分屏拖拽（E2 环境受阻）、ctrl+q 热键本体未单按（同路径目击）、409 未复现（单机，契约单测锚）、512KB 软警告 UI 无法自然触发（单测锚）。§6 横切只做 M9 触及面记录（i18n 双向无裸 key、主题零内联色值、一致性 widget 侧同源 + D2），不越权替 M10 勾账。money demo 闭环打通：手工构造引用 `tenant.m9_v_` 的最小仪表盘经导入路径进 v2 仪表盘，自定义 widget **真渲染非占位**（编译产物自有 recharts DOM + 组件自绘空态，三态占位未误现）；数据序列为空经内置对照组证实为既有数据管道/窗口问题（与 M9 渲染链无关）。新登记：**D1 lint 门禁红（中）**、**D2 409 共享对话框 intro 写死「仪表盘」（低，代码证实）**、**O1 Angular 副本 fqn 原样落库（低/边界）**；已知行为②③④（settings 回写重排缩进 / console 窗口化 / 实例级 widgetCss 预览不挂载）复核为设计行为，注记不修。简报 §5 PoC 证据回填（P1/P2/P9/P10 commit hash 核实）。真机走查全程记录见 [v2-m9-browser-walkthrough.md](./v2-m9-browser-walkthrough.md)。
 - 2026-09-04：**M8 验收勾账（V 波）**。全量门禁：lint 绿（30 warnings 基线）、tsc 绿、check-locale 绿；`npm run test` 1427 例 1426 绿（唯一失败为 master 存量 entry.test.tsx，M7 已登记，单跑复现同失败，非 M8 回归）；rule-node 域 125/125 绿（dry-run 94 用例）。dry-run 终版复核：报告↔摘要 fixture 数字一致（76 节点、可编辑率 100%、控件级 98.7% 含 12 合法空形态、不可编辑 0、判据④ 12 类全过）。真机走查（browseros，自建 4 链已清理）：§4 共 **27 行勾选 / 3 行未勾**——未勾 = magnet 连线行（E1 环境受阻：自动化通道无法驱动 RF handle 手势，事务语义单测锚定 + 留观人工目检）与「test with this message」debugIn 行（本地无 debug 流量）；409 三选项行保持未勾（单机未复现，契约单测锚定，M7 同款处理）。新登记缺口/缺陷 3 行：D1 ruleChains toast ICU 直引号转义致 {name} 不插值（低）、D2 节点双击不开详情（ui-ngx parity，低）、D3 link-labels 对话框无专项单测+真机未驱动（低）；疑点 S1 详情抽屉取消后 undo 按钮态留观。真机走查全程记录见 [v2-m8-browser-walkthrough.md](./v2-m8-browser-walkthrough.md)。
 - 2026-09-04：**M8 D1/D2/D3 修复 + S1 结案（X 波）**。D1（commit 10fba18156）：ruleChains 列表 toast/删除确认 ICU 直引号转义缺失（react-intl 中 `'{name}'` 的单引号是转义符 → 显示裸 `{name}`）——zh 改中文角引号「」、en 改双引号（无 ICU 歧义），locale zh/en + defaultMessage 三处同改；list.test 补创建 toast 与删除确认框的实际插值断言。D2（commit 674261592b）：节点双击开详情抽屉（ui-ngx `fcEventNodeDblClick` parity）——canvas 新增 `onNodeDoubleClick` 透传，shell 复用右键菜单「详情」同一 `setDetailsUid` 调用路径，INPUT 只读节点与便签节点 shell 侧过滤（便签走自己的编辑对话框）；shell.test 双例锚（普通节点开 / INPUT 不开）。D3（commit 70d6896f82）：link-labels 对话框专项单测 7 例（候选渲染 / 多选一次回传一组 / 取消不回传 / edit 预选 initialLabels / 空选禁 OK / customRelations tags 自定义标签 / ruleChainNode 源 `getRuleChainOutputLabels` 拉远端候选）；真机驱动仍受限（连线需 RF handle 手势，同 E1 留观）。S1 结案不修（设计行为）：`core/editor/session.ts:21-24` 契约明示 rollback「提交一个新事务组、与 undo/redo 可组合」——取消后栈内留 rollback 组 → canUndo 真是契约的直接推论；M7 对照同款（`WidgetConfigPanel.test:246-248` 取消后恰有一个 `rollback: panel:w1` 组），undo 再按一次 = 撤掉回滚组恢复被取消编辑，语义自洽，与 M7 面板一致。门禁：rule-chains 域 95/95 绿、tsc 绿、biome 触及文件零告警、check-locale 绿。真机复验（browseros，自建 3 链已删、服务器恢复原状）：新建 toast 实际插值「规则链「X 波复验链3」已创建。」；双击节点「规则节点详情」抽屉打开、取消关闭、双击 INPUT 不开〔截图取证〕。
 
