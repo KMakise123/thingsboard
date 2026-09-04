@@ -23,6 +23,7 @@ import editorRulechainPage from './en-US/editor-rulechain-page';
 import editorScript from './en-US/editor-script';
 import editorWidget from './en-US/editor-widget';
 import editorWidgetEditor from './en-US/editor-widget-editor';
+import editorWidgetIo from './en-US/editor-widget-io';
 import entityViews from './en-US/entityViews';
 import login from './en-US/login';
 import menu from './en-US/menu';
@@ -61,6 +62,7 @@ export default {
   ...editorScript,
   ...editorWidget,
   ...editorWidgetEditor,
+  ...editorWidgetIo,
   ...editorRulechainPage,
   ...ruleNode,
   ...widgetKit,

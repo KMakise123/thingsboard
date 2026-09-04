@@ -241,8 +241,12 @@ describe('WidgetEditorShell — hotkeys & ctrl+z focus routing', () => {
   });
 
   it('ctrl+s saves through the contract hook and re-anchors the session', async () => {
+    // wave-3 D save chain: the POST only happens behind the compile/smoke
+    // gates, so the typed source must be a valid default-exported component
     const session = setup();
-    fireEvent.change(codeArea(), { target: { value: 'const x = 1' } });
+    fireEvent.change(codeArea(), {
+      target: { value: 'export default function W(){return <div/>}' },
+    });
     fireEvent.keyDown(document, { key: 's', code: 'KeyS', ctrlKey: true });
     await waitFor(() => {
       expect(serviceMock.saveWidgetType).toHaveBeenCalledTimes(1);
