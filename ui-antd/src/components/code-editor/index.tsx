@@ -13,21 +13,26 @@
  * Styling note: CodeMirror's default theme is kept for M7 (no inline colors —
  * editor chrome theming via the antd token layer is deferred).
  */
+import { css } from '@codemirror/lang-css';
 import { json } from '@codemirror/lang-json';
 import CodeMirror, { type Extension } from '@uiw/react-codemirror';
 
 import { javascriptExtensions } from './javascript-language';
 import { tbel } from './tbel';
 
-export type CodeEditorLanguage = 'json' | 'javascript' | 'tbel';
+export type CodeEditorLanguage = 'json' | 'javascript' | 'tsx' | 'css' | 'tbel';
 
 /**
- * language → extension map. Adding a language later (M9) is one entry
- * here; the component contract stays untouched.
+ * language → extension map. Adding a language is one entry
+ * here; the component contract stays untouched. M9 adds `tsx`
+ * (lang-javascript with the typescript+jsx options) and `css`
+ * (lang-css) for the widget editor's TSX/CSS tabs.
  */
 const LANGUAGE_EXTENSIONS: Record<CodeEditorLanguage, Extension[]> = {
   json: [json()],
   javascript: javascriptExtensions(),
+  tsx: javascriptExtensions({ jsx: true, typescript: true }),
+  css: [css()],
   tbel: [tbel()],
 };
 

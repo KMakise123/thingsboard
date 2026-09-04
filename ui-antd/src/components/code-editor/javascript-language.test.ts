@@ -9,4 +9,10 @@ describe('javascriptExtensions', () => {
     expect(extensions).toHaveLength(1);
     expect(extensions[0]).toHaveProperty('extension');
   });
+
+  it('accepts the typescript+jsx options (M9 tsx language)', () => {
+    const extensions = javascriptExtensions({ jsx: true, typescript: true });
+    expect(extensions).toHaveLength(1);
+    expect(extensions[0]).toHaveProperty('extension');
+  });
 });

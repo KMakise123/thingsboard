@@ -77,6 +77,26 @@ describe('CodeEditor', () => {
     expect(stub).toHaveAttribute('data-extension-types', 'string');
   });
 
+  it('routes the tsx language through the same javascript-language module', () => {
+    render(
+      <CodeEditor value="export const W = () => <div/>;" language="tsx" />,
+    );
+    const stub = screen.getByTestId('codemirror-stub');
+    expect(stub).toHaveAttribute('data-extensions', '1');
+    // Same string sentinel as `javascript`: the tsx entry reuses the
+    // lang-javascript indirection (typescript+jsx options), not a new package.
+    expect(stub).toHaveAttribute('data-extension-types', 'string');
+  });
+
+  it('maps the css language to the lang-css extension (M9)', () => {
+    render(<CodeEditor value=".a { color: red; }" language="css" />);
+    const stub = screen.getByTestId('codemirror-stub');
+    expect(stub).toHaveAttribute('data-extensions', '1');
+    // Real LanguageSupport object from @codemirror/lang-css (same loading
+    // mode as tbel — the dependency is installed, not mocked).
+    expect(stub).toHaveAttribute('data-extension-types', 'object');
+  });
+
   it('maps the tbel language to the TBEL language support extension', () => {
     render(<CodeEditor value="return msg.temperature > 20;" language="tbel" />);
     const stub = screen.getByTestId('codemirror-stub');
