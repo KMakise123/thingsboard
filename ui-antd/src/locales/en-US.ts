@@ -22,6 +22,7 @@ import editorRulechainCanvas from './en-US/editor-rulechain-canvas';
 import editorRulechainPage from './en-US/editor-rulechain-page';
 import editorScript from './en-US/editor-script';
 import editorWidget from './en-US/editor-widget';
+import editorWidgetEditor from './en-US/editor-widget-editor';
 import entityViews from './en-US/entityViews';
 import login from './en-US/login';
 import menu from './en-US/menu';
@@ -58,6 +59,7 @@ export default {
   ...editorRulechainCanvas,
   ...editorScript,
   ...editorWidget,
+  ...editorWidgetEditor,
   ...editorRulechainPage,
   ...ruleNode,
 };

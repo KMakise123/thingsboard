@@ -143,6 +143,24 @@ export default [
     hideInMenu: true,
   },
   {
+    // M9 widget editor (spec §5): /widgets/editor is the create entry — it
+    // opens the new-type dialog in-page (the library listing belongs to the
+    // resources subsystem, M9 brief §0). Hidden, TA-only.
+    path: '/widgets/editor',
+    access: 'canTenantAdmin',
+    component: './widgets/editor',
+    hideInMenu: true,
+  },
+  {
+    // M9 widget editor page per type: loads the WidgetTypeDetails, converts
+    // it into the WidgetEditorDraft and opens the editor shell. Hidden,
+    // TA-only.
+    path: '/widgets/editor/:widgetTypeId',
+    access: 'canTenantAdmin',
+    component: './widgets/editor',
+    hideInMenu: true,
+  },
+  {
     name: 'usage',
     icon: 'barChart',
     path: '/usage',
