@@ -198,6 +198,20 @@ describe('import — Angular widget JSON (P9: allowed, badged, verbatim copy)', 
     );
     expect(saved).toBeDefined();
   });
+
+  it('a scope-prefixed fqn lands SHORT on the copy (system.foo → foo)', async () => {
+    serviceMock.saveWidgetType.mockResolvedValue(angularEntity());
+    await saveImportedAngularCopy({ ...angularEntity(), fqn: 'system.foo' });
+    const posted = serviceMock.saveWidgetType.mock.calls[0][0];
+    expect(posted.fqn).toBe('foo');
+  });
+
+  it('a prefix-only fqn collapses to empty (the server derives from name)', async () => {
+    serviceMock.saveWidgetType.mockResolvedValue(angularEntity());
+    await saveImportedAngularCopy({ ...angularEntity(), fqn: 'system.' });
+    const posted = serviceMock.saveWidgetType.mock.calls[0][0];
+    expect(posted.fqn).toBe('');
+  });
 });
 
 describe('import — readable refusals (never a crash)', () => {

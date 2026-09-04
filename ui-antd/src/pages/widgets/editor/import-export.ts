@@ -183,10 +183,20 @@ export async function importWidgetTypeFile(file: File): Promise<WidgetImport> {
  * UNTOUCHED (no runtime/schemaVersion/source injection). Identity stripping
  * (`prepareWidgetTypeExport`) makes it a new entity; tenantId is forced
  * server-side.
+ *
+ * X-wave O1: imported Angular types may carry a scope-prefixed fqn
+ * (`system.foo`) — the copy lands as a TENANT entity, so the scope prefix
+ * is stripped and only the short name is posted; a prefix-only value
+ * collapses to empty, which the backend reads as "derive from name"
+ * (WidgetTypeDataValidator: null/blank fqn → name-derived, unique-ified).
  */
 export async function saveImportedAngularCopy(
   source: WidgetTypeDetails,
 ): Promise<WidgetTypeDetails> {
   const { saveWidgetType } = await import('@/services/tb/widget-type');
-  return saveWidgetType(prepareWidgetTypeExport(source));
+  const fqn = source.fqn ?? '';
+  const shortFqn = fqn.includes('.')
+    ? fqn.slice(fqn.lastIndexOf('.') + 1)
+    : fqn;
+  return saveWidgetType(prepareWidgetTypeExport({ ...source, fqn: shortFqn }));
 }
