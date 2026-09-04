@@ -24,7 +24,7 @@
  * untouched (import/export + upstream Angular widgets must not lose data).
  */
 
-import type { EntityIdOf, EpochMillis, EntityType } from './entity';
+import type { EntityIdOf, EntityType, EpochMillis } from './entity';
 
 /** Widget kind (`descriptor.type`; the five create-dialog buckets upstream). */
 export type WidgetTypeKind =
