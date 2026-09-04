@@ -36,7 +36,7 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import { history } from '@umijs/max';
 import type { MenuProps } from 'antd';
-import { App, Button, Dropdown, Popover, Space, Tooltip } from 'antd';
+import { App, Button, Dropdown, Modal, Popover, Space, Tooltip } from 'antd';
 import type { RefObject } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
@@ -141,6 +141,15 @@ export function EditorShell({ session, dashboard }: EditorShellProps) {
     serverDashboard: Dashboard | null;
   } | null>(null);
   const [importOpen, setImportOpen] = useState(false);
+  /**
+   * M10 D1: the §3.8 exit confirm is a CONTROLLED Modal owned by this shell.
+   * The imperative App-context modal renders into the App-level holder ABOVE
+   * the router, so its hide/destroy sequence runs decoupled from this page —
+   * a navigation during that window left a mask + dead dialog stranded on
+   * screen. Owning the dialog in the page subtree makes route exit unmount
+   * it atomically.
+   */
+  const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
   const [showRightLayout, setShowRightLayout] = useState(false);
   const [selectedWidgetId, setSelectedWidgetId] = useState<string | null>(null);
   const [addWidgetOpen, setAddWidgetOpen] = useState(false);
@@ -229,38 +238,20 @@ export function EditorShell({ session, dashboard }: EditorShellProps) {
     // exit flow (overwrite success → navigate, option A/C → stay/leave)
   };
 
+  /** §3.1 取消退出 = entry-baseline rollback (prevDashboard semantics). */
+  const discardAndExit = () => {
+    entryCheckpoint.rollbackToEntry();
+    backToView();
+  };
+
   const exitWithCancel = () => {
-    // §3.1 取消退出 = entry-baseline rollback (prevDashboard semantics) with
-    // the §3.8 confirm in front while the guard would prompt. Undo-to-bottom
+    // §3.8 confirm in front while the guard would prompt. Undo-to-bottom
     // leaves the draft reference-clean ⇒ no confirm, straight exit.
-    const discardAndExit = () => {
-      entryCheckpoint.rollbackToEntry();
-      backToView();
-    };
     if (!shouldPromptLeave(session)) {
       discardAndExit();
       return;
     }
-    modal.confirm({
-      title: formatMessage(
-        t('editor.dashboard.contract.discardTitle', 'Unsaved changes'),
-      ),
-      content: formatMessage(
-        t(
-          'editor.dashboard.contract.discardText',
-          'The draft has unsaved changes; exiting edit mode discards them.',
-        ),
-      ),
-      okText: formatMessage(
-        t('editor.dashboard.contract.discardOk', 'Discard changes'),
-      ),
-      okButtonProps: { danger: true },
-      cancelText: formatMessage({
-        id: 'editor.common.cancel',
-        defaultMessage: 'Cancel',
-      }),
-      onOk: discardAndExit,
-    });
+    setExitConfirmOpen(true);
   };
 
   // ------------------------------------------------------------------
@@ -880,6 +871,40 @@ export function EditorShell({ session, dashboard }: EditorShellProps) {
         />
       </div>
 
+      {/* M10 D1: controlled exit confirm (see exitConfirmOpen) — owned by
+          this page, so navigation unmounts it with the editor face. */}
+      <Modal
+        open={exitConfirmOpen}
+        title={formatMessage(
+          t('editor.dashboard.contract.discardTitle', 'Unsaved changes'),
+        )}
+        okText={formatMessage(
+          t('editor.dashboard.contract.discardOk', 'Discard changes'),
+        )}
+        okButtonProps={{
+          danger: true,
+          'data-testid': 'editor-exit-confirm-ok',
+        }}
+        cancelText={formatMessage({
+          id: 'editor.common.cancel',
+          defaultMessage: 'Cancel',
+        })}
+        cancelButtonProps={{ 'data-testid': 'editor-exit-confirm-cancel' }}
+        onOk={() => {
+          setExitConfirmOpen(false);
+          discardAndExit();
+        }}
+        onCancel={() => setExitConfirmOpen(false)}
+        maskClosable={false}
+        data-testid="editor-exit-confirm"
+      >
+        {formatMessage(
+          t(
+            'editor.dashboard.contract.discardText',
+            'The draft has unsaved changes; exiting edit mode discards them.',
+          ),
+        )}
+      </Modal>
       <ConflictDialog
         open={conflict !== null}
         serverDashboard={conflict?.serverDashboard ?? null}
