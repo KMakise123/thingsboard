@@ -11,10 +11,19 @@ const historyMock = vi.hoisted(() => ({
   push: vi.fn(),
 }));
 
-const tokenStoreMock = vi.hoisted(() => ({
-  setTokens: vi.fn(),
-  decodeTokenClaims: vi.fn(() => null),
-}));
+// Mirrors the real store's session semantics: the M6 token-first guard in
+// entry.tsx reads isTokenValid, which is true exactly once tokens are stored.
+const tokenStoreMock = vi.hoisted(() => {
+  const session = { jwtValid: false };
+  return {
+    session,
+    setTokens: vi.fn(() => {
+      session.jwtValid = true;
+    }),
+    isTokenValid: vi.fn(() => session.jwtValid),
+    decodeTokenClaims: vi.fn(() => null),
+  };
+});
 
 const modelMock = vi.hoisted(() => ({
   initialState: { currentUser: null as User | null },
@@ -49,6 +58,7 @@ const tenantUser = {
 describe('home entry (oauth2 callback consumption)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    tokenStoreMock.session.jwtValid = false;
     modelMock.initialState = { currentUser: null };
     modelMock.setInitialState.mockClear();
     modelMock.setInitialState.mockImplementation(
