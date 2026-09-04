@@ -36,7 +36,7 @@ v2 交付的仪表盘编辑器、widget 编辑器、规则链画布，对 ui-ngx
 - [x] 编辑态进入：只读页「编辑」→ 编辑态（widget 出现拖拽 / 缩放手柄、工具栏切换编辑组）——等价 ui-ngx Edit mode〔ui-ngx 锚点 dashboard-page.component.html:148-171〕〔V 波真机 ✅；Software 盘加载即崩 → 见 §3.1 末缺口行 D1，已修复（X 波），真机复验通过〕
 - [x] 编辑态退出两路语义：保存 → baseline 前移；取消 → 草稿整体撤回进入前基线（prevDashboard 语义）——两路均回只读态〔V 波真机 ✅：保存后 save 图标禁用（baseline 前移）+ 刷新持久化；退出编辑 → 放弃修改 → 只读路由、草稿撤回〕
 - [x] 工具栏齐套：保存 / 撤销 / 重做（行为契约）/ 布局切换 / 全屏 / states 管理 / 别名管理 / 过滤器管理 / 设置 / 导入 / 导出 / 版本控制入口（VC 子系统边界依 #9：编辑器内 popover 形态对齐，不跳独立页）〔V 波真机 ✅：AX 枚举全量在列，VC 为 popover 占位形态〕
-- [ ] 空 dashboard 自动进入编辑态〔未勾：本地 4 盘均有内容，真机未走「新建空盘」路径；编辑器路由本身为纯编辑态、空配置渲染有单测（shell.test emptyDashboardJson），待 M10 补一次新建空盘走查〕
+- [x] 空 dashboard 自动进入编辑态〔M10 真机 ✅：API 新建空盘（configuration {}）→ 编辑器路由直接编辑态（工具栏编辑组 AX 全量在场 + 落 widget 全链）；空盘只读页 auto-enter 弹回编辑器（view/index.tsx:29-37）双语义面目击——见 M10 走查步骤 1〕
 - [x] ~~**D1 缺口（V 波新登记）：Software 演示仪表盘（6 states / `stateControllerId=entity`）编辑器路由加载即崩**~~（应用错误边界「页面出现错误」）；其余 3 盘正常。EditorShell 以真实 configuration 隔离挂载不崩 → 崩点在路由级装配（疑似 states-controller 的 URL state 装配交互）→ **已修复（X 波，commit 01a46dd321）**：真机堆栈定位——崩点不在 states-controller 也不在路由装配本身，而是共享 `useWidgetValues` hook 对**零解析实体**的 entityCount 数据源建订阅（`countSubs[0]` undefined → `.subscribe` TypeError）；编辑器画布挂载时 alias 必然未解析（异步），崩得确定性，只读页靠 lazy chunk 加载时序侥幸避过。修复 = hook 源头守卫（空实体集跳过 entityCount 作业，别名解析后 signature 变化自动重订阅；恢复 datasources.ts「render degrades, never crashes」契约；该文件在 M7 页面集之外，报告中已显式标注）。回归测试 `entity-controller-crash.test.tsx`（真 shell/canvas/widget 链 + Software 形状夹具）；真机复验：Software 盘编辑器经「编辑」按钮打开、states 对话框 6 状态齐全、无错误边界〔截图取证〕
 
 ### 3.2 widget 生命周期
@@ -55,8 +55,8 @@ v2 交付的仪表盘编辑器、widget 编辑器、规则链画布，对 ui-ngx
 ### 3.3 网格背景与右键菜单
 
 - [x] displayGrid 三态 none / onDrag&Resize / always；move-widgets 对话框打开期间临时 always〔锚点 dashboard-layout.component.ts:117-119〕〔`editor-grid.test.tsx` 三态 + override 通道单测全绿；真机默认态（onDrag&Resize 静止隐藏）可见性一致〕
-- [ ] dashboard 级右键菜单五项：设置 / 别名 / 粘贴 / 粘贴引用 / 移动所有 widget〔未勾（环境受阻）：BrowserOS 扩展劫持右键、标签页曾被导航走；菜单接线在 `shell.tsx dashboardMenu`（五项 + testid），菜单本体真机未目击、亦无专项单测——补自动化或人工右键走查后再勾〕
-- [ ] widget 级右键菜单：编辑 / 引用转副本（仅引用件显示）/ 复制 / 复制引用 / 删除〔未勾（环境受阻）：同上；`widgetMenu` 接线有 builder 调用断言、Delete 键删除确认有单测，菜单本体未目击〕
+- [x] dashboard 级右键菜单五项：设置 / 别名 / 粘贴 / 粘贴引用 / 移动所有 widget〔M10 真机 ✅：合成 `MouseEvent('contextmenu')` 派发画布绕过扩展劫持 → 菜单本体目击（testid `editor-dashboard-menu`，五项全列 + 粘贴/粘贴引用剪贴板空与 sameTarget 守卫禁用态正确）；动作抽验「移动所有 widget」→ 偏移量对话框开合〕
+- [ ] widget 级右键菜单：编辑 / 引用转副本（仅引用件显示）/ 复制 / 复制引用 / 删除〔未勾（**新缺陷候选 D3，M10 登记**）：`editor-widget` cell 上合成派发与 CDP 真右键双通道均触发 onContextMenu（选中/面板联动正常）但菜单本体从不挂载（0 holder，含隐藏态）；对照 dashboard 级同通道正常。疑点 menu 引用每次重建 + onSelectWidget setState 重渲染打断 rc-trigger——`shell.tsx:416`/`EditorGrid.tsx:445`；`widgetMenu` builder 断言 + Delete 键删除确认单测锚不变〕
 - [x] move-widgets 对话框：cols/rows 偏移量整体平移所有 widget〔`move-widgets.test.tsx` 专项单测（整体平移/负向夹取/零偏移零补丁 no-op/空布局占位/一个事务组）+ displayGrid override 单测；真机入口依赖 dashboard 右键菜单（被阻）〕
 
 ### 3.4 widget 配置面板
@@ -83,7 +83,7 @@ v2 交付的仪表盘编辑器、widget 编辑器、规则链画布，对 ui-ngx
 - [x] manage-dashboard-layouts（工具栏 Layouts）：布局数量、布局类型（default | scada | divider）、断点增删入口〔V 波真机 ✅：单选 默认/分栏（左+右）/SCADA布局 + 布局设置 + 添加断点；manage-layouts.test 单测〕
 - [x] add-new-breakpoint：仅从 manage-layouts「Add breakpoint」打开，选断点 + copyFrom〔add-breakpoint.test 专项单测（copyFrom 逐字复制/断点枚举）；真机入口在列〕
 - [x] dashboard-settings（工具栏 Settings）：含 dashboardCss 编辑；被 manage-layouts「Layout settings」复用〔V 波真机 ✅：全字段开关 + 状态控制器 + 仪表盘 CSS 编辑器〕
-- [x] dashboard-image：**非编辑态**工具栏入口 + 对话框（编辑态不显示——parity 细节）〔锚点 dashboard-page.component.html:230-235〕〔只读工具栏 update-image 入口已交付（a3b029ec7f）并有单测；本地盘均未设 image，入口按条件隐藏与 ui-ngx 一致——设置 image 后的入口/对话框真机走查留 M10 抽查〕
+- [x] dashboard-image：**非编辑态**工具栏入口 + 对话框（编辑态不显示——parity 细节）〔锚点 dashboard-page.component.html:230-235〕〔只读工具栏 update-image 入口已交付（a3b029ec7f）并有单测；**M10 真机 ✅**：入口条件（TA + 非 embedded + setting 默认开）双态目击、编辑态无入口；对话框「更新仪表盘图片」上传（DataTransfer 注入驱动真实管线、新 dataURL 预览真渲染 naturalWidth=1）/清除（preview→empty 空态）/保存全链 + API 复核（image 落库→更新→清空复原，version 3→4→5）。**新登记 D2（中）**：已持久化 image 为 `tb-image;` 资源 link，对话框预览未剥前缀 → 破图（见 M10 走查 §3）——上传/预览(新图)/清除/保存等价不受影响〕
 - [ ] **缺口登记（V 波）：dashboard-image 截图抓图（html2canvas）缺**——上传 / 预览 / 清除 / 保存已等价；「从当前仪表盘生成截图」需引入 html2canvas 新依赖（M7 禁装新依赖），留后续里程碑评估
 - [x] 别名集对话框（工具栏 Aliases）+ 过滤器对话框（工具栏 Filters）+ 单别名对话框（widget 面板回调）〔V 波真机 ✅ 别名集/过滤器；单别名回调由 WidgetConfigPanel.test 覆盖〕
 - [x] add-widget 参数/布局确认对话框 + widget 类型选择抽屉（操作见 §3.2）〔V 波真机 ✅〕
@@ -95,7 +95,7 @@ v2 交付的仪表盘编辑器、widget 编辑器、规则链画布，对 ui-ngx
 > 勘误：骨架「select/pan/move 模式切换」在 ui-ngx 4.4.0 无对应实现（全库检索零命中；pan/zoom 仅存在于资源库的 SCADA 符号编辑器页），本 spec 删除该虚构项。SCADA = gridSettings.layoutType 枚举值之一（default | scada | divider），与普通布局共用同一网格编辑器，非独立编辑器。
 
 - [x] layoutType 切换：manage-layouts 对话框内选择与保存生效〔V 波真机 ✅：管理布局对话框单选 默认/分栏（左+右）/SCADA布局 在列并可切换（未保存落库）；manage-layouts.test 单测〕
-- [ ] 差异表逐项验收：
+- [x] 差异表逐项验收〔M10 真机 ✅（scada 布局真存真走，见 M10 走查步骤 3）：边距强制 0 + outerMargin false = API 落库 + 画布 DOM 探针（rgl padding/margin 0）双证；列数 24 倍数 = scada 下布局设置列数为 24 步进 Select（非法值无法输入）+ API 注入存量 30 → 控件显示向上夹取 48；自动仪表化 = scada 下确认框零表单字段（跳过布局配置步）+ 落格 config `{showTitle:false, dropShadow:false, backgroundColor:"rgba(0,0,0,0)", preserveAspectRatio:true, padding:"0", margin:"0"}` API 复核；手机断点恒禁用 / Layout 区恒剩两开关 = grid-math.ts:166 + panel-sections.test 单测锚〕
 
 | 维度 | 普通布局 | SCADA 布局（验收动作） |
 |---|---|---|
@@ -106,13 +106,13 @@ v2 交付的仪表盘编辑器、widget 编辑器、规则链画布，对 ui-ngx
 | Layout 配置区 | 按断点条件全量 | 恒只剩 resizable + preserveAspectRatio 两开关 |
 | 拖拽 / 缩放 / 碰撞 / 右键菜单 / 快捷键 / displayGrid | — | 与普通布局完全一致（无 scada 分支，回归同 §3.2 / §3.3） |
 
-- [ ] 差异表真机备注（V 波）：真机仅验到切换入口与既有普通布局回归（拖拽/碰撞/右键阻膈同 §3.2/§3.3），未保存过一张 scada 布局；margin 强制 0、列数 24 倍数夹取、自动仪表化已由 `manage-layouts.test`/`scadaColumnClamp`/grid-math scada 分支单测取证——真机 scada 走查留 M10 抽查补勾
+- [x] 差异表真机备注（M10 波补勾）：真机真存过一张 scada 布局并保存落库（layoutType scada + margin 0 + outerMargin false API 复核），夹取/仪表化逐项补验（见上行）；**登记口径 O3**：画布渲染 cols 取 `minColumns ?? columns`（grid-math.ts:235，TB gridster fallback 原生语义）——minColumns 存量 24 时夹取值 48 不反映到渲染，columns=minColumns=48 时 48 列渲染验证通过（196px DOM 探针）；走查后布局切回 default 复原
 - [x] 否定项清单（防虚构义务，同样不得作删减依据）：无指针模式切换、无对齐 / 吸附线、无 z-index 层级操作、无多选 / 框选、无碰撞推挤〔V 波代码层核查：画布无模式切换/吸附线/层级/框选代码路径；碰撞=阻挡非推挤（真机实证）〕
 - [ ] 边界：SCADA 符号编辑器页（`/resources/scada-symbols`，SVG 结构 / tag / 行为元数据编辑 + pan/zoom）归资源库子系统（v2 阶段交付，不在本 spec）；仪表盘内 symbol 实例只能换符号 / 绑设备 / 绑对象，不能改 SVG 结构〔未勾（V 波）：scada 符号类型尚不存在，实例约束无从走查——随资源库子系统交付验收〕
 
 ### 3.7 断点与 mobile
 
-- [x] 断点覆盖编辑：工具栏断点切换组件（select-dashboard-breakpoint）+ 断点专属布局〔BreakpointSwitcher 单测（三桶切换强制 override）；真机本地盘均无 breakpoints，切换器按条件不出现——建断点后的真机走查留 M10 抽查〕
+- [x] 断点覆盖编辑：工具栏断点切换组件（select-dashboard-breakpoint）+ 断点专属布局〔BreakpointSwitcher 单测（三桶切换强制 override）；**M10 真机 ✅ 补验**：manage-layouts「添加断点」（XS + copyFrom 默认）→ 工具栏 `breakpoint-switcher` 出现（下拉选项 默认/XS AX 目击）→ 断点行删除（`layouts-bp-delete-xs`）→ 切换器随之消失（条件渲染契约）；**切换动作本身环境受阻**（antd Select 选项对合成/CDP/键盘三通道不响应，E1 同族）——「改动落断点专属布局」写入通道以 panel-sections.test:339 + BreakpointSwitcher.test 单测锚；断点全程 draft 内完成，服务器零改动〕
 - [x] mobile 单列栈预览：default 布局 mobile 断点单列〔grid-math 单测（mobileHide 过滤/单列栈/行跨排序）；真机未投真机视口〕
 - [x] autofill 行高：autoFillHeight / mobileAutoFillHeight 设置生效（edit 或 scada 下强制 false——parity 条件）〔锚点 dashboard.component.ts:672-679〕〔grid-math 单测（autofillAllowed = !scada && !edit 条件分支）〕
 
@@ -120,7 +120,8 @@ v2 交付的仪表盘编辑器、widget 编辑器、规则链画布，对 ui-ngx
 
 - [x] 离开确认：dirty 精确判定（draft 与 baseline 引用比较；改后全部撤销 = 干净不弹窗）〔V 波真机 ✅：脏草稿退出编辑 → 确认弹窗；撤销到底 → save 禁用（dirty=false）→ 干净退出；返回箭头守卫同源修复（commit 997267f847）后复验同弹窗〕
 - [x] 导入：JSON 导入落编辑器；缺别名时补录对话框（v1 只读导入曾裁剪，v2 编辑器导入恢复 parity）〔锚点 dashboard-page.component.ts:1073〕；导出剥 id/tenantId 对齐 TB〔V 波真机 ✅：导出实测键集无 id/tenantId/version；导入确认框明示「一个撤销组」+ 草稿替换；缺别名补录子项未真机触发（同盘导入），契约单测覆盖〕
-- [x] 409 三选项闭环（行为契约）：加载服务器版 / 用我的版本覆盖（GET 新 version 再 POST；二次 409 上限 3 次回落）/ 导出本地 JSON 后放弃〔shell.test 保存路径 + 三选项 handler 单测；真机未复现并发冲突（单人本地环境），留 M10 多开抽查〕
+- [x] 409 三选项闭环（行为契约）：加载服务器版 / 用我的版本覆盖（GET 新 version 再 POST；二次 409 上限 3 次回落）/ 导出本地 JSON 后放弃〔shell.test 保存路径 + 三选项 handler 单测；**M10 真机 ✅ 双 tab 构造**：tab A 保存推进 v11 → tab B 不刷新保存 → 409 ConflictDialog 弹出（intro 中性文案 = D2 核证）；①加载服务器版：画布承载服务器内容 + baseline 前移（undo 禁用）；②用我的版本覆盖：fetch 钩子捕 GET 新 version→POST 强制保存，API 复核服务器变 B 草稿（v13 4 widgets）；③导出本地 JSON 后放弃（第三轮冲突自然发生）：blob 钩子捕 3109B JSON（无 id/tenantId/version）+ toast + 草稿放弃载入服务器版；覆盖循环内二次 409 未真机构造（单机时序），MAX_OVERWRITE_ATTEMPTS=3 单测锚〕
+- [x] 崩溃保护真机首验（M10 波 1 交付，行为契约级增强——能力级登记在 §7，本行为面真机验收）：编辑态弄脏 → sessionStorage 存档（`tb-editor-crash:dashboard:<id>`，{schemaVersion, entityId, savedAt, draft}）→ 重进弹恢复框（testid `crash-guard-dialog`，恢复草稿/丢弃存档 + 时间戳诚实文案）→ **恢复 = 一个事务组**（存档回写、一次撤销整组回 enter 基线）；**丢弃 = 清 key** 且二次进入不再弹；干净退出（保存/undo 到底/rollback）→ key 自动清；SPA 导航离开 dirty detach flush 保留存档；无第二套离开拦截（不误伤 §3.8 离开确认）。三编辑器接线同源（`crash-guard-react.tsx`，widget/rule-chain 侧复走归 V2 波一致性检查）〔M10 走查步骤 7，crash-guard 单测四契约 + 真机全链〕
 
 ### 3.9 行为契约：仪表盘撤销栈
 
@@ -276,6 +277,7 @@ v2 交付的仪表盘编辑器、widget 编辑器、规则链画布，对 ui-ngx
 | 512KB descriptor 软限警告 | widget 编辑器 | ADR 0004 | 仅警告不阻断 |
 
 ## 修订记录
+- 2026-09-04：**M10 仪表盘半场真机走查（V1 波）**。范围：§3 侧 6 项收口走查 + 崩溃保护真机首验（spec §3 行勾账 + 走查记录新建，门禁数字与 §4–§6 归 G 波/V2 波）。勾账：§3.1 空盘自动编辑态（L39 勾）、§3.3 dashboard 级右键菜单（L58 勾——合成 contextmenu 绕过扩展劫持，五项+禁用态+动作抽验全过）、§3.5 dashboard-image 行注记升级（上传/清除/保存全链 + API 复核）、§3.6 差异表（L98 勾）+ 真机备注（L109 勾——scada 布局真存真落库：margin 0/outerMargin false API+DOM 双证、列数夹取 30→48 控件显示、自动仪表化五项 defaults 落 config API 复核；O3 口径：渲染 cols 取 minColumns 优先为 TB 原生 fallback 语义）、§3.7 断点行注记升级（添加断点/切换器出现/删除复原真机目击，切换动作 E1 同族受阻）、§3.8 409 三选项行注记升级（双 tab 构造三选项全走 + fetch/blob 钩子 + API 逐轮复核；intro 中性文案 D2 核证）；§3.8 新增崩溃保护真机首验行（恢复单事务组/清 key/不误伤全链 ✅）。保持未勾：§3.3 widget 级右键菜单（新缺陷候选 **D3**：右键触发选中但菜单本体不挂载，dashboard 级同通道正常——menu 引用重建 + setState 重渲染疑点，`shell.tsx:416`/`EditorGrid.tsx:445`）。新登记：**D1（中，UX）退出编辑确认框路由离开后残留失效**（逻辑正确纯 UI 残留）、**D2（中）dashboard-image 预览 tb-image link 未剥前缀破图**、**D3（中，疑似）widget 右键菜单不出现**、O4（低）覆盖流程一次 404 toast；M9 D2 核证结案「维持中性化」。数据保全：自建盘 1 个 + image 资源 2 个全部 DELETE，既有 4 盘 version 基线 1/7/5/18 零改动。全程记录见 [v2-m10-browser-walkthrough.md](./v2-m10-browser-walkthrough.md)。
 - 2026-09-04：**M9 D1/D2/O1 修复（X 波，收口）**。D1（commit 9d73b1d9ac）：lint 门禁红清账——locale 聚合器 format 漂移 `biome check --write` 复位（`.gitattributes` 对 ui-antd 强制 LF，盘上复位 git 视为无 diff，biome 全仓复查证实），wave-3 D 文件 11 个 warning 逐个真修（删未用变量/导入、非空断言改收窄守卫），**零 biome-ignore**；终态 lint 三合一退出码 0（error 0 / warnings **30 基线**）。D2（commit 802fc7084b）：core 共享 ConflictDialog intro 文案中性化（zh「服务器上的内容已被他人修改…」/en 同步 + defaultMessage 三处），dashboards 域 419 用例复跑无断言钉原文，ruleChain 域独立 key 未动——三编辑器同形契约保持，按域注入多 key 留 M10 一致性复查再议。O1（commit cde7dc5028，TDD 先红后绿）：Angular「保存为服务器副本」落库前剥离 fqn 作用域前缀（`system.foo`→`foo`，前缀-only 塌缩空串由后端从 name 派生），新增 2 用例。终验门禁（收口人复核）：`npm run lint` 0 error/30 warnings、tsc 绿、check-locale 绿、`npm run test` **1657/1658**（唯一失败 = master 存量 entry.test.tsx 确定性红，隔离复跑同败，非 M9 回归）。M9 合并回 master，分支删除；§5 勾账终态 19 勾/2 未勾（未勾两项均单测锚定，随 M10 抽查）。
 - 2026-09-04：**M9 验收勾账（V 波）**。全量门禁（主检出 feature/m9-widget-editor @ cf4ec1321f）：tsc 绿、check-locale 绿；`npm run test` 1656 例两轮 1654 → **1655 绿**（唯一稳定红 = master 存量 entry.test.tsx；run1 的 dashboards editor shell.test 超时在 run2/隔离复跑全过——并行负载抖动判定成立，未压 testTimeout）；**`npm run lint` 红 = D1 登记**（locales zh-CN.ts/en-US.ts biome format 漂移 2 errors + M9 wave-3 D 文件新增 11 warnings，全仓 error 必须为 0 的门禁被合并破坏）。真机走查（browseros，dev server 按惯例重启后执行；自建 3 widget 类型 + 1 仪表盘及 fixture 迭代盘已全部 DELETE，服务器复原）：§5 共 **19 行勾选 / 2 行未勾**——未勾 = 运行错 sourceURL 行号偏移行（真机未触发，compile.test P1 单测锚）与 fork 导入 round-trip 行（导出半真机目击、导入半真机未走，import-export.test 锚）；行内注记：分屏拖拽（E2 环境受阻）、ctrl+q 热键本体未单按（同路径目击）、409 未复现（单机，契约单测锚）、512KB 软警告 UI 无法自然触发（单测锚）。§6 横切只做 M9 触及面记录（i18n 双向无裸 key、主题零内联色值、一致性 widget 侧同源 + D2），不越权替 M10 勾账。money demo 闭环打通：手工构造引用 `tenant.m9_v_` 的最小仪表盘经导入路径进 v2 仪表盘，自定义 widget **真渲染非占位**（编译产物自有 recharts DOM + 组件自绘空态，三态占位未误现）；数据序列为空经内置对照组证实为既有数据管道/窗口问题（与 M9 渲染链无关）。新登记：**D1 lint 门禁红（中）**、**D2 409 共享对话框 intro 写死「仪表盘」（低，代码证实）**、**O1 Angular 副本 fqn 原样落库（低/边界）**；已知行为②③④（settings 回写重排缩进 / console 窗口化 / 实例级 widgetCss 预览不挂载）复核为设计行为，注记不修。简报 §5 PoC 证据回填（P1/P2/P9/P10 commit hash 核实）。真机走查全程记录见 [v2-m9-browser-walkthrough.md](./v2-m9-browser-walkthrough.md)。
 - 2026-09-04：**M8 验收勾账（V 波）**。全量门禁：lint 绿（30 warnings 基线）、tsc 绿、check-locale 绿；`npm run test` 1427 例 1426 绿（唯一失败为 master 存量 entry.test.tsx，M7 已登记，单跑复现同失败，非 M8 回归）；rule-node 域 125/125 绿（dry-run 94 用例）。dry-run 终版复核：报告↔摘要 fixture 数字一致（76 节点、可编辑率 100%、控件级 98.7% 含 12 合法空形态、不可编辑 0、判据④ 12 类全过）。真机走查（browseros，自建 4 链已清理）：§4 共 **27 行勾选 / 3 行未勾**——未勾 = magnet 连线行（E1 环境受阻：自动化通道无法驱动 RF handle 手势，事务语义单测锚定 + 留观人工目检）与「test with this message」debugIn 行（本地无 debug 流量）；409 三选项行保持未勾（单机未复现，契约单测锚定，M7 同款处理）。新登记缺口/缺陷 3 行：D1 ruleChains toast ICU 直引号转义致 {name} 不插值（低）、D2 节点双击不开详情（ui-ngx parity，低）、D3 link-labels 对话框无专项单测+真机未驱动（低）；疑点 S1 详情抽屉取消后 undo 按钮态留观。真机走查全程记录见 [v2-m8-browser-walkthrough.md](./v2-m8-browser-walkthrough.md)。
