@@ -23,7 +23,7 @@ import {
 } from '@ant-design/icons';
 import { history } from '@umijs/max';
 import type { MenuProps } from 'antd';
-import { App, Button, Drawer, Space, Tooltip, Typography } from 'antd';
+import { App, Button, Drawer, Modal, Space, Tooltip, Typography } from 'antd';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { useIntl } from 'react-intl';
@@ -103,7 +103,7 @@ export interface RuleChainEditorShellProps {
 
 export function RuleChainEditorShell({ session }: RuleChainEditorShellProps) {
   const { formatMessage } = useIntl();
-  const { message, modal } = App.useApp();
+  const { message } = App.useApp();
 
   const snapshot = useEditorSession(session);
   const draft = snapshot.current;
@@ -115,6 +115,7 @@ export function RuleChainEditorShell({ session }: RuleChainEditorShellProps) {
   const [contextMenu, setContextMenu] = useState<CanvasContextMenuState | null>(
     null,
   );
+  const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
   const dialogs = useRuleChainDialogs();
   const commandsRef = useRef<CanvasCommands | null>(null);
 
@@ -140,35 +141,25 @@ export function RuleChainEditorShell({ session }: RuleChainEditorShellProps) {
     },
   });
 
+  /**
+   * M10 D1 family: the §3.8 exit confirm is a CONTROLLED Modal owned by
+   * this shell. The imperative App-context modal renders into the App-level
+   * holder ABOVE the router, so its hide/destroy sequence runs decoupled
+   * from this page — a navigation during that window can strand a mask +
+   * dead dialog on screen. Owning the dialog in the page subtree makes the
+   * route exit unmount it atomically.
+   */
+  const discardAndExit = () => {
+    entryCheckpoint.rollbackToEntry();
+    history.push('/ruleChains');
+  };
+
   const exitEditor = () => {
-    const discardAndExit = () => {
-      entryCheckpoint.rollbackToEntry();
-      history.push('/ruleChains');
-    };
     if (!shouldPromptLeave(session)) {
       discardAndExit();
       return;
     }
-    modal.confirm({
-      title: formatMessage({
-        id: 'editor.ruleChain.canvas.toolbar.exitDirtyTitle',
-        defaultMessage: 'Unsaved changes',
-      }),
-      content: formatMessage({
-        id: 'editor.ruleChain.canvas.toolbar.exitDirtyText',
-        defaultMessage: 'The draft has unsaved changes; exiting discards them.',
-      }),
-      okText: formatMessage({
-        id: 'editor.ruleChain.canvas.toolbar.exitDirtyOk',
-        defaultMessage: 'Discard changes',
-      }),
-      okButtonProps: { danger: true },
-      cancelText: formatMessage({
-        id: 'editor.common.cancel',
-        defaultMessage: 'Cancel',
-      }),
-      onOk: discardAndExit,
-    });
+    setExitConfirmOpen(true);
   };
 
   // ------------------------------------------------------------------
@@ -913,6 +904,41 @@ export function RuleChainEditorShell({ session }: RuleChainEditorShellProps) {
         onClose={() => setContextMenu(null)}
       />
       {conflictDialog}
+      {/* M10 D1 family: controlled exit confirm (see discardAndExit) —
+          owned by this page, so navigation unmounts it with the editor. */}
+      <Modal
+        open={exitConfirmOpen}
+        title={formatMessage({
+          id: 'editor.ruleChain.canvas.toolbar.exitDirtyTitle',
+          defaultMessage: 'Unsaved changes',
+        })}
+        okText={formatMessage({
+          id: 'editor.ruleChain.canvas.toolbar.exitDirtyOk',
+          defaultMessage: 'Discard changes',
+        })}
+        okButtonProps={{
+          danger: true,
+          'data-testid': 'rc-exit-confirm-ok',
+        }}
+        cancelText={formatMessage({
+          id: 'editor.common.cancel',
+          defaultMessage: 'Cancel',
+        })}
+        cancelButtonProps={{ 'data-testid': 'rc-exit-confirm-cancel' }}
+        onOk={() => {
+          setExitConfirmOpen(false);
+          discardAndExit();
+        }}
+        onCancel={() => setExitConfirmOpen(false)}
+        maskClosable={false}
+        data-testid="rc-exit-confirm"
+      >
+        {formatMessage({
+          id: 'editor.ruleChain.canvas.toolbar.exitDirtyText',
+          defaultMessage:
+            'The draft has unsaved changes; exiting discards them.',
+        })}
+      </Modal>
       <DialogHost controller={dialogs} />
     </div>
   );
