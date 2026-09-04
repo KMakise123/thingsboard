@@ -33,6 +33,7 @@ import { useEditorSession } from '@/core/editor/use-editor-session';
 import { getWidgetTypeById } from '@/services/tb/widget-type';
 import { DialogHost, useWidgetEditorDialogs } from './dialog-host';
 import { type WidgetEditorDoc, widgetTypeToDraft } from './draft-convert';
+import type { NewWidgetDialogPayload } from './new-dialog';
 import { WidgetEditorShell } from './shell';
 
 export default function WidgetsEditorPage() {
@@ -53,18 +54,28 @@ export default function WidgetsEditorPage() {
 
   const dialogs = useWidgetEditorDialogs();
 
+  // Enter once per route id; the CREATE sentinel ('') marks the create
+  // route, entered in place via the new-dialog confirm (wave-3 D: the
+  // starter/derived doc becomes the session baseline without a URL id).
+  const [enteredId, setEnteredId] = useState<string | undefined>(undefined);
+  const handleNewConfirm = (doc: WidgetEditorDoc) => {
+    session.enter(doc);
+    setEnteredId('');
+    dialogs.closeDialog();
+  };
+  const newDialogPayload: NewWidgetDialogPayload = {
+    onConfirm: handleNewConfirm,
+  };
+
   // Create entry: open the new-type dialog once on mount (single DialogHost
   // slot; the 新建 widget button re-opens it after a close).
   // biome-ignore lint/correctness/useExhaustiveDependencies: mount-only by design — dialogs is stable and the dialog must not re-open on re-render.
   useEffect(() => {
     if (!widgetTypeId) {
-      dialogs.openDialog('new');
+      dialogs.openDialog('new', newDialogPayload);
     }
   }, []);
 
-  // Enter once per route id ('' = the create route, entered via the
-  // new-dialog confirm).
-  const [enteredId, setEnteredId] = useState<string | undefined>(undefined);
   useEffect(() => {
     const details = typeQuery.data;
     if (details && widgetTypeId && enteredId !== widgetTypeId) {
@@ -73,14 +84,16 @@ export default function WidgetsEditorPage() {
     }
   }, [typeQuery.data, widgetTypeId, enteredId, session]);
 
-  const entered = enteredId !== undefined && enteredId === widgetTypeId;
+  const entered = enteredId !== undefined && enteredId === (widgetTypeId ?? '');
   const enteredDoc = entered ? session.current : null;
   // Angular marker = descriptor without `runtime: 'react-1'` (ADR 0004 §4),
   // read from the loaded wire entity (the conversion absorbs runtime away).
+  // The create route has no loaded entity — never the Angular placeholder.
   const isAngularType =
     entered !== null &&
     entered &&
-    typeQuery.data?.descriptor?.runtime !== 'react-1';
+    typeQuery.data !== undefined &&
+    typeQuery.data.descriptor?.runtime !== 'react-1';
 
   const handleSaved = (saved: { id?: { id: string } }) => {
     const savedId = saved.id?.id;
@@ -98,7 +111,7 @@ export default function WidgetsEditorPage() {
       dirty={dirty}
       onBack={() => history.push('/dashboards')}
     >
-      {!widgetTypeId ? (
+      {!widgetTypeId && !enteredDoc ? (
         <div
           data-testid="we-create-entry"
           style={{
@@ -123,7 +136,7 @@ export default function WidgetsEditorPage() {
               <Button
                 size="small"
                 data-testid="we-create-open"
-                onClick={() => dialogs.openDialog('new')}
+                onClick={() => dialogs.openDialog('new', newDialogPayload)}
               >
                 {formatMessage({
                   id: 'editor.widget.editor.createOpen',
@@ -134,7 +147,7 @@ export default function WidgetsEditorPage() {
           />
           <DialogHost controller={dialogs} />
         </div>
-      ) : typeQuery.isPending ? (
+      ) : widgetTypeId && typeQuery.isPending ? (
         <Spin
           style={{ display: 'block', margin: '64px auto' }}
           tip={formatMessage({

@@ -1,23 +1,31 @@
 /**
- * NewWidgetDialog — create-entry dialog of the widget editor (M9 brief §3
- * wave S item 9). FROZEN CONTRACT for wave-3 D: registered in the shell
- * DialogHost under the id `new`, and rendered directly by the create route
- * (/widgets/editor). D fills the five React starter templates
- * (latest-values / timeseries / rpc / alarm / static — the ui-ngx
- * select-widget-type buckets) and delivers the starter draft through
- * onConfirm, WITHOUT changing the payload signature.
+ * NewWidgetDialog — create-entry dialog of the widget editor (spec §5.6:
+ * 新建 = 5 个 React starter 模板选择, the ui-ngx select-widget-type-dialog
+ * buckets). Registered in the shell DialogHost under the id `new` and
+ * rendered by the create route (/widgets/editor); the payload signature is
+ * the frozen wave-S seam.
  *
- * The placeholder lists the five buckets as an honest skeleton with the
- * confirm disabled (no template exists to deliver yet).
+ * Wave-3 D body: five starter cards (built-in frontend static assets — see
+ * templates/); confirm delivers `starterToDoc(picked)` — a fresh
+ * create-path draft (no id/fqn/version) filled with the template bundle.
+ * Every starter ships a function datasource, so the preview shows random
+ * data out of the box.
  */
 
-import { Modal, Radio, Typography } from 'antd';
+import {
+  AlertOutlined,
+  LineChartOutlined,
+  ProductOutlined,
+  SettingOutlined,
+  ThunderboltOutlined,
+} from '@ant-design/icons';
+import { Modal, Typography } from 'antd';
 import { useState } from 'react';
 import { useIntl } from 'react-intl';
 import type { WidgetEditorDialogProps } from '../dialog-host';
 import type { WidgetEditorDoc } from '../draft-convert';
+import { STARTER_KIND_ORDER, starterToDoc } from '../templates';
 
-/** The five upstream create buckets (ui-ngx select-widget-type-dialog). */
 export type WidgetStarterKind =
   | 'latest'
   | 'timeseries'
@@ -26,45 +34,76 @@ export type WidgetStarterKind =
   | 'static';
 
 export interface NewWidgetDialogPayload {
-  /** delivers the starter draft built from the picked template (D). */
+  /** delivers the starter draft built from the picked template. */
   onConfirm: (draft: WidgetEditorDoc) => void;
 }
 
-const STARTER_KINDS: Array<{
+const STARTER_CARDS: Array<{
   kind: WidgetStarterKind;
+  icon: React.ReactNode;
   labelId: string;
-  defaultMessage: string;
+  defaultLabel: string;
+  descId: string;
+  defaultDesc: string;
 }> = [
   {
     kind: 'latest',
-    labelId: 'editor.widget.editor.kind.latest',
-    defaultMessage: 'Latest values',
+    icon: <SettingOutlined />,
+    labelId: 'editor.widget.starter.latest.name',
+    defaultLabel: 'Latest values card',
+    descId: 'editor.widget.starter.latest.desc',
+    defaultDesc: 'Function datasource + latest-value list',
   },
   {
     kind: 'timeseries',
-    labelId: 'editor.widget.editor.kind.timeseries',
-    defaultMessage: 'Timeseries',
+    icon: <LineChartOutlined />,
+    labelId: 'editor.widget.starter.timeseries.name',
+    defaultLabel: 'Timeseries line chart',
+    descId: 'editor.widget.starter.timeseries.desc',
+    defaultDesc: 'Function datasource + recharts line chart',
   },
   {
     kind: 'rpc',
-    labelId: 'editor.widget.editor.kind.rpc',
-    defaultMessage: 'Control (RPC)',
+    icon: <ThunderboltOutlined />,
+    labelId: 'editor.widget.starter.rpc.name',
+    defaultLabel: 'RPC control button',
+    descId: 'editor.widget.starter.rpc.desc',
+    defaultDesc: 'Two-way RPC call + result echo',
   },
   {
     kind: 'alarm',
-    labelId: 'editor.widget.editor.kind.alarm',
-    defaultMessage: 'Alarm',
+    icon: <AlertOutlined />,
+    labelId: 'editor.widget.starter.alarm.name',
+    defaultLabel: 'Alarm status card',
+    descId: 'editor.widget.starter.alarm.desc',
+    defaultDesc: 'Function datasource + alarm status card',
   },
   {
     kind: 'static',
-    labelId: 'editor.widget.editor.kind.static',
-    defaultMessage: 'Static',
+    icon: <ProductOutlined />,
+    labelId: 'editor.widget.starter.static.name',
+    defaultLabel: 'Static card',
+    descId: 'editor.widget.starter.static.desc',
+    defaultDesc: 'Plain display card (configurable text and colors)',
   },
 ];
 
-export function NewWidgetDialog({ open, onClose }: WidgetEditorDialogProps) {
+export function NewWidgetDialog({
+  open,
+  payload,
+  onClose,
+}: WidgetEditorDialogProps) {
   const { formatMessage } = useIntl();
-  const [kind, setKind] = useState<WidgetStarterKind>('latest');
+  const typed = payload as NewWidgetDialogPayload | undefined;
+  const [kind, setKind] = useState<WidgetStarterKind | null>(null);
+
+  const confirm = () => {
+    if (!typed || !kind) {
+      return;
+    }
+    typed.onConfirm(starterToDoc(kind));
+    onClose();
+  };
 
   return (
     <Modal
@@ -73,35 +112,80 @@ export function NewWidgetDialog({ open, onClose }: WidgetEditorDialogProps) {
         id: 'editor.widget.editor.dialog.new.title',
         defaultMessage: 'New widget',
       })}
-      onCancel={onClose}
-      // no footer confirm yet: wave-3 D wires the starter templates
-      okButtonProps={{ disabled: true }}
       okText={formatMessage({
-        id: 'editor.common.save',
-        defaultMessage: 'Save',
+        id: 'editor.widget.editor.dialog.new.confirm',
+        defaultMessage: 'Create',
       })}
+      okButtonProps={{ disabled: !kind }}
+      onOk={confirm}
+      onCancel={onClose}
+      destroyOnHidden
+      width={640}
       data-testid="widget-new-dialog"
     >
-      <Radio.Group
-        value={kind}
-        onChange={(event) => setKind(event.target.value)}
-        data-testid="widget-new-kind"
-      >
-        {STARTER_KINDS.map((entry) => (
-          <Radio key={entry.kind} value={entry.kind}>
-            {formatMessage({
-              id: entry.labelId,
-              defaultMessage: entry.defaultMessage,
-            })}
-          </Radio>
-        ))}
-      </Radio.Group>
-      <Typography.Paragraph type="secondary" style={{ marginTop: 12 }}>
+      <Typography.Paragraph type="secondary" style={{ marginBottom: 4 }}>
         {formatMessage({
-          id: 'editor.widget.editor.dialog.new.pending',
-          defaultMessage: 'The starter-template picker will be provided here.',
+          id: 'editor.widget.editor.dialog.new.pick',
+          defaultMessage: 'Pick a starter template.',
+        })}{' '}
+        {formatMessage({
+          id: 'editor.widget.editor.dialog.new.pickHint',
+          defaultMessage:
+            'Every starter ships a function datasource, so the preview has random data out of the box.',
         })}
       </Typography.Paragraph>
+      <div
+        style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 12 }}
+        data-testid="widget-new-starter-cards"
+      >
+        {STARTER_CARDS.map((card) => {
+          const selected = kind === card.kind;
+          return (
+            <button
+              key={card.kind}
+              type="button"
+              data-testid={`widget-new-starter-${card.kind}`}
+              onClick={() => setKind(card.kind)}
+              style={{
+                width: 168,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 6,
+                padding: '16px 12px',
+                borderRadius: 8,
+                cursor: 'pointer',
+                border: '1px solid var(--ant-color-border, #d9d9d9)',
+                borderColor: selected
+                  ? 'var(--ant-color-primary, #1677ff)'
+                  : undefined,
+                borderWidth: selected ? 2 : 1,
+                background: selected
+                  ? 'var(--ant-color-primary-bg, rgba(22, 119, 255, 0.06))'
+                  : 'var(--ant-color-bg-container, #fff)',
+                color: 'inherit',
+                fontSize: 14,
+              }}
+            >
+              <span style={{ fontSize: 32, lineHeight: 1 }}>{card.icon}</span>
+              <span style={{ fontWeight: 600 }}>
+                {formatMessage({
+                  id: card.labelId,
+                  defaultMessage: card.defaultLabel,
+                })}
+              </span>
+              <span
+                style={{ fontSize: 12, opacity: 0.72, textAlign: 'center' }}
+              >
+                {formatMessage({
+                  id: card.descId,
+                  defaultMessage: card.defaultDesc,
+                })}
+              </span>
+            </button>
+          );
+        })}
+      </div>
     </Modal>
   );
 }
