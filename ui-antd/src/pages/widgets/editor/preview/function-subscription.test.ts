@@ -162,12 +162,19 @@ describe('createFunctionSubscription — tick advancement', () => {
     sub.start();
     vi.advanceTimersByTime(FUNCTION_TICK_MS * 2);
 
-    const series = onData.mock.calls.at(-1)[0].temp;
+    const data = onData.mock.lastCall?.[0];
+    if (!data) {
+      throw new Error('no data snapshot');
+    }
+    const series = data.temp;
     expect(series).toHaveLength(INITIAL_SERIES_POINTS + 2);
     expect(series.at(-1)?.[1]).toBe(INITIAL_SERIES_POINTS + 2);
     // latest stays a single rolling point — its own prevValue chain:
     // initial 1, then +1 per tick
-    const latest = onLatest.mock.calls.at(-1)[0].now;
+    const latest = onLatest.mock.lastCall?.[0].now;
+    if (!latest) {
+      throw new Error('no latest snapshot');
+    }
     expect(latest).toHaveLength(1);
     expect(latest[0][1]).toBe(3);
     sub.stop();
@@ -208,7 +215,11 @@ describe('createFunctionSubscription — tick advancement', () => {
     );
     sub.start();
     vi.advanceTimersByTime(FUNCTION_TICK_MS * (INITIAL_SERIES_POINTS * 5 + 10));
-    const series = onData.mock.calls.at(-1)[0].temp;
+    const data = onData.mock.lastCall?.[0];
+    if (!data) {
+      throw new Error('no data snapshot');
+    }
+    const series = data.temp;
     expect(series.length).toBeLessThanOrEqual(INITIAL_SERIES_POINTS * 5);
     sub.stop();
   });
@@ -239,7 +250,10 @@ describe('createFunctionSubscription — error isolation', () => {
 
     expect(onError).toHaveBeenCalledTimes(1);
     expect((onError.mock.calls[0][0] as Error).message).toBe('key boom');
-    const data = onData.mock.calls.at(-1)[0];
+    const data = onData.mock.lastCall?.[0];
+    if (!data) {
+      throw new Error('no data snapshot');
+    }
     expect(data.bad).toBeUndefined();
     expect(data.good?.at(-1)?.[1]).toBe(7);
     sub.stop();

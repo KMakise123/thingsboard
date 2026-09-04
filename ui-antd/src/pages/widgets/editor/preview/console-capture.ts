@@ -12,7 +12,10 @@
  *                    evaluation);
  *   - RENDER window— the compiled component's render pass, opened at the
  *                    render-phase wrapper and closed at the NEAREST
- *                    MICROTASK CHECKPOINT (`enterForMicrotask`). React 19
+ *                    MICROTASK CHECKPOINT (`enterForMicrotask`). Entries
+ *                    caught here are BUFFERED and flushed to the sink in
+ *                    the release microtask — the sink calls setState, and
+ *                    calling it during rendering is illegal. React 19
  *                    usually commits inside the same task, so widget
  *                    render-phase logs land here; commit-phase passive
  *                    effects scheduled after that checkpoint, and any
@@ -39,6 +42,15 @@ export type ConsoleSink = (level: WidgetConsoleLevel, text: string) => void;
 
 let sink: ConsoleSink | null = null;
 
+/**
+ * Buffered-window state: the RENDER window routes through this queue so
+ * its entries flush OUTSIDE the render phase (the sink calls setState).
+ * While any buffered window is open, ALL windows queue into one buffer —
+ * ordering across overlapping windows is preserved.
+ */
+let buffer: Array<{ level: WidgetConsoleLevel; text: string }> | null = null;
+let bufferDepth = 0;
+
 /** Single-line rendering of one console call (multi-arg joins with a space). */
 export function formatConsoleArg(arg: unknown): string {
   if (typeof arg === 'string') {
@@ -64,8 +76,15 @@ function install(): void {
   const levels: WidgetConsoleLevel[] = ['log', 'info', 'warn', 'error'];
   for (const level of levels) {
     console[level] = (...args: unknown[]) => {
-      if (sink && depth > 0) {
-        sink(level, args.map(formatConsoleArg).join(' '));
+      const text = args.map(formatConsoleArg).join(' ');
+      if (depth > 0) {
+        // a BUFFERED window is open (render phase): queue — never route
+        // synchronously, a sink call there would setState while rendering
+        if (bufferDepth > 0 && buffer !== null) {
+          buffer.push({ level, text });
+        } else if (sink) {
+          sink(level, text);
+        }
       }
       ORIGINAL[level](...args);
     };
@@ -105,12 +124,30 @@ export function exitConsoleCapture(): void {
 
 /**
  * Render-window bracket: enter now, release at the nearest microtask
- * checkpoint (see the module doc for the honest boundary).
+ * checkpoint (see the module doc for the honest boundary). Entries caught
+ * here are BUFFERED and flushed to the sink in the release microtask —
+ * the sink typically calls setState, which is illegal during rendering.
  */
 export function enterConsoleCaptureForMicrotask(route: ConsoleSink): void {
   enterConsoleCapture(route);
+  if (buffer === null) {
+    buffer = [];
+  }
+  bufferDepth += 1;
   queueMicrotask(() => {
+    bufferDepth -= 1;
+    // EXIT FIRST, then flush: the flush itself calls the sink → setState,
+    // which makes React emit act/dev warnings through console.error — if
+    // the patch were still installed those would route straight back into
+    // the sink and recurse forever.
     exitConsoleCapture();
+    if (bufferDepth === 0 && buffer !== null) {
+      const pending = buffer;
+      buffer = null;
+      for (const entry of pending) {
+        route(entry.level, entry.text);
+      }
+    }
   });
 }
 

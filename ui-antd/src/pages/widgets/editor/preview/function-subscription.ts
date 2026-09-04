@@ -74,6 +74,19 @@ export interface FunctionSubscription {
   stop(): void;
 }
 
+/**
+ * Optional lifecycle hooks. `wrapWindow` brackets every synchronous
+ * evaluation+emit window (initial series generation and each tick) — the
+ * preview routes it through the scoped console capture so funcBody
+ * console output lands in the editor console pane (TICK window).
+ */
+export interface FunctionSubscriptionHooks {
+  wrapWindow?: <T>(fn: () => T) => T;
+}
+
+/** Non-optional form of `wrapWindow` for consumers that always bracket. */
+export type WrapWindow = <T>(fn: () => T) => T;
+
 function compileGenerator(funcBody: string): FunctionGenerator {
   return new Function(
     'timeIndex',
@@ -171,9 +184,11 @@ function snapshotOf(keys: CompiledKey[]): SubscriptionData {
 export function createFunctionSubscription(
   config: WidgetConfig,
   handlers: FunctionSubscriptionHandlers,
+  hooks?: FunctionSubscriptionHooks,
 ): FunctionSubscription {
   let keys: CompiledKey[] = [];
   let timer: ReturnType<typeof setInterval> | null = null;
+  const wrap = hooks?.wrapWindow ?? (<T>(fn: () => T): T => fn());
 
   const report = (error: unknown) => {
     handlers.onError(error);
@@ -187,29 +202,37 @@ export function createFunctionSubscription(
   };
 
   const tick = () => {
-    const now = Date.now();
-    for (const key of keys) {
-      evaluateKey(key, now, report);
-    }
-    emit();
+    wrap(() => {
+      const now = Date.now();
+      for (const key of keys) {
+        evaluateKey(key, now, report);
+      }
+      emit();
+    });
   };
 
   return {
     start() {
-      keys = collectKeys(config.datasources ?? [], report);
-      const now = Date.now();
-      for (const key of keys) {
-        if (key.latest) {
-          // upstream generateLatest parity: a single "now" point
-          evaluateKey(key, now, report);
-          continue;
+      wrap(() => {
+        keys = collectKeys(config.datasources ?? [], report);
+        const now = Date.now();
+        for (const key of keys) {
+          if (key.latest) {
+            // upstream generateLatest parity: a single "now" point
+            evaluateKey(key, now, report);
+            continue;
+          }
+          for (let step = INITIAL_SERIES_POINTS; step > 0; step -= 1) {
+            evaluateKey(key, now - (step - 1) * FUNCTION_TICK_MS, report);
+          }
         }
-        for (let step = INITIAL_SERIES_POINTS; step > 0; step -= 1) {
-          evaluateKey(key, now - (step - 1) * FUNCTION_TICK_MS, report);
-        }
+        emit();
+      });
+      // no function keys → nothing to tick: skip the interval entirely so a
+      // widget without function datasources never wakes the preview up
+      if (keys.length > 0) {
+        timer = setInterval(tick, FUNCTION_TICK_MS);
       }
-      emit();
-      timer = setInterval(tick, FUNCTION_TICK_MS);
     },
     stop() {
       if (timer !== null) {

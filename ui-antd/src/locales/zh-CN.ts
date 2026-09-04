@@ -25,6 +25,7 @@ import editorRulechainPage from './zh-CN/editor-rulechain-page';
 import editorScript from './zh-CN/editor-script';
 import editorWidget from './zh-CN/editor-widget';
 import editorWidgetEditor from './zh-CN/editor-widget-editor';
+import editorWidgetPreview from './zh-CN/editor-widget-preview';
 import entityViews from './zh-CN/entityViews';
 import login from './zh-CN/login';
 import menu from './zh-CN/menu';
@@ -63,6 +64,7 @@ export default {
   ...editorScript,
   ...editorWidget,
   ...editorWidgetEditor,
+  ...editorWidgetPreview,
   ...editorRulechainPage,
   ...ruleNode,
   ...widgetKit,
