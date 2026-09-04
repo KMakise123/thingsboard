@@ -15,7 +15,7 @@ import { useIntl } from 'react-intl';
 
 import { FormPropertyForm } from '@/components/form-property/FormPropertyForm';
 import { builtinWidgetEntry } from '@/components/widgets/registry';
-import { getWidgetTypeByFqn } from '@/services/tb/dashboard';
+import { getWidgetTypeByFullFqn } from '@/services/tb/widget-type';
 import { PanelNumber, PanelRow, UndoSafeInput } from './panel-fields';
 import { cfgStrOr, patchWidgetConfig } from './panel-target';
 import type { PanelSectionProps } from './section-data';
@@ -38,7 +38,7 @@ export function SectionAppearance({
   const registrySchema = settingsSchemaFromMeta(entry?.meta);
   const probe = useQuery({
     queryKey: ['widgetType', widget.typeFullFqn],
-    queryFn: () => getWidgetTypeByFqn(widget.typeFullFqn),
+    queryFn: () => getWidgetTypeByFullFqn(widget.typeFullFqn),
     enabled: !registrySchema,
     retry: false,
     staleTime: Number.POSITIVE_INFINITY,

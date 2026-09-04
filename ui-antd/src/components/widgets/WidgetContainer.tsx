@@ -17,7 +17,7 @@ import { Suspense, useMemo } from 'react';
 import type { StatesController } from '@/components/dashboard/use-states-controller';
 import type { AliasResolution } from '@/core/dashboard/alias-resolver';
 import { expandWidgetDatasources } from '@/core/dashboard/datasources';
-import { getWidgetTypeByFqn } from '@/services/tb/dashboard';
+import { getWidgetTypeByFullFqn } from '@/services/tb/widget-type';
 import type { DashboardFilter } from '@/types/tb/dashboard';
 import type { Timewindow } from '@/types/tb/timewindow';
 import type { Widget, WidgetLayout } from '@/types/tb/widget';
@@ -65,7 +65,7 @@ export function WidgetContainer({
 
   const probe = useQuery({
     queryKey: ['widgetType', fqn],
-    queryFn: () => getWidgetTypeByFqn(fqn),
+    queryFn: () => getWidgetTypeByFullFqn(fqn),
     enabled: !entry,
     retry: false,
     staleTime: Number.POSITIVE_INFINITY,

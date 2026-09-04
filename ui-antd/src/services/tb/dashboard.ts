@@ -133,29 +133,6 @@ export async function getSystemResourceDashboard(
   );
 }
 
-/**
- * Minimal widget-type digest for the registry resolver fallback probe
- * (GET /api/widgetType?fqn=…). CE descriptors are Angular script payloads;
- * v1 only needs existence + a runtime hint, never the scripts.
- */
-export interface WidgetTypeDigest {
-  fqn?: string;
-  name?: string;
-  /** descriptor body (templateHtml/controllerScript/resources…), passthrough. */
-  descriptor?: Record<string, unknown>;
-  [key: string]: unknown;
-}
-
-/**
- * GET /api/widgetType?fqn={fqn} — existence probe for widget fqns the
- * built-in registry misses; 404 maps to the 'missing' placeholder.
- */
-export async function getWidgetTypeByFqn(
-  fqn: string,
-): Promise<WidgetTypeDigest> {
-  return tbHttp.get<WidgetTypeDigest>('/api/widgetType', { fqn });
-}
-
 // ---------------------------------------------------------------------------
 // Entity query (alias resolution transport)
 // ---------------------------------------------------------------------------

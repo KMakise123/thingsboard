@@ -29,8 +29,8 @@ const intl = createIntl({ locale: 'zh-CN', messages: { ...zhDashboards } });
 const TEST_PENDING_FQN = 'system.test.pending_widget';
 
 const getWidgetTypeByFqn = vi.hoisted(() => vi.fn());
-vi.mock('@/services/tb/dashboard', () => ({
-  getWidgetTypeByFqn: (...args: unknown[]) => getWidgetTypeByFqn(...args),
+vi.mock('@/services/tb/widget-type', () => ({
+  getWidgetTypeByFullFqn: (...args: unknown[]) => getWidgetTypeByFqn(...args),
 }));
 
 /** Capture the contract props the builtin entry receives. */

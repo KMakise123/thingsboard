@@ -42,9 +42,11 @@ const dashboardServiceMock = vi.hoisted(() => ({
   getDashboard: vi.fn(),
   exportDashboard: vi.fn(),
   getTenantDashboards: vi.fn(),
-  getWidgetTypeByFqn: vi.fn(),
 }));
 vi.mock('@/services/tb/dashboard', () => dashboardServiceMock);
+vi.mock('@/services/tb/widget-type', () => ({
+  getWidgetTypeByFullFqn: vi.fn(),
+}));
 
 import { EditorShell } from '../shell';
 

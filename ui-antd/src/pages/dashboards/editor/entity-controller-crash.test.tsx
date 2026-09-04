@@ -49,16 +49,20 @@ vi.mock('@ant-design/pro-components', () => ({
   ),
 }));
 
+const widgetTypeProbeMock = vi.hoisted(() => vi.fn());
+
 const dashboardServiceMock = vi.hoisted(() => ({
   getDashboard: vi.fn(),
   saveDashboard: vi.fn(),
   exportDashboard: vi.fn(),
   getTenantDashboards: vi.fn(),
-  getWidgetTypeByFqn: vi.fn(),
   findAllEntitiesByFilter: vi.fn(),
   findEntitiesByFilter: vi.fn(),
 }));
 vi.mock('@/services/tb/dashboard', () => dashboardServiceMock);
+vi.mock('@/services/tb/widget-type', () => ({
+  getWidgetTypeByFullFqn: widgetTypeProbeMock,
+}));
 
 import DashboardsEditorPage from './index';
 
@@ -228,7 +232,7 @@ describe('DashboardsEditorPage — entity-controller dashboard (D1)', () => {
       },
     ]);
     dashboardServiceMock.findEntitiesByFilter.mockResolvedValue({ data: [] });
-    dashboardServiceMock.getWidgetTypeByFqn.mockResolvedValue(undefined);
+    widgetTypeProbeMock.mockResolvedValue(undefined);
   });
 
   it('opens the editor route without crashing and wires the value channel', async () => {

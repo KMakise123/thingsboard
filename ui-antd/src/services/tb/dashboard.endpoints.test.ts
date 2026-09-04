@@ -24,7 +24,6 @@ import {
   getDashboardInfo,
   getSystemResourceDashboard,
   getTenantDashboards,
-  getWidgetTypeByFqn,
   makeDashboardPrivate,
   makeDashboardPublic,
   removeDashboardCustomers,
@@ -112,10 +111,6 @@ describe('dashboard transport endpoints', () => {
     );
   });
 
-  it('pins the widgetType fqn probe', async () => {
-    await getWidgetTypeByFqn('system.cards.entities_table');
-    expect(get).toHaveBeenCalledWith('/api/widgetType', {
-      fqn: 'system.cards.entities_table',
-    });
-  });
+  // NOTE: the widgetType fqn probe lives with its typed M9 surface in
+  // services/tb/widget-type.endpoints.test.ts (getWidgetTypeByFullFqn).
 });

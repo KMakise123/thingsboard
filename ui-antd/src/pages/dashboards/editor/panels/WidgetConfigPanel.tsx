@@ -29,7 +29,7 @@ import { useIntl } from 'react-intl';
 import { builtinWidgetEntry } from '@/components/widgets/registry';
 import type { EditorSession } from '@/core/editor/session';
 import { useEditorSession } from '@/core/editor/use-editor-session';
-import { getWidgetTypeByFqn } from '@/services/tb/dashboard';
+import { getWidgetTypeByFullFqn } from '@/services/tb/widget-type';
 import type { DashboardConfiguration } from '@/types/tb/dashboard';
 import { DialogHost, useEditorDialogs } from '../dialogs/host';
 import { BasicConfig } from './basic-config';
@@ -107,7 +107,7 @@ export function WidgetConfigPanel({
   const metaBasic = entry ? basicModeFromMeta(entry.meta) : null;
   const probe = useQuery({
     queryKey: ['widgetType', widget?.typeFullFqn ?? ''],
-    queryFn: () => getWidgetTypeByFqn(widget?.typeFullFqn ?? ''),
+    queryFn: () => getWidgetTypeByFullFqn(widget?.typeFullFqn ?? ''),
     enabled: Boolean(widget) && !metaBasic,
     retry: false,
     staleTime: Number.POSITIVE_INFINITY,
