@@ -69,6 +69,8 @@ export default {
   'editor.widget.starter.static.desc':
     'Plain display card (configurable text and colors)',
 
+  'editor.widget.editor.createDerive': 'Derive from existing',
+
   // derive dialog — two tiers
   'editor.widget.editor.dialog.derive.modeCustom': 'From custom type',
   'editor.widget.editor.dialog.derive.modeBuiltin': 'From built-in type',

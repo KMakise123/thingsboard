@@ -31,6 +31,7 @@ import PageContainer from '@/components/layout/page-container';
 import { EditorSession } from '@/core/editor/session';
 import { useEditorSession } from '@/core/editor/use-editor-session';
 import { getWidgetTypeById } from '@/services/tb/widget-type';
+import type { DeriveWidgetDialogPayload } from './derive-dialog';
 import { DialogHost, useWidgetEditorDialogs } from './dialog-host';
 import { type WidgetEditorDoc, widgetTypeToDraft } from './draft-convert';
 import type { NewWidgetDialogPayload } from './new-dialog';
@@ -65,6 +66,14 @@ export default function WidgetsEditorPage() {
   };
   const newDialogPayload: NewWidgetDialogPayload = {
     onConfirm: handleNewConfirm,
+  };
+  const handleDeriveConfirm = (doc: WidgetEditorDoc) => {
+    session.enter(doc);
+    setEnteredId('');
+    dialogs.closeDialog();
+  };
+  const deriveDialogPayload: DeriveWidgetDialogPayload = {
+    onConfirm: handleDeriveConfirm,
   };
 
   // Create entry: open the new-type dialog once on mount (single DialogHost
@@ -133,16 +142,31 @@ export default function WidgetsEditorPage() {
               defaultMessage: 'Enter from a dashboard or the widget library.',
             })}
             action={
-              <Button
-                size="small"
-                data-testid="we-create-open"
-                onClick={() => dialogs.openDialog('new', newDialogPayload)}
-              >
-                {formatMessage({
-                  id: 'editor.widget.editor.createOpen',
-                  defaultMessage: 'New widget',
-                })}
-              </Button>
+              <>
+                <Button
+                  size="small"
+                  type="primary"
+                  data-testid="we-create-open"
+                  onClick={() => dialogs.openDialog('new', newDialogPayload)}
+                >
+                  {formatMessage({
+                    id: 'editor.widget.editor.createOpen',
+                    defaultMessage: 'New widget',
+                  })}
+                </Button>
+                <Button
+                  size="small"
+                  data-testid="we-create-derive"
+                  onClick={() =>
+                    dialogs.openDialog('derive', deriveDialogPayload)
+                  }
+                >
+                  {formatMessage({
+                    id: 'editor.widget.editor.createDerive',
+                    defaultMessage: 'Derive from existing',
+                  })}
+                </Button>
+              </>
             }
           />
           <DialogHost controller={dialogs} />

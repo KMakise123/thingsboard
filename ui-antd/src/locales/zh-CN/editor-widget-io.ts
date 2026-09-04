@@ -64,6 +64,8 @@ export default {
   'editor.widget.starter.static.name': '静态卡片',
   'editor.widget.starter.static.desc': '纯展示卡片（文案与配色可配置）',
 
+  'editor.widget.editor.createDerive': '从现有类型派生',
+
   // derive dialog — two tiers
   'editor.widget.editor.dialog.derive.modeCustom': '从自定义类型',
   'editor.widget.editor.dialog.derive.modeBuiltin': '从内置类型',
