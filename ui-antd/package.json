@@ -52,6 +52,7 @@
     "react-hotkeys-hook": "^5.3.3",
     "react-markdown": "^10.1.0",
     "react-resizable-panels": "^4.12.3",
+    "recharts": "^3.10.1",
     "rehype-sanitize": "^6.0.0",
     "sucrase": "^3.35.1"
   },
