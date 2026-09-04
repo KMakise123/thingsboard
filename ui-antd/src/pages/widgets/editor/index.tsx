@@ -55,12 +55,11 @@ export default function WidgetsEditorPage() {
 
   // Create entry: open the new-type dialog once on mount (single DialogHost
   // slot; the 新建 widget button re-opens it after a close).
+  // biome-ignore lint/correctness/useExhaustiveDependencies: mount-only by design — dialogs is stable and the dialog must not re-open on re-render.
   useEffect(() => {
     if (!widgetTypeId) {
       dialogs.openDialog('new');
     }
-    // mount-only by design
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Enter once per route id ('' = the create route, entered via the

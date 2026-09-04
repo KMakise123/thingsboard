@@ -207,7 +207,7 @@ export function WidgetMetadataPanel({
         })}
       </Typography.Text>
 
-      <label>
+      <label htmlFor={`${testIdPrefix}-fqn`}>
         <Typography.Text type="secondary">
           {formatMessage({
             id: 'editor.widget.editor.metadata.fqn',
@@ -221,6 +221,7 @@ export function WidgetMetadataPanel({
           })}
         >
           <Input
+            id={`${testIdPrefix}-fqn`}
             value={draft.fqn}
             readOnly
             disabled
@@ -231,7 +232,7 @@ export function WidgetMetadataPanel({
         </Tooltip>
       </label>
 
-      <label>
+      <label htmlFor={`${testIdPrefix}-name`}>
         <Typography.Text type="secondary">
           {formatMessage({
             id: 'editor.widget.editor.metadata.name',
@@ -239,6 +240,7 @@ export function WidgetMetadataPanel({
           })}
         </Typography.Text>
         <Input
+          id={`${testIdPrefix}-name`}
           value={name.value}
           size="small"
           data-testid={`${testIdPrefix}-name`}
@@ -248,7 +250,7 @@ export function WidgetMetadataPanel({
         />
       </label>
 
-      <label>
+      <label htmlFor={`${testIdPrefix}-type`}>
         <Typography.Text type="secondary">
           {formatMessage({
             id: 'editor.widget.editor.metadata.type',
@@ -256,6 +258,7 @@ export function WidgetMetadataPanel({
           })}
         </Typography.Text>
         <Select<WidgetTypeKind>
+          id={`${testIdPrefix}-type`}
           value={draft.meta.type}
           size="small"
           style={{ width: '100%', display: 'block' }}
@@ -280,7 +283,7 @@ export function WidgetMetadataPanel({
       </label>
 
       <Space size={8}>
-        <label>
+        <label htmlFor={`${testIdPrefix}-size-x`}>
           <Typography.Text type="secondary">
             {formatMessage({
               id: 'editor.widget.editor.metadata.sizeX',
@@ -288,6 +291,7 @@ export function WidgetMetadataPanel({
             })}
           </Typography.Text>
           <InputNumber
+            id={`${testIdPrefix}-size-x`}
             value={draft.meta.sizeX}
             min={1}
             size="small"
@@ -306,7 +310,7 @@ export function WidgetMetadataPanel({
             }
           />
         </label>
-        <label>
+        <label htmlFor={`${testIdPrefix}-size-y`}>
           <Typography.Text type="secondary">
             {formatMessage({
               id: 'editor.widget.editor.metadata.sizeY',
@@ -314,6 +318,7 @@ export function WidgetMetadataPanel({
             })}
           </Typography.Text>
           <InputNumber
+            id={`${testIdPrefix}-size-y`}
             value={draft.meta.sizeY}
             min={1}
             size="small"
@@ -334,7 +339,7 @@ export function WidgetMetadataPanel({
         </label>
       </Space>
 
-      <label>
+      <label htmlFor={`${testIdPrefix}-type-parameters`}>
         <Typography.Text type="secondary">
           {formatMessage({
             id: 'editor.widget.editor.metadata.typeParameters',
@@ -342,6 +347,7 @@ export function WidgetMetadataPanel({
           })}
         </Typography.Text>
         <Input.TextArea
+          id={`${testIdPrefix}-type-parameters`}
           value={typeParametersText.value}
           rows={5}
           style={{ fontFamily: 'monospace', fontSize: 12 }}

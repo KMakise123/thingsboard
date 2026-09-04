@@ -13,8 +13,8 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { App as AntdApp } from 'antd';
 import { createIntl, RawIntlProvider } from 'react-intl';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { EditorSession } from '@/core/editor/session';
 import { FormPropertyType } from '@/components/form-property/types';
+import { EditorSession } from '@/core/editor/session';
 import zhCommon from '@/locales/zh-CN/editor';
 import zhWidgetEditor from '@/locales/zh-CN/editor-widget-editor';
 
