@@ -12,9 +12,10 @@ export default {
     'The draft has unsaved changes; exiting edit mode discards them.',
   'editor.dashboard.contract.discardOk': 'Discard changes',
 
-  // §3.8 409 three-option conflict dialog
+  // §3.8 409 three-option conflict dialog (shared copy: dashboard / widget
+  // editors bind the same core ConflictDialog — keep the wording neutral)
   'editor.dashboard.contract.conflict.intro':
-    'The dashboard on the server was changed by someone else; the local draft is unsaved.',
+    'The content on the server was changed by someone else; choose how to handle your local version.',
   'editor.dashboard.contract.conflict.serverSection': 'Server latest version',
   'editor.dashboard.contract.conflict.serverUnknown':
     'The latest server version could not be fetched; only the local draft can be exported.',

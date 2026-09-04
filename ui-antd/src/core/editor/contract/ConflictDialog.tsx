@@ -129,7 +129,7 @@ export function ConflictDialog({
         {formatMessage(
           t(
             'editor.dashboard.contract.conflict.intro',
-            'The dashboard on the server was changed by someone else; the local draft is unsaved.',
+            'The content on the server was changed by someone else; choose how to handle your local version.',
           ),
         )}
       </Typography.Paragraph>

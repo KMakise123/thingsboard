@@ -12,9 +12,10 @@ export default {
     '当前草稿有未保存的修改，退出编辑将放弃这些修改。',
   'editor.dashboard.contract.discardOk': '放弃修改',
 
-  // §3.8 409 three-option conflict dialog
+  // §3.8 409 three-option conflict dialog (shared copy: dashboard / widget
+  // editors bind the same core ConflictDialog — keep the wording neutral)
   'editor.dashboard.contract.conflict.intro':
-    '服务器上的仪表盘已被其他来源修改，本地草稿尚未保存。',
+    '服务器上的内容已被他人修改，请选择如何处理你的本地版本。',
   'editor.dashboard.contract.conflict.serverSection': '服务器最新版本',
   'editor.dashboard.contract.conflict.serverUnknown':
     '无法获取服务器最新版本，仅可导出本地草稿。',
