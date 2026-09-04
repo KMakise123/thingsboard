@@ -69,6 +69,7 @@ import {
 import { WidgetMetadataPanel } from './metadata';
 import type { WidgetConsoleEntry, WidgetPreviewError } from './preview';
 import { WidgetPreview } from './preview';
+import { useCompileErrorExtensions } from './preview/compile-lint';
 import { ConsolePane } from './preview/console';
 import { tidySource } from './tidy';
 
@@ -223,6 +224,9 @@ export function WidgetEditorShell({
   );
   const consoleIdRef = useRef(0);
   const dialogs = useWidgetEditorDialogs();
+
+  // compile error → CM gutter diagnostics on the TSX tab (spec §5.5)
+  const compileErrorExtensions = useCompileErrorExtensions(previewError);
 
   // 离开守卫 + 进入检查点 — shared core contract pieces (M7/M8 parity).
   const entryCheckpoint = useEditorEntryCheckpoint({ session, enabled: true });
@@ -524,6 +528,7 @@ export function WidgetEditorShell({
         <CodeEditor
           value={draft.source.tsx}
           language="tsx"
+          extensions={compileErrorExtensions}
           onChange={writeSource('source.tsx', 'source:tsx', (doc, next) => {
             doc.source.tsx = next;
           })}
