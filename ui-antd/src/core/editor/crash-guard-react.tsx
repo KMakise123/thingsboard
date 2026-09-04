@@ -21,8 +21,8 @@ import { type ReactNode, useCallback, useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
 
 import {
-  type CrashArchive,
   attachCrashGuard,
+  type CrashArchive,
   clearCrashArchive,
   crashGuardKey,
   isRecoverable,
@@ -143,9 +143,7 @@ export function CrashGuardDialog({
             data-testid="crash-guard-restore"
             block
           >
-            {formatMessage(
-              t('editor.crashGuard.restore', 'Restore draft'),
-            )}
+            {formatMessage(t('editor.crashGuard.restore', 'Restore draft'))}
           </Button>
           <Typography.Text type="secondary" style={{ fontSize: 12 }}>
             {formatMessage(

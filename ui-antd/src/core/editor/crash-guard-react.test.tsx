@@ -13,8 +13,8 @@ import {
 } from '@testing-library/react';
 import { createIntl, RawIntlProvider } from 'react-intl';
 import { beforeEach, describe, expect, it } from 'vitest';
-import zhCommon from '@/locales/zh-CN/editor';
 import zhCrashGuard from '@/locales/zh-CN/crash-guard';
+import zhCommon from '@/locales/zh-CN/editor';
 
 import {
   type CrashArchive,

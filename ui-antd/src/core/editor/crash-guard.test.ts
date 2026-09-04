@@ -14,19 +14,18 @@
  *      (no beforeunload listener) — use-leave-guard stays the only one.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-
-import { EditorSession } from './session';
 import {
   attachCrashGuard,
-  CRASH_GUARD_KEY_PREFIX,
-  crashGuardKey,
   CRASH_ARCHIVE_SCHEMA_VERSION,
+  CRASH_GUARD_KEY_PREFIX,
   type CrashArchive,
   clearCrashArchive,
+  crashGuardKey,
   isRecoverable,
   readCrashArchive,
   restoreCrashArchive,
 } from './crash-guard';
+import { EditorSession } from './session';
 
 interface Doc {
   title: string;
@@ -241,9 +240,9 @@ describe('attachCrashGuard — debounce (widget code-text path)', () => {
         draft.count = 3;
       });
       // nothing written while inside the debounce window
-      expect(
-        setItemSpy.mock.calls.filter(([key]) => key === KEY),
-      ).toHaveLength(0);
+      expect(setItemSpy.mock.calls.filter(([key]) => key === KEY)).toHaveLength(
+        0,
+      );
       expect(rawStorage()).toBeNull();
       vi.advanceTimersByTime(300);
       const writes = setItemSpy.mock.calls.filter(([key]) => key === KEY);
