@@ -11,10 +11,12 @@
  *    beforeunload/pagehide or a route blocker — use-leave-guard owns the
  *    §3.8 leave confirm; the guard only observes session writes.
  *  - Clean exit clears the key: the moment the session turns CLEAN (save,
- *    undo drained to the baseline, rollback) after this guard archived at
- *    least once, the key is removed — the next enter cannot prompt a stale
- *    recovery. A pre-existing archive (written by a crashed visit) is never
- *    cleared by attach alone: the recovery dialog must be able to read it.
+ *    undo drained to the baseline, rollback) the key is removed — the draft
+ *    equals the baseline, so any archive under the key is stale noise and
+ *    the next enter cannot mis-prompt a recovery. A pre-existing archive
+ *    (written by a crashed visit) survives attach alone — attach only
+ *    observes writes, it never fires on a clean session, so the recovery
+ *    dialog can still read it.
  *  - Storage writes are best-effort: quota errors / private-mode
  *    sessionStorage are swallowed silently (crash protection must never
  *    toast-bomb or crash the editor).
