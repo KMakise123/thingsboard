@@ -16,9 +16,32 @@ import {
   parseScadaSymbolsTagsFromContent,
   removeScadaSymbolMetadata,
   scadaSymbolContentData,
+  svgRootFill,
+  svgRootViewBox,
   updateScadaSymbolMetadataInContent,
   validateSvgDocument,
 } from './symbol-metadata';
+
+describe('svgRootViewBox / svgRootFill', () => {
+  it('reads the viewBox quadruple from a root tag', () => {
+    expect(svgRootViewBox('<svg viewBox="0 0 640 480" width="10">')).toEqual({
+      x: 0,
+      y: 0,
+      width: 640,
+      height: 480,
+    });
+  });
+
+  it('returns null without a viewBox or with a malformed one', () => {
+    expect(svgRootViewBox('<svg width="10">')).toBeNull();
+    expect(svgRootViewBox('<svg viewBox="abc">')).toBeNull();
+  });
+
+  it('reads the root fill attribute', () => {
+    expect(svgRootFill('<svg fill="#123456">')).toBe('#123456');
+    expect(svgRootFill('<svg width="10">')).toBeNull();
+  });
+});
 
 describe('validateSvgDocument', () => {
   it('accepts namespace-prefixed, CDATA-bearing documents', () => {

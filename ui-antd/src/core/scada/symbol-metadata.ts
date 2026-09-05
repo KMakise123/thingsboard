@@ -285,14 +285,9 @@ const metadataBodyText = (body: string): string => {
 const svgRootSizing = (
   svgRootNode: string,
 ): { width?: number; height?: number } => {
-  const viewBoxMatch = viewBoxRegex.exec(svgRootNode);
-  if (viewBoxMatch) {
-    const parts = viewBoxMatch[1].trim().split(/[\s,]+/);
-    const width = Number(parts[2]);
-    const height = Number(parts[3]);
-    if (Number.isFinite(width) && Number.isFinite(height) && width && height) {
-      return { width, height };
-    }
+  const viewBox = svgRootViewBox(svgRootNode);
+  if (viewBox?.width && viewBox?.height) {
+    return { width: viewBox.width, height: viewBox.height };
   }
   const widthMatch = svgAttrRegex('width').exec(svgRootNode);
   const heightMatch = svgAttrRegex('height').exec(svgRootNode);
@@ -302,6 +297,39 @@ const svgRootSizing = (
     return { width, height };
   }
   return {};
+};
+
+/** The svg root's `viewBox` as numbers (canvas mount box), or null. */
+export interface SvgRootViewBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export const svgRootViewBox = (svgRootNode: string): SvgRootViewBox | null => {
+  const viewBoxMatch = viewBoxRegex.exec(svgRootNode);
+  if (!viewBoxMatch) {
+    return null;
+  }
+  const parts = viewBoxMatch[1]
+    .trim()
+    .split(/[\s,]+/)
+    .map(Number);
+  const [x, y, width, height] = parts;
+  if (
+    parts.length === 4 &&
+    [x, y, width, height].every((n) => Number.isFinite(n))
+  ) {
+    return { x, y, width, height };
+  }
+  return null;
+};
+
+/** The svg root's `fill` attribute value, or null. */
+export const svgRootFill = (svgRootNode: string): string | null => {
+  const match = svgAttrRegex('fill').exec(svgRootNode);
+  return match ? match[1] : null;
 };
 
 /**
