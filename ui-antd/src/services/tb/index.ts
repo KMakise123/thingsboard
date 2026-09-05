@@ -23,4 +23,5 @@ export * from './version-control';
 export * from './attributes';
 export * from './alarm-rules';
 export * from './calculated-fields';
+export * from './notification';
 export { setTbLanguage, setTbUnauthorizedHandler, tbHttp } from './http';
