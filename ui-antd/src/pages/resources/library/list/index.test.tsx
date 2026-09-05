@@ -270,9 +270,7 @@ describe('resources library page', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /上传资源/ }));
     const modal = document.querySelector('.ant-modal') as HTMLElement;
-    const input = modal.querySelector(
-      'input[type="file"]',
-    ) as HTMLInputElement;
+    const input = modal.querySelector('input[type="file"]') as HTMLInputElement;
     fireEvent.change(input, {
       target: {
         files: [

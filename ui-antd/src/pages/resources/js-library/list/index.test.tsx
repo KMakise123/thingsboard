@@ -285,12 +285,8 @@ describe('JS library page', () => {
     await screen.findByText('module-b');
 
     // Open the module-b row's more menu and pick 编辑脚本.
-    const row = screen
-      .getByText('module-b')
-      .closest('tr') as HTMLElement;
-    fireEvent.click(
-      row.querySelector('.ant-dropdown-trigger') as HTMLElement,
-    );
+    const row = screen.getByText('module-b').closest('tr') as HTMLElement;
+    fireEvent.click(row.querySelector('.ant-dropdown-trigger') as HTMLElement);
     fireEvent.click(await screen.findByText('编辑脚本'));
 
     const modal = document.querySelector('.ant-modal') as HTMLElement;
@@ -304,9 +300,7 @@ describe('JS library page', () => {
     });
     // Regex: the ok button keeps the jsdom-stuck loading icon span
     // (aria-label="loading") in its accessible name after editorLoading.
-    fireEvent.click(
-      within(modal).getByRole('button', { name: /保 存/ }),
-    );
+    fireEvent.click(within(modal).getByRole('button', { name: /保 存/ }));
 
     await waitFor(() => {
       expect(servicesMock.saveResource).toHaveBeenCalledTimes(1);
