@@ -34,6 +34,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 
 import PageContainer from '@/components/layout/page-container';
+import { downloadBlob } from '@/components/shared/download-blob';
 import {
   parseScadaSymbolMetadataFromContent,
   type ScadaSymbolMetadata,
@@ -258,18 +259,7 @@ export default function ScadaSymbolEditorPage() {
     const blob = new Blob([full], {
       type: imageInfo?.descriptor?.mediaType ?? 'image/svg+xml',
     });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', imageInfo?.fileName ?? `${resourceKey}.svg`);
-    link.dispatchEvent(
-      new MouseEvent('click', {
-        view: window,
-        bubbles: true,
-        cancelable: false,
-      }),
-    );
-    URL.revokeObjectURL(url);
+    downloadBlob(blob, imageInfo?.fileName ?? `${resourceKey}.svg`);
   };
 
   const handleDownload = () => {

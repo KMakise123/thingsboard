@@ -9,22 +9,13 @@
  *   non-empty — validateImportedImage) → PUT /api/image/import.
  */
 
+import { downloadBlob } from '@/components/shared/download-blob';
 import {
   exportImage as exportImageApi,
   imageResourceType,
   importImage as importImageApi,
 } from '@/services/tb/image';
 import type { ImageExportData, ImageResourceInfo } from '@/types/tb/image';
-
-/** blob → "Save as" (object URL released right after the click). */
-export function downloadBlob(blob: Blob, fileName: string): void {
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = fileName;
-  anchor.click();
-  URL.revokeObjectURL(url);
-}
 
 /** Upstream exportImage: `<fileName minus extension>.json`. */
 export async function exportImageToFile(
