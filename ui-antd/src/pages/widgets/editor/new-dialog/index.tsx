@@ -10,6 +10,11 @@
  * create-path draft (no id/fqn/version) filled with the template bundle.
  * Every starter ships a function datasource, so the preview shows random
  * data out of the box.
+ *
+ * M11 wave 1B seam: the widget-types library create dialog pushes
+ * `/widgets/editor?template=<kind>`; a known kind preselects its starter
+ * card on mount (same five buckets as ui-ngx select-widget-type-dialog).
+ * No/unknown param keeps the previous empty-selection behavior.
  */
 
 import {
@@ -19,6 +24,7 @@ import {
   SettingOutlined,
   ThunderboltOutlined,
 } from '@ant-design/icons';
+import { useLocation } from '@umijs/max';
 import { Modal, Typography } from 'antd';
 import { useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -32,6 +38,24 @@ export type WidgetStarterKind =
   | 'rpc'
   | 'alarm'
   | 'static';
+
+const STARTER_KINDS: readonly WidgetStarterKind[] = [
+  'latest',
+  'timeseries',
+  'rpc',
+  'alarm',
+  'static',
+];
+
+/** `?template=<kind>` → starter kind; unknown/missing values → null. */
+export function starterKindFromSearch(
+  search: string,
+): WidgetStarterKind | null {
+  const raw = new URLSearchParams(search).get('template');
+  return raw !== null && (STARTER_KINDS as readonly string[]).includes(raw)
+    ? (raw as WidgetStarterKind)
+    : null;
+}
 
 export interface NewWidgetDialogPayload {
   /** delivers the starter draft built from the picked template. */
@@ -94,8 +118,13 @@ export function NewWidgetDialog({
   onClose,
 }: WidgetEditorDialogProps) {
   const { formatMessage } = useIntl();
+  const location = useLocation();
   const typed = payload as NewWidgetDialogPayload | undefined;
-  const [kind, setKind] = useState<WidgetStarterKind | null>(null);
+  // Preselect from `?template=` once on mount (the host lazily mounts the
+  // dialog per open, so every reopen re-reads the URL).
+  const [kind, setKind] = useState<WidgetStarterKind | null>(() =>
+    starterKindFromSearch(location.search),
+  );
 
   const confirm = () => {
     if (!typed || !kind) {
