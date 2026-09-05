@@ -5,8 +5,8 @@
  */
 import { EntityType } from '@/types/tb';
 import {
-  type NotificationTemplate,
   NotificationDeliveryMethod,
+  type NotificationTemplate,
   NotificationType,
 } from '@/types/tb/notification';
 

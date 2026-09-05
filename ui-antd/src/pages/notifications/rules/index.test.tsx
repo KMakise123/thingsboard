@@ -84,8 +84,8 @@ vi.mock('@ant-design/pro-components', async () => {
 import { EntityType } from '@/types/tb';
 import type {
   NotificationRuleInfo,
-  NotificationRuleTriggerConfig,
   NotificationRuleRecipientsConfig,
+  NotificationRuleTriggerConfig,
 } from '@/types/tb/notification';
 import { NotificationRuleTriggerType } from '@/types/tb/notification';
 

@@ -192,11 +192,9 @@ describe('Sent page', () => {
 
   it('opens the delivery-failures dialog from the red badge', async () => {
     renderPage();
-    const rowNode = (await screen.findAllByText('ops-template'))[0];
+    await screen.findAllByText('ops-template');
     fireEvent.click(screen.getByTestId('sent-errors-req-1'));
-    const dialog = (await screen.findByTestId(
-      'sent-error-dialog',
-    )) as HTMLElement;
+    await screen.findByTestId('sent-error-dialog');
     expect(document.querySelector('.ant-modal-title')?.textContent).toBe(
       '发送失败明细',
     );

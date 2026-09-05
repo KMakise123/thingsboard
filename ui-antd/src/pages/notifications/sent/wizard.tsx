@@ -192,7 +192,7 @@ export function SendNotificationWizard({
     void queryClient.invalidateQueries({
       queryKey: ['notifications', 'wizard-targets'],
     });
-  }, [open, prefillKey, prefilledRequest, form.setFieldsValue, lastSeedKey]);
+  }, [open, prefillKey, prefilledRequest, form, queryClient, lastSeedKey]);
 
   const useTemplate = Form.useWatch('useTemplate', form) ?? prefill.useTemplate;
   const scheduleEnabled = Form.useWatch('scheduleEnabled', form) ?? false;
