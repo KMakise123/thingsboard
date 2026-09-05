@@ -49,7 +49,7 @@ import {
   getAvailableDeliveryMethods,
   getNotificationRequestPreview,
   getNotificationTargetById,
-  getNotificationTargets,
+  getNotificationTargetsByNotificationType,
   getNotificationTemplates,
   sendNotificationRequest,
 } from '@/services/tb/notification';
@@ -94,10 +94,13 @@ const TEMPLATE_PAGE_SORT = {
   sortOrder: { property: 'name', direction: 'ASC' as const },
 };
 
+// Sorted by name: the notificationType-filtered targets endpoint 500s on
+// sortProperty=createdTime (fork backend bug — its custom query cannot map
+// the createdTime column; registered for the backend side).
 const TARGET_PAGE_SORT = {
   pageSize: 50,
   page: 0,
-  sortOrder: { property: 'createdTime', direction: 'DESC' as const },
+  sortOrder: { property: 'name', direction: 'ASC' as const },
 };
 
 const ALL_METHODS = Object.values(NotificationDeliveryMethod);
@@ -211,6 +214,32 @@ export function SendNotificationWizard({
   const hasUnavailable = ALL_METHODS.some(
     (method) => !availableMethods.has(method),
   );
+
+  // Zero out enabled-but-unavailable methods (ngx
+  // updateDeliveryMethodsDisableState): a notify-again prefill can carry a
+  // method whose provider configuration is gone. WEB stays untouched — it is
+  // the always-available self channel and forced on anyway.
+  useEffect(() => {
+    if (!methodsQuery.isSuccess) {
+      return;
+    }
+    setTemplateValue((previous) => {
+      let changed = false;
+      const next: TemplateValue = { ...previous };
+      for (const method of Object.keys(
+        next,
+      ) as Array<NotificationDeliveryMethod>) {
+        if (method === NotificationDeliveryMethod.WEB) {
+          continue;
+        }
+        if (next[method]?.enabled && !availableMethods.has(method)) {
+          delete next[method];
+          changed = true;
+        }
+      }
+      return changed ? next : previous;
+    });
+  }, [methodsQuery.isSuccess, availableMethods]);
 
   const templatesQuery = useQuery({
     queryKey: ['notifications', 'wizard-templates'],
@@ -507,15 +536,14 @@ export function SendNotificationWizard({
             <RecipientEntitySelect
               queryKey={['notifications', 'wizard-targets']}
               mode="multiple"
-              // Plain targets list: the notificationType-filtered variants
-              // (/targets?notificationType= and /targets/notificationType/)
-              // currently 500 on this fork's DB, and the GENERAL wizard
-              // accepts every target type anyway (registered divergence).
               fetchPage={(textSearch) =>
-                getNotificationTargets({
-                  ...TARGET_PAGE_SORT,
-                  textSearch: textSearch || undefined,
-                })
+                getNotificationTargetsByNotificationType(
+                  NotificationType.GENERAL,
+                  {
+                    ...TARGET_PAGE_SORT,
+                    textSearch: textSearch || undefined,
+                  },
+                )
               }
               toOption={(target) => ({
                 label: target.name,

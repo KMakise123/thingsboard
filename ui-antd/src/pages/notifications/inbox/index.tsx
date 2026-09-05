@@ -31,7 +31,7 @@ import {
   Typography,
 } from 'antd';
 import dayjs from 'dayjs';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { serverErrorText } from '@/components/entities/server-error-text';
 import PageContainer from '@/components/layout/page-container';
@@ -286,116 +286,115 @@ export default function InboxPage() {
     return urlState.sortDirection === 'ASC' ? 'ascend' : 'descend';
   }
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: row-action handlers re-create per render by design
-  const columns: ProColumns<TbNotification>[] = useMemo(() => {
-    const cols: ProColumns<TbNotification>[] = [
-      {
-        title: formatMessage({
-          id: 'pages.notifications.inbox.createdTime',
-          defaultMessage: 'Created time',
-        }),
-        dataIndex: 'createdTime',
-        width: 170,
-        sorter: true,
-        sortOrder: sortOrderFor('createdTime'),
-        render: (_, record) => (
-          <span className="tabular-nums">
-            {dayjs(record.createdTime).format('YYYY-MM-DD HH:mm:ss')}
-          </span>
+  // Columns re-create per render on purpose: the row-action handlers close
+  // over urlState/notifications (ADR 0007 §5 — a memoized columns array with
+  // narrow deps would freeze stale page/list reads into the row buttons).
+  const columns: ProColumns<TbNotification>[] = [
+    {
+      title: formatMessage({
+        id: 'pages.notifications.inbox.createdTime',
+        defaultMessage: 'Created time',
+      }),
+      dataIndex: 'createdTime',
+      width: 170,
+      sorter: true,
+      sortOrder: sortOrderFor('createdTime'),
+      render: (_, record) => (
+        <span className="tabular-nums">
+          {dayjs(record.createdTime).format('YYYY-MM-DD HH:mm:ss')}
+        </span>
+      ),
+    },
+    {
+      title: formatMessage({
+        id: 'pages.notifications.inbox.type',
+        defaultMessage: 'Type',
+      }),
+      dataIndex: 'type',
+      width: 140,
+      render: (_, record) => typeLabel(record.type),
+    },
+    {
+      title: formatMessage({
+        id: 'pages.notifications.inbox.subject',
+        defaultMessage: 'Subject',
+      }),
+      dataIndex: 'subject',
+      width: 220,
+      render: (_, record) =>
+        record.subject ? (
+          // Template subject HTML — sanitized (DOMPurify allowlist +
+          // forbidden-tag sweep); never trusted raw.
+          <div
+            className="truncate"
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: sanitized template HTML, DOMPurify allowlist + forbidden-tag sweep
+            dangerouslySetInnerHTML={{
+              __html: sanitizeNotificationHtml(record.subject),
+            }}
+          />
+        ) : (
+          '-'
         ),
-      },
-      {
-        title: formatMessage({
-          id: 'pages.notifications.inbox.type',
-          defaultMessage: 'Type',
-        }),
-        dataIndex: 'type',
-        width: 140,
-        render: (_, record) => typeLabel(record.type),
-      },
-      {
-        title: formatMessage({
-          id: 'pages.notifications.inbox.subject',
-          defaultMessage: 'Subject',
-        }),
-        dataIndex: 'subject',
-        width: 220,
-        render: (_, record) =>
-          record.subject ? (
-            // Template subject HTML — sanitized (DOMPurify allowlist +
-            // forbidden-tag sweep); never trusted raw.
-            <div
-              className="truncate"
-              // biome-ignore lint/security/noDangerouslySetInnerHtml: sanitized template HTML, DOMPurify allowlist + forbidden-tag sweep
-              dangerouslySetInnerHTML={{
-                __html: sanitizeNotificationHtml(record.subject),
-              }}
-            />
-          ) : (
-            '-'
-          ),
-      },
-      {
-        title: formatMessage({
-          id: 'pages.notifications.inbox.text',
-          defaultMessage: 'Text',
-        }),
-        dataIndex: 'text',
-        render: (_, record) =>
-          record.text ? (
-            // Template body HTML — same sanitizer as the subject column.
-            <div
-              className="truncate"
-              // biome-ignore lint/security/noDangerouslySetInnerHtml: sanitized template HTML, DOMPurify allowlist + forbidden-tag sweep
-              dangerouslySetInnerHTML={{
-                __html: sanitizeNotificationHtml(record.text),
-              }}
-            />
-          ) : (
-            '-'
-          ),
-      },
-      {
-        title: formatMessage({
-          id: 'pages.notifications.inbox.actions',
-          defaultMessage: 'Actions',
-        }),
-        key: 'actions',
-        width: 110,
-        fixed: 'right',
-        render: (_, record) => (
-          <Space size={0} onClick={(event) => event.stopPropagation()}>
-            {isUnread(record) && (
-              <Button
-                type="text"
-                size="small"
-                icon={<CheckOutlined />}
-                data-testid="inbox-mark-read"
-                title={formatMessage({
-                  id: 'pages.notifications.inbox.markAsRead',
-                  defaultMessage: 'Mark as read',
-                })}
-                onClick={() => void markRead(record)}
-              />
-            )}
+    },
+    {
+      title: formatMessage({
+        id: 'pages.notifications.inbox.text',
+        defaultMessage: 'Text',
+      }),
+      dataIndex: 'text',
+      render: (_, record) =>
+        record.text ? (
+          // Template body HTML — same sanitizer as the subject column.
+          <div
+            className="truncate"
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: sanitized template HTML, DOMPurify allowlist + forbidden-tag sweep
+            dangerouslySetInnerHTML={{
+              __html: sanitizeNotificationHtml(record.text),
+            }}
+          />
+        ) : (
+          '-'
+        ),
+    },
+    {
+      title: formatMessage({
+        id: 'pages.notifications.inbox.actions',
+        defaultMessage: 'Actions',
+      }),
+      key: 'actions',
+      width: 110,
+      fixed: 'right',
+      render: (_, record) => (
+        <Space size={0} onClick={(event) => event.stopPropagation()}>
+          {isUnread(record) && (
             <Button
               type="text"
               size="small"
-              danger
-              icon={<DeleteOutlined />}
-              data-testid="inbox-delete"
+              icon={<CheckOutlined />}
+              data-testid="inbox-mark-read"
               title={formatMessage({
-                id: 'pages.notifications.inbox.delete',
-                defaultMessage: 'Delete',
+                id: 'pages.notifications.inbox.markAsRead',
+                defaultMessage: 'Mark as read',
               })}
-              onClick={() => confirmDeleteOne(record)}
+              onClick={() => void markRead(record)}
             />
-          </Space>
-        ),
-      },
-    ];
-    return cols;
-  }, [formatMessage, urlState.sortProperty, urlState.sortDirection]);
+          )}
+          <Button
+            type="text"
+            size="small"
+            danger
+            icon={<DeleteOutlined />}
+            data-testid="inbox-delete"
+            title={formatMessage({
+              id: 'pages.notifications.inbox.delete',
+              defaultMessage: 'Delete',
+            })}
+            onClick={() => confirmDeleteOne(record)}
+          />
+        </Space>
+      ),
+    },
+  ];
 
   const onTableChange: TableProps<TbNotification>['onChange'] = (
     pagination,
