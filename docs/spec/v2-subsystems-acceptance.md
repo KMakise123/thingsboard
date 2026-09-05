@@ -79,12 +79,12 @@
 
 ### 3.6 解锁 v2 editors spec 两条挂起验收
 
-- [x] widget 选择抽屉 scada 置顶：scada 布局下抽屉请求带 `scadaFirst=true`（bundles/widgetTypes 两路 + 类目接口），scada 符号类目置顶可见（锚点 `dashboard-widget-select.component.ts:112-117,292-307`；后端参数已存在）〔验收后回写 `v2-editors-acceptance.md` §3.2 缺口行〕〔M11 走查 ✅（参数半边，2026-09-05）：scada 布局盘（API 复核 `layoutType: scada`）开抽屉，`performance` 实测两路请求 `widgetTypes`/`widgetsBundles` 均带 `scadaFirst=true`；「scada 类目置顶可见」受 M7 抽屉 registry-only 数据源限制（抽屉分组按 registry 字母序、无 scada 类目）——**登记口径（主会话裁决）**：参数透传机制已交付；置顶可见完整目击待抽屉数据源改造，editors spec §3.2 缺口行按此修订（不冒勾）〕
+- [x] widget 选择抽屉 scada 置顶：scada 布局下抽屉请求带 `scadaFirst=true`（bundles/widgetTypes 两路 + 类目接口），scada 符号类目置顶可见（锚点 `dashboard-widget-select.component.ts:112-117,292-307`；后端参数已存在）〔验收后回写 `v2-editors-acceptance.md` §3.2 缺口行〕〔M11 走查 ✅（参数半边，2026-09-05）：scada 布局盘（API 复核 `layoutType: scada`）开抽屉，`performance` 实测两路请求 `widgetTypes`/`widgetsBundles` 均带 `scadaFirst=true`；「scada 类目置顶可见」受 M7 抽屉 registry-only 数据源限制（抽屉分组按 registry 字母序、无 scada 类目）——**登记口径（主会话裁决）**：参数透传机制已交付；置顶可见完整目击待抽屉数据源改造，editors spec §3.2 缺口行按此修订（不冒勾）〕〔**code-review 补注（2026-09-05）**：①「类目接口」第三路无承载——registry-only 抽屉本无类目取数通道（ui-ngx 类目走 iot-hub api，iot-hub 缓做），非漏做；②探针仅覆盖默认目标布局（`layouts[0]`），多布局盘用户后选 scada 布局时不带参——随抽屉数据源改造一并解决；③两路探针结果暂不消费，属临时取证机制，抽屉数据源改造时移除〕
 - [x] SCADA 符号编辑器页边界走查：编辑器页可进可编辑（本 spec §3.3）+ 仪表盘内符号实例只能换符号/绑设备/绑对象、无 SVG 结构编辑入口（M7 已交付行为，本段补真机走查）〔验收后回写 `v2-editors-acceptance.md` §6 边界行〕〔M11 走查 ✅（2026-09-05）：编辑器页可进可编辑见 §3.3 各行勾账；仪表盘内符号实例以占位三态渲染（「暂不支持（Angular 部件）」+ fqn 徽标，§3.8 渲染器缺口实测）——配置面板五分组全通用表单，**无换符号/绑设备/绑对象专用表单（专用 basic editor 注册位预留未实现，`basic-config.tsx:8-9`），无 SVG 结构编辑入口 ✅**；editors spec §3.6 边界行按实际目击回写〕
 
 ### 3.7 横切（M11）
 
-- [x] i18n：`pages.resources.*` 域 zh/en key 全等（check-locale 门禁）+ 菜单 key 双语〔M11 走查 ✅：菜单族/六页/编辑器 chrome 全程中文无裸 key（DOM key 模式扫描 ×3 页零命中）+ check-locale 本地复跑 PASS；反例登记 **V8-2**（批量上传 toast 占位符未注入，X 波；X 波已修——实参键对齐 `{fail}`，单测断言注入文案，待真机复验）〕
+- [x] i18n：`pages.resources.*` 域 zh/en key 全等（check-locale 门禁）+ 菜单 key 双语〔M11 走查 ✅：菜单族/六页/编辑器 chrome 全程中文无裸 key（DOM key 模式扫描 ×3 页零命中）+ check-locale 本地复跑 PASS；反例登记 **V8-2**（批量上传 toast 占位符未注入，X 波已修——实参键对齐 `{fail}`，单测断言注入文案；主会话真机复验 ✅：toast「2 项成功，0 项失败。」）〕
 - [x] 主题：零内联色值，颜色全走 antd token；SCADA 画布高亮色同样走 token〔M11 走查 ✅：SCADA 编辑器页 inline style 色值扫描零命中；画布高亮色 `symbol-editor-canvas.tsx` 全走 `theme.useToken()`（colorBgContainer/colorText/colorBorder）——沿 M10 口径（token 运行时解析值非硬编码字面量）〕
 - [x] 自动化衔接：M11 回归项（列表 CRUD 主路径 + 引用删除流 + scadaFirst）登记 #12 扩充（comment 留痕）〔M11 走查 ✅：#12 登记 comment 已发（URL 见 `v2-m11-implementation-brief.md` §5）——范围：资源五列表 CRUD 主路径、引用删除流、scadaFirst 参数、SCADA 编辑器保存链〕
 - [x] 数据保全：自建资源/符号/widget/bundle 终态全 DELETE，system 资源零改动〔M11 走查 ✅：11 类 fixture 全 DELETE（逐项 API 复核 total=0/404，清单见 `v2-m11-browser-walkthrough.md` §4）；system 资源仅只读目击与只读导出〕

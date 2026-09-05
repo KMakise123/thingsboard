@@ -102,4 +102,5 @@ comment URL：https://github.com/KMakise123/thingsboard/issues/12#issuecomment-5
 
 ## 修订记录
 
+- 2026-09-05：**code-review 两轴复审落账**（Standards：无硬违反；Spec：4 锚点全兑现、防蔓延守住）。处置：X2 波修 Duplicated Code（downloadBlob 四份收敛共享件）与误导性错误文案（saveFailed 复用 ×3）；spec §3.6-1 补注（类目接口无承载/探针默认布局局限/探针临时性）。登记不修（O 项，随 scada 域迭代）：SCADA 编辑器 onBack 自建受控退出 Modal 未走 PageContainer dirty 通道（行为红线未破，与 M10 D1 家族先例同型，但与同族编辑器返回箭头通道分叉）；core/scada types-only 依赖 @/components/form-property/types（方向可疑 biome 未禁）。存量复制模式（debounce-search ×5、NULL_UUID ×10、url-state ×5）非本 diff 首创，登后续统一提取。**裁决留痕**：波 2E 的 `401ce39f05`（M9 编辑器消费 `?template=` 预选）系主会话当波裁决（1B 列表页跳转参数需编辑器侧配合，报告在案），非越权扩散。
 - 2026-09-05：创建（M11 开工：波次 0/1A/1B/2C/2D/2E/3/X 与文件所有权钉死；新依赖四件波 0 一次装；SCADA 编辑器实现边界框定）。
