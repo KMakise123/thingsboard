@@ -60,6 +60,7 @@ export default {
     'The resources below are still referenced by other entities; select the ones to force-delete.',
   'pages.resources.library.deleteInUse': 'Delete anyway',
   'pages.resources.library.cancel': 'Cancel',
+  'pages.resources.library.references': 'References',
   // ---- feedback ----
   'pages.resources.library.toastDeleted': 'Resource deleted.',
   'pages.resources.library.toastUpdated': 'Resource info updated.',

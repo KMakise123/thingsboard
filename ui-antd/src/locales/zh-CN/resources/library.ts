@@ -33,7 +33,8 @@ export default {
   'pages.resources.library.refresh': '刷新',
   'pages.resources.library.upload': '上传资源',
   'pages.resources.library.uploadTitle': '上传文件',
-  'pages.resources.library.uploadHint': '点击或拖拽文件到此处上传，可一次选择多个文件',
+  'pages.resources.library.uploadHint':
+    '点击或拖拽文件到此处上传，可一次选择多个文件',
   'pages.resources.library.edit': '编辑信息',
   'pages.resources.library.editTitle': '编辑资源信息',
   'pages.resources.library.formTitle': '标题',
@@ -46,7 +47,8 @@ export default {
   'pages.resources.library.deleteOneText': '请注意，确认后资源将不可恢复。',
   'pages.resources.library.deleteManyTitle':
     '确定要删除 {count, plural, =1 {1 个资源} other {# 个资源}}吗？',
-  'pages.resources.library.deleteManyText': '请注意，确认后所有所选资源都将被移除，且不可恢复。',
+  'pages.resources.library.deleteManyText':
+    '请注意，确认后所有所选资源都将被移除，且不可恢复。',
   'pages.resources.library.inUseTitle': '资源正被引用',
   'pages.resources.library.inUseText':
     '“{title}”仍被下列实体引用，强行删除会导致引用处失效。',
@@ -55,6 +57,7 @@ export default {
     '下列资源仍被其他实体引用，勾选后可强行删除。',
   'pages.resources.library.deleteInUse': '仍要删除',
   'pages.resources.library.cancel': '取消',
+  'pages.resources.library.references': '引用',
   // ---- 反馈 ----
   'pages.resources.library.toastDeleted': '资源已删除。',
   'pages.resources.library.toastUpdated': '资源信息已更新。',
