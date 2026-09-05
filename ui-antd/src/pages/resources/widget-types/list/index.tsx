@@ -480,6 +480,12 @@ export default function WidgetTypesListPage() {
 
   return (
     <PageContainer
+      // Explicit title: PageContainer auto-resolution only handles dotted
+      // leaf names, not nested relative names (wave-0 stub gap, kept).
+      title={formatMessage({
+        id: 'menu.resources.widgetTypes',
+        defaultMessage: 'Widget types',
+      })}
       extra={
         <div className="flex flex-wrap items-center gap-3">
           <Input.Search

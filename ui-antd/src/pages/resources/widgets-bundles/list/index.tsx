@@ -369,6 +369,12 @@ export default function WidgetsBundlesListPage() {
 
   return (
     <PageContainer
+      // Explicit title: PageContainer auto-resolution only handles dotted
+      // leaf names, not nested relative names (wave-0 stub gap, kept).
+      title={formatMessage({
+        id: 'menu.resources.widgetsBundles',
+        defaultMessage: 'Widgets bundles',
+      })}
       extra={
         <div className="flex flex-wrap items-center gap-3">
           <Input.Search
