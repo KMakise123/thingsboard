@@ -257,6 +257,41 @@ describe('resources library page', () => {
     expect(window.location.search).toContain('page=2');
   });
 
+  // V8-2 (walkthrough 2026-09-05): the result toast rendered the raw ICU
+  // template — the page passed `{ failed }` while the catalog placeholder
+  // is `{fail}`, so react-intl left it literal.
+  it('injects ok/fail values into the batch upload result toast', async () => {
+    servicesMock.uploadResources.mockResolvedValue([
+      { status: 'fulfilled', value: {} },
+      { status: 'fulfilled', value: {} },
+    ]);
+    renderPage();
+    await screen.findByText('model-a');
+
+    fireEvent.click(screen.getByRole('button', { name: /上传资源/ }));
+    const modal = document.querySelector('.ant-modal') as HTMLElement;
+    const input = modal.querySelector(
+      'input[type="file"]',
+    ) as HTMLInputElement;
+    fireEvent.change(input, {
+      target: {
+        files: [
+          new File(['<a/>'], 'res-a.xml', { type: 'text/xml' }),
+          new File(['<b/>'], 'res-b.xml', { type: 'text/xml' }),
+        ],
+      },
+    });
+    await waitFor(() => {
+      expect(
+        within(modal).getByRole('button', { name: /上传资源/ }),
+      ).toBeEnabled();
+    });
+    fireEvent.click(within(modal).getByRole('button', { name: /上传资源/ }));
+
+    expect(await screen.findByText('2 项成功，0 项失败。')).toBeInTheDocument();
+    expect(screen.queryByText(/\{fail\}/)).not.toBeInTheDocument();
+  });
+
   it('runs the referenced-delete flow: confirm, in-use modal, force delete', async () => {
     servicesMock.deleteResource.mockImplementation((_id: string, force) => {
       if (!force) {

@@ -356,6 +356,9 @@ export default function LibraryListPage() {
       setUploadOpen(false);
       setUploadFiles([]);
       void invalidate();
+      // V8-2: the catalog placeholder is `{fail}` — the values keys must
+      // match it or react-intl renders the raw template.
+      const summary = { ok, fail: failed };
       if (failed > 0) {
         void message.warning(
           formatMessage(
@@ -363,7 +366,7 @@ export default function LibraryListPage() {
               id: 'pages.resources.library.batchResult',
               defaultMessage: '{ok} succeeded, {fail} failed.',
             },
-            { ok, failed },
+            summary,
           ),
         );
       } else {
@@ -373,7 +376,7 @@ export default function LibraryListPage() {
               id: 'pages.resources.library.batchResult',
               defaultMessage: '{ok} succeeded, {fail} failed.',
             },
-            { ok, failed },
+            summary,
           ),
         );
       }
