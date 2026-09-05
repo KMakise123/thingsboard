@@ -30,8 +30,7 @@ export function triggerTypesForAuthority(
   isSysAdmin: boolean,
 ): Array<NotificationRuleTriggerType> {
   return Object.values(NotificationRuleTriggerType).filter(
-    (type) =>
-      isSysAdmin === SYSADMIN_ONLY_TRIGGER_TYPES.has(type),
+    (type) => isSysAdmin === SYSADMIN_ONLY_TRIGGER_TYPES.has(type),
   );
 }
 
@@ -89,7 +88,6 @@ const ENTITY_ACTION_EXCLUDED: ReadonlySet<EntityType> = new Set([
   EntityType.ADMIN_SETTINGS,
 ]);
 
-export const ENTITY_ACTION_ENTITY_TYPES: Array<EntityType> =
-  Object.values(EntityType).filter(
-    (type) => !ENTITY_ACTION_EXCLUDED.has(type),
-  );
+export const ENTITY_ACTION_ENTITY_TYPES: Array<EntityType> = Object.values(
+  EntityType,
+).filter((type) => !ENTITY_ACTION_EXCLUDED.has(type));

@@ -33,7 +33,10 @@ export interface TriggerFormValues {
   alarmSeverities?: Array<AlarmSeverity>;
   alarmStatuses?: Array<AlarmSearchStatus>;
   notifyOn?: Array<
-    AlarmAction | AlarmAssignmentAction | DeviceActivityEvent | ApiUsageStateValue
+    | AlarmAction
+    | AlarmAssignmentAction
+    | DeviceActivityEvent
+    | ApiUsageStateValue
   >;
   /** ALARM only — wire path clearRule.alarmStatuses. */
   clearAlarmStatuses?: Array<AlarmSearchStatus>;
@@ -148,7 +151,8 @@ export function buildTriggerConfig(
       return {
         triggerType,
         edges: values.edges ?? [],
-        notifyOn: (values.notifyOn as Array<EdgeConnectivityEvent>) ?? [],
+        notifyOn:
+          (values.notifyOn as unknown as Array<EdgeConnectivityEvent>) ?? [],
       };
     case NotificationRuleTriggerType.EDGE_COMMUNICATION_FAILURE:
       return { triggerType, edges: values.edges ?? [] };
@@ -202,8 +206,11 @@ export function triggerConfigToFormValues(
     values.ramThreshold = (values.ramThreshold ?? 0) * 100;
     values.storageThreshold = (values.storageThreshold ?? 0) * 100;
   }
-  delete (values as Partial<TriggerFormValues>).triggerType;
-  delete (values as Partial<TriggerFormValues>).clearRule;
+  // The wire config echoes the discriminator + nests clearRule; neither is a
+  // form field.
+  const loose = values as Record<string, unknown>;
+  delete loose.triggerType;
+  delete loose.clearRule;
   return values;
 }
 

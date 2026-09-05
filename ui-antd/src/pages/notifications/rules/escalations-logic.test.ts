@@ -5,13 +5,13 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  DEFAULT_STAGE_DELAY_SEC,
-  MAX_STAGE_DELAY_SEC,
-  MIN_STAGE_DELAY_SEC,
   clearRuleEnabled,
+  DEFAULT_STAGE_DELAY_SEC,
   delaySecToPicker,
   escalationTableIsValid,
   escalationTableToRows,
+  MAX_STAGE_DELAY_SEC,
+  MIN_STAGE_DELAY_SEC,
   pickerToDelaySec,
   rowsToEscalationTable,
 } from './escalations-logic';
@@ -21,9 +21,7 @@ describe('escalationTableToRows', () => {
     expect(escalationTableToRows(undefined)).toEqual([
       { delayInSec: 0, targets: [] },
     ]);
-    expect(escalationTableToRows({})).toEqual([
-      { delayInSec: 0, targets: [] },
-    ]);
+    expect(escalationTableToRows({})).toEqual([{ delayInSec: 0, targets: [] }]);
   });
 
   it('maps wire keys (seconds strings) to rows in ascending delay order', () => {
@@ -67,7 +65,10 @@ describe('escalationTableIsValid', () => {
   it('rejects later stages outside 1 minute … 7 days', () => {
     expect(escalationTableIsValid({ 0: ['t-1'], 59: ['t-2'] })).toBe(false);
     expect(
-      escalationTableIsValid({ 0: ['t-1'], [MAX_STAGE_DELAY_SEC + 1]: ['t-2'] }),
+      escalationTableIsValid({
+        0: ['t-1'],
+        [MAX_STAGE_DELAY_SEC + 1]: ['t-2'],
+      }),
     ).toBe(false);
     expect(
       escalationTableIsValid({ 0: ['t-1'], [MIN_STAGE_DELAY_SEC]: ['t-2'] }),

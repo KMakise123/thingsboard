@@ -50,12 +50,15 @@ describe('buildTriggerConfig', () => {
   });
 
   it('keeps only the chosen DEVICE_ACTIVITY side and drops filterByDevice', () => {
-    const devices = buildTriggerConfig(NotificationRuleTriggerType.DEVICE_ACTIVITY, {
-      filterByDevice: true,
-      devices: ['dev-1'],
-      deviceProfiles: ['should-not-appear'],
-      notifyOn: [DeviceActivityEvent.INACTIVE],
-    });
+    const devices = buildTriggerConfig(
+      NotificationRuleTriggerType.DEVICE_ACTIVITY,
+      {
+        filterByDevice: true,
+        devices: ['dev-1'],
+        deviceProfiles: ['should-not-appear'],
+        notifyOn: [DeviceActivityEvent.INACTIVE],
+      },
+    );
     expect(devices).toEqual({
       triggerType: NotificationRuleTriggerType.DEVICE_ACTIVITY,
       notifyOn: [DeviceActivityEvent.INACTIVE],
@@ -105,11 +108,16 @@ describe('buildTriggerConfig', () => {
   });
 
   it('emits an empty config for the no-field triggers', () => {
-    expect(buildTriggerConfig(NotificationRuleTriggerType.NEW_PLATFORM_VERSION, {})).toEqual({
+    expect(
+      buildTriggerConfig(NotificationRuleTriggerType.NEW_PLATFORM_VERSION, {}),
+    ).toEqual({
       triggerType: NotificationRuleTriggerType.NEW_PLATFORM_VERSION,
     });
     expect(
-      buildTriggerConfig(NotificationRuleTriggerType.TASK_PROCESSING_FAILURE, {}),
+      buildTriggerConfig(
+        NotificationRuleTriggerType.TASK_PROCESSING_FAILURE,
+        {},
+      ),
     ).toEqual({
       triggerType: NotificationRuleTriggerType.TASK_PROCESSING_FAILURE,
     });
@@ -147,7 +155,9 @@ describe('buildRulePayload', () => {
       entityType: EntityType.NOTIFICATION_TEMPLATE,
       id: 'tpl-1',
     });
-    expect(payload.additionalConfig).toEqual({ description: 'page the on-call' });
+    expect(payload.additionalConfig).toEqual({
+      description: 'page the on-call',
+    });
     expect(payload.id).toBeUndefined();
   });
 
