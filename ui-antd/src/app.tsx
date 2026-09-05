@@ -26,6 +26,7 @@ import {
   installAppWsManager,
   resetWsManager,
 } from '@/components/layout/ws-manager';
+import { NotificationBell } from '@/components/RightContent/NotificationBell';
 import { tokenStore } from '@/core/auth/token-store';
 import type { UnauthorizedEvent } from '@/core/http/client';
 import { createTbQueryClient } from '@/core/query-client';
@@ -141,7 +142,10 @@ export const layout: RunTimeLayoutConfig = ({ initialState }) => {
       }
       return dom;
     },
-    actionsRender: () => [<LangDropdown key="lang" />],
+    actionsRender: () => [
+      <NotificationBell key="notifications" />,
+      <LangDropdown key="lang" />,
+    ],
     avatarProps: {
       icon: <UserOutlined />,
       title: user?.name ?? user?.email ?? '',
