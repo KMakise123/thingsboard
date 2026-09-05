@@ -77,6 +77,8 @@ export default {
   'pages.resources.bundleWidgets.add': '添加部件类型',
   'pages.resources.bundleWidgets.addTitle': '添加部件类型到部件包',
   'pages.resources.bundleWidgets.addPlaceholder': '按名称搜索部件类型',
+  'pages.resources.bundleWidgets.addTenantHint':
+    '系统部件类型不能加入自有部件包：选择器仅列出本租户自有的部件类型。',
   'pages.resources.bundleWidgets.moveUp': '上移',
   'pages.resources.bundleWidgets.moveDown': '下移',
   'pages.resources.bundleWidgets.remove': '移除部件',

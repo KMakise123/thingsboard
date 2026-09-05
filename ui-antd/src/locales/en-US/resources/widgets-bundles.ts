@@ -79,6 +79,8 @@ export default {
   'pages.resources.bundleWidgets.add': 'Add widget type',
   'pages.resources.bundleWidgets.addTitle': 'Add widget type to bundle',
   'pages.resources.bundleWidgets.addPlaceholder': 'Search widget types by name',
+  'pages.resources.bundleWidgets.addTenantHint':
+    'System widget types cannot join a tenant-owned bundle — the picker lists your own types only.',
   'pages.resources.bundleWidgets.moveUp': 'Move up',
   'pages.resources.bundleWidgets.moveDown': 'Move down',
   'pages.resources.bundleWidgets.remove': 'Remove widget',

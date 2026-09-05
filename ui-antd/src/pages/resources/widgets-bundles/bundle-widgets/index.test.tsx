@@ -162,6 +162,32 @@ describe('bundle widgets manager', () => {
     });
   });
 
+  // V1-1 (upstream semantics, walkthrough 2026-09-05): the backend accepts
+  // only tenant-owned widget types into a tenant bundle — system ids are
+  // dropped silently (WidgetsBundleController.java:145-151 filters by
+  // tenant-strict existence). The picker must request tenant-owned rows
+  // only and say why system types are absent.
+  it('offers only tenant-owned widget types in the add picker', async () => {
+    renderPage();
+    await screen.findByText('tenant.first');
+
+    fireEvent.click(screen.getByTestId('bundle-widgets-edit'));
+    fireEvent.click(screen.getByTestId('bundle-widgets-add'));
+    await screen.findByTestId('bundle-widgets-add-dialog');
+
+    await waitFor(() => {
+      expect(servicesMock.getWidgetTypes).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ tenantOnly: true }),
+      );
+    });
+    expect(
+      screen.getByText(
+        '系统部件类型不能加入自有部件包：选择器仅列出本租户自有的部件类型。',
+      ),
+    ).toBeInTheDocument();
+  });
+
   it('removes a member and reflects it in the save payload', async () => {
     renderPage();
     await screen.findByText('tenant.first');

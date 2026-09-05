@@ -12,6 +12,12 @@
  *
  * Tenants opening a system bundle (tenantId NULL_UUID) get the read-only
  * face (§1); the route back returns to the bundles list.
+ *
+ * V1-1 (X wave): the backend only ever accepts tenant-owned widget types
+ * into a tenant bundle — system ids are dropped silently (upstream
+ * WidgetsBundleController.updateWidgetsBundleWidgetTypes filters
+ * candidates by tenant-strict existence). The add picker therefore
+ * requests tenantOnly rows for TENANT admins and says so in the dialog.
  */
 import {
   ArrowDownOutlined,
@@ -111,7 +117,12 @@ export default function BundleWidgetsPage() {
   }, [addSearch]);
 
   const optionsQuery = useQuery({
-    queryKey: ['widget-types', 'bundle-add-options', addDebounced],
+    queryKey: [
+      'widget-types',
+      'bundle-add-options',
+      addDebounced,
+      isTenantAdmin,
+    ],
     queryFn: () =>
       getWidgetTypes(
         {
@@ -120,7 +131,13 @@ export default function BundleWidgetsPage() {
           textSearch: addDebounced || undefined,
           sortOrder: { property: 'name', direction: 'ASC' },
         },
-        { deprecatedFilter: 'ALL' },
+        // V1-1: a tenant bundle accepts only tenant-owned widget types —
+        // the backend silently drops system ids (tenant-strict existence
+        // check in WidgetsBundleController.updateWidgetsBundleWidgetTypes),
+        // so the picker must not offer them in the first place.
+        isTenantAdmin
+          ? { deprecatedFilter: 'ALL', tenantOnly: true }
+          : { deprecatedFilter: 'ALL' },
       ),
     enabled: addOpen,
     placeholderData: (previous) => previous,
@@ -369,6 +386,18 @@ export default function BundleWidgetsPage() {
         destroyOnHidden
         data-testid="bundle-widgets-add-dialog"
       >
+        {isTenantAdmin ? (
+          <Alert
+            className="mb-3"
+            type="info"
+            showIcon
+            message={formatMessage({
+              id: 'pages.resources.bundleWidgets.addTenantHint',
+              defaultMessage:
+                'System widget types cannot join a tenant-owned bundle — the picker lists your own types only.',
+            })}
+          />
+        ) : null}
         <Select<WidgetTypeInfo>
           style={{ width: '100%' }}
           showSearch
