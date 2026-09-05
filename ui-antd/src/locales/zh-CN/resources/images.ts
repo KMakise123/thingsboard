@@ -47,6 +47,18 @@ export default {
   'pages.resources.images.embedHint':
     '打开公开开关后，将生成免登链接与嵌入代码。',
   'pages.resources.images.close': '关闭',
+  // ---- 图片选择控件 ----
+  'pages.resources.images.galleryTitle': '图片库',
+  'pages.resources.images.noImage': '无图片',
+  'pages.resources.images.clearImage': '清除图片',
+  'pages.resources.images.browseFromGallery': '从图片库浏览',
+  'pages.resources.images.setLink': '设置链接',
+  'pages.resources.images.imageLink': '图片链接',
+  'pages.resources.images.applyLink': '应用',
+  'pages.resources.images.addFromGallery': '从图库添加',
+  'pages.resources.images.moveUp': '上移',
+  'pages.resources.images.moveDown': '下移',
+  'pages.resources.images.removeImage': '移除图片',
   // ---- 删除流 ----
   'pages.resources.images.deleteTitle': '确定要删除图片“{title}”吗？',
   'pages.resources.images.deleteText': '请注意，确认后图片将无法恢复。',

@@ -50,6 +50,18 @@ export default {
   'pages.resources.images.embedHint':
     'Turn on the public switch to generate a no-login link and an embed code.',
   'pages.resources.images.close': 'Close',
+  // ---- image input controls ----
+  'pages.resources.images.galleryTitle': 'Image gallery',
+  'pages.resources.images.noImage': 'No image',
+  'pages.resources.images.clearImage': 'Clear image',
+  'pages.resources.images.browseFromGallery': 'Browse from gallery',
+  'pages.resources.images.setLink': 'Set link',
+  'pages.resources.images.imageLink': 'Image link',
+  'pages.resources.images.applyLink': 'Apply',
+  'pages.resources.images.addFromGallery': 'Add from gallery',
+  'pages.resources.images.moveUp': 'Move up',
+  'pages.resources.images.moveDown': 'Move down',
+  'pages.resources.images.removeImage': 'Remove image',
   // ---- delete flow ----
   'pages.resources.images.deleteTitle':
     "Are you sure you want to delete the image '{title}'?",

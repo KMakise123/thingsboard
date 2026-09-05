@@ -38,7 +38,9 @@ export function useImageObjectUrl(
           return;
         }
         created = URL.createObjectURL(blob);
-        setUrl(created);
+        // Guard non-URL return values (e.g. test environments): keep the
+        // placeholder instead of putting undefined into src.
+        setUrl(created ?? NO_IMAGE_DATA_URI);
       })
       .catch(() => {
         // Placeholder stays (ui-ngx error parity).
