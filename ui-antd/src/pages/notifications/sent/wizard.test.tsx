@@ -28,7 +28,7 @@ const servicesMock = vi.hoisted(() => ({
   getAvailableDeliveryMethods: vi.fn(),
   getNotificationRequestPreview: vi.fn(),
   getNotificationTargetById: vi.fn(),
-  getNotificationTargetsByNotificationType: vi.fn(),
+  getNotificationTargets: vi.fn(),
   getNotificationTemplates: vi.fn(),
   sendNotificationRequest: vi.fn(),
   // RecipientDialog (mounted closed) service deps:
@@ -164,9 +164,7 @@ async function gotoStep(testid: string) {
 beforeEach(() => {
   vi.clearAllMocks();
   servicesMock.getAvailableDeliveryMethods.mockResolvedValue(ALL_METHODS);
-  servicesMock.getNotificationTargetsByNotificationType.mockResolvedValue(
-    TARGETS_PAGE,
-  );
+  servicesMock.getNotificationTargets.mockResolvedValue(TARGETS_PAGE);
   servicesMock.getNotificationTemplates.mockResolvedValue(TEMPLATES_PAGE);
   servicesMock.getNotificationRequestPreview.mockResolvedValue(PREVIEW);
   servicesMock.sendNotificationRequest.mockResolvedValue({});

@@ -49,7 +49,7 @@ import {
   getAvailableDeliveryMethods,
   getNotificationRequestPreview,
   getNotificationTargetById,
-  getNotificationTargetsByNotificationType,
+  getNotificationTargets,
   getNotificationTemplates,
   sendNotificationRequest,
 } from '@/services/tb/notification';
@@ -186,6 +186,11 @@ export function SendNotificationWizard({
       scheduleEnabled: false,
       timezone: defaultTimezone(),
       scheduledAt: undefined,
+    });
+    // Fresh recipient options on every open (a target may have been created
+    // elsewhere since the last mount).
+    void queryClient.invalidateQueries({
+      queryKey: ['notifications', 'wizard-targets'],
     });
   }, [open, prefillKey, prefilledRequest, form.setFieldsValue, lastSeedKey]);
 
@@ -397,7 +402,9 @@ export function SendNotificationWizard({
         </div>
       }
       destroyOnHidden
+      // ngx opens the dialog disableClose: no mask-click and no Escape exit.
       mask={{ closable: false }}
+      keyboard={false}
     >
       <Steps
         size="small"
@@ -500,14 +507,15 @@ export function SendNotificationWizard({
             <RecipientEntitySelect
               queryKey={['notifications', 'wizard-targets']}
               mode="multiple"
+              // Plain targets list: the notificationType-filtered variants
+              // (/targets?notificationType= and /targets/notificationType/)
+              // currently 500 on this fork's DB, and the GENERAL wizard
+              // accepts every target type anyway (registered divergence).
               fetchPage={(textSearch) =>
-                getNotificationTargetsByNotificationType(
-                  NotificationType.GENERAL,
-                  {
-                    ...TARGET_PAGE_SORT,
-                    textSearch: textSearch || undefined,
-                  },
-                )
+                getNotificationTargets({
+                  ...TARGET_PAGE_SORT,
+                  textSearch: textSearch || undefined,
+                })
               }
               toOption={(target) => ({
                 label: target.name,
