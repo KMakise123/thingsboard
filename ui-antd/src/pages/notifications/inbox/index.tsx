@@ -38,7 +38,9 @@ import PageContainer from '@/components/layout/page-container';
 import { NotificationItem } from '@/components/notifications/notification-item';
 import { sanitizeNotificationHtml } from '@/components/notifications/notification-sanitize';
 import { BatchProgressModal } from '@/components/shared/BatchProgressModal';
+import { useAuthority } from '@/components/shared/use-authority';
 import { useBatchRun } from '@/components/shared/use-batch-run';
+import { SendNotificationButton } from '@/pages/notifications/sent/send-button';
 import {
   deleteNotification,
   getNotifications,
@@ -65,6 +67,9 @@ export default function InboxPage() {
   const { message, modal } = App.useApp();
   const queryClient = useQueryClient();
   const { state: urlState, patch } = useInboxUrlState();
+  // ui-ngx shows the send button on every notification-center tab except
+  // for CUSTOMER_USER (inbox-table parity; routing.module.ts:70-72).
+  const { authority } = useAuthority();
 
   // ---- text search (server-side, debounced; URL carries the committed value)
   const [searchInput, setSearchInput] = useState(urlState.textSearch);
@@ -480,6 +485,9 @@ export default function InboxPage() {
           </Button>
           <div className="flex-1" />
           <Space>
+            {authority === 'SYS_ADMIN' || authority === 'TENANT_ADMIN' ? (
+              <SendNotificationButton />
+            ) : null}
             {selectedNotifications.length > 0 && (
               <>
                 <Typography.Text type="secondary">

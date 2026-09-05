@@ -106,7 +106,7 @@
 
 **recipientsConfig 多态**（discriminator `triggerType`）：
 - 默认（除 ALARM 外全部）：`targets: List<UUID>`(@NotEmpty)
-- ALARM → `escalationTable: Map<Integer, List<UUID>>`（key=延迟分钟数, value=target ids）
+- ALARM → `escalationTable: Map<Integer, List<UUID>>`（**key=延迟秒数**（勘误：直喂 sendingDelayInSec，`DefaultNotificationRuleProcessor` 证实；UI 以分钟/小时/天表达，提交时换算成秒）, value=target ids）
 
 ### NotificationTarget extends BaseData
 `tenantId, name(≤255), configuration: NotificationTargetConfig(discriminator type), externalId`

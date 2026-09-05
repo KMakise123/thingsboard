@@ -77,7 +77,7 @@
 - 对话框 stepper：基本设置 → 触发器设置（按 triggerType 动态步骤）（html :34-118）
 - 基本：name / enabled 开关 / triggerType 下拉 / 模板选择（allowCreate/allowEdit，候选按 triggerType 过滤 :255-265）
 - 接收面二分：非 ALARM → targets 多选 + 新建接收人快捷入口；ALARM → 升级链 escalations + clearRule（仅升级链 >1 级时可配 :223-231,508-510）
-- 升级链：首行固定 0 秒，后续「在 X 之后通知」间隔（min 1 分钟 max 7 天）+ targets 多选 + 新建接收人；添加阶段/行删除（`escalations.*`、`escalation-form.*`；数据 `{delayInSec: targets[]}`）
+- 升级链：首行固定 0 秒，后续「在 X 之后通知」间隔（min 1 分钟 max 7 天）+ targets 多选 + 新建接收人；添加阶段/行删除（`escalations.*`、`escalation-form.*`；数据 `{delayInSec(秒): targets[]}`——ngx 表单分钟/小时/天 ×60 换算为秒）
 - 编辑时 triggerType 锁定；复制时名称追加 "(copy)"（ts :374-386）
 
 **触发类型 14 种**（`notification.models.ts:674-706`；按角色收缩 ts :520-534）：

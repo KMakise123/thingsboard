@@ -38,6 +38,9 @@ import { serverErrorText } from '@/components/entities/server-error-text';
 import PageContainer from '@/components/layout/page-container';
 import { BatchProgressModal } from '@/components/shared/BatchProgressModal';
 import { useBatchRun } from '@/components/shared/use-batch-run';
+// ui-ngx keeps a send-notification entry on every notification-center tab
+// (send-notification-button.component); SA/TA-only pages need no role wrap.
+import { SendNotificationButton } from '@/pages/notifications/sent/send-button';
 import {
   deleteNotificationRule,
   getNotificationRules,
@@ -454,6 +457,7 @@ export default function RulesPage() {
           </Button>
           <div className="flex-1" />
           <Space>
+            <SendNotificationButton />
             {selectedRules.length > 0 && (
               <>
                 <Typography.Text type="secondary">

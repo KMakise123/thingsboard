@@ -36,6 +36,9 @@ import PageContainer from '@/components/layout/page-container';
 import RecipientDialog from '@/components/notifications/recipient-dialog';
 import { BatchProgressModal } from '@/components/shared/BatchProgressModal';
 import { useBatchRun } from '@/components/shared/use-batch-run';
+// ui-ngx keeps a send-notification entry on every notification-center tab
+// (send-notification-button.component); SA/TA-only pages need no role wrap.
+import { SendNotificationButton } from '@/pages/notifications/sent/send-button';
 import {
   deleteNotificationTarget,
   getNotificationTargets,
@@ -365,6 +368,7 @@ export default function RecipientsPage() {
           </Button>
           <div className="flex-1" />
           <Space>
+            <SendNotificationButton />
             {selectedTargets.length > 0 && (
               <>
                 <Typography.Text type="secondary">

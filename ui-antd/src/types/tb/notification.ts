@@ -641,8 +641,10 @@ export interface DefaultNotificationRuleRecipientsConfig {
 }
 
 /**
- * ALARM trigger escalation chain; keys are delays in MINUTES (JSON object
- * keys are strings on the wire), values are bare target UUIDs.
+ * ALARM trigger escalation chain; keys are delays in SECONDS (JSON object
+ * keys are strings on the wire; the server feeds them straight into
+ * sendingDelayInSec — DefaultNotificationRuleProcessor), values are bare
+ * target UUIDs.
  */
 export interface EscalatedNotificationRuleRecipientsConfig {
   triggerType: NotificationRuleTriggerType.ALARM;

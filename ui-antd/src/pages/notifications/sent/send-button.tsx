@@ -51,11 +51,16 @@ export function SendNotificationButton({
             defaultMessage: 'Send notification',
           })}
       </Button>
-      <SendNotificationWizard
-        open={open}
-        prefilledRequest={prefilledRequest}
-        onClose={() => setOpen(false)}
-      />
+      {/* Mount the wizard only while open so a closed button triggers no
+          delivery-method probing (host pages' tests mock a narrow service
+          surface) and no useless requests sit idle in the toolbar. */}
+      {open && (
+        <SendNotificationWizard
+          open
+          prefilledRequest={prefilledRequest}
+          onClose={() => setOpen(false)}
+        />
+      )}
     </>
   );
 }
