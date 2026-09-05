@@ -26,12 +26,14 @@ export default {
   'pages.resources.jsLibrary.batchDelete': '删除所选',
   'pages.resources.jsLibrary.selectedCount': '已选 {count} 项',
   'pages.resources.jsLibrary.titleRequired': '请输入标题',
+  'pages.resources.jsLibrary.save': '保存',
   // ---- 删除流 ----
   'pages.resources.jsLibrary.deleteOneTitle': '确定要删除脚本“{title}”吗？',
   'pages.resources.jsLibrary.deleteOneText': '请注意，确认后脚本将不可恢复。',
   'pages.resources.jsLibrary.deleteManyTitle':
     '确定要删除 {count, plural, =1 {1 个脚本} other {# 个脚本}}吗？',
-  'pages.resources.jsLibrary.deleteManyText': '请注意，确认后所有所选脚本都将被移除，且不可恢复。',
+  'pages.resources.jsLibrary.deleteManyText':
+    '请注意，确认后所有所选脚本都将被移除，且不可恢复。',
   'pages.resources.jsLibrary.inUseTitle': '脚本正被引用',
   'pages.resources.jsLibrary.inUseText':
     '“{title}”仍被下列实体引用，强行删除会导致引用处失效。',

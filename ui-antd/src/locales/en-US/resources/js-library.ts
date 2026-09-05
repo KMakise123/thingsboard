@@ -20,12 +20,14 @@ export default {
   'pages.resources.jsLibrary.fieldContent': 'Code',
   'pages.resources.jsLibrary.fieldFile': 'File',
   'pages.resources.jsLibrary.upload': 'Upload file',
-  'pages.resources.jsLibrary.uploadHint': 'Click or drag a .js file here to upload',
+  'pages.resources.jsLibrary.uploadHint':
+    'Click or drag a .js file here to upload',
   'pages.resources.jsLibrary.download': 'Download',
   'pages.resources.jsLibrary.delete': 'Delete',
   'pages.resources.jsLibrary.batchDelete': 'Delete selected',
   'pages.resources.jsLibrary.selectedCount': '{count} selected',
   'pages.resources.jsLibrary.titleRequired': 'Title is required',
+  'pages.resources.jsLibrary.save': 'Save',
   // ---- delete flow ----
   'pages.resources.jsLibrary.deleteOneTitle':
     "Are you sure you want to delete the script '{title}'?",
