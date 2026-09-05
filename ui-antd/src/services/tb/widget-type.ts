@@ -15,6 +15,7 @@
  *          force-overwritten server-side; fqn is immutable on update)
  *   DELETE /api/widgetType/{id}                       → 200, void
  *   GET    /api/widgetTypes?pageSize&page&…           → PageData<WidgetTypeInfo>
+ *   GET    /api/widgetTypeInfo/{id}                   → WidgetTypeInfo (M11)
  */
 
 import type { PageData, PageLink } from '@/types/tb/page';
@@ -25,6 +26,7 @@ import type {
   WidgetTypeInfo,
   WidgetTypeListQuery,
 } from '@/types/tb/widget-type';
+
 
 import { tbHttp } from './http';
 
@@ -104,4 +106,17 @@ export async function getWidgetTypes(
       : {}),
     ...(query?.scadaFirst === undefined ? {} : { scadaFirst: query.scadaFirst }),
   });
+}
+
+/**
+ * GET /api/widgetTypeInfo/{widgetTypeId} — the listing-row variant of one
+ * type (descriptor absent, image thumbnail + description + tags + widget
+ * kind + bundle chips present). The library detail face renders from this
+ * (M11 wave 1B); the EDITOR keeps loading the full
+ * `getWidgetTypeById` details instead (descriptor required there).
+ */
+export async function getWidgetTypeInfoById(
+  widgetTypeId: string,
+): Promise<WidgetTypeInfo> {
+  return tbHttp.get<WidgetTypeInfo>(`/api/widgetTypeInfo/${widgetTypeId}`);
 }

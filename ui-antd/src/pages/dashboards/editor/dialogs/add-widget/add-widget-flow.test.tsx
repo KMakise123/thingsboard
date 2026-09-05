@@ -26,16 +26,39 @@ import { widgetTypeLabel } from './widget-picker-drawer';
 
 const TEST_FQN = 'system.test.add_flow';
 
+const serviceMock = vi.hoisted(() => ({
+  getWidgetTypeByFullFqn: vi.fn(),
+  getWidgetTypes: vi.fn(),
+}));
+
+const bundlesMock = vi.hoisted(() => ({
+  getWidgetsBundles: vi.fn(),
+}));
+
 const intl = createIntl({
   locale: 'zh-CN',
   messages: { ...zhEditorCommon, ...zhEditorDashboard },
 });
 
-vi.mock('@/services/tb/widget-type', () => ({
-  getWidgetTypeByFullFqn: vi.fn(),
-}));
+vi.mock('@/services/tb/widget-type', () => serviceMock);
+vi.mock('@/services/tb/widgets-bundle', () => bundlesMock);
 
 beforeEach(() => {
+  serviceMock.getWidgetTypeByFullFqn.mockReset();
+  serviceMock.getWidgetTypes.mockReset();
+  serviceMock.getWidgetTypes.mockResolvedValue({
+    data: [],
+    totalPages: 1,
+    totalElements: 0,
+    hasNext: false,
+  });
+  bundlesMock.getWidgetsBundles.mockReset();
+  bundlesMock.getWidgetsBundles.mockResolvedValue({
+    data: [],
+    totalPages: 1,
+    totalElements: 0,
+    hasNext: false,
+  });
   WIDGET_REGISTRY[TEST_FQN] = {
     component: Object.assign(vi.fn(), {
       preload: () => undefined,
@@ -44,7 +67,7 @@ beforeEach(() => {
   } as never;
 });
 
-function dashboardJson(): Dashboard {
+function dashboardJson(layoutType?: 'scada'): Dashboard {
   return {
     id: { entityType: 'DASHBOARD', id: 'd1' },
     title: 'Demo',
@@ -57,7 +80,11 @@ function dashboardJson(): Dashboard {
           layouts: {
             main: {
               widgets: {},
-              gridSettings: { columns: 24, margin: 10 },
+              gridSettings: {
+                columns: 24,
+                margin: 10,
+                ...(layoutType ? { layoutType } : {}),
+              },
             },
           },
         },
@@ -67,8 +94,8 @@ function dashboardJson(): Dashboard {
   } as unknown as Dashboard;
 }
 
-function setup() {
-  const configuration = validateAndUpdateDashboard(dashboardJson())
+function setup(json: Dashboard = dashboardJson()) {
+  const configuration = validateAndUpdateDashboard(json)
     .configuration as DashboardConfiguration;
   const session = new EditorSession<DashboardConfiguration>({
     baseline: configuration,
@@ -227,5 +254,29 @@ describe('AddWidgetFlow', () => {
     expect(
       session.current.states.default.layouts.main?.widgets[ids[0]],
     ).toMatchObject({ row: 0, col: 8 });
+  });
+
+  it('scada target layout: BOTH drawer fetch paths carry scadaFirst=true (§3.6-1)', async () => {
+    setup(dashboardJson('scada'));
+    expect(screen.getByTestId('add-widget-drawer')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(serviceMock.getWidgetTypes).toHaveBeenCalled();
+      expect(bundlesMock.getWidgetsBundles).toHaveBeenCalled();
+    });
+    expect(serviceMock.getWidgetTypes).toHaveBeenCalledWith(
+      { pageSize: 100, page: 0 },
+      { scadaFirst: true },
+    );
+    expect(bundlesMock.getWidgetsBundles).toHaveBeenCalledWith(
+      { pageSize: 100, page: 0 },
+      { scadaFirst: true },
+    );
+  });
+
+  it('non-scada target layout: the scada probes stay silent', () => {
+    setup();
+    expect(screen.getByTestId('add-widget-drawer')).toBeInTheDocument();
+    expect(serviceMock.getWidgetTypes).not.toHaveBeenCalled();
+    expect(bundlesMock.getWidgetsBundles).not.toHaveBeenCalled();
   });
 });

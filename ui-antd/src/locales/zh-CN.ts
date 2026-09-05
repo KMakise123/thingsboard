@@ -31,6 +31,13 @@ import editorWidgetPreview from './zh-CN/editor-widget-preview';
 import entityViews from './zh-CN/entityViews';
 import login from './zh-CN/login';
 import menu from './zh-CN/menu';
+import images from './zh-CN/resources/images';
+import jsLibrary from './zh-CN/resources/js-library';
+import library from './zh-CN/resources/library';
+import scadaSymbolEditor from './zh-CN/resources/scada-symbol-editor';
+import scadaSymbols from './zh-CN/resources/scada-symbols';
+import widgetTypes from './zh-CN/resources/widget-types';
+import widgetsBundles from './zh-CN/resources/widgets-bundles';
 import ruleNode from './zh-CN/rule-node';
 import settings from './zh-CN/settings';
 import tenantProfiles from './zh-CN/tenant-profiles';
@@ -51,6 +58,13 @@ export default {
   ...dashboards,
   ...deviceProfiles,
   ...entityViews,
+  ...images,
+  ...jsLibrary,
+  ...library,
+  ...scadaSymbolEditor,
+  ...scadaSymbols,
+  ...widgetTypes,
+  ...widgetsBundles,
   ...settings,
   ...tenantProfiles,
   ...tenants,

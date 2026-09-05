@@ -3,17 +3,31 @@
  * grouped + searched over the builtin WIDGET_REGISTRY list. Unknown fqns
  * are out of scope for picking (the registry only lists react builtin
  * types); the three placeholder states never surface here.
+ *
+ * Scada pass-through (spec §3.6-1, M11 wave 2E): on a scada-layout target
+ * BOTH upstream fetch paths (widgetTypes + widgetsBundles) carry
+ * `scadaFirst=true` — ui-ngx parity anchor
+ * dashboard-widget-select.component.ts:112-117 (the scadaFirst input) and
+ * 292-307 (both fetch functions feed it through). The registry above stays
+ * the picker source for now: pre-M11 no scada symbol types exist, so there
+ * is nothing to merge yet — the wave-3V walkthrough witnesses the network
+ * param on these two requests (and, once scada types exist, the pinning).
  */
+import { useQuery } from '@tanstack/react-query';
 import { Drawer, Empty, Input, List, Typography } from 'antd';
 import { useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 
 import { WIDGET_REGISTRY } from '@/components/widgets/registry';
+import { getWidgetTypes } from '@/services/tb/widget-type';
+import { getWidgetsBundles } from '@/services/tb/widgets-bundle';
 
 export interface WidgetPickerDrawerProps {
   open: boolean;
   onClose: () => void;
   onPick: (fqn: string) => void;
+  /** target layout is scada — the two fetch paths must ask scada-first. */
+  scadaFirst?: boolean;
 }
 
 interface PickerEntry {
@@ -53,13 +67,34 @@ function groupLabel(
   return group.replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase());
 }
 
+/** Single first page is enough for the pass-through probe (upstream pages
+ *  these paths; merging server rows is a post-M11 concern). */
+const SCADA_PROBE_PAGE = { pageSize: 100, page: 0 } as const;
+
 export function WidgetPickerDrawer({
   open,
   onClose,
   onPick,
+  scadaFirst = false,
 }: WidgetPickerDrawerProps) {
   const { formatMessage } = useIntl();
   const [search, setSearch] = useState('');
+
+  // §3.6-1 probes — one per upstream fetch path, both scadaFirst=true.
+  // Results stay unconsumed until scada symbol types exist (see header);
+  // staleTime keeps repeat opens on one wire round-trip per session.
+  useQuery({
+    queryKey: ['add-widget-scada-widget-types'],
+    queryFn: () => getWidgetTypes(SCADA_PROBE_PAGE, { scadaFirst: true }),
+    enabled: open && scadaFirst,
+    staleTime: Infinity,
+  });
+  useQuery({
+    queryKey: ['add-widget-scada-bundles'],
+    queryFn: () => getWidgetsBundles(SCADA_PROBE_PAGE, { scadaFirst: true }),
+    enabled: open && scadaFirst,
+    staleTime: Infinity,
+  });
 
   const entries = useMemo<PickerEntry[]>(
     () =>

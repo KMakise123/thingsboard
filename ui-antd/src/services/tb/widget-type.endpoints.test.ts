@@ -19,6 +19,7 @@ vi.mock('./http', () => ({
 
 import {
   deleteWidgetType,
+  getWidgetTypeInfoById,
   getWidgetTypeById,
   getWidgetTypeByFullFqn,
   getWidgetTypes,
@@ -108,5 +109,10 @@ describe('widget type transport endpoints', () => {
       widgetTypeList: 'latest,timeseries',
       scadaFirst: false,
     });
+  });
+
+  it('pins the info read to GET /api/widgetTypeInfo/{id} (M11 library detail face)', async () => {
+    await getWidgetTypeInfoById('wt1');
+    expect(get).toHaveBeenCalledWith('/api/widgetTypeInfo/wt1');
   });
 });

@@ -44,12 +44,19 @@ export function AddWidgetFlow({
 
   const rootStateId = getRootStateId(configuration.states);
   const layouts = Object.keys(configuration.states[rootStateId]?.layouts ?? {});
+  // Default target layout (D2) — also the scada probe source (§3.6-1): the
+  // drawer opens BEFORE the confirm step's layout picker, so the default
+  // target's layoutType decides whether its two fetch paths ask
+  // scada-first (ui-ngx feeds the same per-layout flag into the select).
+  const targetLayoutId = (layouts[0] ?? 'main') as DashboardLayoutId;
+  const targetLayoutType =
+    configuration.states[rootStateId]?.layouts[targetLayoutId]?.gridSettings
+      ?.layoutType;
 
   const onPick = (fqn: string) => {
     // D2 (ui-ngx findPosition parity): prefill the confirm step with the
     // first free slot of the default target layout so a new widget never
     // stacks onto existing ones; an explicit user edit keeps its values.
-    const targetLayoutId = (layouts[0] ?? 'main') as DashboardLayoutId;
     const targetLayout =
       configuration.states[rootStateId]?.layouts[targetLayoutId];
     const defaultPlacement = findFirstFreePlacement({
@@ -124,6 +131,7 @@ export function AddWidgetFlow({
         open={open && payload === null}
         onClose={onClose}
         onPick={onPick}
+        scadaFirst={targetLayoutType === 'scada'}
       />
       <AddWidgetConfirmDialog
         open={payload !== null}
