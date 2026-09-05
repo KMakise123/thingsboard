@@ -146,19 +146,28 @@ export default [
   {
     // M9 widget editor (spec §5): /widgets/editor is the create entry — it
     // opens the new-type dialog in-page (the library listing belongs to the
-    // resources subsystem, M9 brief §0). Hidden, TA-only.
+    // resources subsystem, M9 brief §0). Hidden. Access widened to SA+TA in
+    // M11: sys-admin manages system widget types from the library (spec §3.1).
     path: '/widgets/editor',
-    access: 'canTenantAdmin',
+    access: 'canSysAdminOrTenantAdmin',
     component: './widgets/editor',
     hideInMenu: true,
   },
   {
     // M9 widget editor page per type: loads the WidgetTypeDetails, converts
     // it into the WidgetEditorDraft and opens the editor shell. Hidden,
-    // TA-only.
+    // SA+TA (same widening as above).
     path: '/widgets/editor/:widgetTypeId',
-    access: 'canTenantAdmin',
+    access: 'canSysAdminOrTenantAdmin',
     component: './widgets/editor',
+    hideInMenu: true,
+  },
+  {
+    // M11 widget type details (read-only preview + jump to editor). Hidden;
+    // lives under the resources family access model.
+    path: '/resources/widget-types/:widgetTypeId',
+    access: 'canSysAdminOrTenantAdmin',
+    component: './resources/widget-types/details',
     hideInMenu: true,
   },
   {
