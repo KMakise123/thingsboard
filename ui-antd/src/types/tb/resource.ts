@@ -50,13 +50,13 @@ export enum ResourceSubType {
 export type ResourceScope = 'tenant' | 'system';
 
 /**
- * `GET /api/resource/**` row (list + info endpoints). The generic `D` is
- * the per-type descriptor JSON (image descriptors etc. — wave 2C narrows
- * it); the JS/file library leaves it unset.
+ * `GET /api/resource/**` row (list + info endpoints). Every read returns
+ * the id, so it is REQUIRED here. The generic `D` is the per-type
+ * descriptor JSON (image descriptors etc. — wave 2C narrows it); the
+ * JS/file library leaves it unset.
  */
 export interface TbResourceInfo<D = Record<string, unknown>> {
-  /** Required to update; omit to create. */
-  id?: EntityIdOf<EntityType.TB_RESOURCE>;
+  id: EntityIdOf<EntityType.TB_RESOURCE>;
   /** ms since epoch (server-assigned). */
   readonly createdTime?: EpochMillis;
   /** Server-forced on save; NULL-tenant id = system resource. */
@@ -73,12 +73,14 @@ export interface TbResourceInfo<D = Record<string, unknown>> {
 }
 
 /**
- * Full resource entity — `GET /api/resource/{id}` and the save/upload
- * request body (minus `data`, which the upload endpoints take as the
- * multipart `file` part). `data` is the base64 text of the payload.
+ * Full resource entity — `GET /api/resource/{id}` response and the JSON
+ * save request body. Only the SAVE payload may omit `id` (create); read
+ * rows are TbResourceInfo. `data` is the base64 text of the payload.
  */
 export interface TbResource<D = Record<string, unknown>>
-  extends TbResourceInfo<D> {
+  extends Omit<TbResourceInfo<D>, 'id'> {
+  /** Omit on POST /api/resource to create a new resource. */
+  id?: EntityIdOf<EntityType.TB_RESOURCE>;
   /** base64-encoded payload as returned by / required by the JSON API. */
   data?: string;
   /** Legacy alias upstream keeps in Resource; not used by the REST layer. */
