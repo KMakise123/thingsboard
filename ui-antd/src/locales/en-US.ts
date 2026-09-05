@@ -29,6 +29,12 @@ import editorWidgetPreview from './en-US/editor-widget-preview';
 import entityViews from './en-US/entityViews';
 import login from './en-US/login';
 import menu from './en-US/menu';
+import images from './en-US/resources/images';
+import jsLibrary from './en-US/resources/js-library';
+import library from './en-US/resources/library';
+import scadaSymbols from './en-US/resources/scada-symbols';
+import widgetTypes from './en-US/resources/widget-types';
+import widgetsBundles from './en-US/resources/widgets-bundles';
 import ruleNode from './en-US/rule-node';
 import settings from './en-US/settings';
 import tenantProfiles from './en-US/tenant-profiles';
@@ -49,6 +55,12 @@ export default {
   ...dashboards,
   ...deviceProfiles,
   ...entityViews,
+  ...images,
+  ...jsLibrary,
+  ...library,
+  ...scadaSymbols,
+  ...widgetTypes,
+  ...widgetsBundles,
   ...settings,
   ...tenantProfiles,
   ...tenants,
