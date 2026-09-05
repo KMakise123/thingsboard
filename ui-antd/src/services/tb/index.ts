@@ -24,4 +24,6 @@ export * from './attributes';
 export * from './alarm-rules';
 export * from './calculated-fields';
 export * from './notification';
+export * from './edge';
+export * from './ota';
 export { setTbLanguage, setTbUnauthorizedHandler, tbHttp } from './http';

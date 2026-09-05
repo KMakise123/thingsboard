@@ -110,7 +110,9 @@ export async function getRuleEngineQueues(
 
 /**
  * GET /api/otaPackages/{deviceProfileId}/{type} — firmware/software picker
- * rows scoped to this profile (ui-ngx ota-package-autocomplete).
+ * rows scoped to this profile (ui-ngx ota-package-autocomplete). Consumer-
+ * side OTA read — intentionally kept here (M13 R15); the general OTA
+ * package transport lives in ./ota (getOtaPackages etc.).
  */
 export async function getOtaPackagesByDeviceProfile(
   deviceProfileId: string,
