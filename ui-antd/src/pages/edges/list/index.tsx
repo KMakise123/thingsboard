@@ -494,8 +494,17 @@ export default function EdgeListPage() {
         dataIndex: 'name',
         sorter: true,
         sortOrder: sortOrderFor('name'),
+        // Wave-5a carry-over fix: the row opens the edge detail (OTA list
+        // title-link shape).
         render: (_, record) => (
-          <Typography.Text strong>{record.name}</Typography.Text>
+          <Button
+            type="link"
+            size="small"
+            className="px-0"
+            onClick={() => history.push(`/edges/${record.id.id}`)}
+          >
+            {record.name}
+          </Button>
         ),
       },
       {

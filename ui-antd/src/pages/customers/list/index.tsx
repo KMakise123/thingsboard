@@ -247,6 +247,15 @@ export default function CustomersListPage() {
                 onClick: () =>
                   history.push(`/customers/${record.id.id}/dashboards`),
               },
+              {
+                // M13 wave-5a entry: the customer-scope Edge instances page.
+                key: 'edges',
+                label: formatMessage({
+                  id: 'pages.edge.customerEdges.manage',
+                  defaultMessage: 'Edges',
+                }),
+                onClick: () => history.push(`/customers/${record.id.id}/edges`),
+              },
               { type: 'divider' as const },
               {
                 key: 'edit',

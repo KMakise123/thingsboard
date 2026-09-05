@@ -12,7 +12,7 @@
  * and every exit routes through the dirty guard (PageContainer onBack +
  * tab switch + beforeunload).
  */
-import { EditOutlined } from '@ant-design/icons';
+import { DeploymentUnitOutlined, EditOutlined } from '@ant-design/icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { history, useParams } from '@umijs/max';
 import {
@@ -238,6 +238,19 @@ export default function CustomerDetailPage() {
                   })}
                 </Button>
               </>
+            )}
+            {!editing && (
+              <Button
+                icon={<DeploymentUnitOutlined />}
+                onClick={() =>
+                  history.push(`/customers/${customer.id.id}/edges`)
+                }
+              >
+                {formatMessage({
+                  id: 'pages.edge.customerEdges.manage',
+                  defaultMessage: 'Edges',
+                })}
+              </Button>
             )}
             <Button
               icon={<EditOutlined />}

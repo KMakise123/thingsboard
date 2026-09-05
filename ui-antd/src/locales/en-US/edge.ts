@@ -209,4 +209,62 @@ export default {
   'pages.edge.downlinks.pending': 'Pending',
   'pages.edge.downlinks.empty': 'No downlinks yet',
   'pages.edge.downlinks.loadFailed': 'Failed to load downlinks',
+
+  // ---- sub-entity scope pages (wave 5a) ----
+  'pages.edge.scope.loadTitleFailed': 'Failed to load the edge name',
+  'pages.edge.scope.devicesTitle': 'Devices',
+  'pages.edge.scope.assetsTitle': 'Assets',
+  'pages.edge.scope.entityViewsTitle': 'Entity views',
+  'pages.edge.scope.dashboardsTitle': 'Dashboards',
+  'pages.edge.scope.columnDeviceProfile': 'Device profile',
+  'pages.edge.scope.columnAssetProfile': 'Asset profile',
+  'pages.edge.scope.columnState': 'State',
+  'pages.edge.scope.columnType': 'Type',
+  'pages.edge.scope.columnTitle': 'Title',
+  'pages.edge.scope.devicesSearch': 'Search devices',
+  'pages.edge.scope.assetsSearch': 'Search assets',
+  'pages.edge.scope.entityViewsSearch': 'Search entity views',
+  'pages.edge.scope.dashboardsSearch': 'Search dashboards',
+  'pages.edge.scope.devicesLoadFailed': 'Failed to load devices',
+  'pages.edge.scope.assetsLoadFailed': 'Failed to load assets',
+  'pages.edge.scope.entityViewsLoadFailed': 'Failed to load entity views',
+  'pages.edge.scope.dashboardsLoadFailed': 'Failed to load dashboards',
+  'pages.edge.scope.devicesEmpty': 'No devices on this edge',
+  'pages.edge.scope.assetsEmpty': 'No assets on this edge',
+  'pages.edge.scope.entityViewsEmpty': 'No entity views on this edge',
+  'pages.edge.scope.dashboardsEmpty': 'No dashboards on this edge',
+  'pages.edge.scope.filterTypePlaceholder': 'All types',
+  'pages.edge.scope.filterProfilePlaceholder': 'All device profiles',
+  'pages.edge.scope.filterActivePlaceholder': 'All states',
+  'pages.edge.scope.assignDevices': 'Assign existing devices',
+  'pages.edge.scope.assignAssets': 'Assign existing assets',
+  'pages.edge.scope.assignEntityViews': 'Assign existing entity views',
+  'pages.edge.scope.assignDashboards': 'Assign existing dashboards',
+  'pages.edge.scope.assignConfirm': 'Assign',
+  'pages.edge.scope.assignRequired': 'Please select at least one entity.',
+  'pages.edge.scope.assignPlaceholder': 'Search and select entities',
+  'pages.edge.scope.assignHint':
+    'The selected entities will be assigned to the edge.',
+  'pages.edge.scope.actionUnassign': 'Unassign from edge',
+  'pages.edge.scope.batchUnassign': 'Unassign selected',
+  'pages.edge.scope.unassignOneTitle':
+    "Are you sure you want to unassign '{name}' from the edge?",
+  'pages.edge.scope.unassignManyTitle':
+    'Are you sure you want to unassign {count, plural, =1 {1 entity} other {# entities}} from the edge?',
+  'pages.edge.scope.unassignText':
+    'After the confirmation the entity will no longer belong to this edge.',
+  'pages.edge.scope.unassignManyText':
+    'After the confirmation the selected entities will no longer belong to this edge.',
+  'pages.edge.scope.toastUnassigned': 'Entities unassigned from the edge.',
+  'pages.edge.scope.toastAssigned': 'Entities assigned to the edge.',
+  'pages.edge.scope.actionExport': 'Export dashboard',
+  'pages.edge.scope.exportFailed': 'Failed to export the dashboard: {error}',
+
+  // customer-scope edges page (wave 5a)
+  'pages.edge.customerEdges.assignExisting': 'Assign existing edges',
+  'pages.edge.customerEdges.unassignManyTitle':
+    'Are you sure you want to unassign {count, plural, =1 {1 edge} other {# edges}}?',
+  'pages.edge.customerEdges.unassignManyText':
+    'After the confirmation the selected edges will be unassigned and will not be accessible by the customer.',
+  'pages.edge.customerEdges.manage': 'Edges',
 };
