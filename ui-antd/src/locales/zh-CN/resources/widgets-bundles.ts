@@ -41,9 +41,7 @@ export default {
   'pages.resources.widgetsBundles.save': '保存',
   'pages.resources.widgetsBundles.titleRequired': '标题为必填项。',
   'pages.resources.widgetsBundles.description': '描述',
-  'pages.resources.widgetsBundles.image': '图片 URL',
-  'pages.resources.widgetsBundles.imageHint':
-    '临时的纯 URL 输入——图片库选择器随图片库波次落地。',
+  'pages.resources.widgetsBundles.image': '图片',
 
   // ---- export dialog ----
   'pages.resources.widgetsBundles.exportTitle': '导出部件包',

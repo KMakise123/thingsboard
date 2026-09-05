@@ -42,9 +42,7 @@ export default {
   'pages.resources.widgetsBundles.save': 'Save',
   'pages.resources.widgetsBundles.titleRequired': 'Title is required.',
   'pages.resources.widgetsBundles.description': 'Description',
-  'pages.resources.widgetsBundles.image': 'Image URL',
-  'pages.resources.widgetsBundles.imageHint':
-    'Interim plain-URL input — the gallery picker lands with the images wave.',
+  'pages.resources.widgetsBundles.image': 'Image',
 
   // ---- export dialog ----
   'pages.resources.widgetsBundles.exportTitle': 'Export widgets bundle',

@@ -185,6 +185,29 @@ describe('widgets bundles list page', () => {
     });
   });
 
+  // V1-2 (walkthrough 2026-09-05): the image field was an interim plain
+  // URL input — it now mounts the wave-2C gallery picker control.
+  it('mounts the gallery image input in the bundle edit dialog', async () => {
+    renderPage();
+    await screen.findByText('卡片包');
+
+    fireEvent.click(screen.getByTestId('widgets-bundles-create'));
+    const dialog = document.querySelector(
+      '[data-testid="widgets-bundle-edit-dialog"]',
+    ) as HTMLElement;
+
+    expect(
+      await within(dialog).findByTestId('gallery-image-input'),
+    ).toBeTruthy();
+    expect(
+      within(dialog).getByTestId('gallery-image-input-browse'),
+    ).toBeTruthy();
+    // the interim plain-URL hint is gone with the old input
+    expect(
+      within(dialog).queryByText(/临时的纯 URL|gallery picker lands/),
+    ).toBeNull();
+  });
+
   it('confirms before deleting a tenant-owned bundle', async () => {
     renderPage();
     await screen.findByText('卡片包');

@@ -2,10 +2,10 @@
  * Create/edit + export + import dialogs of the widgets-bundles list page
  * (M11 wave 1B, ui-ngx widgets-bundle-dialog + import-export parity).
  *
- * The bundle edit face covers title / description / image URL. The image
- * field is a plain URL passthrough for now — the real picker
- * (gallery-image-input) belongs to the images wave (2C) and replaces this
- * input when it lands (registered in the wave report).
+ * The bundle edit face covers title / description / image. The image field
+ * mounts the wave-2C GalleryImageInput (thumbnail + gallery picker + link
+ * entry); the value stays the bundle's image link string, with the
+ * upstream `tb-image;` prefix for gallery-picked resource links (V1-2).
  *
  * Export mirrors the upstream prompt: the include-widgets checkbox picks
  * the full-details channel vs the by-reference fqn channel.
@@ -14,6 +14,7 @@ import { InboxOutlined } from '@ant-design/icons';
 import { Alert, Checkbox, Form, Input, Modal, Typography, Upload } from 'antd';
 import { useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { GalleryImageInput } from '@/components/images/gallery-image-input';
 import type { WidgetsBundle } from '@/types/tb/widgets-bundle';
 import {
   importWidgetsBundleFromFile,
@@ -120,15 +121,10 @@ export function BundleEditDialog({
           name="image"
           label={formatMessage({
             id: 'pages.resources.widgetsBundles.image',
-            defaultMessage: 'Image URL',
-          })}
-          extra={formatMessage({
-            id: 'pages.resources.widgetsBundles.imageHint',
-            defaultMessage:
-              'Interim plain-URL input — the gallery picker lands with the images wave.',
+            defaultMessage: 'Image',
           })}
         >
-          <Input allowClear />
+          <GalleryImageInput />
         </Form.Item>
       </Form>
     </Modal>
