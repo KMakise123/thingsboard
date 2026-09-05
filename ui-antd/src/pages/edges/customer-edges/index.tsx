@@ -46,6 +46,10 @@ import {
   type AssignEntitiesOption,
 } from '@/pages/edges/assign-entities-dialog';
 import {
+  CUSTOMER_EDGE_UNASSIGN_TEXTS,
+  useEdgeUnassign,
+} from '@/pages/edges/use-edge-unassign';
+import {
   assignEdgeToCustomer,
   getCustomerEdgeInfos,
   getTenantEdgeInfos,
@@ -74,7 +78,7 @@ export default function CustomerEdgesPage() {
   const { id } = useParams<{ id: string }>();
   const customerId = id;
   const { formatMessage } = useIntl();
-  const { message, modal } = App.useApp();
+  const { message } = App.useApp();
   const queryClient = useQueryClient();
   const { state: urlState, patch } = listUrlState.useListUrlState();
   const titleQuery = useCustomerScopeTitle(customerId);
@@ -130,78 +134,15 @@ export default function CustomerEdgesPage() {
   const [assignOpen, setAssignOpen] = useState(false);
 
   // The customer-scope "delete" is an unassign (the edge itself is kept).
-  const confirmUnassign = (targets: Array<EdgeInfo>) => {
-    if (targets.length === 0) {
-      return;
-    }
-    modal.confirm({
-      title:
-        targets.length === 1
-          ? formatMessage(
-              {
-                id: 'pages.edge.unassignTitle',
-                defaultMessage:
-                  "Are you sure you want to unassign the edge '{name}'?",
-              },
-              { name: targets[0].name },
-            )
-          : formatMessage(
-              {
-                id: 'pages.edge.customerEdges.unassignManyTitle',
-                defaultMessage:
-                  'Are you sure you want to unassign {count, plural, =1 {1 edge} other {# edges}}?',
-              },
-              { count: targets.length },
-            ),
-      content:
-        targets.length === 1
-          ? formatMessage({
-              id: 'pages.edge.unassignText',
-              defaultMessage:
-                'After the confirmation the edge will be unassigned and will not be accessible by the customer.',
-            })
-          : formatMessage({
-              id: 'pages.edge.customerEdges.unassignManyText',
-              defaultMessage:
-                'After the confirmation the selected edges will be unassigned and will not be accessible by the customer.',
-            }),
-      okText: formatMessage({
-        id: 'pages.edge.action.unassign',
-        defaultMessage: 'Unassign from customer',
-      }),
-      cancelText: formatMessage({
-        id: 'pages.edge.cancel',
-        defaultMessage: 'Cancel',
-      }),
-      onOk: async () => {
-        setBatchOpen(true);
-        const summary = await batch.run(
-          targets,
-          (edge) => edge.name,
-          (edge) => unassignEdgeFromCustomer(edge.id.id),
-        );
-        setSelectedRowKeys([]);
-        void invalidate();
-        void message.success(
-          formatMessage({
-            id: 'pages.edge.toastUnassigned',
-            defaultMessage: 'Edge unassigned from the customer.',
-          }),
-        );
-        if (summary.failed > 0) {
-          void message.warning(
-            formatMessage(
-              {
-                id: 'pages.edge.batchResult',
-                defaultMessage: '{ok} succeeded, {fail} failed.',
-              },
-              { ok: summary.ok, fail: summary.failed },
-            ),
-          );
-        }
-      },
-    });
-  };
+  const confirmUnassign = useEdgeUnassign<EdgeInfo>({
+    batch,
+    openBatch: () => setBatchOpen(true),
+    clearSelection: () => setSelectedRowKeys([]),
+    invalidate,
+    texts: CUSTOMER_EDGE_UNASSIGN_TEXTS,
+    labelOf: (edge) => edge.name,
+    unassignOne: (edge) => unassignEdgeFromCustomer(edge.id.id),
+  });
 
   const runAssign = async (selected: Array<AssignEntitiesOption>) => {
     setAssignOpen(false);
@@ -240,7 +181,7 @@ export default function CustomerEdgesPage() {
       })),
     }));
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: row-action handlers re-create per render by design; only these deps change the rendered columns
+  // biome-ignore lint/correctness/useExhaustiveDependencies: excluded row-action handlers take the row as an argument and read no reactive state (stable setters / batch runner only); the listed deps cover every value that shapes the rendered columns, customerId included so unassign never binds a stale route param
   const columns: ProColumns<EdgeInfo>[] = useMemo(() => {
     const cols: ProColumns<EdgeInfo>[] = [
       {
@@ -320,7 +261,12 @@ export default function CustomerEdgesPage() {
       },
     ];
     return cols;
-  }, [formatMessage, urlState.sortProperty, urlState.sortDirection]);
+  }, [
+    formatMessage,
+    urlState.sortProperty,
+    urlState.sortDirection,
+    customerId,
+  ]);
 
   function sortOrderFor(property: string): 'ascend' | 'descend' | undefined {
     if (urlState.sortProperty !== property) {

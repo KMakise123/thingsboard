@@ -308,7 +308,7 @@ describe('EdgeDevicesPage', () => {
 
   it('collapses to read-only for CUSTOMER_USER', async () => {
     vi.resetModules();
-    vi.doMock('@/pages/edges/detail/use-authority', () => ({
+    vi.doMock('@/components/shared/use-authority', () => ({
       useAuthority: () => ({ authority: 'CUSTOMER_USER' }),
     }));
     const { default: CuPage } = await import('./index');
@@ -327,6 +327,6 @@ describe('EdgeDevicesPage', () => {
     // The list and the detail jump stay.
     fireEvent.click(screen.getByText('scope-dev-a'));
     expect(historyMock.push).toHaveBeenCalledWith('/devices/dev-1');
-    vi.doUnmock('@/pages/edges/detail/use-authority');
+    vi.doUnmock('@/components/shared/use-authority');
   });
 });

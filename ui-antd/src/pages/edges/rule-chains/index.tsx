@@ -42,6 +42,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { serverErrorText } from '@/components/entities/server-error-text';
 import { BatchProgressModal } from '@/components/shared/BatchProgressModal';
+import { useAuthority } from '@/components/shared/use-authority';
 import { useBatchRun } from '@/components/shared/use-batch-run';
 import { createListUrlState } from '@/pages/customers/list-url-state';
 import {
@@ -59,7 +60,10 @@ import {
   type AssignEntitiesOption,
 } from '../assign-entities-dialog';
 import { EdgeScopePageShell, useEdgeScopeName } from '../detail/scope-shell';
-import { useAuthority } from '../detail/use-authority';
+import {
+  EDGE_SCOPE_UNASSIGN_TEXTS,
+  useEdgeUnassign,
+} from '../use-edge-unassign';
 
 const SCOPE_RULE_CHAINS_KEY = ['edges', 'ruleChains', 'scope'] as const;
 const MISSING_KEY = ['edges', 'ruleChains', 'missing'] as const;
@@ -184,78 +188,16 @@ export default function EdgeRuleChainsPage() {
   const [batchOpen, setBatchOpen] = useState(false);
   const [assignOpen, setAssignOpen] = useState(false);
 
-  const confirmUnassign = (targets: Array<RuleChain>) => {
-    if (targets.length === 0) {
-      return;
-    }
-    modal.confirm({
-      title:
-        targets.length === 1
-          ? formatMessage(
-              {
-                id: 'pages.edge.scope.unassignOneTitle',
-                defaultMessage:
-                  "Are you sure you want to unassign '{name}' from the edge?",
-              },
-              { name: targets[0].name },
-            )
-          : formatMessage(
-              {
-                id: 'pages.edge.scope.unassignManyTitle',
-                defaultMessage:
-                  'Are you sure you want to unassign {count, plural, =1 {1 entity} other {# entities}} from the edge?',
-              },
-              { count: targets.length },
-            ),
-      content:
-        targets.length === 1
-          ? formatMessage({
-              id: 'pages.edge.scope.unassignText',
-              defaultMessage:
-                'After the confirmation the entity will no longer belong to this edge.',
-            })
-          : formatMessage({
-              id: 'pages.edge.scope.unassignManyText',
-              defaultMessage:
-                'After the confirmation the selected entities will no longer belong to this edge.',
-            }),
-      okText: formatMessage({
-        id: 'pages.edge.scope.actionUnassign',
-        defaultMessage: 'Unassign from edge',
-      }),
-      cancelText: formatMessage({
-        id: 'pages.edge.cancel',
-        defaultMessage: 'Cancel',
-      }),
-      onOk: async () => {
-        setBatchOpen(true);
-        const summary = await batch.run(
-          targets,
-          (chain) => chain.name,
-          (chain) => unassignEdgeRuleChain(edgeId as string, chain.id.id),
-        );
-        setSelectedRowKeys([]);
-        void invalidate();
-        void message.success(
-          formatMessage({
-            id: 'pages.edge.scope.toastUnassigned',
-            defaultMessage: 'Entities unassigned from the edge.',
-          }),
-        );
-        if (summary.failed > 0) {
-          void message.warning(
-            formatMessage(
-              {
-                id: 'pages.edge.batchResult',
-                defaultMessage: '{ok} succeeded, {fail} failed.',
-              },
-              { ok: summary.ok, fail: summary.failed },
-            ),
-          );
-        }
-      },
-    });
-  };
+  const confirmUnassign = useEdgeUnassign<RuleChain>({
+    batch,
+    openBatch: () => setBatchOpen(true),
+    clearSelection: () => setSelectedRowKeys([]),
+    invalidate,
+    texts: EDGE_SCOPE_UNASSIGN_TEXTS,
+    labelOf: (chain) => chain.name,
+    unassignOne: (chain) =>
+      unassignEdgeRuleChain(edgeId as string, chain.id.id),
+  });
 
   const runAssign = async (selected: Array<AssignEntitiesOption>) => {
     setAssignOpen(false);
@@ -333,7 +275,7 @@ export default function EdgeRuleChainsPage() {
       })),
     }));
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: row-action handlers re-create per render by design; only these deps change the rendered columns
+  // biome-ignore lint/correctness/useExhaustiveDependencies: excluded row-action handlers take the row as an argument and read no reactive state (stable setters / batch runner only); the listed deps cover every value that shapes the rendered columns, edgeId included so unassign never binds a stale route param
   const columns: ProColumns<RuleChain>[] = useMemo(() => {
     const cols: ProColumns<RuleChain>[] = [
       {
@@ -432,7 +374,7 @@ export default function EdgeRuleChainsPage() {
       },
     ];
     return cols;
-  }, [formatMessage, urlState.sortProperty, urlState.sortDirection]);
+  }, [formatMessage, urlState.sortProperty, urlState.sortDirection, edgeId]);
 
   function sortOrderFor(property: string): 'ascend' | 'descend' | undefined {
     if (urlState.sortProperty !== property) {

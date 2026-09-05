@@ -492,7 +492,7 @@ export default function EdgeListPage() {
   };
 
   // ---- columns (ngx tenant parity: createdTime/name/type/label/customer/public)
-  // biome-ignore lint/correctness/useExhaustiveDependencies: row-action handlers re-create per render by design
+  // biome-ignore lint/correctness/useExhaustiveDependencies: excluded row-action handlers take the row as an argument and read no reactive state (stable setters / batch runner only); the listed deps (incl. syncingId) cover every value that shapes the rendered columns
   const columns: ProColumns<EdgeInfo>[] = useMemo(() => {
     const cols: ProColumns<EdgeInfo>[] = [
       {

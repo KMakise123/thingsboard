@@ -1,10 +1,12 @@
 /**
  * Copy-to-clipboard hook for the OTA pages (devices/use-copy parity, scoped
  * toast keys so the packages family does not borrow the devices locale).
+ * The write itself comes from the shared clipboard helper.
  */
 import { App } from 'antd';
 import { useCallback } from 'react';
 import { useIntl } from 'react-intl';
+import { writeClipboard } from '@/components/shared/clipboard';
 
 export interface CopyToast {
   id: string;
@@ -36,28 +38,4 @@ export function useOtaCopy(): (
     },
     [formatMessage, message],
   );
-}
-
-async function writeClipboard(text: string): Promise<boolean> {
-  try {
-    if (navigator.clipboard?.writeText) {
-      await navigator.clipboard.writeText(text);
-      return true;
-    }
-  } catch {
-    // fall through to the legacy path
-  }
-  try {
-    const area = document.createElement('textarea');
-    area.value = text;
-    area.style.position = 'fixed';
-    area.style.opacity = '0';
-    document.body.appendChild(area);
-    area.select();
-    const ok = document.execCommand('copy');
-    area.remove();
-    return ok;
-  } catch {
-    return false;
-  }
 }

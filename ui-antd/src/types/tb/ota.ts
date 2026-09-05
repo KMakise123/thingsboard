@@ -80,16 +80,6 @@ export interface SaveOtaPackageInfoRequest extends OtaPackageInfo {
 }
 
 /**
- * Edit-path request body — description-only semantics. The backend forbids
- * changing type/title/version/tag/deviceProfileId/fileName/contentType/
- * checksum/checksumAlgorithm/dataSize on update and freezes `url` once set
- * (BaseOtaPackageDataValidator.validateUpdate: every field is compared to the
- * stored row and must be echoed back verbatim, so the edit form sends the
- * full entity but only `additionalInfo.description` may actually differ).
- */
-export type UpdateOtaPackageInfo = SaveOtaPackageInfoRequest;
-
-/**
  * URL-type probe — the backend's `hasUrl()` is @JsonIgnore so the wire never
  * carries it. `downloadOtaPackage` 400s for URL packages; callers must route
  * those to `url` directly instead of the endpoint.

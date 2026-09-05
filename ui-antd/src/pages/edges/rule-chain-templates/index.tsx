@@ -235,7 +235,7 @@ export default function RuleChainTemplatesPage() {
   // ---- import (EDGE type forced)
   const [importOpen, setImportOpen] = useState(false);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: row-action handlers re-create per render by design; only these deps change the rendered columns
+  // biome-ignore lint/correctness/useExhaustiveDependencies: excluded row-action handlers take the row as an argument and read no reactive state (stable setters only); the listed deps (incl. the auto-assign state) cover every value that shapes the rendered columns
   const columns: ProColumns<RuleChain>[] = useMemo(() => {
     const cols: ProColumns<RuleChain>[] = [
       {

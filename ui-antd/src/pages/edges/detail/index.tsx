@@ -55,6 +55,7 @@ import LatestTelemetryPanel from '@/components/entities/detail/LatestTelemetryPa
 import RelationsPanel from '@/components/entities/detail/RelationsPanel';
 import { serverErrorText } from '@/components/entities/server-error-text';
 import PageContainer from '@/components/layout/page-container';
+import { useAuthority } from '@/components/shared/use-authority';
 import {
   assignEdgeToCustomer,
   deleteEdge,
@@ -79,7 +80,6 @@ import {
   isTaOnlyDetailTab,
   useDetailTabUrlState,
 } from './url-state';
-import { useAuthority } from './use-authority';
 import { useEdgeCopy } from './use-copy';
 
 const NULL_CUSTOMER_UUID = '13814000-1dd2-11b2-8080-808080808080';

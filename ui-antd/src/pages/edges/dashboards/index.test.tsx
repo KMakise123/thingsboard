@@ -238,7 +238,7 @@ describe('EdgeDashboardsPage', () => {
 
   it('collapses to read-only for CUSTOMER_USER but keeps export and open', async () => {
     vi.resetModules();
-    vi.doMock('@/pages/edges/detail/use-authority', () => ({
+    vi.doMock('@/components/shared/use-authority', () => ({
       useAuthority: () => ({ authority: 'CUSTOMER_USER' }),
     }));
     const { default: CuPage } = await import('./index');
@@ -260,6 +260,6 @@ describe('EdgeDashboardsPage', () => {
     ).not.toBeNull();
     fireEvent.click(screen.getByText('scope-dash-a'));
     expect(historyMock.push).toHaveBeenCalledWith('/dashboards/dash-1');
-    vi.doUnmock('@/pages/edges/detail/use-authority');
+    vi.doUnmock('@/components/shared/use-authority');
   });
 });
