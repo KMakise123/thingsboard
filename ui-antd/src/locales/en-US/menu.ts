@@ -24,6 +24,8 @@ export default {
   'menu.deviceProfiles.detail': 'Device profile detail',
   'menu.otaPackages': 'OTA packages',
   'menu.otaPackages.detail': 'OTA package detail',
+  'menu.edge': 'Edge management',
+  'menu.edge.instances': 'Edge instances',
   'menu.assetProfiles': 'Asset profiles',
   'menu.assetProfiles.detail': 'Asset profile detail',
   'menu.tenants': 'Tenants',

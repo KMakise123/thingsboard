@@ -44,6 +44,7 @@ import {
   getEdgeUpgradeAvailable,
   getMissingToRelatedRuleChains,
   getTenantEdgeInfos,
+  getUserSettings,
   importEdges,
   makeEdgePublic,
   saveEdge,
@@ -58,10 +59,12 @@ import {
   unassignEdgeFromCustomer,
   unassignEdgeRuleChain,
   unsetAutoAssignToEdgeRuleChain,
+  putUserSettings,
 } from './edge';
 
 const get = vi.mocked(tbHttp.get);
 const post = vi.mocked(tbHttp.post);
+const put = vi.mocked(tbHttp.put);
 const del = vi.mocked(tbHttp.delete);
 
 const PAGE_LINK = {
@@ -247,6 +250,19 @@ describe('edge transport endpoints', () => {
     expect(get).toHaveBeenCalledWith(
       '/api/edge/missingToRelatedRuleChains/edge-1',
     );
+  });
+
+  it('reads and merge-updates the GENERAL user settings for the instructions preference', async () => {
+    get.mockResolvedValue({ notDisplayInstructionsAfterAddEdge: true } as never);
+    await expect(getUserSettings()).resolves.toEqual({
+      notDisplayInstructionsAfterAddEdge: true,
+    });
+    expect(get).toHaveBeenCalledWith('/api/user/settings');
+
+    await putUserSettings({ notDisplayInstructionsAfterAddEdge: true });
+    expect(put).toHaveBeenCalledWith('/api/user/settings', {
+      notDisplayInstructionsAfterAddEdge: true,
+    });
   });
 
   it('posts the CSV bulk import to /api/edge/bulk_import', async () => {

@@ -15,6 +15,7 @@ import dashboards from './zh-CN/dashboards';
 import deviceProfiles from './zh-CN/device-profiles';
 import devicesDetail from './zh-CN/devices/detail';
 import devicesList from './zh-CN/devices/list';
+import edge from './zh-CN/edge';
 import editor from './zh-CN/editor';
 import editorDashboard from './zh-CN/editor-dashboard';
 import editorDashboardContract from './zh-CN/editor-dashboard-contract';
@@ -54,6 +55,7 @@ export default {
   ...menu,
   ...notifications,
   ...ota,
+  ...edge,
   ...account,
   ...alarms,
   ...assetProfiles,

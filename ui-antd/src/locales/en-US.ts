@@ -13,6 +13,7 @@ import dashboards from './en-US/dashboards';
 import deviceProfiles from './en-US/device-profiles';
 import devicesDetail from './en-US/devices/detail';
 import devicesList from './en-US/devices/list';
+import edge from './en-US/edge';
 import editor from './en-US/editor';
 import editorDashboard from './en-US/editor-dashboard';
 import editorDashboardContract from './en-US/editor-dashboard-contract';
@@ -52,6 +53,7 @@ export default {
   ...menu,
   ...notifications,
   ...ota,
+  ...edge,
   ...account,
   ...alarms,
   ...assetProfiles,

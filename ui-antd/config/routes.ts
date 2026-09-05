@@ -322,6 +322,31 @@ export default [
     component: './ota/packages/detail',
     hideInMenu: true,
   },
+  // ---- M13 edge management family (spec §5.1–5.4) ----
+  // Group serves TA (full management) + CU (read-only face from wave 5), so
+  // `canTenantOrCustomer`; per-child access narrows further. Wave 3 mounts
+  // the group + the instances list only — the remaining waves append here:
+  //   wave-4: { name: 'instances.detail', path: '/edges/instances/:id',
+  //             access: 'canTenantOrCustomer', component: './edges/detail',
+  //             hideInMenu: true }
+  //   wave-5: five sub-entity scope pages (/edges/instances/:id/
+  //           {assets,devices,entityViews,dashboards,ruleChains}) and the
+  //           rule-chain template page { name: 'ruleChainTemplates',
+  //           path: '/edges/rule-chains', access: 'canTenantAdmin' }
+  {
+    name: 'edge',
+    icon: 'deploymentUnit',
+    path: '/edges',
+    access: 'canTenantOrCustomer',
+    routes: [
+      { path: '/edges', redirect: '/edges/instances' },
+      {
+        name: 'instances',
+        path: '/edges/instances',
+        component: './edges/list',
+      },
+    ],
+  },
   // Sys-admin family (spec §3.7): tenants + tenant profiles + settings.
   {
     name: 'tenants',

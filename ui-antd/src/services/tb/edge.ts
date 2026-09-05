@@ -346,6 +346,30 @@ export async function getMissingToRelatedRuleChains(
 }
 
 // ---------------------------------------------------------------------------
+// User settings (the edge-instructions "don't show again" preference)
+// ---------------------------------------------------------------------------
+
+/**
+ * GET /api/user/settings — the GENERAL user-settings JSON blob
+ * (UserController.getUserSettings; `notDisplayInstructionsAfterAddEdge`
+ * lives at its top level).
+ */
+export async function getUserSettings(): Promise<Record<string, unknown>> {
+  return tbHttp.get<Record<string, unknown>>('/api/user/settings');
+}
+
+/**
+ * PUT /api/user/settings — merge-update the GENERAL user settings: only the
+ * provided keys change (UserController.putUserSettings). The edge
+ * instructions dialog writes `{ notDisplayInstructionsAfterAddEdge: true }`.
+ */
+export async function putUserSettings(
+  partial: Record<string, unknown>,
+): Promise<void> {
+  await tbHttp.put<void>('/api/user/settings', partial);
+}
+
+// ---------------------------------------------------------------------------
 // CSV bulk import
 // ---------------------------------------------------------------------------
 
