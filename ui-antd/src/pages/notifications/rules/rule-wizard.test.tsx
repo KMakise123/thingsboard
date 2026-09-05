@@ -88,6 +88,8 @@ vi.mock('@/components/notifications/recipient-entity-select', () => ({
 
 import { EntityType } from '@/types/tb';
 import {
+  AlarmAction,
+  AlarmSearchStatus,
   type NotificationRuleInfo,
   NotificationRuleTriggerType,
 } from '@/types/tb/notification';
@@ -146,8 +148,8 @@ const ALARM_SOURCE: NotificationRuleInfo = {
   triggerConfig: {
     triggerType: NotificationRuleTriggerType.ALARM,
     alarmTypes: ['HighTemperature'],
-    notifyOn: ['CREATED'],
-    clearRule: { alarmStatuses: ['ACTIVE'] },
+    notifyOn: [AlarmAction.CREATED],
+    clearRule: { alarmStatuses: [AlarmSearchStatus.ACTIVE] },
   },
   recipientsConfig: {
     triggerType: NotificationRuleTriggerType.ALARM,

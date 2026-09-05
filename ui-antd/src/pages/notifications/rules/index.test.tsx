@@ -82,6 +82,11 @@ vi.mock('@ant-design/pro-components', async () => {
 });
 
 import { EntityType } from '@/types/tb';
+import type {
+  NotificationRuleInfo,
+  NotificationRuleTriggerConfig,
+  NotificationRuleRecipientsConfig,
+} from '@/types/tb/notification';
 import { NotificationRuleTriggerType } from '@/types/tb/notification';
 
 function ruleRow(
@@ -89,7 +94,7 @@ function ruleRow(
   name: string,
   triggerType: NotificationRuleTriggerType,
   enabled = true,
-): import('@/types/tb/notification').NotificationRuleInfo {
+): NotificationRuleInfo {
   return {
     id: { entityType: EntityType.NOTIFICATION_RULE, id },
     createdTime: 1_700_000_000_000,
@@ -101,8 +106,11 @@ function ruleRow(
       id: `tpl-${id}`,
     },
     triggerType,
-    triggerConfig: { triggerType },
-    recipientsConfig: { triggerType, targets: ['target-1'] },
+    triggerConfig: { triggerType } as NotificationRuleTriggerConfig,
+    recipientsConfig: {
+      triggerType,
+      targets: ['target-1'],
+    } as NotificationRuleRecipientsConfig,
     additionalConfig: { description: `desc of ${name}` },
     templateName: `template ${id}`,
   };
