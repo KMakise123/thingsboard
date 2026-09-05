@@ -8,7 +8,8 @@
  *   backend Authority enum (SYS_ADMIN / TENANT_ADMIN / CUSTOMER_USER).
  *   Menus are generated from this tree filtered by access — never hand-
  *   written. Role sets: SA = sys domain (tenants / tenant profiles /
- *   settings), TA = tenant domain, CU = devices / assets / alarms.
+ *   settings), TA = tenant domain, SA+TA = resources library (M11),
+ *   CU = devices / assets / alarms.
  * - Keep this file declarative only (no imports of page internals).
  *
  * ui-ngx path aliases (`/login/…`, `/activationLinkExpired`,
@@ -365,6 +366,66 @@ export default [
         name: 'auditLogs',
         path: '/settings/audit-logs',
         component: './settings/audit-logs',
+      },
+    ],
+  },
+  // ---- M11 resources library family (spec §3.1–3.5) ----
+  // The five-in-one subsystem (widget types / widgets bundles / images /
+  // SCADA symbols / JS library / file resources): SA + TA shared (upstream
+  // TB manages resources in both roles), so `canSysAdminOrTenantAdmin`.
+  // Nesting mirrors the settings family above — child names stay relative
+  // so the menu ids become menu.resources.<child>.
+  {
+    name: 'resources',
+    icon: 'folder',
+    path: '/resources',
+    access: 'canSysAdminOrTenantAdmin',
+    routes: [
+      { path: '/resources', redirect: '/resources/widget-types' },
+      {
+        name: 'widgetTypes',
+        path: '/resources/widget-types',
+        component: './resources/widget-types/list',
+      },
+      {
+        name: 'widgetsBundles',
+        path: '/resources/widgets-bundles',
+        component: './resources/widgets-bundles/list',
+      },
+      {
+        // Bundle widgets management for one bundle (add/remove widget types
+        // in the bundle). Hidden, addressable by URL.
+        path: '/resources/widgets-bundles/:bundleId',
+        component: './resources/widgets-bundles/bundle-widgets',
+        hideInMenu: true,
+      },
+      {
+        name: 'images',
+        path: '/resources/images',
+        component: './resources/images',
+      },
+      {
+        name: 'scadaSymbols',
+        path: '/resources/scada-symbols',
+        component: './resources/scada-symbols',
+      },
+      {
+        // SCADA symbol editor page (`type` = image scope, `key` = the
+        // symbol's resource key; symbols are stored as image resources).
+        // Hidden, reached from the SCADA symbols gallery.
+        path: '/resources/scada-symbols/:type/:key',
+        component: './resources/scada-symbols/editor',
+        hideInMenu: true,
+      },
+      {
+        name: 'jsLibrary',
+        path: '/resources/js-library',
+        component: './resources/js-library/list',
+      },
+      {
+        name: 'library',
+        path: '/resources/library',
+        component: './resources/library/list',
       },
     ],
   },
