@@ -1,19 +1,27 @@
 /**
- * Events tab panel (spec 3.3 `events`): event-type filter (default ERROR,
- * full ui-ngx type set incl. debug families) + server-side pagination via
- * the typed events endpoint. The body blob renders as an expandable row —
- * per-type column sets collapse into key fields + raw JSON.
+ * Events tab panel (spec 3.3 `events`): event-type filter (default ERROR)
+ * + server-side pagination via the typed events endpoint. The body blob
+ * renders as an expandable row — per-type column sets collapse into key
+ * fields + raw JSON.
+ *
+ * Entity-agnostic since M13 (R04): the caller passes the polymorphic
+ * `entityId`, so devices and edges share the panel. `eventTypes` narrows
+ * the filter options — default keeps the full device set (incl. debug
+ * families); the Edge page passes its real ERROR/LC_EVENT/STATS trio
+ * (ui-ngx edge-tabs passes no disabledEventTypes, the backend serves
+ * exactly these three).
  */
 import { useQuery } from '@tanstack/react-query';
 import { Alert, Select, Space, Table, Typography } from 'antd';
 import dayjs from 'dayjs';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useIntl } from 'react-intl';
 import { serverErrorText } from '@/components/entities/server-error-text';
 import { type EventTypeId, getEvents } from '@/services/tb/events';
-import { EntityType } from '@/types/tb';
+import type { EntityId } from '@/types/tb';
 
-const EVENT_TYPES: Array<EventTypeId> = [
+/** Full device set (incl. debug families) — the default when eventTypes is omitted. */
+export const DEFAULT_EVENT_TYPES: Array<EventTypeId> = [
   'ERROR',
   'LC_EVENT',
   'STATS',
@@ -38,24 +46,30 @@ export function eventBodySummary(body: Record<string, unknown>): string {
 }
 
 export default function EventsPanel({
-  deviceId,
+  entityId,
   tenantId,
+  eventTypes = DEFAULT_EVENT_TYPES,
 }: {
-  deviceId: string;
+  /** Polymorphic entity reference (DEVICE / EDGE / ...). */
+  entityId: EntityId;
   tenantId: string;
+  /** Filter options; omit for the full device set. */
+  eventTypes?: Array<EventTypeId>;
 }) {
   const { formatMessage } = useIntl();
   const [eventType, setEventType] = useState<EventTypeId>('ERROR');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  const entityId = useMemo(
-    () => ({ entityType: EntityType.DEVICE, id: deviceId }),
-    [deviceId],
-  );
-
   const eventsQuery = useQuery({
-    queryKey: ['events', deviceId, eventType, page, pageSize],
+    queryKey: [
+      'events',
+      entityId.entityType,
+      entityId.id,
+      eventType,
+      page,
+      pageSize,
+    ],
     queryFn: () =>
       getEvents(entityId, tenantId, eventType, {
         pageSize,
@@ -105,7 +119,7 @@ export default function EventsPanel({
             setEventType(next);
             setPage(1);
           }}
-          options={EVENT_TYPES.map((type) => ({
+          options={eventTypes.map((type) => ({
             value: type,
             label: formatMessage({
               id: `pages.devices.detail.eventTypeOption.${type}`,

@@ -34,9 +34,13 @@ const servicesMock = vi.hoisted(() => ({
   getOtaPackagesByDeviceProfile: vi.fn(),
 }));
 const dashboardsMock = vi.hoisted(() => ({ getTenantDashboards: vi.fn() }));
+const deviceMock = vi.hoisted(() => ({
+  countDevicesByOtaPackageType: vi.fn(),
+}));
 
 vi.mock('@/services/tb/device-profile', () => servicesMock);
 vi.mock('@/services/tb/dashboard', () => dashboardsMock);
+vi.mock('@/services/tb/device', () => deviceMock);
 
 // pro-components cannot resolve antd locale imports under vite-node (M1
 // known issue) — stub the PageContainer wrapper the page renders through.
@@ -135,8 +139,12 @@ describe('device profile detail page', () => {
     servicesMock.saveDeviceProfile.mockResolvedValue(PROFILE);
     servicesMock.getTenantRuleChains.mockResolvedValue({ data: [] });
     servicesMock.getRuleEngineQueues.mockResolvedValue({ data: [] });
-    servicesMock.getOtaPackagesByDeviceProfile.mockResolvedValue({ data: [] });
+    servicesMock.getOtaPackagesByDeviceProfile.mockResolvedValue({
+      data: [{ id: { id: 'pkg-fw-1' }, title: 'FW pkg', version: '1.0' }],
+      totalElements: 1,
+    });
     dashboardsMock.getTenantDashboards.mockResolvedValue({ data: [] });
+    deviceMock.countDevicesByOtaPackageType.mockResolvedValue(0);
   });
 
   it('renders the ui-ngx tab set and the general form fields', async () => {
@@ -199,5 +207,84 @@ describe('device profile detail page', () => {
     await waitFor(() => {
       expect(screen.getByTestId('audit-panel')).toHaveTextContent('dp-1');
     });
+  });
+
+  // ---- M13 wave-6 save gate (ui-ngx confirmDialogUpdatePackage parity) ----
+
+  async function editAndPickFirmware() {
+    fireEvent.click(screen.getByRole('button', { name: /编\s*辑/ }));
+    // The firmware picker enables on edit and loads this profile's packages.
+    // antd v6 Selects carry no label association — locate the select inside
+    // the firmware form item and mousedown to open the dropdown.
+    await screen.findByText('固件');
+    const formItem = screen.getByText('固件').closest('.ant-form-item');
+    fireEvent.mouseDown(formItem?.querySelector('.ant-select') as HTMLElement);
+    fireEvent.click(
+      await screen.findByText('FW pkg (1.0)', {
+        selector: '.ant-select-item-option-content',
+      }),
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: /保\s*存/ }),
+      ).not.toBeDisabled(),
+    );
+    fireEvent.click(screen.getByRole('button', { name: /保\s*存/ }));
+  }
+
+  it('counts affected devices and saves straight through when the count is zero', async () => {
+    renderPage();
+    await screen.findByRole('tab', { name: '详情' });
+
+    await editAndPickFirmware();
+
+    await waitFor(() => {
+      expect(deviceMock.countDevicesByOtaPackageType).toHaveBeenCalledWith(
+        'FIRMWARE',
+        'dp-1',
+      );
+    });
+    await waitFor(() => {
+      expect(servicesMock.saveDeviceProfile).toHaveBeenCalledTimes(1);
+    });
+    expect(servicesMock.saveDeviceProfile.mock.calls[0][0].firmwareId).toEqual({
+      entityType: EntityType.OTA_PACKAGE,
+      id: 'pkg-fw-1',
+    });
+    // No affected devices -> no confirm dialog at all.
+    expect(screen.queryAllByText('确定要更改 OTA 设置吗？')).toHaveLength(0);
+  });
+
+  it('confirms the affected-devices count and saves after Proceed', async () => {
+    deviceMock.countDevicesByOtaPackageType.mockResolvedValue(7);
+    renderPage();
+    await screen.findByRole('tab', { name: '详情' });
+
+    await editAndPickFirmware();
+
+    expect(
+      await screen.findByText('固件变更可能导致 7 台设备更新。'),
+    ).toBeInTheDocument();
+    fireEvent.click(await screen.findByRole('button', { name: /继\s*续/ }));
+    await waitFor(() => {
+      expect(servicesMock.saveDeviceProfile).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('keeps the profile untouched when the OTA change is canceled', async () => {
+    deviceMock.countDevicesByOtaPackageType.mockResolvedValue(7);
+    renderPage();
+    await screen.findByRole('tab', { name: '详情' });
+
+    await editAndPickFirmware();
+
+    expect(
+      await screen.findByText('固件变更可能导致 7 台设备更新。'),
+    ).toBeInTheDocument();
+    fireEvent.click(await screen.findByRole('button', { name: /^取\s*消$/ }));
+    // jsdom never fires the close animation end, so the dialog stays
+    // mounted — assert on the wire effect instead of its disappearance.
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    expect(servicesMock.saveDeviceProfile).not.toHaveBeenCalled();
   });
 });

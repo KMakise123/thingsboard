@@ -35,6 +35,8 @@ export default {
   'pages.devices.detail.profileRequired': 'Device profile is required.',
   'pages.devices.detail.label': 'Label',
   'pages.devices.detail.labelTooLong': 'Label must be at most 255 characters.',
+  'pages.devices.detail.firmware': 'Firmware',
+  'pages.devices.detail.software': 'Software',
   'pages.devices.detail.isGateway': 'Is gateway',
   'pages.devices.detail.overwriteActivityTime':
     'Overwrite activity time for gateway',

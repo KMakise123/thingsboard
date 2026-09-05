@@ -22,6 +22,14 @@ const servicesMock = vi.hoisted(() => ({
   saveDevice: vi.fn(),
 }));
 
+const profileServiceMock = vi.hoisted(() => ({
+  getOtaPackagesByDeviceProfile: vi.fn(),
+}));
+
+const eventsMock = vi.hoisted(() => ({
+  getEvents: vi.fn(),
+}));
+
 const tokenStoreMock = vi.hoisted(() => ({
   decodeTokenClaims: vi.fn(),
 }));
@@ -44,6 +52,8 @@ vi.mock('@umijs/max', () => ({
     clientRoutes: [{ name: 'devices', path: '/devices' }],
   }),
 }));
+
+vi.mock('@/services/tb/events', () => eventsMock);
 
 // pro-components cannot resolve antd locale imports under vite-node (M1
 // known issue) — stub PageContainer while keeping the wrapper's contract
@@ -72,6 +82,7 @@ vi.mock('@ant-design/pro-components', () => ({
   ),
 }));
 vi.mock('@/services/tb/device', () => servicesMock);
+vi.mock('@/services/tb/device-profile', () => profileServiceMock);
 vi.mock('@/core/auth/token-store', () => ({
   tokenStore: tokenStoreMock,
 }));
@@ -128,6 +139,11 @@ describe('device detail page', () => {
     servicesMock.getDeviceInfoById.mockResolvedValue(DEVICE);
     servicesMock.getDeviceProfiles.mockResolvedValue(PROFILES_PAGE);
     servicesMock.saveDevice.mockResolvedValue(DEVICE);
+    profileServiceMock.getOtaPackagesByDeviceProfile.mockResolvedValue({
+      data: [],
+      totalElements: 0,
+    });
+    eventsMock.getEvents.mockResolvedValue({ data: [], totalElements: 0 });
   });
 
   afterEach(() => {
@@ -204,6 +220,22 @@ describe('device detail page', () => {
     renderPage();
     await screen.findAllByText('m1-test-detail-alpha');
     expect(screen.queryByRole('button', { name: /编辑/ })).toBeNull();
+  });
+
+  // M13 R04 parameterization regression: the events tab feeds the shared
+  // panel the polymorphic entityId (not a bare deviceId).
+  it('loads events with the polymorphic entityId when the tab opens', async () => {
+    renderPage();
+    await screen.findAllByText('m1-test-detail-alpha');
+    fireEvent.click(screen.getByRole('tab', { name: '事件' }));
+    await waitFor(() => {
+      expect(eventsMock.getEvents).toHaveBeenCalledWith(
+        { entityType: EntityType.DEVICE, id: 'dev-1' },
+        't-1',
+        'ERROR',
+        expect.objectContaining({ page: 0 }),
+      );
+    });
   });
 
   it('confirms before discarding unsaved edits', async () => {

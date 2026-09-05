@@ -93,6 +93,16 @@ export default {
   'pages.device-profiles.detail.edit': 'Edit',
   'pages.device-profiles.detail.cancelEdit': 'Cancel edit',
   'pages.device-profiles.detail.save': 'Save',
+  'pages.device-profiles.detail.cancel': 'Cancel',
+  'pages.device-profiles.detail.otaChangeTitle':
+    'Are you sure you want to change OTA settings?',
+  'pages.device-profiles.detail.otaChangeFirmware':
+    'Change of the firmware may cause update of {count} devices.',
+  'pages.device-profiles.detail.otaChangeSoftware':
+    'Change of the software may cause update of {count} devices.',
+  'pages.device-profiles.detail.otaChangeProceed': 'Proceed',
+  'pages.device-profiles.detail.otaChangeCountFailed':
+    'Failed to count the affected devices: {reason}',
   'pages.device-profiles.detail.toastSaved': 'Device profile saved.',
   'pages.device-profiles.detail.saveFailed':
     'Failed to save the device profile: {reason}',

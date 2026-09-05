@@ -261,6 +261,16 @@ export default [
     hideInMenu: true,
   },
   {
+    // M13 wave-5a: customer-scope Edge instances (title "Customer: Edge
+    // instances"; row delete = unassign). Reached from the customer detail
+    // button, the customer list row menu and this page's own assign dialog.
+    name: 'customers.edges',
+    path: '/customers/:id/edges',
+    access: 'canTenantAdmin',
+    component: './edges/customer-edges',
+    hideInMenu: true,
+  },
+  {
     name: 'users',
     icon: 'user',
     path: '/users',
@@ -304,6 +314,96 @@ export default [
     access: 'canTenantAdmin',
     component: './asset-profiles/detail',
     hideInMenu: true,
+  },
+  // ---- M13 OTA packages family (spec §5.5) ----
+  // Packages repository: TA-only (backend gates save/download/delete to
+  // TENANT_ADMIN; CU has read-only endpoints but no UI entry, spec §5.5).
+  {
+    name: 'otaPackages',
+    icon: 'memory',
+    path: '/otaPackages',
+    access: 'canTenantAdmin',
+    component: './ota/packages',
+  },
+  {
+    name: 'otaPackages.detail',
+    path: '/otaPackages/:id',
+    access: 'canTenantAdmin',
+    component: './ota/packages/detail',
+    hideInMenu: true,
+  },
+  // ---- M13 edge management family (spec §5.1–5.4) ----
+  // Group serves TA (full management) + CU (read-only face), so
+  // `canTenantOrCustomer`; per-child access narrows further. Wave 3 mounted
+  // the group + the instances list, wave 4 the detail page, wave 5a the
+  // four sub-entity scope pages, wave 5b the ruleChains sub-page and the
+  // rule-chain template page (both TA-only).
+  {
+    name: 'edge',
+    icon: 'deploymentUnit',
+    path: '/edges',
+    access: 'canTenantOrCustomer',
+    routes: [
+      { path: '/edges', redirect: '/edges/instances' },
+      {
+        name: 'instances',
+        path: '/edges/instances',
+        component: './edges/list',
+      },
+      {
+        name: 'edges.detail',
+        path: '/edges/:id',
+        access: 'canTenantOrCustomer',
+        component: './edges/detail',
+        hideInMenu: true,
+      },
+      // Wave-5a sub-entity scope pages: flat siblings of the detail route,
+      // CU gets the read-only face inside the pages (canTenantOrCustomer).
+      {
+        name: 'edges.devices',
+        path: '/edges/:id/devices',
+        access: 'canTenantOrCustomer',
+        component: './edges/devices',
+        hideInMenu: true,
+      },
+      {
+        name: 'edges.assets',
+        path: '/edges/:id/assets',
+        access: 'canTenantOrCustomer',
+        component: './edges/assets',
+        hideInMenu: true,
+      },
+      {
+        name: 'edges.entityViews',
+        path: '/edges/:id/entityViews',
+        access: 'canTenantOrCustomer',
+        component: './edges/entity-views',
+        hideInMenu: true,
+      },
+      {
+        name: 'edges.dashboards',
+        path: '/edges/:id/dashboards',
+        access: 'canTenantOrCustomer',
+        component: './edges/dashboards',
+        hideInMenu: true,
+      },
+      {
+        name: 'edges.ruleChains',
+        path: '/edges/:id/ruleChains',
+        access: 'canTenantAdmin',
+        component: './edges/rule-chains',
+        hideInMenu: true,
+      },
+      // Rule chain templates: mounted inside the group so the menu nests
+      // under Edge management (ngx parity, menu key menu.edge.ruleChainTemplates);
+      // the static path outranks /edges/:id in route matching.
+      {
+        name: 'ruleChainTemplates',
+        path: '/edges/rule-chains',
+        access: 'canTenantAdmin',
+        component: './edges/rule-chain-templates',
+      },
+    ],
   },
   // Sys-admin family (spec §3.7): tenants + tenant profiles + settings.
   {

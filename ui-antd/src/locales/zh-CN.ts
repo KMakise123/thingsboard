@@ -15,6 +15,7 @@ import dashboards from './zh-CN/dashboards';
 import deviceProfiles from './zh-CN/device-profiles';
 import devicesDetail from './zh-CN/devices/detail';
 import devicesList from './zh-CN/devices/list';
+import edge from './zh-CN/edge';
 import editor from './zh-CN/editor';
 import editorDashboard from './zh-CN/editor-dashboard';
 import editorDashboardContract from './zh-CN/editor-dashboard-contract';
@@ -32,6 +33,7 @@ import entityViews from './zh-CN/entityViews';
 import login from './zh-CN/login';
 import menu from './zh-CN/menu';
 import notifications from './zh-CN/notifications';
+import ota from './zh-CN/ota';
 import images from './zh-CN/resources/images';
 import jsLibrary from './zh-CN/resources/js-library';
 import library from './zh-CN/resources/library';
@@ -52,6 +54,8 @@ export default {
   ...login,
   ...menu,
   ...notifications,
+  ...ota,
+  ...edge,
   ...account,
   ...alarms,
   ...assetProfiles,

@@ -1,9 +1,10 @@
 /**
  * Device details tab (spec 3.3 `details`): view/edit the device entity
  * fields with the ui-ngx field set — name (required, ≤255), device profile
- * (required), label (≤255), gateway / overwrite-activity-time switches and
- * the free-form description. Saving posts the full device via saveDevice
- * (partial PATCH is not a TB concept) and invalidates the detail query.
+ * (required), label (≤255), firmware/software OTA packages, gateway /
+ * overwrite-activity-time switches and the free-form description. Saving
+ * posts the full device via saveDevice (partial PATCH is not a TB concept)
+ * and invalidates the detail query.
  */
 import { useMutation, useQuery } from '@tanstack/react-query';
 import {
@@ -20,13 +21,17 @@ import {
 import { useEffect, useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { serverErrorText } from '@/components/entities/server-error-text';
+import { OtaPackageSelect } from '@/components/profiles/selects';
 import { getDeviceProfiles, saveDevice } from '@/services/tb/device';
 import { type Device, type DeviceInfo, EntityType } from '@/types/tb';
+import { OtaPackageType } from '@/types/tb/ota';
 
 export interface DeviceDetailsFormValues {
   name: string;
   deviceProfileId: string;
   label: string;
+  firmwareId?: string;
+  softwareId?: string;
   gateway: boolean;
   overwriteActivityTime: boolean;
   description: string;
@@ -42,6 +47,8 @@ function toFormValues(device: DeviceInfo): DeviceDetailsFormValues {
     name: device.name,
     deviceProfileId: device.deviceProfileId?.id ?? '',
     label: device.label ?? '',
+    firmwareId: device.firmwareId?.id,
+    softwareId: device.softwareId?.id,
     gateway: info.gateway ?? false,
     overwriteActivityTime: info.overwriteActivityTime ?? false,
     description: info.description ?? '',
@@ -57,6 +64,8 @@ export function isDeviceDetailsDirty(
     values.name !== baseline.name ||
     values.deviceProfileId !== baseline.deviceProfileId ||
     values.label !== baseline.label ||
+    values.firmwareId !== baseline.firmwareId ||
+    values.softwareId !== baseline.softwareId ||
     values.gateway !== baseline.gateway ||
     values.overwriteActivityTime !== baseline.overwriteActivityTime ||
     values.description !== baseline.description
@@ -75,6 +84,12 @@ export function toSaveDevicePayload(
       entityType: EntityType.DEVICE_PROFILE,
       id: values.deviceProfileId,
     },
+    firmwareId: values.firmwareId
+      ? { entityType: EntityType.OTA_PACKAGE, id: values.firmwareId }
+      : undefined,
+    softwareId: values.softwareId
+      ? { entityType: EntityType.OTA_PACKAGE, id: values.softwareId }
+      : undefined,
     additionalInfo: {
       ...(device.additionalInfo ?? {}),
       gateway: values.gateway,
@@ -101,6 +116,10 @@ export default function DetailsTab({
 
   const initialValues = useMemo(() => toFormValues(device), [device]);
   const values = Form.useWatch([], form);
+  // The OTA pickers scope their candidates to the profile being edited, so
+  // they must follow the field live (ui-ngx passes the form value into
+  // tb-ota-package-autocomplete's deviceProfileId input).
+  const editingProfileId = Form.useWatch('deviceProfileId', form);
   // Dirty is only meaningful while editing: the read-only display form can
   // transiently diverge from the baseline (e.g. profile select not yet
   // loaded) and must never trip the unsaved-changes guard.
@@ -244,6 +263,14 @@ export default function DetailsTab({
       layout="vertical"
       initialValues={initialValues}
       onFinish={(formValues) => saveMutation.mutate(formValues)}
+      onValuesChange={(changed) => {
+        // ui-ngx ota-package-autocomplete resets itself when the profile
+        // input changes (set deviceProfileId → reset): the picked package no
+        // longer belongs to the new profile's candidate pool, so clear it.
+        if ('deviceProfileId' in changed) {
+          form.setFieldsValue({ firmwareId: undefined, softwareId: undefined });
+        }
+      }}
       disabled={saveMutation.isPending}
     >
       <Row gutter={16}>
@@ -317,6 +344,34 @@ export default function DetailsTab({
             ]}
           >
             <Input />
+          </Form.Item>
+        </Col>
+        <Col span={12}>
+          <Form.Item
+            name="firmwareId"
+            label={formatMessage({
+              id: 'pages.devices.detail.firmware',
+              defaultMessage: 'Firmware',
+            })}
+          >
+            <OtaPackageSelect
+              deviceProfileId={editingProfileId}
+              otaPackageType={OtaPackageType.FIRMWARE}
+            />
+          </Form.Item>
+        </Col>
+        <Col span={12}>
+          <Form.Item
+            name="softwareId"
+            label={formatMessage({
+              id: 'pages.devices.detail.software',
+              defaultMessage: 'Software',
+            })}
+          >
+            <OtaPackageSelect
+              deviceProfileId={editingProfileId}
+              otaPackageType={OtaPackageType.SOFTWARE}
+            />
           </Form.Item>
         </Col>
         <Col span={6}>

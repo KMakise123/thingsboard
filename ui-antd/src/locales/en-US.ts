@@ -13,6 +13,7 @@ import dashboards from './en-US/dashboards';
 import deviceProfiles from './en-US/device-profiles';
 import devicesDetail from './en-US/devices/detail';
 import devicesList from './en-US/devices/list';
+import edge from './en-US/edge';
 import editor from './en-US/editor';
 import editorDashboard from './en-US/editor-dashboard';
 import editorDashboardContract from './en-US/editor-dashboard-contract';
@@ -30,6 +31,7 @@ import entityViews from './en-US/entityViews';
 import login from './en-US/login';
 import menu from './en-US/menu';
 import notifications from './en-US/notifications';
+import ota from './en-US/ota';
 import images from './en-US/resources/images';
 import jsLibrary from './en-US/resources/js-library';
 import library from './en-US/resources/library';
@@ -50,6 +52,8 @@ export default {
   ...login,
   ...menu,
   ...notifications,
+  ...ota,
+  ...edge,
   ...account,
   ...alarms,
   ...assetProfiles,

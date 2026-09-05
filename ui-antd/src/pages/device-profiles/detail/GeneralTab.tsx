@@ -32,6 +32,7 @@ import {
   QueueNameSelect,
   RuleChainSelect,
 } from '@/components/profiles/selects';
+import { countDevicesByOtaPackageType } from '@/services/tb/device';
 import { saveDeviceProfile } from '@/services/tb/device-profile';
 import { EntityType } from '@/types/tb';
 import { type DeviceProfile, OtaPackageType } from '@/types/tb/device-profile';
@@ -92,7 +93,7 @@ export default function GeneralTab({
   onDirtyChange: (dirty: boolean) => void;
 }) {
   const { formatMessage } = useIntl();
-  const { message } = App.useApp();
+  const { message, modal } = App.useApp();
   const queryClient = useQueryClient();
   const [form] = Form.useForm<DeviceGeneralFormValues>();
 
@@ -141,6 +142,102 @@ export default function GeneralTab({
     },
   });
 
+  /**
+   * ui-ngx confirmDialogUpdatePackage (ota-package.service.ts:117-144):
+   * when firmwareId/softwareId differs from the stored profile, count the
+   * profile's devices that would pick up the new package (both counts fan
+   * out in parallel, unchanged halves stay 0) and confirm before saving
+   * when either is > 0 — zero counts save straight through.
+   */
+  const confirmOtaChangeAndSave = async (
+    formValues: DeviceGeneralFormValues,
+  ) => {
+    const firmwareChanged =
+      formValues.firmwareId !== (profile.firmwareId?.id ?? undefined);
+    const softwareChanged =
+      formValues.softwareId !== (profile.softwareId?.id ?? undefined);
+    let firmwareDevices = 0;
+    let softwareDevices = 0;
+    if (firmwareChanged || softwareChanged) {
+      try {
+        [firmwareDevices, softwareDevices] = await Promise.all([
+          firmwareChanged
+            ? countDevicesByOtaPackageType(
+                OtaPackageType.FIRMWARE,
+                profile.id.id,
+              )
+            : Promise.resolve(0),
+          softwareChanged
+            ? countDevicesByOtaPackageType(
+                OtaPackageType.SOFTWARE,
+                profile.id.id,
+              )
+            : Promise.resolve(0),
+        ]);
+      } catch (error) {
+        void message.error(
+          formatMessage(
+            {
+              id: 'pages.device-profiles.detail.otaChangeCountFailed',
+              defaultMessage: 'Failed to count the affected devices: {reason}',
+            },
+            { reason: serverErrorText(error) },
+          ),
+        );
+        return;
+      }
+    }
+    if (firmwareDevices <= 0 && softwareDevices <= 0) {
+      saveMutation.mutate(formValues);
+      return;
+    }
+    modal.confirm({
+      title: formatMessage({
+        id: 'pages.device-profiles.detail.otaChangeTitle',
+        defaultMessage: 'Are you sure you want to change OTA settings?',
+      }),
+      content: (
+        <div className="flex flex-col gap-1">
+          {firmwareDevices > 0 && (
+            <div>
+              {formatMessage(
+                {
+                  id: 'pages.device-profiles.detail.otaChangeFirmware',
+                  defaultMessage:
+                    'Change of the firmware may cause update of {count} devices.',
+                },
+                { count: firmwareDevices },
+              )}
+            </div>
+          )}
+          {softwareDevices > 0 && (
+            <div>
+              {formatMessage(
+                {
+                  id: 'pages.device-profiles.detail.otaChangeSoftware',
+                  defaultMessage:
+                    'Change of the software may cause update of {count} devices.',
+                },
+                { count: softwareDevices },
+              )}
+            </div>
+          )}
+        </div>
+      ),
+      okText: formatMessage({
+        id: 'pages.device-profiles.detail.otaChangeProceed',
+        defaultMessage: 'Proceed',
+      }),
+      cancelText: formatMessage({
+        id: 'pages.device-profiles.detail.cancel',
+        defaultMessage: 'Cancel',
+      }),
+      // Errors surface through saveMutation.onError; swallow the rethrow so
+      // antd does not log an unhandled rejection behind the dialog.
+      onOk: () => saveMutation.mutateAsync(formValues).catch(() => undefined),
+    });
+  };
+
   return (
     <Form<DeviceGeneralFormValues>
       key={formKey}
@@ -149,7 +246,7 @@ export default function GeneralTab({
       // initialValues keep the read-only inputs showing the stored profile.
       initialValues={initialValues}
       disabled={!editing || saveMutation.isPending}
-      onFinish={(next) => saveMutation.mutate(next)}
+      onFinish={(next) => void confirmOtaChangeAndSave(next)}
     >
       <Row gutter={16}>
         <Col xs={24} md={12}>

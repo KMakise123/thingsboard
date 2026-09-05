@@ -5,6 +5,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import type { ChangeEvent } from 'react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { serverErrorText } from '@/components/entities/server-error-text';
+import { writeClipboard } from '@/components/shared/clipboard';
 import { tokenStore } from '@/core/auth/token-store';
 import { toServerError } from '@/pages/user/utils';
 import { logout } from '@/services/tb';
@@ -267,29 +268,7 @@ const ForceMfaPage: React.FC = () => {
     if (!totpSecret) {
       return;
     }
-    let ok = false;
-    try {
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(totpSecret);
-        ok = true;
-      }
-    } catch {
-      ok = false;
-    }
-    if (!ok) {
-      try {
-        const area = document.createElement('textarea');
-        area.value = totpSecret;
-        area.style.position = 'fixed';
-        area.style.opacity = '0';
-        document.body.appendChild(area);
-        area.select();
-        ok = document.execCommand('copy');
-        area.remove();
-      } catch {
-        ok = false;
-      }
-    }
+    const ok = await writeClipboard(totpSecret);
     if (ok) {
       message.success(formatMessage({ id: 'pages.forceMfa.totp.copied' }));
     } else {

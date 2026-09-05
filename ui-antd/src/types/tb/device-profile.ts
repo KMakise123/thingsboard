@@ -9,6 +9,11 @@
 
 import type { DeviceProfileType, DeviceTransportType } from './device';
 import type { BaseData, EntityIdOf, EntityType, HasVersion } from './entity';
+import type { OtaPackageType } from './ota';
+
+// Canonical OTA enum lives in ./ota (M13); re-exported so the profile
+// pickers keep importing it from this module.
+export { OtaPackageType } from './ota';
 
 /**
  * Wire enum — provisioning strategies the transport accepts
@@ -38,12 +43,6 @@ export enum CoapPowerMode {
   E_DRX = 'E_DRX',
   PSM = 'PSM',
   DRX = 'DRX',
-}
-
-/** Wire enum — OTA package families referenced by a device profile. */
-export enum OtaPackageType {
-  FIRMWARE = 'FIRMWARE',
-  SOFTWARE = 'SOFTWARE',
 }
 
 /** `profileData.configuration` — DEFAULT carries no fields (empty form in ui-ngx). */

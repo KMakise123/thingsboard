@@ -35,6 +35,8 @@ export default {
   'pages.devices.detail.profileRequired': '设备配置为必填项。',
   'pages.devices.detail.label': '标签',
   'pages.devices.detail.labelTooLong': '标签最长 255 个字符。',
+  'pages.devices.detail.firmware': '固件',
+  'pages.devices.detail.software': '软件',
   'pages.devices.detail.isGateway': '是网关',
   'pages.devices.detail.overwriteActivityTime': '覆盖网关活动时间',
   'pages.devices.detail.description': '描述',

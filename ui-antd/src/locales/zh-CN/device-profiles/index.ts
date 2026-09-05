@@ -87,6 +87,15 @@ export default {
   'pages.device-profiles.detail.edit': '编辑',
   'pages.device-profiles.detail.cancelEdit': '取消编辑',
   'pages.device-profiles.detail.save': '保存',
+  'pages.device-profiles.detail.cancel': '取消',
+  'pages.device-profiles.detail.otaChangeTitle': '确定要更改 OTA 设置吗？',
+  'pages.device-profiles.detail.otaChangeFirmware':
+    '固件变更可能导致 {count} 台设备更新。',
+  'pages.device-profiles.detail.otaChangeSoftware':
+    '软件变更可能导致 {count} 台设备更新。',
+  'pages.device-profiles.detail.otaChangeProceed': '继续',
+  'pages.device-profiles.detail.otaChangeCountFailed':
+    '统计受影响设备数失败：{reason}',
   'pages.device-profiles.detail.toastSaved': '设备配置已保存。',
   'pages.device-profiles.detail.saveFailed': '保存设备配置失败：{reason}',
   'pages.device-profiles.detail.loadFailed': '加载设备配置失败',
