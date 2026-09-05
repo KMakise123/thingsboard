@@ -70,6 +70,11 @@ export default {
   'pages.resources.scadaSymbolEditor.behavior.typeWidgetAction':
     'Widget 动作（Widget Action）',
   'pages.resources.scadaSymbolEditor.behavior.valueType': '值类型',
+  'pages.resources.scadaSymbolEditor.behavior.valueTypeString': '字符串',
+  'pages.resources.scadaSymbolEditor.behavior.valueTypeInteger': '整数',
+  'pages.resources.scadaSymbolEditor.behavior.valueTypeDouble': '小数',
+  'pages.resources.scadaSymbolEditor.behavior.valueTypeBoolean': '布尔',
+  'pages.resources.scadaSymbolEditor.behavior.valueTypeJson': 'JSON',
   'pages.resources.scadaSymbolEditor.behavior.trueLabel': 'True 标签',
   'pages.resources.scadaSymbolEditor.behavior.falseLabel': 'False 标签',
   'pages.resources.scadaSymbolEditor.behavior.stateLabel': '状态标签',
