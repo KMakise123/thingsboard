@@ -67,11 +67,14 @@ const servicesMock = vi.hoisted(() => ({
   referencesFromBody: vi.fn(),
   RESOURCE_UPLOAD_BATCH_SIZE: 100,
   jsModuleFileName: (title: string) => `${title}.js`,
-  jsModuleUploadRequest: (title: string, content: string) => ({
-    file: { name: `${title}.js`, parts: [content] },
+  // Mirrors the real builder (service tests pin it against TbResource).
+  jsModuleSaveRequest: (title: string, data: string) => ({
     title,
     resourceType: 'JS_MODULE',
     resourceSubType: 'MODULE',
+    fileName: `${title}.js`,
+    data,
+    descriptor: { mediaType: 'application/javascript' },
   }),
   // Page branches on this class (instanceof) to open the in-use modal.
   ResourceReferencedError: class ResourceReferencedError extends Error {
@@ -237,7 +240,10 @@ describe('JS library page', () => {
     expect(window.location.search).toContain('resourceSubType=MODULE');
   });
 
-  it('creates a MODULE from content with the auto-derived .js file name', async () => {
+  // V8-1: MODULE saves ride the JSON channel (POST /api/resource) — the
+  // multipart upload endpoint answered 400 "Resource data should be
+  // specified" (walkthrough 2026-09-05, step 8).
+  it('creates a MODULE over the JSON channel with base64 content', async () => {
     renderPage();
     await screen.findByText('extension-a');
 
@@ -262,13 +268,54 @@ describe('JS library page', () => {
     fireEvent.click(within(modal).getByRole('button', { name: '保 存' }));
 
     await waitFor(() => {
-      expect(servicesMock.uploadResource).toHaveBeenCalledTimes(1);
+      expect(servicesMock.saveResource).toHaveBeenCalledTimes(1);
     });
-    const request = servicesMock.uploadResource.mock.calls[0][0];
+    expect(servicesMock.uploadResource).not.toHaveBeenCalled();
+    const request = servicesMock.saveResource.mock.calls[0][0];
+    expect(request.id).toBeUndefined();
     expect(request.title).toBe('myLib');
-    expect(request.file.name).toBe('myLib.js');
+    expect(request.fileName).toBe('myLib.js');
     expect(request.resourceType).toBe('JS_MODULE');
     expect(request.resourceSubType).toBe('MODULE');
+    expect(request.data).toBe('ZXhwb3J0IGNvbnN0IHggPSAxOw==');
+  });
+
+  it('saves MODULE edits over the JSON channel with the editor content', async () => {
+    renderPage();
+    await screen.findByText('module-b');
+
+    // Open the module-b row's more menu and pick 编辑脚本.
+    const row = screen
+      .getByText('module-b')
+      .closest('tr') as HTMLElement;
+    fireEvent.click(
+      row.querySelector('.ant-dropdown-trigger') as HTMLElement,
+    );
+    fireEvent.click(await screen.findByText('编辑脚本'));
+
+    const modal = document.querySelector('.ant-modal') as HTMLElement;
+    await waitFor(() => {
+      expect(
+        (screen.getByTestId('code-editor') as HTMLTextAreaElement).value,
+      ).toBe('export const x = 1;');
+    });
+    fireEvent.change(screen.getByTestId('code-editor'), {
+      target: { value: 'export const x = 2;' },
+    });
+    // Regex: the ok button keeps the jsdom-stuck loading icon span
+    // (aria-label="loading") in its accessible name after editorLoading.
+    fireEvent.click(
+      within(modal).getByRole('button', { name: /保 存/ }),
+    );
+
+    await waitFor(() => {
+      expect(servicesMock.saveResource).toHaveBeenCalledTimes(1);
+    });
+    expect(servicesMock.updateResourceInfo).not.toHaveBeenCalled();
+    expect(servicesMock.updateResourceData).not.toHaveBeenCalled();
+    const request = servicesMock.saveResource.mock.calls[0][0];
+    expect(request.id).toEqual({ entityType: 'TB_RESOURCE', id: 'js-2' });
+    expect(request.data).toBe('ZXhwb3J0IGNvbnN0IHggPSAyOw==');
   });
 
   it('runs the referenced-delete flow: confirm, in-use modal, force delete', async () => {

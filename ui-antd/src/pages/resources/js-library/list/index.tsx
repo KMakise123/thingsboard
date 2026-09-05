@@ -60,16 +60,16 @@ import {
   downloadResource,
   getResourceById,
   getResources,
-  jsModuleFileName,
-  jsModuleUploadRequest,
+  jsModuleSaveRequest,
   ResourceReferencedError,
+  saveResource,
   updateResourceData,
   updateResourceInfo,
   uploadResource,
 } from '@/services/tb/resource';
 import type { TbResourceInfo } from '@/types/tb/resource';
 import { ResourceSubType, ResourceType } from '@/types/tb/resource';
-import { base64ToString } from './js-content';
+import { base64ToString, stringToBase64 } from './js-content';
 import {
   JS_RESOURCE_SUB_TYPES,
   toPageLink,
@@ -242,9 +242,14 @@ export default function JsLibraryListPage() {
     try {
       if (!editTarget) {
         if (values.resourceSubType === ResourceSubType.MODULE) {
-          // MODULE create: the .js file name derives from the title.
-          await uploadResource(
-            jsModuleUploadRequest(values.title, values.content ?? ''),
+          // MODULE create: JSON channel — the editor content is base64'd
+          // and the .js file name derives from the title (V8-1: the
+          // multipart endpoint 400s without a real file part). The
+          // CodeEditor mirrors into the `content` state, which is the
+          // only reliable read-back (form values carry registered
+          // fields only).
+          await saveResource(
+            jsModuleSaveRequest(values.title, stringToBase64(content)),
           );
         } else {
           const file = uploadedFile?.originFileObj;
@@ -264,21 +269,17 @@ export default function JsLibraryListPage() {
             resourceSubType: ResourceSubType.EXTENSION,
           });
         }
+      } else if (values.resourceSubType === ResourceSubType.MODULE) {
+        // MODULE edit: one JSON save carries the title and the current
+        // editor content (V8-1 — no multipart data replacement).
+        await saveResource({
+          ...jsModuleSaveRequest(values.title, stringToBase64(content)),
+          id: editTarget.id,
+        });
       } else {
-        // Update: metadata first, payload only when it actually changed.
+        // EXTENSION update: metadata first, payload only when re-uploaded.
         await updateResourceInfo(editTarget.id.id, { title: values.title });
-        if (values.resourceSubType === ResourceSubType.MODULE) {
-          if (values.content !== undefined && values.content !== content) {
-            await updateResourceData(
-              editTarget.id.id,
-              new File(
-                [values.content],
-                editTarget.fileName || jsModuleFileName(values.title),
-                { type: 'text/javascript' },
-              ),
-            );
-          }
-        } else if (uploadedFile?.originFileObj) {
+        if (uploadedFile?.originFileObj) {
           await updateResourceData(
             editTarget.id.id,
             uploadedFile.originFileObj,

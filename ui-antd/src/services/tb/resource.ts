@@ -28,8 +28,10 @@
  * resources-in-use flow and retry with force=true.
  *
  * JS MODULE semantics (ui-ngx js-resource.component.ts:106-120): a MODULE
- * saves with the file name auto-derived from the title (`title + '.js'`);
- * the upload endpoint derives its `fileName` from the File object's name.
+ * saves with the file name auto-derived from the title (`title + '.js'`).
+ * Editor-driven MODULE create/edit go through the JSON channel
+ * (saveResource) — see jsModuleSaveRequest for the V8-1 rationale; only
+ * file-backed EXTENSION uploads use the multipart endpoint.
  */
 
 import {
@@ -257,21 +259,26 @@ export async function deleteResource(
 }
 
 /**
- * JS MODULE upload request from edited content: the File object carries
- * the auto-derived `title + '.js'` name, which is what the backend stores
- * as `fileName` (ui-ngx js-resource.component.ts:110-120).
+ * JS MODULE JSON-save body (`POST /api/resource`): the content-editor path
+ * sends the script as base64 `data` with the auto-derived `title + '.js'`
+ * file name (ui-ngx js-resource.component.ts:110-118 semantics; the media
+ * type descriptor mirrors what the upload endpoint derives server-side).
+ *
+ * V8-1 (walkthrough 2026-09-05): the multipart upload endpoint answers
+ * 400 "Resource data should be specified" when handed editor content as a
+ * File part, so MODULE create/edit ride the JSON channel instead.
  */
-export function jsModuleUploadRequest(
+export function jsModuleSaveRequest(
   title: string,
-  content: string,
-): ResourceUploadRequest {
+  base64Data: string,
+): TbResource {
   return {
-    file: new File([content], jsModuleFileName(title), {
-      type: 'text/javascript',
-    }),
     title,
     resourceType: ResourceType.JS_MODULE,
     resourceSubType: ResourceSubType.MODULE,
+    fileName: jsModuleFileName(title),
+    data: base64Data,
+    descriptor: { mediaType: 'application/javascript' },
   };
 }
 

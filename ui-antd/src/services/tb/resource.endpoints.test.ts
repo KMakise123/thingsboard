@@ -31,7 +31,7 @@ import {
   getResources,
   getTenantResources,
   jsModuleFileName,
-  jsModuleUploadRequest,
+  jsModuleSaveRequest,
   referencesFromBody,
   saveResource,
   updateResourceData,
@@ -270,13 +270,31 @@ describe('resource transport endpoints', () => {
 
   it('derives the MODULE .js file name from the title', () => {
     expect(jsModuleFileName('my lib')).toBe('my lib.js');
-    const request2 = jsModuleUploadRequest('my lib', 'export const x = 1;');
-    expect(request2.title).toBe('my lib');
-    expect(request2.resourceType).toBe(ResourceType.JS_MODULE);
-    expect(request2.resourceSubType).toBe(ResourceSubType.MODULE);
-    const file = request2.file as File;
-    expect(file.name).toBe('my lib.js');
-    expect(file.type).toBe('text/javascript');
-    expect(post).not.toHaveBeenCalled();
+  });
+
+  // V8-1: MODULE content saves ride the JSON channel — the multipart
+  // upload endpoint needs a real file part and answered 400 "Resource
+  // data should be specified" when handed editor text (walkthrough
+  // 2026-09-05, step 8).
+  it('builds the MODULE JSON-save body with the derived .js file name', () => {
+    const body = jsModuleSaveRequest('my lib', 'ZXhwb3J0IGNvbnN0IHggPSAxOw==');
+    expect(body.id).toBeUndefined();
+    expect(body.title).toBe('my lib');
+    expect(body.resourceType).toBe(ResourceType.JS_MODULE);
+    expect(body.resourceSubType).toBe(ResourceSubType.MODULE);
+    expect(body.fileName).toBe('my lib.js');
+    expect(body.data).toBe('ZXhwb3J0IGNvbnN0IHggPSAxOw==');
+    expect(body.descriptor).toEqual({ mediaType: 'application/javascript' });
+  });
+
+  it('saves MODULE content over the JSON channel, never multipart', async () => {
+    post.mockResolvedValue({ id: { entityType: 'TB_RESOURCE', id: 'r1' } });
+    await saveResource(
+      jsModuleSaveRequest('my lib', 'ZXhwb3J0IGNvbnN0IHggPSAxOw=='),
+    );
+    expect(post).toHaveBeenCalledTimes(1);
+    const [path, body] = post.mock.calls[0];
+    expect(path).toBe('/api/resource');
+    expect(body).not.toBeInstanceOf(FormData);
   });
 });
