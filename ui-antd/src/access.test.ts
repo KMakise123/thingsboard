@@ -14,6 +14,7 @@ describe('access', () => {
       canSysAdmin: true,
       canTenantAdmin: false,
       canCustomerUser: false,
+      canSysAdminOrTenantAdmin: true,
       canTenantOrCustomer: false,
       canAuthenticated: true,
     });
@@ -23,6 +24,8 @@ describe('access', () => {
     const result = access({ currentUser: userWith(Authority.TENANT_ADMIN) });
     expect(result.canSysAdmin).toBe(false);
     expect(result.canTenantAdmin).toBe(true);
+    // SA+TA shared pages (M11 resources library) admit TENANT_ADMIN.
+    expect(result.canSysAdminOrTenantAdmin).toBe(true);
     expect(result.canTenantOrCustomer).toBe(true);
     expect(result.canAuthenticated).toBe(true);
   });
@@ -31,6 +34,7 @@ describe('access', () => {
     const result = access({ currentUser: userWith(Authority.CUSTOMER_USER) });
     expect(result.canCustomerUser).toBe(true);
     expect(result.canTenantAdmin).toBe(false);
+    expect(result.canSysAdminOrTenantAdmin).toBe(false);
     expect(result.canTenantOrCustomer).toBe(true);
     expect(result.canAuthenticated).toBe(true);
   });
@@ -40,6 +44,7 @@ describe('access', () => {
     expect(result.canSysAdmin).toBe(false);
     expect(result.canTenantAdmin).toBe(false);
     expect(result.canCustomerUser).toBe(false);
+    expect(result.canSysAdminOrTenantAdmin).toBe(false);
     expect(result.canTenantOrCustomer).toBe(false);
     expect(result.canAuthenticated).toBe(false);
   });
