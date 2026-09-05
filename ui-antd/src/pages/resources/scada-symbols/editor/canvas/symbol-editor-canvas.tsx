@@ -106,12 +106,6 @@ export const SymbolEditorCanvas = forwardRef<
   useEffect(() => {
     tagEditingRef.current = tagEditing;
   }, [tagEditing]);
-  useEffect(() => {
-    panelHoveredRef.current = panelHovered;
-    if (panelHovered) {
-      cancelPanelClose();
-    }
-  }, [panelHovered]);
 
   const clearCloseTimer = useCallback(() => {
     if (closeTimerRef.current) {
@@ -136,6 +130,13 @@ export const SymbolEditorCanvas = forwardRef<
       setPanelClosing(false);
     }, PANEL_CLOSE_GRACE_MS);
   }, [clearCloseTimer]);
+
+  useEffect(() => {
+    panelHoveredRef.current = panelHovered;
+    if (panelHovered) {
+      cancelPanelClose();
+    }
+  }, [panelHovered, cancelPanelClose]);
 
   const syncCanvasUiState = useCallback(() => {
     const canvas = canvasRef.current;
@@ -192,8 +193,18 @@ export const SymbolEditorCanvas = forwardRef<
       canvas.destroy();
       canvasRef.current = null;
     };
-    // Mount/unmount only — content updates flow through the effect below.
-  }, [content]);
+    // The canvas rebuilds when the saved content is replaced (upload /
+    // save-reload) and when the theme tokens change; every other dep is a
+    // stable callback.
+  }, [
+    content,
+    token,
+    readonly,
+    syncCanvasUiState,
+    clearCloseTimer,
+    cancelPanelClose,
+    schedulePanelClose,
+  ]);
 
   useEffect(() => {
     canvasRef.current?.setReadOnly(readonly);
@@ -537,7 +548,7 @@ export const SymbolEditorCanvas = forwardRef<
         content={panelContent()}
         placement="top"
         arrow
-        styles={{ body: { padding: '4px 8px' } }}
+        styles={{ content: { padding: '4px 8px' } }}
       >
         <span data-testid="scada-panel-anchor" style={anchorStyle} />
       </Popover>

@@ -393,7 +393,7 @@ export const applyTbNamespaceToSvgContent = (svgContent: string): string => {
   tbNamespaceRegex.lastIndex = 0;
   const nsMatch = tbNamespaceRegex.exec(svgRootNode);
   if (nsMatch === null || !nsMatch.length) {
-    svgRootNode = svgRootNode.slice(0, -1) + ` ${TB_NAMESPACE_DECL}>`;
+    svgRootNode = `${svgRootNode.slice(0, -1)} ${TB_NAMESPACE_DECL}>`;
     return `${svgRootNode}\n${innerSvg}\n</svg>`;
   }
   return svgContent;
@@ -478,7 +478,7 @@ export const removeScadaSymbolMetadata = (svgContent: string): string => {
   let result = svgContent;
   tbMetadataRegex.lastIndex = 0;
   const metadataMatch = tbMetadataRegex.exec(svgContent);
-  if (metadataMatch !== null && metadataMatch.length) {
+  if (metadataMatch?.length) {
     const metadata = metadataMatch[0];
     result = result.replace(metadata, '');
   }
@@ -506,7 +506,7 @@ export const scadaSymbolContentData = (
       let innerSvgContent = match[2];
       tbMetadataRegex.lastIndex = 0;
       const metadataMatch = tbMetadataRegex.exec(svgContent);
-      if (metadataMatch !== null && metadataMatch.length) {
+      if (metadataMatch?.length) {
         const metadata = metadataMatch[0];
         innerSvgContent = innerSvgContent.replace(metadata, '');
       }
@@ -606,7 +606,7 @@ export const defaultWidgetActionSettings: WidgetActionSettings = {
 /** Deep-merge `sources` into a fresh object (ui-ngx mergeDeep slice). */
 export const mergeDeep = <T extends object>(
   target: T,
-  ...sources: Array<DeepPartial<T>>
+  ...sources: object[]
 ): T => {
   const isObject = (value: unknown): value is Record<string, unknown> =>
     value !== null && typeof value === 'object' && !Array.isArray(value);

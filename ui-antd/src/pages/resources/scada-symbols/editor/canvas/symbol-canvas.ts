@@ -189,7 +189,10 @@ export class SymbolCanvas {
     for (const entry of this.entries) {
       this.restoreOrigVisibility(entry);
     }
-    const svgContent = shape.svg((e: SvgElement) => {
+    // The serializer callback must return `false` (drop node) or
+    // `undefined` (keep) — svg.js treats any other truthy value as a node
+    // replacement.
+    const svgContent = shape.svg((e: SvgElement): boolean | undefined => {
       if (e.node.hasAttribute?.('tb:inner')) {
         return false;
       }
@@ -198,6 +201,7 @@ export class SymbolCanvas {
         e.node.removeAttribute('class');
       }
       e.attr('svgjs:data', null);
+      return undefined;
     }, false);
     this.showHiddenElements(this.showHidden);
     return `${this.svgRootNodePart}\n${svgContent}\n</svg>`;
@@ -338,7 +342,9 @@ export class SymbolCanvas {
     this.entries = [];
     if (this.svgShape) {
       try {
-        this.svgShape.panZoom(false);
+        (
+          this.svgShape as unknown as { panZoom: (value: false) => void }
+        ).panZoom(false);
       } catch {
         // panZoom(false) on a shape without panzoom is a no-op guard.
       }
@@ -425,7 +431,7 @@ export class SymbolCanvas {
 
   private resolveSymbolBox(shape: Svg, svgRootNode: string): Box {
     const viewBox = svgRootViewBox(svgRootNode);
-    if (viewBox && viewBox.width && viewBox.height) {
+    if (viewBox?.width && viewBox?.height) {
       return {
         x: viewBox.x,
         y: viewBox.y,
@@ -663,7 +669,7 @@ export class SymbolCanvas {
     }
     return {
       handle: entry.handle,
-      elementId: (entry.element.node as HTMLElement).id || null,
+      elementId: entry.element.node.id || null,
       elementType: entry.element.type,
       tag: entry.tag,
       invisible: entry.invisible,

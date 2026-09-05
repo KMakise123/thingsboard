@@ -4,7 +4,7 @@
  * structurally — the serialization discipline, tag management, hidden
  * element handling and zoom clamps are the load-bearing contract here.
  */
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { SymbolCanvas } from './symbol-canvas';
 
@@ -130,7 +130,7 @@ describe('SymbolCanvas', () => {
   it('emits a hover panel state on mouseenter and closes on mouseleave', () => {
     const { canvas, callbacks } = createCanvas();
     callbacks.panelChanged.mockClear();
-    const rect = document.getElementById('r1') as SVGElement;
+    const rect = document.getElementById('r1') as unknown as SVGElement;
     rect.dispatchEvent(new MouseEvent('mouseenter'));
     expect(callbacks.panelChanged).toHaveBeenCalledTimes(1);
     const panel = callbacks.panelChanged.mock.calls[0][0];

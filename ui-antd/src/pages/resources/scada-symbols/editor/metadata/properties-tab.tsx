@@ -116,7 +116,7 @@ export function PropertiesTab({
       ) : (
         properties.map((property, index) => (
           <Card
-            key={`${property.id}-${index}`}
+            key={property.id}
             size="small"
             title={property.id}
             extra={

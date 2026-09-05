@@ -87,7 +87,7 @@ describe('SymbolEditorCanvas', () => {
         document.querySelector('[data-testid="scada-canvas-host"] svg'),
       ).toBeTruthy();
     });
-    const rect = document.getElementById('r1') as SVGElement;
+    const rect = document.getElementById('r1') as unknown as SVGElement;
     rect.dispatchEvent(new MouseEvent('mouseenter'));
     const addTag = await screen.findByTestId('scada-tag-add');
     fireEvent.click(addTag);
@@ -141,7 +141,7 @@ describe('SymbolEditorCanvas', () => {
         document.querySelector('[data-testid="scada-canvas-host"] svg'),
       ).toBeTruthy();
     });
-    const rect = document.getElementById('r1') as SVGElement;
+    const rect = document.getElementById('r1') as unknown as SVGElement;
     rect.dispatchEvent(new MouseEvent('mouseenter'));
     await vi.advanceTimersByTimeAsync(50);
     expect(screen.queryByTestId('scada-tag-add')).toBeNull();
