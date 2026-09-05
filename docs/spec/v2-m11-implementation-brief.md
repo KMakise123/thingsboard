@@ -65,9 +65,40 @@
 | 10 | §3.6-2 | 仪表盘内符号实例走查：换符号/绑设备/绑对象可用、无 SVG 结构编辑入口 → 回写 editors spec §6 |
 | 11 | §3.7 | i18n 抽查无裸 key、主题 DOM 探针零内联色值、门禁数字落账 |
 
-## 5. PoC / 证据义务（V 波回填本节）
+## 5. PoC / 证据义务（V 波回填本节，2026-09-05）
 
-- （待回填：交付 commit 清单、单测数、走查终态、门禁数字、两条回写链接、数据保全清单）
+### 5.1 交付 commit 清单（worktree 实测 `git log`，grouping 按 commit subject）
+
+- **波 0 七连发**：`17ae5f6fc1`（svg.js 三依赖）→ `ed8d6a8753`（access key）→ `82d0e8fc57`（menu keys）→ `0920c5a8ac`（resources locale 骨架）→ `2ef1c31dd2`（八 stub 页）→ `48b29bbc74`（/resources 路由族）→ `00c58266ce`（stub 显式标题修复）
+- **路由补丁（1B 裁决）**：`06000baa24`（widget type 详情动态路由 + M9 编辑器 SA access）
+- **波 1A 八连发**：`7e434cbd5e`（bundle wire types + transport）→ `ac77573d48`（resource 域类型）→ `42f1b2951c`（resource transport 批传 + 引用删流）→ `d1ae0015bc`（resources-in-use force 删 Modal）→ `37c521c21b`（引用实体 resolver + locale）→ `df5bf2e1e0`（widget types/bundles zh/en）→ `afc7836986`（widget types 列表页）→ `2d44ce5f5d`（read 行必带 resource id）→ `39a7eca1d3`（资源文件库列表页）→ `5dce50c747`（JS 库列表页 + MODULE 编辑 + 引用删流）
+- **波 1B 七连发**：`924a396b7d`（列表显式标题保留）→ `8f32685506`（bundle widgets 管理页）→ `53ba5455e5`（bundles 列表页）→ `f2df9076a0`（widget type 详情页）→ `ff3dc3428e`（biome 格式化）→ `37c521c21b`/`df5bf2e1e0` 见 1A 分组（共享 locale）
+- **波 2C 五连发**：`f72cef7129`（image transport + wire types）→ `6b86c23e7d`（image gallery 组件族）→ `482e75e2f4`（images + scada symbols 库页）→ `d43a2a3a72`（gallery-image-input 控件）→ `679d74d4f0`（image wire types 钉死）
+- **波 2D 九连发**：`b20ada000f`（metadata 纯函数管道）→ `269ce591f6`（canvas 编辑对象字节稳定序列化）→ `e9e070bbd2`（editor locale）→ `fb68e7886a`（画布组件 svg/xml 双模式）→ `2a94a61085`（metadata 四 tab）→ `5e0dc6efbf`（静态预览）→ `113888a687`（create-widget 对话框）→ `a9c021421d`（编辑器页保存链/readonly/退出确认/建 widget）→ `48b9aad2e0`（lint 合规）
+- **波 2E 两连发**：`7b1ac25a67`（scada 布局抽屉两路 scadaFirst）→ `401ce39f05`（?template= 预选 starter）
+- 另：`c2673ae46d`（spec 事实核查修订）、`65b483ec32`（M11 kickoff spec+简报）
+
+### 5.2 走查终态（3V 波，11 项）
+
+✅ 9 项 / 半 1 项 / 受阻 1 项，新登记缺陷 4 项（V1-1 Major 后端语义、V1-2 Minor、V8-1 Major、V8-2 Minor，修复归 X 波）；editors spec 两条解锁按裁决口径回写。逐项动作/证据/结论见 [v2-m11-browser-walkthrough.md](./v2-m11-browser-walkthrough.md)；spec 勾账见 [v2-subsystems-acceptance.md](./v2-subsystems-acceptance.md) §3.1–3.7（✅ 26 项勾选，受阻或未覆盖 6 项保持未勾并逐行登记）。
+
+### 5.3 单测与门禁数字（3G 波为准，3V 本地复核）
+
+- 门禁：lint **0 error / 30 warnings**（基线不变）、tsc **0 错误**、vitest **1885 用例全绿**、check-locale **绿**（3V 波 worktree 本地复跑 check-locale PASS；worktree 无 node_modules junction，全量门禁以 3G 波实测为准）。
+- 单测锚（随波交付）：`core/scada/symbol-metadata.test.ts`（纯函数管道）、`resources-in-use` 组件单测、`resource/image/widgets-bundle` endpoints.test、`manage-layouts.test`、`bundle-widgets/index.test`（保存契约）、2E scadaFirst 单测。
+
+### 5.4 两条 editors spec 回写链接
+
+- [v2-editors-acceptance.md](./v2-editors-acceptance.md) **§3.2** scada 置顶行：参数透传勾账 + registry-only 受限口径（裁决照抄）
+- [v2-editors-acceptance.md](./v2-editors-acceptance.md) **§3.6** 边界行：SVG 不可编辑成立勾账 + 换符号/绑设备/绑对象无承载如实登记
+
+### 5.5 自动化衔接 #12 登记
+
+comment URL：https://github.com/KMakise123/thingsboard/issues/12#issuecomment-5550579017 （范围：资源五列表 CRUD 主路径、引用删除流、scadaFirst 参数、SCADA 编辑器保存链；是否常驻回归由 #12 扩充时另定）
+
+### 5.6 数据保全清单（3V 走查终态）
+
+自建 fixture 11 类全部 DELETE（widget 类型 ×4、bundle ×1、图片 ×1、SCADA 符号 ×1、JS MODULE ×1、资源文件 ×2、仪表盘 ×1；逐项 API 复核 total=0 或 404）；system 资源零写入（只读目击 + 只读导出副本不入库）。逐项清单见走查文档 §4。
 
 ## 修订记录
 
