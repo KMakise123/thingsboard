@@ -32,6 +32,7 @@ import menu from './en-US/menu';
 import images from './en-US/resources/images';
 import jsLibrary from './en-US/resources/js-library';
 import library from './en-US/resources/library';
+import scadaSymbolEditor from './en-US/resources/scada-symbol-editor';
 import scadaSymbols from './en-US/resources/scada-symbols';
 import widgetTypes from './en-US/resources/widget-types';
 import widgetsBundles from './en-US/resources/widgets-bundles';
@@ -58,6 +59,7 @@ export default {
   ...images,
   ...jsLibrary,
   ...library,
+  ...scadaSymbolEditor,
   ...scadaSymbols,
   ...widgetTypes,
   ...widgetsBundles,
