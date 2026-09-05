@@ -86,8 +86,6 @@ import {
 } from './url-state';
 
 const EDGE_QUERY_KEY = ['edges', 'instances'] as const;
-const SETTINGS_QUERY_KEY = ['user', 'settings'] as const;
-
 const SEARCH_DEBOUNCE_MS = 400;
 
 /** TB's null-customer UUID (EntityId.NULL_UUID). */
@@ -164,16 +162,6 @@ export default function EdgeListPage() {
     staleTime: 60_000,
   });
 
-  // ---- "don't show instructions again" preference (a TA-only flow feeds it)
-  const settingsQuery = useQuery({
-    queryKey: SETTINGS_QUERY_KEY,
-    queryFn: getUserSettings,
-    staleTime: Infinity,
-    enabled: !readOnly,
-  });
-  const hideInstructionsAfterAdd =
-    settingsQuery.data?.notDisplayInstructionsAfterAddEdge === true;
-
   // ---- selection & dialogs
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const selectedEdges = edges.filter((edge) =>
@@ -245,7 +233,10 @@ export default function EdgeListPage() {
         }),
       );
       void invalidate();
-      if (!hideInstructionsAfterAdd) {
+      // Re-read the preference at save time (ngx parity): the cached query
+      // may predate the dialog's "don't show again" write in this session.
+      const settings = await getUserSettings().catch(() => null);
+      if (settings?.notDisplayInstructionsAfterAddEdge !== true) {
         setInstructions({ edge: saved, mode: 'afterAdd' });
       }
     } catch (error) {
