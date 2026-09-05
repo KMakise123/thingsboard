@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { tokenStore } from '@/core/auth/token-store';
 import { DeviceCredentialsType, EntityType } from '@/types/tb';
+import { OtaPackageType } from '@/types/tb/ota';
 
 import { tbHttp } from './http';
 
@@ -35,6 +36,7 @@ import {
 import { getCustomers } from './customer';
 import {
   assignDevicesToCustomer,
+  countDevicesByOtaPackageType,
   deleteDevice,
   deleteDevices,
   getCustomerDevices,
@@ -193,6 +195,16 @@ describe('device transport endpoints', () => {
   it('credentials endpoints match ui-ngx', async () => {
     await getDeviceCredentials('d-1');
     expect(get).toHaveBeenCalledWith('/api/device/d-1/credentials');
+  });
+
+  it('OTA affected-devices count hits /api/devices/count/{type}/{profileId}', async () => {
+    get.mockResolvedValue(3);
+    await expect(
+      countDevicesByOtaPackageType(OtaPackageType.FIRMWARE, 'p-1'),
+    ).resolves.toBe(3);
+    expect(get).toHaveBeenCalledWith('/api/devices/count/FIRMWARE/p-1');
+    await countDevicesByOtaPackageType(OtaPackageType.SOFTWARE, 'p-2');
+    expect(get).toHaveBeenCalledWith('/api/devices/count/SOFTWARE/p-2');
   });
 
   it('bulk import posts JSON (CSV text in `file`) at /api/device/bulk_import', async () => {

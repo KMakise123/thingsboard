@@ -24,6 +24,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { serverErrorText } from '@/components/entities/server-error-text';
+import { OtaPackageSelect } from '@/components/profiles/selects';
 import {
   getDeviceProfiles,
   saveDevice,
@@ -36,6 +37,7 @@ import {
   type DeviceProfileInfo,
   EntityType,
 } from '@/types/tb';
+import { OtaPackageType } from '@/types/tb/ota';
 import { ConnectivityPanel } from './connectivity';
 import {
   credentialTypesForTransport,
@@ -58,6 +60,8 @@ export interface DeviceWizardModalProps {
 interface DetailsFormValue {
   name: string;
   label?: string;
+  firmwareId?: string;
+  softwareId?: string;
   gateway: boolean;
   overwriteActivityTime: boolean;
   description?: string;
@@ -168,6 +172,12 @@ export function DeviceWizardModal({
         entityType: EntityType.DEVICE_PROFILE,
         id: profileId as string,
       },
+      firmwareId: values.firmwareId
+        ? { entityType: EntityType.OTA_PACKAGE, id: values.firmwareId }
+        : undefined,
+      softwareId: values.softwareId
+        ? { entityType: EntityType.OTA_PACKAGE, id: values.softwareId }
+        : undefined,
       additionalInfo: {
         gateway: !!values.gateway,
         overwriteActivityTime: !!values.overwriteActivityTime,
@@ -339,7 +349,16 @@ export function DeviceWizardModal({
                 label: profile.name,
                 value: profile.id.id,
               }))}
-              onChange={(value) => setProfileId(value)}
+              onChange={(value) => {
+                setProfileId(value);
+                // The details step's OTA picks are scoped to the profile;
+                // switching profiles invalidates them (ui-ngx autocomplete
+                // reset semantics), so clear before they are re-picked.
+                detailsForm.setFieldsValue({
+                  firmwareId: undefined,
+                  softwareId: undefined,
+                });
+              }}
             />
           </Form.Item>
           <WizardActions
@@ -403,6 +422,30 @@ export function DeviceWizardModal({
             ]}
           >
             <Input />
+          </Form.Item>
+          <Form.Item
+            name="firmwareId"
+            label={formatMessage({
+              id: 'pages.devices.list.wizardFirmware',
+              defaultMessage: 'Firmware',
+            })}
+          >
+            <OtaPackageSelect
+              deviceProfileId={profileId}
+              otaPackageType={OtaPackageType.FIRMWARE}
+            />
+          </Form.Item>
+          <Form.Item
+            name="softwareId"
+            label={formatMessage({
+              id: 'pages.devices.list.wizardSoftware',
+              defaultMessage: 'Software',
+            })}
+          >
+            <OtaPackageSelect
+              deviceProfileId={profileId}
+              otaPackageType={OtaPackageType.SOFTWARE}
+            />
           </Form.Item>
           <Form.Item name="gateway" valuePropName="checked" noStyle>
             <Checkbox>

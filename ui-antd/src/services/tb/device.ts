@@ -19,6 +19,7 @@ import {
   type PageLink,
   pageLinkToQueryParams,
 } from '@/types/tb';
+import type { OtaPackageType } from '@/types/tb/ota';
 
 import { tbHttp } from './http';
 
@@ -185,4 +186,19 @@ export async function importDevices(
 /** GET /api/device-connectivity/{deviceId} — connectivity check dialog. */
 export async function getDeviceConnectivity(deviceId: string): Promise<Record<string, unknown>> {
   return tbHttp.get<Record<string, unknown>>(`/api/device-connectivity/${deviceId}`);
+}
+
+/**
+ * GET /api/devices/count/{otaPackageType}/{deviceProfileId} — devices of the
+ * profile without a device-scope package of that type, i.e. the "affected
+ * devices" count behind the OTA change confirm dialog (ui-ngx
+ * countUpdateDeviceAfterChangePackage; backend countByDeviceProfileAndEmptyOtaPackage).
+ */
+export async function countDevicesByOtaPackageType(
+  otaPackageType: OtaPackageType,
+  deviceProfileId: string,
+): Promise<number> {
+  return tbHttp.get<number>(
+    `/api/devices/count/${otaPackageType}/${deviceProfileId}`,
+  );
 }

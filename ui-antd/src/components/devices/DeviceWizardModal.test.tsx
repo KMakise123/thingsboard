@@ -24,7 +24,12 @@ const servicesMock = vi.hoisted(() => ({
   getDeviceConnectivity: vi.fn(),
 }));
 
+const profileServiceMock = vi.hoisted(() => ({
+  getOtaPackagesByDeviceProfile: vi.fn(),
+}));
+
 vi.mock('@/services/tb/device', () => servicesMock);
+vi.mock('@/services/tb/device-profile', () => profileServiceMock);
 
 vi.mock('@/core/ws/hooks', () => ({
   useAttributeSubscription: () => ({ data: [], status: 'connected' }),
@@ -103,6 +108,10 @@ describe('DeviceWizardModal', () => {
     servicesMock.getDeviceConnectivity.mockResolvedValue({});
     servicesMock.saveDevice.mockResolvedValue(createdDevice);
     servicesMock.saveDeviceWithCredentials.mockResolvedValue(createdDevice);
+    profileServiceMock.getOtaPackagesByDeviceProfile.mockResolvedValue({
+      data: [],
+      totalElements: 0,
+    });
   });
 
   it('walks profile -> details and blocks empty names', async () => {

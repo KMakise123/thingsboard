@@ -82,6 +82,8 @@ export default {
     'Name should be less than 256 characters.',
   'pages.devices.list.wizardLabelMaxLength':
     'Label should be less than 256 characters.',
+  'pages.devices.list.wizardFirmware': 'Firmware',
+  'pages.devices.list.wizardSoftware': 'Software',
   'pages.devices.list.wizardOverwriteActivityTime':
     'Overwrite activity time for connected device',
   'pages.devices.list.wizardDescription': 'Description',

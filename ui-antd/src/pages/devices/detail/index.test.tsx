@@ -22,6 +22,10 @@ const servicesMock = vi.hoisted(() => ({
   saveDevice: vi.fn(),
 }));
 
+const profileServiceMock = vi.hoisted(() => ({
+  getOtaPackagesByDeviceProfile: vi.fn(),
+}));
+
 const eventsMock = vi.hoisted(() => ({
   getEvents: vi.fn(),
 }));
@@ -78,6 +82,7 @@ vi.mock('@ant-design/pro-components', () => ({
   ),
 }));
 vi.mock('@/services/tb/device', () => servicesMock);
+vi.mock('@/services/tb/device-profile', () => profileServiceMock);
 vi.mock('@/core/auth/token-store', () => ({
   tokenStore: tokenStoreMock,
 }));
@@ -134,6 +139,10 @@ describe('device detail page', () => {
     servicesMock.getDeviceInfoById.mockResolvedValue(DEVICE);
     servicesMock.getDeviceProfiles.mockResolvedValue(PROFILES_PAGE);
     servicesMock.saveDevice.mockResolvedValue(DEVICE);
+    profileServiceMock.getOtaPackagesByDeviceProfile.mockResolvedValue({
+      data: [],
+      totalElements: 0,
+    });
     eventsMock.getEvents.mockResolvedValue({ data: [], totalElements: 0 });
   });
 

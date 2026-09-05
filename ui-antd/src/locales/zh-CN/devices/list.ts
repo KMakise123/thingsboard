@@ -73,6 +73,8 @@ export default {
   'pages.devices.list.wizardNameRequired': '名称为必填项。',
   'pages.devices.list.wizardNameMaxLength': '名称长度不能超过 255 个字符。',
   'pages.devices.list.wizardLabelMaxLength': '标签长度不能超过 255 个字符。',
+  'pages.devices.list.wizardFirmware': '固件',
+  'pages.devices.list.wizardSoftware': '软件',
   'pages.devices.list.wizardOverwriteActivityTime': '覆盖已连接设备的活动时间',
   'pages.devices.list.wizardDescription': '描述',
   'pages.devices.list.wizardCreate': '创建设备',

@@ -25,6 +25,7 @@ import {
   getDeviceProfiles,
   getTenantDevices,
 } from '@/services/tb/device';
+import { getEdgeInfo, getTenantEdgeInfos } from '@/services/tb/edge';
 import { tbHttp } from '@/services/tb/http';
 import { getRuleChains } from '@/services/tb/rule-chain';
 import type { DeviceInfo, RuleChain } from '@/types/tb';
@@ -44,7 +45,6 @@ import {
   type NotificationRuleTriggerType as TriggerType,
 } from '@/types/tb/notification';
 import type { PageData } from '@/types/tb/page';
-import { pageLinkToQueryParams } from '@/types/tb/page';
 import {
   ENTITIES_LIMIT_ENTITY_TYPES,
   ENTITY_ACTION_ENTITY_TYPES,
@@ -62,17 +62,16 @@ interface EdgeRow {
   name: string;
 }
 
-/** GET /api/tenant/edgeInfos — tenant-scope edge list (no edge service yet). */
+/** GET /api/tenant/edgeInfos — tenant-scope edge list via the edge service. */
 async function fetchEdges(textSearch: string): Promise<PageData<EdgeRow>> {
-  return tbHttp.get<PageData<EdgeRow>>('/api/tenant/edgeInfos', {
-    ...pageLinkToQueryParams(PICKER_PAGE_SORT),
-    type: 'DEFAULT',
-    textSearch: textSearch || undefined,
-  });
+  return getTenantEdgeInfos(
+    { ...PICKER_PAGE_SORT, textSearch: textSearch || undefined },
+    'DEFAULT',
+  );
 }
 
 async function fetchEdgeById(id: string) {
-  const edge = await tbHttp.get<EdgeRow>(`/api/edge/${id}/info`);
+  const edge = await getEdgeInfo(id);
   return { label: edge.name, value: id };
 }
 
