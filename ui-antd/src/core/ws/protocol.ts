@@ -11,6 +11,7 @@
  */
 
 import type { AlarmData, EntityId, TsValue } from '@/types/tb';
+import type { NotificationType, TbNotification } from '@/types/tb/notification';
 
 // ---------------------------------------------------------------------------
 // Commands (client → server)
@@ -190,11 +191,11 @@ export interface UnreadCountSubCmd extends WebsocketCmd {
   type: WsCmdType.NOTIFICATIONS_COUNT;
 }
 
-/** NOTIFICATIONS — notification list stream (typed for v2; M1 unused). */
+/** NOTIFICATIONS — notification list stream (WEB delivery, unread snapshot). */
 export interface UnreadSubCmd extends WebsocketCmd {
   type: WsCmdType.NOTIFICATIONS;
   limit: number;
-  types?: Array<string>;
+  types?: Array<NotificationType>;
 }
 
 export type UnsubscribeCmd =
@@ -305,10 +306,16 @@ export interface NotificationCountUpdateMsg extends CmdUpdateMsg {
   sequenceNumber: number;
 }
 
+/**
+ * NOTIFICATIONS update — a bare JSON object (no array wrapper): a full
+ * snapshot rides in `notifications`, a single new/changed entry in `update`;
+ * both absent = unread-count-only change. The server pushes a full snapshot
+ * right after subscribe (and after every reconnect).
+ */
 export interface NotificationsUpdateMsg extends CmdUpdateMsg {
   cmdUpdateType: CmdUpdateType.NOTIFICATIONS;
-  update?: Record<string, unknown>;
-  notifications?: Array<Record<string, unknown>>;
+  update?: TbNotification | null;
+  notifications?: Array<TbNotification> | null;
   totalUnreadCount: number;
   sequenceNumber: number;
 }

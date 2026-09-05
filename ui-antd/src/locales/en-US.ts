@@ -29,6 +29,7 @@ import editorWidgetPreview from './en-US/editor-widget-preview';
 import entityViews from './en-US/entityViews';
 import login from './en-US/login';
 import menu from './en-US/menu';
+import notifications from './en-US/notifications';
 import images from './en-US/resources/images';
 import jsLibrary from './en-US/resources/js-library';
 import library from './en-US/resources/library';
@@ -48,6 +49,7 @@ export default {
   ...crashGuard,
   ...login,
   ...menu,
+  ...notifications,
   ...account,
   ...alarms,
   ...assetProfiles,

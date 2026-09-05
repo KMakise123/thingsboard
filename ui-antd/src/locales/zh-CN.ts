@@ -31,6 +31,7 @@ import editorWidgetPreview from './zh-CN/editor-widget-preview';
 import entityViews from './zh-CN/entityViews';
 import login from './zh-CN/login';
 import menu from './zh-CN/menu';
+import notifications from './zh-CN/notifications';
 import images from './zh-CN/resources/images';
 import jsLibrary from './zh-CN/resources/js-library';
 import library from './zh-CN/resources/library';
@@ -50,6 +51,7 @@ export default {
   ...crashGuard,
   ...login,
   ...menu,
+  ...notifications,
   ...account,
   ...alarms,
   ...assetProfiles,

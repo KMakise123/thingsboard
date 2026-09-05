@@ -36,6 +36,7 @@ import type {
   EntityId,
   TsValue,
 } from '@/types/tb';
+import type { NotificationType, TbNotification } from '@/types/tb/notification';
 
 import {
   type AnySubCmd,
@@ -47,10 +48,12 @@ import {
   type EntityHistoryCmd,
   isSubscriptionUpdate,
   type LatestValueCmd,
+  type NotificationsUpdateMsg,
   parseServerMessage,
   type SubscriptionUpdateMsg,
   type TimeSeriesCmd,
   type TimeseriesSubscriptionCmd,
+  type UnreadSubCmd,
   type UnsubscribeCmd,
   WsCmdType,
   type WsServerMessage,
@@ -147,6 +150,30 @@ export interface EntityTimeseriesParams {
   /** optional latest-value columns carried on the same cmd. */
   latestCmd?: LatestValueCmd;
   seed?: Array<EntityTimeseriesRow>;
+}
+
+/**
+ * Snapshot of the NOTIFICATIONS stream. The server pushes the unread WEB
+ * inbox (createdTime desc, ≤ limit entries) right after subscribe and after
+ * every reconnect; afterwards each message is a single new/changed entry or
+ * an unread-count-only bump. The last message wins — consumers merge
+ * `update` into their own state (never done inside this manager, see the
+ * module doc).
+ */
+export interface NotificationsSnapshot {
+  /** Full replace when non-null (subscribe, reconnect, inbox reload). */
+  notifications: Array<TbNotification> | null;
+  /** Single created/updated notification since the previous message. */
+  update: TbNotification | null;
+  totalUnreadCount: number;
+  sequenceNumber: number;
+  /**
+   * Per-command server error code. Note the manager's global policy: a
+   * nonzero errorCode on the wire short-circuits into `onWsError` before the
+   * record sees the message, so in practice these stay at the defaults.
+   */
+  errorCode: number;
+  errorMsg: string;
 }
 
 const DEFAULTS = {
@@ -305,13 +332,20 @@ interface AlarmStatusRecord extends BaseRecord {
   snapshot: boolean;
 }
 
+interface NotificationsRecord extends BaseRecord {
+  kind: 'notifications';
+  cmd: UnreadSubCmd;
+  snapshot: NotificationsSnapshot;
+}
+
 type WsRecord =
   | AttrLikeRecord
   | EntityDataRecord
   | EntityTsRecord
   | AlarmDataRecord
   | CountRecord
-  | AlarmStatusRecord;
+  | AlarmStatusRecord
+  | NotificationsRecord;
 
 export interface WsManager {
   subscribeAttributes(
@@ -345,6 +379,16 @@ export interface WsManager {
     typeList?: Array<string>;
   }): WsSubscription<boolean>;
   subscribeUnreadNotificationCount(): WsSubscription<number>;
+  /**
+   * NOTIFICATIONS — the WEB inbox list stream (see NotificationsSnapshot):
+   * full snapshot on subscribe/reconnect, then per-message `update` entries
+   * and a live unread counter. `types` filters to the given notification
+   * types; omitted = all.
+   */
+  subscribeNotifications(params: {
+    limit: number;
+    types?: Array<NotificationType>;
+  }): WsSubscription<NotificationsSnapshot>;
   /** Manual teardown (logout). */
   close(): void;
 }
@@ -665,6 +709,22 @@ export function createWsManager(options: WsManagerOptions): WsManager {
         }
         break;
       }
+      case 'notifications': {
+        const msg = message as NotificationsUpdateMsg;
+        record.snapshot = {
+          notifications: msg.notifications
+            ? [...msg.notifications]
+            : record.snapshot.notifications,
+          update: msg.update ?? null,
+          totalUnreadCount:
+            msg.totalUnreadCount ?? record.snapshot.totalUnreadCount,
+          sequenceNumber: msg.sequenceNumber ?? record.snapshot.sequenceNumber,
+          errorCode: msg.errorCode ?? 0,
+          errorMsg: msg.errorMsg ?? '',
+        };
+        notify(record);
+        break;
+      }
       default:
         break;
     }
@@ -756,6 +816,11 @@ export function createWsManager(options: WsManagerOptions): WsManager {
         return {
           cmdId: record.cmdId,
           type: WsCmdType.ALARM_STATUS_UNSUBSCRIBE,
+        };
+      case 'notifications':
+        return {
+          cmdId: record.cmdId,
+          type: WsCmdType.NOTIFICATIONS_UNSUBSCRIBE,
         };
     }
   };
@@ -968,6 +1033,27 @@ export function createWsManager(options: WsManagerOptions): WsManager {
         awaitingSnapshot: true,
         cmd: { cmdId: 0, type: WsCmdType.NOTIFICATIONS_COUNT },
         snapshot: 0,
+      };
+      registerRecord(record);
+      return wireSubscription(record, () => record.snapshot);
+    },
+
+    subscribeNotifications({ limit, types }) {
+      const record: NotificationsRecord = {
+        kind: 'notifications',
+        cmdId: 0,
+        status: 'idle',
+        listeners: new Set(),
+        awaitingSnapshot: true,
+        cmd: { cmdId: 0, type: WsCmdType.NOTIFICATIONS, limit, types },
+        snapshot: {
+          notifications: null,
+          update: null,
+          totalUnreadCount: 0,
+          sequenceNumber: 0,
+          errorCode: 0,
+          errorMsg: '',
+        },
       };
       registerRecord(record);
       return wireSubscription(record, () => record.snapshot);

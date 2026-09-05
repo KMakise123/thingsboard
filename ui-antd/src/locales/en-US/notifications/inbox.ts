@@ -1,0 +1,52 @@
+/** notification inbox keys (en-US side) — key-for-key identical with the other locale. */
+export default {
+  'pages.notifications.inbox.search': 'Search notifications',
+  'pages.notifications.inbox.unreadOnly': 'Unread',
+  'pages.notifications.inbox.all': 'All',
+  'pages.notifications.inbox.refresh': 'Refresh',
+  'pages.notifications.inbox.markAllAsRead': 'Mark all as read',
+  'pages.notifications.inbox.markAsRead': 'Mark as read',
+  'pages.notifications.inbox.delete': 'Delete',
+  'pages.notifications.inbox.batchDelete': 'Delete selected',
+  'pages.notifications.inbox.selectedCount': '{count} selected',
+  'pages.notifications.inbox.deleteOneTitle': 'Delete this notification?',
+  'pages.notifications.inbox.deleteOneText':
+    'Be careful, after the confirmation the notification will become unrecoverable.',
+  'pages.notifications.inbox.deleteManyTitle':
+    'Delete {count, plural, =1 {1 notification} other {# notifications}}?',
+  'pages.notifications.inbox.deleteManyText': 'This cannot be undone.',
+  'pages.notifications.inbox.cancel': 'Cancel',
+  'pages.notifications.inbox.createdTime': 'Created time',
+  'pages.notifications.inbox.type': 'Type',
+  'pages.notifications.inbox.subject': 'Subject',
+  'pages.notifications.inbox.text': 'Text',
+  'pages.notifications.inbox.actions': 'Actions',
+  'pages.notifications.inbox.total': '{count} total',
+  'pages.notifications.inbox.empty': 'No notifications',
+  'pages.notifications.inbox.loadFailed': 'Failed to load notifications',
+  'pages.notifications.inbox.toastMarkedRead': 'Marked as read.',
+  'pages.notifications.inbox.toastDeleted': 'Notification deleted.',
+  'pages.notifications.inbox.batchResult': '{ok} succeeded, {fail} failed.',
+  'pages.notifications.inbox.detailTitle': 'Notification details',
+  'pages.notifications.inbox.type.GENERAL': 'General',
+  'pages.notifications.inbox.type.ALARM': 'Alarm',
+  'pages.notifications.inbox.type.DEVICE_ACTIVITY': 'Device activity',
+  'pages.notifications.inbox.type.ENTITY_ACTION': 'Entity action',
+  'pages.notifications.inbox.type.ALARM_COMMENT': 'Alarm comment',
+  'pages.notifications.inbox.type.ALARM_ASSIGNMENT': 'Alarm assignment',
+  'pages.notifications.inbox.type.RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT':
+    'Rule engine lifecycle event',
+  'pages.notifications.inbox.type.ENTITIES_LIMIT': 'Entities limit',
+  'pages.notifications.inbox.type.ENTITIES_LIMIT_INCREASE_REQUEST':
+    'Entities limit increase request',
+  'pages.notifications.inbox.type.API_USAGE_LIMIT': 'API usage limit',
+  'pages.notifications.inbox.type.NEW_PLATFORM_VERSION': 'New platform version',
+  'pages.notifications.inbox.type.RULE_NODE': 'Rule node',
+  'pages.notifications.inbox.type.RATE_LIMITS': 'Exceeded rate limits',
+  'pages.notifications.inbox.type.EDGE_CONNECTION': 'Edge connection',
+  'pages.notifications.inbox.type.EDGE_COMMUNICATION_FAILURE':
+    'Edge communication failure',
+  'pages.notifications.inbox.type.TASK_PROCESSING_FAILURE':
+    'Task processing failure',
+  'pages.notifications.inbox.type.RESOURCES_SHORTAGE': 'Resources shortage',
+} as const;

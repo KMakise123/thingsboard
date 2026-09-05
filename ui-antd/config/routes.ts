@@ -438,6 +438,49 @@ export default [
       },
     ],
   },
+  // ---- M12 notification center family (spec §4.1–4.6) ----
+  // Inbox serves all three roles (CUSTOMER_USER is inbox-readonly, no send
+  // button); the other four pages are SA+TA (ui-ngx
+  // notification-routing.module.ts:30-119). Per-child access narrows the
+  // menu automatically; nesting mirrors the resources family above.
+  {
+    name: 'notifications',
+    icon: 'bell',
+    path: '/notifications',
+    access: 'canAuthenticated',
+    routes: [
+      { path: '/notifications', redirect: '/notifications/inbox' },
+      {
+        name: 'inbox',
+        path: '/notifications/inbox',
+        component: './notifications/inbox',
+      },
+      {
+        name: 'sent',
+        path: '/notifications/sent',
+        access: 'canSysAdminOrTenantAdmin',
+        component: './notifications/sent',
+      },
+      {
+        name: 'templates',
+        path: '/notifications/templates',
+        access: 'canSysAdminOrTenantAdmin',
+        component: './notifications/templates',
+      },
+      {
+        name: 'recipients',
+        path: '/notifications/recipients',
+        access: 'canSysAdminOrTenantAdmin',
+        component: './notifications/recipients',
+      },
+      {
+        name: 'rules',
+        path: '/notifications/rules',
+        access: 'canSysAdminOrTenantAdmin',
+        component: './notifications/rules',
+      },
+    ],
+  },
   // Account family (spec §3.9): personal profile + security. Entries live
   // behind the avatar dropdown, so children hide from the side menu (name +
   // hideInMenu keeps them addressable for breadcrumbs).
