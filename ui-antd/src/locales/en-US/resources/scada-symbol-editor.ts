@@ -30,6 +30,10 @@ export default {
     'Failed to load the symbol; returning to the list.',
   'pages.resources.scadaSymbolEditor.saveFailed':
     'Failed to save the symbol: {message}',
+  'pages.resources.scadaSymbolEditor.downloadFailed':
+    'Failed to download the symbol: {message}',
+  'pages.resources.scadaSymbolEditor.previewFailed':
+    'Failed to enter the preview: {message}',
   'pages.resources.scadaSymbolEditor.metadataInvalid':
     'The metadata panel has validation errors; fix them first.',
   'pages.resources.scadaSymbolEditor.invalidXml':

@@ -269,8 +269,8 @@ export default function ScadaSymbolEditorPage() {
       message.error(
         formatMessage(
           {
-            id: 'pages.resources.scadaSymbolEditor.saveFailed',
-            defaultMessage: 'Failed to save the symbol: {message}',
+            id: 'pages.resources.scadaSymbolEditor.downloadFailed',
+            defaultMessage: 'Failed to download the symbol: {message}',
           },
           { message: e instanceof Error ? e.message : String(e) },
         ),
@@ -294,8 +294,8 @@ export default function ScadaSymbolEditorPage() {
       message.error(
         formatMessage(
           {
-            id: 'pages.resources.scadaSymbolEditor.saveFailed',
-            defaultMessage: 'Failed to save the symbol: {message}',
+            id: 'pages.resources.scadaSymbolEditor.previewFailed',
+            defaultMessage: 'Failed to enter the preview: {message}',
           },
           { message: e instanceof Error ? e.message : String(e) },
         ),
