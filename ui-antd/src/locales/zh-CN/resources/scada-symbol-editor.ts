@@ -29,6 +29,8 @@ export default {
   'pages.resources.scadaSymbolEditor.loadFailed':
     '符号加载失败，即将返回列表。',
   'pages.resources.scadaSymbolEditor.saveFailed': '符号保存失败：{message}',
+  'pages.resources.scadaSymbolEditor.downloadFailed': '符号下载失败：{message}',
+  'pages.resources.scadaSymbolEditor.previewFailed': '进入预览失败：{message}',
   'pages.resources.scadaSymbolEditor.metadataInvalid':
     '属性面板存在校验错误，请先修正。',
   'pages.resources.scadaSymbolEditor.invalidXml':

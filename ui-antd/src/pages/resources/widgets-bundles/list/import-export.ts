@@ -14,7 +14,7 @@
  *   membership with the merged fqn list (carried types + carried fqns).
  */
 
-import { downloadBlob } from '@/pages/resources/widget-types/list/import-export';
+import { downloadBlob } from '@/components/shared/download-blob';
 import { saveWidgetType } from '@/services/tb/widget-type';
 import {
   exportWidgetsBundle,

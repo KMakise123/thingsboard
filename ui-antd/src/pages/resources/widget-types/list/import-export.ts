@@ -13,6 +13,7 @@
  *   `updateExistingByFqn=true` (upsert by fqn — the import channel).
  */
 
+import { downloadBlob } from '@/components/shared/download-blob';
 import { getWidgetTypeById, saveWidgetType } from '@/services/tb/widget-type';
 import type { WidgetTypeDetails } from '@/types/tb/widget-type';
 
@@ -39,16 +40,6 @@ export function prepareWidgetTypeExport(
 /** Upstream slug: lowercase, non-word chars → `_` (entry file names). */
 export function slugifyWidgetTypeName(name: string): string {
   return `${name.toLowerCase().replace(/\W/g, '_')}.json`;
-}
-
-/** Downloads a blob as `{fileName}` (anchor-click, revoke after). */
-export function downloadBlob(blob: Blob, fileName: string): void {
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = fileName;
-  anchor.click();
-  URL.revokeObjectURL(url);
 }
 
 /**

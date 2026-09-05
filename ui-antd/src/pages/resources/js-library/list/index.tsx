@@ -53,6 +53,7 @@ import {
   ResourcesInUseModal,
 } from '@/components/resources/resources-in-use';
 import { BatchProgressModal } from '@/components/shared/BatchProgressModal';
+import { downloadBlob } from '@/components/shared/download-blob';
 import { useAuthority } from '@/components/shared/use-authority';
 import { useBatchRun } from '@/components/shared/use-batch-run';
 import {
@@ -187,20 +188,11 @@ export default function JsLibraryListPage() {
       defaultMessage: subType,
     });
 
-  // ---- downloads (blob → object URL, named after the resource file)
-  const saveBlob = (blob: Blob, fileName: string) => {
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = fileName;
-    anchor.click();
-    URL.revokeObjectURL(url);
-  };
-
+  // ---- downloads (shared blob helper, named after the resource file)
   const download = async (resource: TbResourceInfo) => {
     try {
       const blob = await downloadResource(resource.id.id);
-      saveBlob(blob, resource.fileName || `${resource.title}.js`);
+      downloadBlob(blob, resource.fileName || `${resource.title}.js`);
     } catch (error) {
       void message.error(serverErrorText(error));
     }
