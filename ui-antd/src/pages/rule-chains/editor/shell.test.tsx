@@ -20,11 +20,11 @@ import { useEffect, useState } from 'react';
 import { createIntl, RawIntlProvider } from 'react-intl';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { EditorSession } from '@/core/editor/session';
+import type { CanvasRuleChain } from '@/core/rulechain/types';
 import zhEditor from '@/locales/zh-CN/editor';
 import zhRulechain from '@/locales/zh-CN/editor-rulechain';
 import zhCanvas from '@/locales/zh-CN/editor-rulechain-canvas';
 import type { RuleNodeComponentDescriptor } from '@/types/tb/rule-chain';
-import type { CanvasRuleChain } from '@/core/rulechain/types';
 
 import { RULE_NODE_DROP_MIME } from './canvas';
 import { rowDraft } from './canvas/test-helpers';
