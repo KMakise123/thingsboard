@@ -37,8 +37,8 @@
 - [ ] 新建 widget 类型：模板类型选择对话框（静态 widgetType 枚举，锚点 `select-widget-type-dialog.component.ts`）→ 进编辑器（M9 已交付）〔未勾（3V）：走查作业单未覆盖新建流，本波未正面驱动〕
 - [x] widget type 详情页：预览渲染 + 元信息 + 编辑入口（跳 `/widgets/editor/:id`）〔M11 走查 ✅：元信息行 + 全限定名徽标 + 「编辑部件」跳 M9 编辑器路由可达；预览对 Angular 类型显示诚实占位（react-1-only 语义，占位三态既有边界）〕
 - [x] 导入/导出：单类型导出（含可选 includeResources）、导入走 `updateExistingByFqn` 通道、批量导出 zip（锚点 `widget-types-table-config.resolver.ts:93-115,231-246`）〔M11 走查 ✅：导出确认框含「嵌入部件图片和资源（自包含导出）」开关、导出 JSON 结构完整（fqn/descriptor/image/resources）；改名导入落库 + 列表 system/tenant 双份目击 + updateExistingByFqn 通道文案目击；**批量 zip 导出未驱动**（按钮在场）〕
-- [x] widgets bundles 列表：列/搜索/分页、新建/编辑/删除/导入/导出（锚点 `widgets-bundles-table-config.resolver.ts:68-130`）〔M11 走查 ✅：28 system 包 + 新建对话框（标题/描述/图片 URL）+ 删除 API 复核；bundle 导入/导出按钮在场未驱动；图片字段仍过渡纯 URL 输入未接 gallery-image-input → 缺陷 V1-2 登记（X 波）〕
-- [x] bundle widgets 管理页：bundle 内 widget 集合增删（add widget fqn / 移除），排序保存（锚点 `widgets-bundle-widgets.component.ts:150-204`）〔M11 走查 ✅（限 tenant 类型成员）：添加对话框（服务端搜索）→ 入列（fqn/latest 徽标 + 上移/下移/移除手柄）→ 保存 toast + API 复核 membership → 移除保存 API 复核空；排序保存契约由 manage-layouts 同型单测覆盖、拖拽排序未真机驱动。**system 类型成员两通道（id/fqn）保存 200 但后端静默丢弃 → 缺陷 V1-1 登记（Major，后端语义，X 波/后端裁决）**〕
+- [x] widgets bundles 列表：列/搜索/分页、新建/编辑/删除/导入/导出（锚点 `widgets-bundles-table-config.resolver.ts:68-130`）〔M11 走查 ✅：28 system 包 + 新建对话框（标题/描述/图片 URL）+ 删除 API 复核；bundle 导入/导出按钮在场未驱动；图片字段仍过渡纯 URL 输入未接 gallery-image-input → 缺陷 V1-2 登记（X 波）〕〔**X 波修复后复测通过（待主会话真机复验勾选）**：bundle 新建/编辑对话框图片字段已换挂 wave-2C `GalleryImageInput`（缩略图 + 图库选择 + 链接录入），值语义不变（仍是图片链接字符串，图库选择带上游 `tb-image;` 前缀），过渡提示文案移除，页面级单测断言控件在场〕
+- [x] bundle widgets 管理页：bundle 内 widget 集合增删（add widget fqn / 移除），排序保存（锚点 `widgets-bundle-widgets.component.ts:150-204`）〔M11 走查 ✅（限 tenant 类型成员）：添加对话框（服务端搜索）→ 入列（fqn/latest 徽标 + 上移/下移/移除手柄）→ 保存 toast + API 复核 membership → 移除保存 API 复核空；排序保存契约由 manage-layouts 同型单测覆盖、拖拽排序未真机驱动。**system 类型成员两通道（id/fqn）保存 200 但后端静默丢弃 → 缺陷 V1-1 登记（Major，后端语义，X 波/后端裁决）**〕〔**X 波核查结论：上游后端语义，非 fork 回归**——tenant bundle 不含 system 类型成员（源码锚点：`WidgetsBundleController.java:144-151` 候选按 `widgetTypeExistsByTenantIdAndWidgetTypeId` tenant 严格过滤 + `JpaWidgetTypeDao.java:85-87` `existsByTenantIdAndId` = `tenant_id = ? AND id = ?`，fqn 通道 `WidgetTypeServiceImpl.java:250-253` 同为 tenant 严格解析），前端已过滤适配：TENANT 添加选择器 `tenantOnly=true` + 对话框提示「系统部件类型不能加入自有部件包」（zh/en），后端不改〕
 - [x] 编辑器入口一致性：列表/详情均可进 M9 编辑器；编辑器保存后列表失效刷新〔M11 走查 ✅（入口半边）：详情「编辑部件」跳 `/widgets/editor/:id` 目击；Angular 类型在 M9 编辑器为诚实占位（无 react-1 运行时标记）；「编辑器保存后列表失效刷新」未驱动〕
 
 ### 3.2 图片库（对齐 `shared/components/image`）
@@ -68,13 +68,13 @@
 ### 3.4 JS 库（对齐 `js-library-*`）
 
 - [x] 列表：resourceType=JS_MODULE 固定 + subType 过滤（EXTENSION/MODULE），列 title/subType/system（锚点 `js-library-table-config.resolver.ts:92-99,112`）〔M11 走查 ✅：「全部脚本类型」选择器 + 扩展/模块选项目击；system 扩展行（脚本类型=扩展 + 系统 badge）〕
-- [ ] 新建/编辑 MODULE：content 文本编辑 → 保存自动补 `.js` 文件名（锚点 `js-resource.component.ts:106-120`、`js-library-table-config.resolver.ts:121-141`）〔**未勾（3V）：缺陷 V8-1 登记（Major，前端）**——新建对话框（切「模块」后 CodeMirror「代码」编辑器在场 ✓）保存走 `POST /api/resource/upload`（multipart 专用）且未带 data → 400「Resource data should be specified」，UI 新建 MODULE 不可用；后端 JSON 通道 `POST /api/resource`（data base64）curl 实测可用，前端走错通道，归 X 波 TDD 修复；「自动补 .js」行为因此未目击〕
+- [ ] 新建/编辑 MODULE：content 文本编辑 → 保存自动补 `.js` 文件名（锚点 `js-resource.component.ts:106-120`、`js-library-table-config.resolver.ts:121-141`）〔**未勾（3V）：缺陷 V8-1 登记（Major，前端）**——新建对话框（切「模块」后 CodeMirror「代码」编辑器在场 ✓）保存走 `POST /api/resource/upload`（multipart 专用）且未带 data → 400「Resource data should be specified」，UI 新建 MODULE 不可用；后端 JSON 通道 `POST /api/resource`（data base64）curl 实测可用，前端走错通道，归 X 波 TDD 修复；「自动补 .js」行为因此未目击〕〔**X 波修复后复测通过（待主会话真机复验勾选）**：MODULE 新建/编辑改走 JSON 通道 `POST /api/resource`（`jsModuleSaveRequest`：title + `.js` 文件名 + base64 data + 媒体类型 descriptor；机理=antd 表单无名渲染项不回传 `values.content` → 空 multipart part），EXTENSION 文件通道不动；service + 页面单测钉住 JSON 通道全绿〕
 - [x] 上传文件 / 下载 / 删除含引用流 / 批量删除（锚点 `js-library-table-config.resolver.ts:199-331`）〔M11 走查 ✅（下载/删除半边）：行下载 → 文件内容与创建源逐字一致；more 菜单（编辑脚本/删除）→ 删除确认框 → 列表回单行；上传文件/批量删除/引用流未在本页驱动（引用流组件 resources-in-use 由 1A 共享交付、单测锚）〕
 
 ### 3.5 资源文件库（对齐 `resources-library-*`）
 
 - [x] 列表：resourceType 过滤（LWM2M_MODEL/PKCS_12/JKS/GENERAL），列 title/resourceType/system（锚点 `resources-table-header.component.ts:32`、`resources-library-table-config.resolve.ts:83-90`）〔M11 走查 ✅：302 条 system LwM2M 模型 + 资源类型选择器四类在列 + 选「通用」后 URL 写 `?resourceType=GENERAL` 过滤生效〕
-- [x] 多文件批量上传（分批 100）+ 编辑信息 + 下载（锚点 `resources-library-table-config.resolve.ts:116-149`）〔M11 走查 ✅（上传半边）：input multiple + 一次注入 2 文件 → 两行「通用」入库（API 复核 304）；**缺陷 V8-2 登记（Minor，i18n）**：结果 toast「(ok) 项成功，(fail) 项失败」占位符未注入；编辑信息/下载按钮在场未驱动；分批 100 由 useBatchRun 契约覆盖〕
+- [x] 多文件批量上传（分批 100）+ 编辑信息 + 下载（锚点 `resources-library-table-config.resolve.ts:116-149`）〔M11 走查 ✅（上传半边）：input multiple + 一次注入 2 文件 → 两行「通用」入库（API 复核 304）；**缺陷 V8-2 登记（Minor，i18n）**：结果 toast「(ok) 项成功，(fail) 项失败」占位符未注入；编辑信息/下载按钮在场未驱动；分批 100 由 useBatchRun 契约覆盖〕〔**X 波修复后复测通过（待主会话真机复验勾选）**：机理=模板占位符 `{fail}` 与实参键 `failed` 错位（react-intl 对缺失键原样输出），实参键已对齐 `{ ok, fail: failed }`，页面单测断言注入后文案「2 项成功，0 项失败。」全绿〕
 - [x] 删除含引用流 / 批量删除（锚点 `resources-library-table-config.resolve.ts:207-339`）〔M11 走查 ✅：全选 → 删除所选 → 确认框 → 列表空态 + API 复核 GENERAL total=0；引用流通道走共享 resources-in-use 组件（1A 交付）〕
 
 ### 3.6 解锁 v2 editors spec 两条挂起验收
@@ -84,7 +84,7 @@
 
 ### 3.7 横切（M11）
 
-- [x] i18n：`pages.resources.*` 域 zh/en key 全等（check-locale 门禁）+ 菜单 key 双语〔M11 走查 ✅：菜单族/六页/编辑器 chrome 全程中文无裸 key（DOM key 模式扫描 ×3 页零命中）+ check-locale 本地复跑 PASS；反例登记 **V8-2**（批量上传 toast 占位符未注入，X 波）〕
+- [x] i18n：`pages.resources.*` 域 zh/en key 全等（check-locale 门禁）+ 菜单 key 双语〔M11 走查 ✅：菜单族/六页/编辑器 chrome 全程中文无裸 key（DOM key 模式扫描 ×3 页零命中）+ check-locale 本地复跑 PASS；反例登记 **V8-2**（批量上传 toast 占位符未注入，X 波；X 波已修——实参键对齐 `{fail}`，单测断言注入文案，待真机复验）〕
 - [x] 主题：零内联色值，颜色全走 antd token；SCADA 画布高亮色同样走 token〔M11 走查 ✅：SCADA 编辑器页 inline style 色值扫描零命中；画布高亮色 `symbol-editor-canvas.tsx` 全走 `theme.useToken()`（colorBgContainer/colorText/colorBorder）——沿 M10 口径（token 运行时解析值非硬编码字面量）〕
 - [x] 自动化衔接：M11 回归项（列表 CRUD 主路径 + 引用删除流 + scadaFirst）登记 #12 扩充（comment 留痕）〔M11 走查 ✅：#12 登记 comment 已发（URL 见 `v2-m11-implementation-brief.md` §5）——范围：资源五列表 CRUD 主路径、引用删除流、scadaFirst 参数、SCADA 编辑器保存链〕
 - [x] 数据保全：自建资源/符号/widget/bundle 终态全 DELETE，system 资源零改动〔M11 走查 ✅：11 类 fixture 全 DELETE（逐项 API 复核 total=0/404，清单见 `v2-m11-browser-walkthrough.md` §4）；system 资源仅只读目击与只读导出〕

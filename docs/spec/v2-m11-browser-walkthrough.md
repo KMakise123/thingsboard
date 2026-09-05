@@ -102,12 +102,12 @@
 
 ## 2. 缺陷与观察项登记（修复归 X 波，本波只登记）
 
-| 编号 | 级别 | 摘要 | 复现 | 证据 |
-|---|---|---|---|---|
-| V1-1 | Major（后端语义） | TENANT bundle 添加 SYSTEM widget 类型，保存返回成功但 membership 静默丢弃 | `POST /api/widgetsBundle/{bundleId}/widgetTypes` body `["<system widgetTypeId>"]` → 200；`GET /api/widgetsBundle/{bundleId}/widgetTypes` 回 `[]`；fqn 通道 `["action_button"]` 同丢；同 bundle 发 tenant 类型 id 则成功回读。UI 侧：添加→保存 toast 成功→刷新后成员消失 | curl 对照实验 + UI 网络探针（步骤 1） |
-| V1-2 | Minor（接线缺口） | bundle 新建/编辑对话框图片字段仍为过渡纯 URL 输入，未接 2C 已交付的 gallery-image-input | 打开「创建新部件包」→ 图片 URL 字段为文本输入（过渡提示文案在场） | `ui-antd/src/pages/resources/widgets-bundles/list/dialogs.tsx:126-128` + 截图 |
-| V8-1 | Major（前端通道错配） | JS 库「新建脚本（模块）」保存走 `POST /api/resource/upload`（multipart 专用）且未带 data → 400「Resource data should be specified」，UI 新建 MODULE 不可用 | JS 库 → 新建脚本 → 脚本类型=模块 → 标题+代码 `return 1;` → 保存 → 无新行；钩子抓到 400。后端 JSON 通道 `POST /api/resource`（data base64）实测可用 | fetch 钩子响应体 + curl 对照（步骤 8） |
-| V8-2 | Minor（i18n） | 资源批量上传结果 toast 模板占位符未注入：「(ok) 项成功，(fail) 项失败」 | 资源库批量上传 2 文件 → 观察顶部 toast | 步骤 8 截图 |
+| 编号 | 级别 | 摘要 | 复现 | 证据 | X 波核查/修复结论 |
+|---|---|---|---|---|---|
+| V1-1 | Major（后端语义） | TENANT bundle 添加 SYSTEM widget 类型，保存返回成功但 membership 静默丢弃 | `POST /api/widgetsBundle/{bundleId}/widgetTypes` body `["<system widgetTypeId>"]` → 200；`GET /api/widgetsBundle/{bundleId}/widgetTypes` 回 `[]`；fqn 通道 `["action_button"]` 同丢；同 bundle 发 tenant 类型 id 则成功回读。UI 侧：添加→保存 toast 成功→刷新后成员消失 | curl 对照实验 + UI 网络探针（步骤 1） | **上游语义，非 fork 回归**：`WidgetsBundleController.java:144-151` 用 `widgetTypeExistsByTenantIdAndWidgetTypeId(currentUserTenantId, id)` 过滤候选，DAO `JpaWidgetTypeDao.java:85-87` `existsByTenantIdAndId` 是严格 `tenant_id = ? AND id = ?`——system 类型（NULL tenant）对 TENANT 调用者必为 false 被静默丢弃；fqn 通道同理（`WidgetTypeServiceImpl.java:250-253` `findWidgetTypeIdsByTenantIdAndFqns` tenant 严格解析）；membership 写入链 `WidgetTypeServiceImpl.java:222-247`。fork 未改动该链（git 记录仅上游导入期提交）。前端已诚实适配：TENANT 管理页添加选择器 `tenantOnly=true` + 对话框提示「系统部件类型不能加入自有部件包」（§3.1 行已注记） |
+| V1-2 | Minor（接线缺口） | bundle 新建/编辑对话框图片字段仍为过渡纯 URL 输入，未接 2C 已交付的 gallery-image-input | 打开「创建新部件包」→ 图片 URL 字段为文本输入（过渡提示文案在场） | `ui-antd/src/pages/resources/widgets-bundles/list/dialogs.tsx:126-128` + 截图 | **X 波已修**：对话框图片 Form.Item 换挂 `GalleryImageInput`（缩略图 + 图库选择 + 链接录入），值仍是图片链接字符串（图库选择带上游 `tb-image;` 前缀，旧纯 URL 读回不变）；过渡提示文案及 locale 键移除（zh/en）；页面级单测断言控件在场（`widgets-bundles/list/index.test.tsx`）。真机复验归主会话 |
+| V8-1 | Major（前端通道错配） | JS 库「新建脚本（模块）」保存走 `POST /api/resource/upload`（multipart 专用）且未带 data → 400「Resource data should be specified」，UI 新建 MODULE 不可用 | JS 库 → 新建脚本 → 脚本类型=模块 → 标题+代码 `return 1;` → 保存 → 无新行；钩子抓到 400。后端 JSON 通道 `POST /api/resource`（data base64）实测可用 | fetch 钩子响应体 + curl 对照（步骤 8） | **X 波已修（机理定稿）**：antd 表单 `validateFields()` 只回传已注册 `<Form.Item name>` 字段，CodeEditor 内容镜像在无名渲染项里，`values.content` 恒 `undefined` → `new File([''])` 空 multipart part → 后端 `ResourceDataValidator.java:52-53` 400；编辑路径同根因（`values.content !== content` 恒真会用 undefined 覆盖内容）。修复：service 层新增 `jsModuleSaveRequest`（title/JS_MODULE/MODULE/`title + '.js'`/base64 data/媒体类型 descriptor），新建与编辑都走 JSON 通道 `POST /api/resource`（页面读 CodeEditor 的 content state），EXTENSION 文件通道不动；service + 页面单测钉住 JSON 通道。真机复验归主会话 |
+| V8-2 | Minor（i18n） | 资源批量上传结果 toast 模板占位符未注入：「(ok) 项成功，(fail) 项失败」 | 资源库批量上传 2 文件 → 观察顶部 toast | 步骤 8 截图 | **X 波已修（机理定稿）**：locale 模板占位符为 `{fail}`，上传 toast 实参键误传 `{ ok, failed }`——react-intl 对缺失键原样输出 `{fail}`（同文件批量删除 toast 传 `fail: summary.failed` 未中招）。修复：实参键对齐 `{ ok, fail: failed }`（zh/en 模板不动），页面单测断言注入后文案「2 项成功，0 项失败。」且无裸 `{fail}`。真机复验归主会话 |
 
 ## 3. editors spec 两条解锁的回写结论（细节见 spec 本体）
 
