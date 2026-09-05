@@ -409,7 +409,7 @@ function buildTabItems({
       render: () =>
         device ? (
           <EventsPanel
-            deviceId={device.id.id}
+            entityId={device.id}
             tenantId={device.tenantId?.id ?? ''}
           />
         ) : null,

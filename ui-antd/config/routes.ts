@@ -323,13 +323,11 @@ export default [
     hideInMenu: true,
   },
   // ---- M13 edge management family (spec §5.1–5.4) ----
-  // Group serves TA (full management) + CU (read-only face from wave 5), so
-  // `canTenantOrCustomer`; per-child access narrows further. Wave 3 mounts
-  // the group + the instances list only — the remaining waves append here:
-  //   wave-4: { name: 'instances.detail', path: '/edges/instances/:id',
-  //             access: 'canTenantOrCustomer', component: './edges/detail',
-  //             hideInMenu: true }
-  //   wave-5: five sub-entity scope pages (/edges/instances/:id/
+  // Group serves TA (full management) + CU (read-only face), so
+  // `canTenantOrCustomer`; per-child access narrows further. Wave 3 mounted
+  // the group + the instances list, wave 4 the detail page — the remaining
+  // waves append here:
+  //   wave-5: five sub-entity scope pages (/edges/:id/
   //           {assets,devices,entityViews,dashboards,ruleChains}) and the
   //           rule-chain template page { name: 'ruleChainTemplates',
   //           path: '/edges/rule-chains', access: 'canTenantAdmin' }
@@ -344,6 +342,13 @@ export default [
         name: 'instances',
         path: '/edges/instances',
         component: './edges/list',
+      },
+      {
+        name: 'edges.detail',
+        path: '/edges/:id',
+        access: 'canTenantOrCustomer',
+        component: './edges/detail',
+        hideInMenu: true,
       },
     ],
   },

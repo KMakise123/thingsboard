@@ -9,8 +9,12 @@ import React from 'react';
 import { createIntl, RawIntlProvider } from 'react-intl';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import zhDetail from '@/locales/zh-CN/devices/detail';
+import { EntityType } from '@/types/tb';
 
-import EventsPanel, { eventBodySummary } from './EventsPanel';
+import EventsPanel, {
+  DEFAULT_EVENT_TYPES,
+  eventBodySummary,
+} from './EventsPanel';
 
 const servicesMock = vi.hoisted(() => ({
   getEvents: vi.fn(),
@@ -29,7 +33,9 @@ function event(id: string, body: Record<string, unknown>) {
   };
 }
 
-function renderPanel() {
+function renderPanel(
+  props?: Partial<React.ComponentProps<typeof EventsPanel>>,
+) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
@@ -37,7 +43,11 @@ function renderPanel() {
     <QueryClientProvider client={queryClient}>
       <AntdApp>
         <RawIntlProvider value={intl}>
-          <EventsPanel deviceId="dev-1" tenantId="t-1" />
+          <EventsPanel
+            entityId={{ entityType: EntityType.DEVICE, id: 'dev-1' }}
+            tenantId="t-1"
+            {...props}
+          />
         </RawIntlProvider>
       </AntdApp>
     </QueryClientProvider>,
@@ -95,5 +105,30 @@ describe('events panel', () => {
     servicesMock.getEvents.mockResolvedValue({ data: [], totalElements: 0 });
     renderPanel();
     expect(await screen.findByText('暂无事件')).toBeTruthy();
+  });
+
+  // M13 R04 parameterization: the Edge page passes its real event-type trio,
+  // so the filter must shrink to exactly those options (the debug families
+  // of the device default set disappear).
+  it('narrows the filter options when eventTypes is passed', async () => {
+    renderPanel({ eventTypes: ['ERROR', 'LC_EVENT', 'STATS'] });
+    await screen.findByText('Asset not found');
+    fireEvent.mouseDown(screen.getAllByRole('combobox')[0]);
+    expect(
+      await screen.findByText('统计', {
+        selector: '.ant-select-item-option-content',
+      }),
+    ).toBeTruthy();
+    await waitFor(() => {
+      expect(
+        screen.queryByText('规则节点调试', {
+          selector: '.ant-select-item-option-content',
+        }),
+      ).toBeNull();
+    });
+  });
+
+  it('keeps the full device default set when eventTypes is omitted', () => {
+    expect(DEFAULT_EVENT_TYPES).toHaveLength(6);
   });
 });

@@ -18,7 +18,7 @@
  *     PageLink it receives.
  */
 
-import type { Edge } from '@/types/tb/edge';
+import type { Edge, EdgeEvent } from '@/types/tb/edge';
 import {
   type EdgeBulkImportRequest,
   type EdgeBulkImportResult,
@@ -292,6 +292,33 @@ export async function setEdgeRootRuleChain(
   ruleChainId: string,
 ): Promise<Edge> {
   return tbHttp.post<Edge>(`/api/edge/${edgeId}/${ruleChainId}/root`);
+}
+
+// ---------------------------------------------------------------------------
+// Sync events (the Downlinks tab) — the ONLY consumer of /api/edge/{id}/events
+// ---------------------------------------------------------------------------
+
+/** Time-bounded page link (backend TimePageLink via createTimePageLink). */
+export type EdgeEventsPageLink = PageLink & {
+  startTime?: number;
+  endTime?: number;
+};
+
+/**
+ * GET /api/edge/{edgeId}/events — cloud-to-edge sync event page. The backend
+ * hardcodes SORT_ORDERS to [seqId] so `sortProperty`/`sortOrder` are ignored
+ * (every page is seqId ASC): callers must render the server order verbatim
+ * and never pass a fake sort (R05).
+ */
+export async function getEdgeEvents(
+  edgeId: string,
+  pageLink: EdgeEventsPageLink,
+): Promise<PageData<EdgeEvent>> {
+  return tbHttp.get<PageData<EdgeEvent>>(`/api/edge/${edgeId}/events`, {
+    ...pageLinkToQueryParams(pageLink),
+    startTime: pageLink.startTime,
+    endTime: pageLink.endTime,
+  });
 }
 
 // ---------------------------------------------------------------------------

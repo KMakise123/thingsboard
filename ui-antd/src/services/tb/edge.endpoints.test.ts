@@ -36,6 +36,7 @@ import {
   getEdgeDashboards,
   getEdgeDevices,
   getEdgeEntityViews,
+  getEdgeEvents,
   getEdgeInfo,
   getEdgeInstructionsInstall,
   getEdgeInstructionsUpgrade,
@@ -130,6 +131,30 @@ describe('edge transport endpoints', () => {
 
     await getEdgeInfo('edge-1');
     expect(get).toHaveBeenCalledWith('/api/edge/info/edge-1');
+  });
+
+  it('reads edge sync events with time bounds and no fake sort', async () => {
+    await getEdgeEvents('edge-1', {
+      pageSize: 10,
+      page: 2,
+      startTime: 1_700_000_000_000,
+      endTime: 1_800_000_000_000,
+    });
+    expect(get).toHaveBeenCalledWith('/api/edge/edge-1/events', {
+      pageSize: 10,
+      page: 2,
+      startTime: 1_700_000_000_000,
+      endTime: 1_800_000_000_000,
+    });
+
+    // Sort params are backend-ignored (seqId ASC hardcoded): none are sent.
+    await getEdgeEvents('edge-1', { pageSize: 10, page: 0 });
+    expect(get).toHaveBeenLastCalledWith('/api/edge/edge-1/events', {
+      pageSize: 10,
+      page: 0,
+      startTime: undefined,
+      endTime: undefined,
+    });
   });
 
   it('saves on POST /api/edge and deletes by id', async () => {
