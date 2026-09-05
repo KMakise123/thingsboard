@@ -30,6 +30,7 @@ import entityViews from './en-US/entityViews';
 import login from './en-US/login';
 import menu from './en-US/menu';
 import notifications from './en-US/notifications';
+import ota from './en-US/ota';
 import images from './en-US/resources/images';
 import jsLibrary from './en-US/resources/js-library';
 import library from './en-US/resources/library';
@@ -50,6 +51,7 @@ export default {
   ...login,
   ...menu,
   ...notifications,
+  ...ota,
   ...account,
   ...alarms,
   ...assetProfiles,

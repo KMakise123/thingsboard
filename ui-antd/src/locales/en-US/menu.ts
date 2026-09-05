@@ -22,6 +22,8 @@ export default {
   'menu.gateways': 'Gateways',
   'menu.deviceProfiles': 'Device profiles',
   'menu.deviceProfiles.detail': 'Device profile detail',
+  'menu.otaPackages': 'OTA packages',
+  'menu.otaPackages.detail': 'OTA package detail',
   'menu.assetProfiles': 'Asset profiles',
   'menu.assetProfiles.detail': 'Asset profile detail',
   'menu.tenants': 'Tenants',

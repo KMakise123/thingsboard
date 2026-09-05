@@ -32,6 +32,7 @@ import entityViews from './zh-CN/entityViews';
 import login from './zh-CN/login';
 import menu from './zh-CN/menu';
 import notifications from './zh-CN/notifications';
+import ota from './zh-CN/ota';
 import images from './zh-CN/resources/images';
 import jsLibrary from './zh-CN/resources/js-library';
 import library from './zh-CN/resources/library';
@@ -52,6 +53,7 @@ export default {
   ...login,
   ...menu,
   ...notifications,
+  ...ota,
   ...account,
   ...alarms,
   ...assetProfiles,

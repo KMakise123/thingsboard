@@ -305,6 +305,23 @@ export default [
     component: './asset-profiles/detail',
     hideInMenu: true,
   },
+  // ---- M13 OTA packages family (spec §5.5) ----
+  // Packages repository: TA-only (backend gates save/download/delete to
+  // TENANT_ADMIN; CU has read-only endpoints but no UI entry, spec §5.5).
+  {
+    name: 'otaPackages',
+    icon: 'memory',
+    path: '/otaPackages',
+    access: 'canTenantAdmin',
+    component: './ota/packages',
+  },
+  {
+    name: 'otaPackages.detail',
+    path: '/otaPackages/:id',
+    access: 'canTenantAdmin',
+    component: './ota/packages/detail',
+    hideInMenu: true,
+  },
   // Sys-admin family (spec §3.7): tenants + tenant profiles + settings.
   {
     name: 'tenants',
