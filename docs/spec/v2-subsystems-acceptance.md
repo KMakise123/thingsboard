@@ -201,56 +201,56 @@
 
 ### 5.1 Edge 列表操作面（instances，对齐 ngx 三 scope）
 
-- [ ] instances 列表（tenant scope）：列 createdTime/name/type/label/customer/public（tenant 追加后两列），类型筛选下拉（`GET /api/edge/types`，切换重置排序过滤），搜索/分页/排序，默认 createdTime DESC；取数走 `/api/tenant/edgeInfos`（锚点 `edges-table-config.resolver.ts:150-185`）
-- [ ] 新增 Edge 对话框：name（必填 ≤255）/type（EDGE 子类型，默认 default）/label（可空 ≤255）/routingKey+secret（前端本地生成、只读展示）/description；保存成功刷新 + 默认自动弹安装指引（「不再显示」写用户偏好 `notDisplayInstructionsAfterAddEdge`）（锚点 `edge.component.ts:71-143`、`edge-instructions-dialog.component.ts:86-93`）
-- [ ] 编辑 Edge：key/secret 禁改只读；表单回显含 assignedToCustomer 只读提示 + public 提示（锚点 `edge.component.html:137-146,166-189`）
-- [ ] 导入 Edge（tenant）：CSV bulk_import（`POST /api/edge/bulk_import`）；**无导出**（ngx 无此能力，钉死）（锚点 `import-export.service.ts:593-601`）
-- [ ] 删除：单条 + 勾选批量，仅 tenant（customer scope 列表行删除实为「解除分配」语义）（锚点 `edges-table-config.resolver.ts:141-143,173-184`）
-- [ ] 行内动作矩阵（tenant）：make public（未分配时）/ assign to customer（未分配时）/ unassign（已分配非 public）/ make private（public 时）/ manage assets/devices/entityViews/dashboards/rule chains 五子页入口 / sync（锚点 `:189-245`）
-- [ ] 批量：tenant 批量分配客户；customer scope 批量解除分配（锚点 `:296-315,489-515`）
-- [ ] customer 作用域列表（TENANT_ADMIN）：`/customers/:id/edges`，标题「客户名: Edge instances」；入口三处——客户详情按钮 / 客户列表行内 / 本页头部「分配已有 Edge」对话框（锚点 `customer-routing.module.ts:191-228`、`customers-table-config.resolver.ts:105-118,178-183`）
-- [ ] customer_user scope：只读列表（强制本人 customerId 取数，`edge_customer_user` 语义），删除/分配类操作不可达，详情只读（锚点 `:105,109-121,263-289`）
+- [x] instances 列表（tenant scope）：列 createdTime/name/type/label/customer/public（tenant 追加后两列），类型筛选下拉（`GET /api/edge/types`，切换重置排序过滤），搜索/分页/排序，默认 createdTime DESC；取数走 `/api/tenant/edgeInfos`（锚点 `edges-table-config.resolver.ts:150-185`）〔M13 走查 ✅：六列/筛选/搜索在场；网络面板证 edgeInfos 族 + `sortProperty=createdTime&sortOrder=DESC`〕
+- [x] 新增 Edge 对话框：name（必填 ≤255）/type（EDGE 子类型，默认 default）/label（可空 ≤255）/routingKey+secret（前端本地生成、只读展示）/description；保存成功刷新 + 默认自动弹安装指引（「不再显示」写用户偏好 `notDisplayInstructionsAfterAddEdge`）（锚点 `edge.component.ts:71-143`、`edge-instructions-dialog.component.ts:86-93`）〔M13 走查 ✅：key/secret 本地生成只读实证；自动弹指引 + 三 method tab 按 method 独立取数实证；「不再显示」PUT 偏好实证——同会话失效缺陷 W-1 已修（见 5.7）〕
+- [x] 编辑 Edge：key/secret 禁改只读；表单回显含 assignedToCustomer 只读提示 + public 提示（锚点 `edge.component.html:137-146,166-189`）〔wave-4 真机预验编辑保存写库 + 单测；主走查未重复驱动〕
+- [x] 导入 Edge（tenant）：CSV bulk_import（`POST /api/edge/bulk_import`）；**无导出**（ngx 无此能力，钉死）（锚点 `import-export.service.ts:593-601`）〔M13 走查 ✅：CSV 全链——请求实证 + 结果面板「1 新建，0 错误」+ 新行落列表；无导出按钮实证〕
+- [x] 删除：单条 + 勾选批量，仅 tenant（customer scope 列表行删除实为「解除分配」语义）（锚点 `edges-table-config.resolver.ts:141-143,173-184`）〔M13 走查 ✅（API 通道）：确认四件套单测锚；批量删除由 useBatchRun 契约覆盖〕
+- [x] 行内动作矩阵（tenant）：make public（未分配时）/ assign to customer（未分配时）/ unassign（已分配非 public）/ make private（public 时）/ manage assets/devices/entityViews/dashboards/rule chains 五子页入口 / sync（锚点 `:189-245`）〔M13 走查 ✅（半）：按钮区全场目击（详情页）+ manage 五跳在场 + sync 失败路径实操（阻塞 11s → 错误 toast，成功路径留人工）+ assign 实操（customer 页分配流）；make public/private 未逐一驱动〕
+- [ ] 批量：tenant 批量分配客户；customer scope 批量解除分配（锚点 `:296-315,489-515`）〔未勾（3V）：走查未驱动，useBatchRun 契约 + 单测锚〕
+- [x] customer 作用域列表（TENANT_ADMIN）：`/customers/:id/edges`，标题「客户名: Edge instances」；入口三处——客户详情按钮 / 客户列表行内 / 本页头部「分配已有 Edge」对话框（锚点 `customer-routing.module.ts:191-228`、`customers-table-config.resolver.ts:105-118,178-183`）〔M13 走查 ✅：面包屑 + 分配已有 Edge → 行落列表〕
+- [x] customer_user scope：只读列表（强制本人 customerId 取数，`edge_customer_user` 语义），删除/分配类操作不可达，详情只读（锚点 `:105,109-121,263-289`）〔M13 走查 ✅：网络面板证 `GET /api/customer/{cuId}/edgeInfos` 强制客户域；无写操作按钮〕
 
 ### 5.2 Edge 详情页（七通用 tab + 按钮区）
 
-- [ ] 详情页结构与表单回显：六字段（key/secret 只读，CU 隐藏两行）+ assignedToCustomer/public 只读提示；详情路由 `?tab=` URL state，TA-only tab 手打会被拉回（沿 antd useDetailTabUrlState 既有契约）
-- [ ] 详情按钮区（角色收缩）：make public / assign to customer / unassign / make private / manage 五子实体入口（manage rule chains 仅 tenant）/ delete；CU 全隐藏（锚点 `edge.component.html:19-78`）
-- [ ] 复制三连：Copy ID / Copy Edge key / Copy Edge secret（key/secret 对 CU 隐藏），成功均有 toast（锚点 `:79-106`、ts `:114-136`）
-- [ ] Sync Edge：`POST /api/edge/sync/{id}`，fire-and-forget toast（「同步进程已启动」）+ 失败 error 展示 + 按钮 loading 防重复；**无状态轮询**（钉死；后端有 20s 硬超时，无需前端兜底）（锚点 ts `:517-533`）
-- [ ] 指引二态对话框：无升级 → Install & Connect Instructions、有升级（`GET /api/edge/{id}/upgrade/available`）→ Upgrade Instructions；Docker/Ubuntu/CentOS-RHEL 三 method tab，markdown 由后端拼好前端纯渲染（`GET /api/edge/instructions/install|upgrade/...`）；「不再显示」偏好写入（锚点 `edge-instructions-dialog.component.*`）
-- [ ] 七 tab 装配：Attributes（SERVER_SCOPE）/ Latest telemetry（禁 scope 选择）/ Alarms / Events（**Edge 自身事件**，默认 ERROR、实集合 ERROR/LC_EVENT/STATS，列=antd 通用三列 + JSON 展开行〔M8 行为契约形态〕）/ Downlinks（仅 TA，见 5.4）/ Relations / Audit logs（仅 TA）；只挂激活 tab（destroyOnHidden 保 WS 预算红线）；**不挂 version-control**（ngx 七 tab 无此页签，钉死）（锚点 `edge-tabs.component.html:18-70`）
-- [ ] customer_user 只读形态：detailsReadonly，tab 收缩为 attributes/telemetry/alarms/events/relations 五个，sync/指引/复制 key secret/删除全隐藏（锚点 `edge.component.html:94-121`）
+- [x] 详情页结构与表单回显：六字段（key/secret 只读，CU 隐藏两行）+ assignedToCustomer/public 只读提示；详情路由 `?tab=` URL state，TA-only tab 手打会被拉回（沿 antd useDetailTabUrlState 既有契约）〔M13 走查 ✅：`GET /api/edge/info/{id}` 载入；八 tab 齐渲染；TA-only 拉回由单测锚〕
+- [x] 详情按钮区（角色收缩）：make public / assign to customer / unassign / make private / manage 五子实体入口（manage rule chains 仅 tenant）/ delete；CU 全隐藏（锚点 `edge.component.html:19-78`）〔M13 走查 ✅：TA 十按钮全在场 + CU 全空实证〕
+- [x] 复制三连：Copy ID / Copy Edge key / Copy Edge secret（随按钮区对 CU 整体隐藏——**勘误（2026-09-06）**：原措辞「key/secret 对 CU 隐藏」暗示 Copy ID 留存，实现按 §5.0 整块隐藏口径，ngx 锚点一致），成功均有 toast（锚点 `:79-106`、ts `:114-136`）〔M13 走查 ✅：Copy ID 实操 toast；key/secret 复制同组件未逐一驱动〕
+- [x] Sync Edge：`POST /api/edge/sync/{id}`，fire-and-forget toast（「同步进程已启动」）+ 失败 error 展示 + 按钮 loading 防重复；**无状态轮询**（钉死；后端有 20s 硬超时，无需前端兜底）（锚点 ts `:517-533`）〔M13 走查 ✅（失败路径）：阻塞 ~11s → 「Request timed out」toast 呈现无悬挂；成功路径需真实在线 Edge，留人工〕
+- [x] 指引二态对话框：无升级 → Install & Connect Instructions、有升级（`GET /api/edge/{id}/upgrade/available`）→ Upgrade Instructions；Docker/Ubuntu/CentOS-RHEL 三 method tab，markdown 由后端拼好前端纯渲染（`GET /api/edge/instructions/install|upgrade/...`）；「不再显示」偏好写入（锚点 `edge-instructions-dialog.component.*`）〔M13 走查 ✅：三 tab 按 method 独立取数实证；upgrade 探测在场（升级分支本机单一版本未触发，留人工）；偏好 PUT 实证〕
+- [x] 七 tab 装配：Attributes（SERVER_SCOPE）/ Latest telemetry（禁 scope 选择）/ Alarms / Events（**Edge 自身事件**，默认 ERROR、实集合 ERROR/LC_EVENT/STATS，列=antd 通用三列 + JSON 展开行〔M8 行为契约形态〕）/ Downlinks（仅 TA，见 5.4）/ Relations / Audit logs（仅 TA）；只挂激活 tab（destroyOnHidden 保 WS 预算红线）；**不挂 version-control**（ngx 七 tab 无此页签，钉死）（锚点 `edge-tabs.component.html:18-70`）〔M13 走查 ✅：八 tab 齐渲染；events tab 请求实证 `/api/events/EDGE/{id}/ERROR`（两表语义分正确）〕
+- [x] customer_user 只读形态：detailsReadonly，tab 收缩为 attributes/telemetry/alarms/events/relations 五个，sync/指引/复制 key secret/删除全隐藏（锚点 `edge.component.html:94-121`）〔M13 走查 ✅：CU 详情五 tab + 按钮区全空 + key/secret 两行消失，逐项实证〕
 
 ### 5.3 Edge 子实体页五件 + 规则链模板页（本里程碑最重块）
 
-- [ ] 平级路由形态：`/edges/:id/{assets|devices|entityViews|dashboards|ruleChains}` 五条作用域页 + 域内外壳（标题=「Edge 名: 实体复数」、面包屑叶=Edge 名、返回详情页、加载失败 Alert；外壳页面私有不泛型化）；**不做详情内嵌 tab**（钉死）；CUSTOMER_USER 全部收缩为只读（`edge_customer_user` 语义）
-- [ ] assets 子页：列表（`GET /api/edge/{id}/assets`）+ 头部「分配已有资产」对话框 + 行内 Unassign + 批量 unassign（锚点 `assets-table-config.resolver.ts:189-191,246-287,322-328`）
-- [ ] devices 子页：列表（含 type/deviceProfile/active 过滤能力，走 GET 端点既有 query 参数）+ 分配对话框 + 行内/批量 unassign + CU 只读**可看凭据**；**edge scope 内不能新建/导入设备、无 manage credentials**（钉死）（锚点 `devices-table-config.resolver.ts:270-287,318-366,392-450`）
-- [ ] entityViews 子页：同构（`GET /api/edge/{id}/entityViews` + 分配/unassign/批量 + CU 只读）（锚点 `entity-views-table-config.resolver.ts:187-309`）
-- [ ] dashboards 子页：列表 + 分配已有 + 行内导出 + unassign + 批量 unassign + 行内打开仪表盘（锚点 `dashboards-table-config.resolver.ts:208-390`）
-- [ ] ruleChains 子页（仅 TENANT_ADMIN）：列表 + root 复选列 + 分配已有（仅 EDGE 类型链可挂）+ 行内 Set root（确认后 `POST /api/edge/{edgeId}/{ruleChainId}/root`）+ 根链禁 unassign + 批量 unassign + **进页缺失检查**（`GET /api/edge/missingToRelatedRuleChains/{id}`，缺则 Alert 列出，antd 形态替代 ngx alert 阻断）；本页禁新建/删除（锚点 `rulechains-table-config.resolver.ts:137-147,183-225,273-287,447-459`）
-- [ ] 规则链模板页 `/edges/rule-chains`（仅 TENANT_ADMIN，Edge Management 组第二项）：auto-assign 链列表（`GET /api/ruleChain/autoAssignToEdgeRuleChains`）+ root 模板复选 + assignToEdge 复选 + 行内 Set Edge template root / Set(Unset) auto-assign to edge + 头部新建/导入（EDGE 类型）+ 打开 EDGE 类型画布（画布本体归规则链域，仅验入口链路）（锚点 `:148-200,251-271,606-612`、`rule-chain.service.ts:265-296`）
-- [ ] 子实体详情跳转：assets/devices/entityViews 的 `:entityId` 打开各实体详情（只读按角色）、dashboards 的 `:dashboardId` 打开仪表盘页（锚点 `edge-routing.module.ts:121-137,161-177,201-217,241-255`）
+- [x] 平级路由形态：`/edges/:id/{assets|devices|entityViews|dashboards|ruleChains}` 五条作用域页 + 域内外壳（标题=「Edge 名: 实体复数」、面包屑叶=Edge 名、返回详情页、加载失败 Alert；外壳页面私有不泛型化）；**不做详情内嵌 tab**（钉死）；CUSTOMER_USER 全部收缩为只读（`edge_customer_user` 语义）〔M13 走查 ✅：外壳标题「M13 走查边缘: 规则链」实证；CU 四子页无分配控件由实现 + 单测锚〕
+- [ ] assets 子页：列表（`GET /api/edge/{id}/assets`）+ 头部「分配已有资产」对话框 + 行内 Unassign + 批量 unassign（锚点 `assets-table-config.resolver.ts:189-191,246-287,322-328`）〔未勾（3V）：走查驱动渲染 + 分配按钮在场；分配/解除流未真机驱动（与 devices 共享分配对话框组件与域内 hook，单测锚）〕
+- [x] devices 子页：列表（含 type/deviceProfile/active 过滤能力，走 GET 端点既有 query 参数）+ 分配对话框 + 行内/批量 unassign + CU 只读**可看凭据**；**edge scope 内不能新建/导入设备、无 manage credentials**（钉死）（锚点 `devices-table-config.resolver.ts:270-287,318-366,392-450`）〔M13 走查 ✅：三过滤器在场（type/profile 服务端互斥实测适配）；分配对话框服务端搜索 → dev1+dev2 入列（API 复核）；凭据查看按钮在场（复用 DeviceCredentialsModal readOnly）〕
+- [ ] entityViews 子页：同构（`GET /api/edge/{id}/entityViews` + 分配/unassign/批量 + CU 只读）（锚点 `entity-views-table-config.resolver.ts:187-309`）〔未勾（3V）：同 assets——渲染在场，分配流未真机驱动〕
+- [ ] dashboards 子页：列表 + 分配已有 + 行内导出 + unassign + 批量 unassign + 行内打开仪表盘（锚点 `dashboards-table-config.resolver.ts:208-390`）〔未勾（3V）：同 assets——渲染在场，分配流未真机驱动〕
+- [x] ruleChains 子页（仅 TENANT_ADMIN）：列表 + root 复选列 + 分配已有（仅 EDGE 类型链可挂）+ 行内 Set root（确认后 `POST /api/edge/{edgeId}/{ruleChainId}/root`）+ 根链禁 unassign + 批量 unassign + **进页缺失检查**（`GET /api/edge/missingToRelatedRuleChains/{id}`，缺则 Alert 列出，antd 形态替代 ngx alert 阻断）；本页禁新建/删除（锚点 `rulechains-table-config.resolver.ts:137-147,183-225,273-287,447-459`）〔M13 走查 ✅：缺检请求进页实证；根链行双禁用 vs 普通行双可用对照；Set root → API 复核 rootRuleChainId 已切（行刷新滞后属后端异步，W-2 登记）〕
+- [x] 规则链模板页 `/edges/rule-chains`（仅 TENANT_ADMIN，Edge Management 组第二项）：auto-assign 链列表（`GET /api/ruleChain/autoAssignToEdgeRuleChains`）+ root 模板复选 + assignToEdge 复选 + 行内 Set Edge template root / Set(Unset) auto-assign to edge + 头部新建/导入（EDGE 类型）+ 打开 EDGE 类型画布（画布本体归规则链域，仅验入口链路）（锚点 `:148-200,251-271,606-612`、`rule-chain.service.ts:265-296`）〔M13 走查 ✅：两路合并列表 + demo 模板根链复选在场 + auto-assign 即改即存（POST + 重取，false→true→false 复原）；新建/导入/画布入口由 wave-5b 交付 + 单测锚〕
+- [x] 子实体详情跳转：assets/devices/entityViews 的 `:entityId` 打开各实体详情（只读按角色）、dashboards 的 `:dashboardId` 打开仪表盘页（锚点 `edge-routing.module.ts:121-137,161-177,201-217,241-255`）〔wave-5a 交付：名称 Link → 既有 v1 详情路由（URL 不搬 ngx 字面量，§5.0）；走查经 devices 子页行链接目击〕
 
 ### 5.4 Downlinks tab（Edge 同步事件表，仅 TENANT_ADMIN）
 
-- [ ] 入口与开关：Edge 详情内 tab 仅 TA；时间分页（useTimePageLink 等价）；无搜索/新增/删除/多选/详情面板，表头无时间段选择 UI（锚点 `edge-downlink-table-config.ts:71-84`）
-- [ ] 取数链：先读 Edge 的 SERVER_SCOPE 属性 `queueStartTs`，再 `GET /api/edge/{id}/events`；**顺序 = 服务端返回顺序直渲**（后端恒 `seqId ASC`；ngx 声明 DESC 但被后端忽略且无客户端倒排，源码复核定案——客户端倒排登记 §5.6 增强，不做假排序参数）（锚点 `:89-94`、`JpaBaseEdgeEventDao.java:61,175-187`）
-- [ ] 列与派生状态：createdTime / type（EdgeEventType 译名）/ action（EdgeEventActionType 译名）/ entityId / status（**派生值**：createdTime ≤ queueStartTs → Deployed，否则 Pending；色走 antd token）/ data 查看（锚点 `:105-145`、`edge.models.ts:100-164`）
-- [ ] data 查看链：非 ADMIN_SETTINGS 且非 DELETED 才可点；内容按类型回查实体或直取 body → JSON 弹窗；取不到则错误 toast（锚点 `:159-194`、`entity.service.ts:1509-1550`）
+- [x] 入口与开关：Edge 详情内 tab 仅 TA；时间分页（useTimePageLink 等价）；无搜索/新增/删除/多选/详情面板，表头无时间段选择 UI（锚点 `edge-downlink-table-config.ts:71-84`）〔M13 走查 ✅：tab 在场、六列、空态正确、无写操作控件〕
+- [x] 取数链：先读 Edge 的 SERVER_SCOPE 属性 `queueStartTs`，再 `GET /api/edge/{id}/events`；**顺序 = 服务端返回顺序直渲**（后端恒 `seqId ASC`；ngx 声明 DESC 但被后端忽略且无客户端倒排，源码复核定案——客户端倒排登记 §5.6 增强，不做假排序参数）（锚点 `:89-94`、`JpaBaseEdgeEventDao.java:61,175-187`）〔M13 走查 ✅：网络面板逐请求实证两段管线且事件请求不带排序参数〕
+- [ ] 列与派生状态：createdTime / type（EdgeEventType 译名）/ action（EdgeEventActionType 译名）/ entityId / status（**派生值**：createdTime ≤ queueStartTs → Deployed，否则 Pending；色走 antd token）/ data 查看（锚点 `:105-145`、`edge.models.ts:100-164`）〔未勾（受阻·后端）：多次分配操作后 `edge_event` 表 0 行（SQL 实证），同步事件未落库，真数据行无法构造；派生纯函数（== 判 Deployed、缺失按 0）单测钉住——留人工/后端环境修复后补验〕
+- [ ] data 查看链：非 ADMIN_SETTINGS 且非 DELETED 才可点；内容按类型回查实体或直取 body → JSON 弹窗；取不到则错误 toast（锚点 `:159-194`、`entity.service.ts:1509-1550`）〔未勾（受阻·后端）：同上，事件未落库无法构造〕
 
 ### 5.5 OTA 包管理页操作面
 
-- [ ] 列表「Packages repository」：九列 createdTime/title/version/tag/type/direct-url/fileName/dataSize/checksum（direct-url 与 checksum 单元格内 copy 按钮仅有值时显示；dataSize 人读格式；checksum 显示「算法: 值」），搜索（按 title）/分页/排序，默认 createdTime DESC（锚点 `ota-update-table-config.resolve.ts:60-106,192-195`）
-- [ ] 「无」清单钉死：无 type（FIRMWARE/SOFTWARE）列表过滤器（type 仅作列展示）；无 JSON 导出/导入（行内 Download 是下载二进制不是导出）；无文件大小上限（锚点侦察 ota §2）
-- [ ] 新增表单：title（必填 ≤255）/version（必填 ≤255）/tag（≤255，pristine 时自动联想 `(title + ' ' + version).trim()`）/deviceProfileId（**必填**，profile 选择器禁新建禁编辑；文件型不选 profile 后端上传步 500，见 §5.7 实测缺陷）/type（FIRMWARE 默认|SOFTWARE）+ 保存警示文案「上传后 title/version/profile/type 不可再改」（锚点 `ota-update.component.*` §3 表）
-- [ ] 来源双分支联动：二进制文件（默认，必填 + generateChecksum 默认勾选→隐藏算法与 checksum 输入；不勾时 7 值算法枚举 MD5/SHA256 默认/SHA384/SHA512/CRC32/MURMUR3_32/MURMUR3_128 + checksum ≤1020 选填）vs 外部 URL（必填 + 非空 pattern；切回文件态清校验、file 转必填）（锚点 ts `:61-123`）
-- [ ] 两步保存链：先 `POST /api/otaPackage` 建 info（剥掉 file/checksum 字段）→ 再 multipart `POST /api/otaPackage/{id}?checksumAlgorithm=&checksum=` 传文件；**上传失败自动回滚删除刚建的 info**；checksum 由后端计算，前端不本地算哈希（锚点 `ota-package.service.ts:73-107`；wire 契约 deviceProfileId 对象形式等细节见实现清单）
-- [ ] 编辑近乎只读：非新增态整表 disable 仅重新启用 description；title/version/tag 双保险 readonly；fileName/dataSize/contentType 只读展示（锚点 ts `:150-153`）
-- [ ] 详情按钮组五件：Download package（disabled 条件 `hasData && !url`；**URL 型新窗口打开外链、文件型 blob 下载走 `GET /api/otaPackage/{id}/download`**，按 url 字段分流）/ Delete / Copy package Id / Copy checksum（有值才显示）/ Copy direct URL（有值才显示）（锚点 `ota-update.component.html:18-63`）
-- [ ] 删除：单条 + 批量 + 确认四件套；被 device/device profile 引用时**提交后吃后端 400 明确报错**（fk_* 四条消息转译展示，无前端预检——预检属增强登记）（锚点 `resolver:117-126`、`BaseOtaPackageService.java:195-218`）
-- [ ] 消费集成（OTA 闭环另一半）：device-profile 表单 firmwareId/softwareId 两个包选择器 + 保存前「变更将影响 N 台设备」确认弹窗（两类计数 forkJoin，0 不弹；device-profile 半边选择器已存在，补保存门）；device 表单同款选择器 + profile 换选候选联动（锚点 `device-profile.component.html:96-111`、`device.component.html:124-139`、`ota-package-autocomplete.component.ts:260-279`）
-- [ ] 权限契约：CUSTOMER_USER 后端有 3 个只读端点（info/列表×2）但无下载——前端不建入口，页面 TENANT_ADMIN only；真实固件分发/设备侧更新状态追踪归设备域不在本页（登记）
+- [x] 列表「Packages repository」：九列 createdTime/title/version/tag/type/direct-url/fileName/dataSize/checksum（direct-url 与 checksum 单元格内 copy 按钮仅有值时显示；dataSize 人读格式；checksum 显示「算法: 值」），搜索（按 title）/分页/排序，默认 createdTime DESC（锚点 `ota-update-table-config.resolve.ts:60-106,192-195`）〔M13 走查 ✅：九列 + 「28 bytes」+「SHA256: a597c4d7…」行渲染实证〕
+- [x] 「无」清单钉死：无 type（FIRMWARE/SOFTWARE）列表过滤器（type 仅作列展示）；无 JSON 导出/导入（行内 Download 是下载二进制不是导出）；无文件大小上限（锚点侦察 ota §2）〔M13 走查 ✅：工具栏仅刷新+新增，实证〕
+- [x] 新增表单：title（必填 ≤255）/version（必填 ≤255）/tag（≤255，pristine 时自动联想 `(title + ' ' + version).trim()`）/deviceProfileId（**必填**，profile 选择器禁新建禁编辑；文件型不选 profile 后端上传步 500，见 §5.7 实测缺陷）/type（FIRMWARE 默认|SOFTWARE）+ 保存警示文案「上传后 title/version/profile/type 不可再改」（锚点 `ota-update.component.*` §3 表）〔M13 走查 ✅：tag 联想 "m13-fw 1.0.0" 实时实证；校验文案在场〕
+- [x] 来源双分支联动：二进制文件（默认，必填 + generateChecksum 默认勾选→隐藏算法与 checksum 输入；不勾时 7 值算法枚举 MD5/SHA256 默认/SHA384/SHA512/CRC32/MURMUR3_32/MURMUR3_128 + checksum ≤1020 选填）vs 外部 URL（必填 + 非空 pattern；切回文件态清校验、file 转必填）（锚点 ts `:61-123`）〔M13 走查 ✅：文件注入 + URL 分支校验「直链 URL 必填」实证〕
+- [x] 两步保存链：先 `POST /api/otaPackage` 建 info（剥掉 file/checksum 字段）→ 再 multipart `POST /api/otaPackage/{id}?checksumAlgorithm=&checksum=` 传文件；**上传失败自动回滚删除刚建的 info**；checksum 由后端计算，前端不本地算哈希（锚点 `ota-package.service.ts:73-107`；wire 契约 deviceProfileId 对象形式等细节见实现清单）〔M13 走查 ✅：请求序逐条实证（info → multipart?checksumAlgorithm=SHA256 → 列表重取）；回滚序列由服务层单测钉（invocationCallOrder）〕
+- [x] 编辑近乎只读：非新增态整表 disable 仅重新启用 description；title/version/tag 双保险 readonly；fileName/dataSize/contentType 只读展示（锚点 ts `:150-153`）〔M13 走查 ✅：详情页逐字段 disabled 探针实证，仅描述启用〕
+- [x] 详情按钮组五件：Download package（disabled 条件 `hasData && !url`；文件型 blob 下载走 `GET /api/otaPackage/{id}/download`；URL 型**下载禁用**——**勘误（2026-09-06）**：原措辞「URL 型新窗口打开外链」与锚点 `isEnabled = hasData && !url` 矛盾，ngx 实为禁用，实现照锚点，外链新窗登记 §5.6）/ Delete / Copy package Id / Copy checksum（有值才显示）/ Copy direct URL（有值才显示）（锚点 `ota-update.component.html:18-63`）〔M13 走查 ✅：文件型下载请求实证；URL 型 disabled=true 实证；直链复制有值才显示实证〕
+- [x] 删除：单条 + 批量 + 确认四件套；被 device/device profile 引用时**提交后吃后端 400 明确报错**（fk_* 四条消息转译展示，无前端预检——预检属增强登记）（锚点 `resolver:117-126`、`BaseOtaPackageService.java:195-218`）〔M13 走查 ✅：引用态删除 → 400 原文 toast「The otaPackage referenced by the device profile cannot be deleted!」，包未删〕
+- [ ] 消费集成（OTA 闭环另一半）：device-profile 表单 firmwareId/softwareId 两个包选择器 + 保存前「变更将影响 N 台设备」确认弹窗（两类计数 forkJoin，0 不弹；device-profile 半边选择器已存在，补保存门）；device 表单同款选择器 + profile 换选候选联动（锚点 `device-profile.component.html:96-111`、`device.component.html:124-139`、`ota-package-autocomplete.component.ts:260-279`）〔wave-6 交付：保存门（计数 0 不弹/取消不落库）+ 双选择器 + 换档清空（ngx 可见行为照搬、model 残留缺陷有意不复制）单测覆盖（349 用例）；真机驱动归设备域走查顺带〕
+- [x] 权限契约：CUSTOMER_USER 后端有 3 个只读端点（info/列表×2）但无下载——前端不建入口，页面 TENANT_ADMIN only；真实固件分发/设备侧更新状态追踪归设备域不在本页（登记）〔M13 走查 ✅：CU 菜单无 OTA 项 + `/otaPackages` 直达拒绝页实证〕
 
 ### 5.6 能力级增强登记（只登记不验收，不设硬门槛）
 
@@ -266,6 +266,7 @@
 - Edge/OTA smoke spec 登记 #12（fork 后端 Edge REST 面可用、seed 可行；不可行时降级单测覆盖，计划留痕）
 - antd 全新路由无历史包袱：ngx 的 `edgeInstances → edgeManagement` 301 重定向族不实施
 - sync 进度轮询（后端无查询端点；loading 态已作为允许增强随 5.2 交付）
+- URL 型 OTA 包「新窗口打开外链」下载形态（§5.5 勘误降级：ngx 锚点为禁用；直链复制按钮已承担 URL 获取）
 
 ### 5.7 缺陷登记（照 §4.8 体例：前端已规避 / 待后端修复 / 有意偏离）
 
@@ -277,6 +278,8 @@
 - 上游小瑕疵对照：ngx 指引对话框 direct-url 复制复用 checksum 的文案 key（`ota-update.component.ts:156-187`）；antd 侧用独立文案，不复刻。
 - OTA download 对 URL 型包直接 400（`OtaPackageController.java:89-91`）：登记为后端行为契约——前端必须按 `url` 字段分流（外链新窗 vs blob 下载），不作缺陷追究。
 - 上游不一致对照：ngx 的 customer 菜单项 edge_instances 不受 `edgesSupportEnabled` 过滤恒显（`menu.models.ts:1057`）；fork 连开关整体不接（§5.0 有意偏离），本条留对照痕。
+- **W-1（走查缺陷 2026-09-06，Major，前端，已修）**：勾「不再显示安装指引」后同一会话内再次新建 Edge 仍自动弹指引（PUT 已发、服务端存储正确；刷新后生效）。根因 = 列表页 settingsQuery（staleTime: Infinity）在弹窗写入后，保存回调处取到陈旧缓存（ADR 0007 §5 同型）。修复 = 保存成功后 `await getUserSettings()` 现读再判定；真机复验通过。
+- **W-2（走查观察 2026-09-06，后端异步语义）**：Set Edge root 后列表行根链列未即时翻转，API 复核已切换——后端异步生效 + 前端失效时序竞争，刷新即正确；登记不修（乐观更新行列为 §5.6 候选）。
 
 ## 6. M14 计算字段独立页 + VC 独立页 + settings 六小件 + 密码策略页（骨架，开工补定）
 
@@ -289,6 +292,7 @@
 ## 修订记录
 
 - 2026-09-06：**M13 段定稿（§5 全量补定）**：5.0 通用边界（角色矩阵钉死无 SYS 视角、edgeInfos/info 端点契约、events 两表语义分开、key/secret 前端生成保存后只读、OTA 两步保存 + 后端算 checksum + 创建即定型、edges.enabled 开关不接为有意偏离）+ 5.1–5.5 五块操作面（**CU 只读面经用户拍板随 M13 交付**；子实体平级路由页钉死；Downlinks 排序经 ngx 源码复核定案 = 服务端 seqId ASC 直渲、客户端倒排登记增强）+ 5.6 增强登记 + 5.7 缺陷登记（含本机后端两条实测实锤：customerTitle 排序 500、otaPackage full GET base64 回带；实测新缺陷：OTA 无 profile 上传步 500 空指针）。依据 ui-ngx 源码侦察、后端契约盘点与三镜头专家合议（工作底稿 `docs/agents/m13-*.md` 七份）；实现清单见 [v2-m13-implementation-brief.md](./v2-m13-implementation-brief.md)。
+- 2026-09-06：**M13 走查收账 + 复审回写**：§5.1–5.5 逐条勾账（✅ 30 项 / 未勾 7 项：3V 未驱动 4、受阻·后端事件未落库 2、消费集成单测覆盖 1，均带注记）；§5.2 复制三连与 §5.5 URL 下载两处**勘误**（实现照 ngx 锚点，URL 外链打开降级 §5.6）；§5.7 新增 W-1（「不再显示」同会话失效，已修——保存时现读偏好）与 W-2（Set root 行刷新滞后，后端异步观察）；走查证据全文见 [v2-m13-browser-walkthrough.md](./v2-m13-browser-walkthrough.md)。走查前置双轴 code-review：标准轴 0 硬违规（5 条 smell 已修——剪贴板/authority/批量解除三处去重 + 零引用类型删除 + 9 处依赖抑制逐处复核，6 处真隐患修根因），规格轴缺失 0。
 - 2026-09-05：**M12 复审回写（双轴 code-review + 真机裁决后收口）**：4.0 勘误「候选按角色二分非并集」（SYS trigger=6 种、usersFilter=4 变体，均以 ngx 源码为准）与已读/未读数通道口径（REST + `subscribeNotifications` 快照，WS MARK_* 登记 4.7）；4.5 模板内联新建/编辑降登记；新增 **4.7 六项登记**（共性收敛清单、edge service 迁移、服务层预留函数等）与 **4.8 后端缺陷登记**（filtered targets 500 on createdTime sort、`subscribeUnreadNotificationCount` 字段错读、上游 SYS targets 禁用缺陷）。实现侧同步修复：inbox 列表 useMemo 过期闭包（ADR 0007 §5）、发送向导切回过滤端点（name 排序规避）、不可用投递方式归零。
 - 2026-09-05：**M12 段定稿（§4 全量补定）**：4.0 通用边界（路由/角色矩阵、14 trigger 双级收缩、投递方式运行时探测、**WEB 通道为端到端验收基准、真实 SMS/EMAIL 等到达留人工验收**、settings/account 两处登记不实施）+ 4.1–4.6 六块操作面 + 4.7 能力级增强登记。依据 ui-ngx 通知族源码侦察与后端四控制器契约盘点（工作底稿 `docs/agents/m12-*.md`）；随 M12 开工落盘。
 - 2026-09-05：**M11 3V 波真机走查收账（§3.1–3.7 逐项勾账）**——✅ 26 项 / 受阻或未覆盖 6 项保持未勾并登记；新登记缺陷 V1-1（bundle 装 system 类型后端静默丢弃，Major）、V1-2（bundle 图片字段过渡实现未回接，Minor）、V8-1（JS 新建 MODULE 走错端点 400，Major）、V8-2（批量上传 toast 占位符未注入，Minor）；§3.6 两条按主会话裁决口径勾账并回写 editors spec；走查证据全文见 [v2-m11-browser-walkthrough.md](./v2-m11-browser-walkthrough.md)。
