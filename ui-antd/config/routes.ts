@@ -336,12 +336,8 @@ export default [
   // Group serves TA (full management) + CU (read-only face), so
   // `canTenantOrCustomer`; per-child access narrows further. Wave 3 mounted
   // the group + the instances list, wave 4 the detail page, wave 5a the
-  // four sub-entity scope pages. Remaining (wave 5b):
-  //   { name: 'edges.ruleChains', path: '/edges/:id/ruleChains',
-  //     access: 'canTenantAdmin', component: './edges/rule-chains',
-  //     hideInMenu: true }
-  //   { name: 'ruleChainTemplates', path: '/edges/rule-chains',
-  //     access: 'canTenantAdmin', component: './edges/rule-chain-templates' }
+  // four sub-entity scope pages, wave 5b the ruleChains sub-page and the
+  // rule-chain template page (both TA-only).
   {
     name: 'edge',
     icon: 'deploymentUnit',
@@ -391,9 +387,22 @@ export default [
         component: './edges/dashboards',
         hideInMenu: true,
       },
-      // wave-5b: /edges/:id/ruleChains (TA-only, root/missing-chain checks)
-      // and the rule-chain template page /edges/rule-chains — see comment
-      // above the group.
+      {
+        name: 'edges.ruleChains',
+        path: '/edges/:id/ruleChains',
+        access: 'canTenantAdmin',
+        component: './edges/rule-chains',
+        hideInMenu: true,
+      },
+      // Rule chain templates: mounted inside the group so the menu nests
+      // under Edge management (ngx parity, menu key menu.edge.ruleChainTemplates);
+      // the static path outranks /edges/:id in route matching.
+      {
+        name: 'ruleChainTemplates',
+        path: '/edges/rule-chains',
+        access: 'canTenantAdmin',
+        component: './edges/rule-chain-templates',
+      },
     ],
   },
   // Sys-admin family (spec §3.7): tenants + tenant profiles + settings.

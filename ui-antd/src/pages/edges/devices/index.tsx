@@ -7,11 +7,15 @@
  * the assignment ops (assign-existing dialog + unassign, single and batch);
  * CUSTOMER_USER gets the read-only collapse — filters, list and the detail
  * jump stay, every assignment control hides (edge_customer_user semantics).
+ * Wave 5b: the row-level View credentials button is visible to BOTH roles
+ * (ngx semantics — credentials are viewable on the edge device sub-page) and
+ * opens DeviceCredentialsModal read-only: edge scope never edits credentials.
  */
 
 import {
   MoreOutlined,
   ReloadOutlined,
+  SafetyOutlined,
   UserAddOutlined,
 } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
@@ -36,6 +40,7 @@ import {
 import dayjs from 'dayjs';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { DeviceCredentialsModal } from '@/components/devices/DeviceCredentialsModal';
 import { serverErrorText } from '@/components/entities/server-error-text';
 import { BatchProgressModal } from '@/components/shared/BatchProgressModal';
 import { useBatchRun } from '@/components/shared/use-batch-run';
@@ -163,6 +168,9 @@ export default function EdgeDevicesPage() {
   const batch = useBatchRun();
   const [batchOpen, setBatchOpen] = useState(false);
   const [assignOpen, setAssignOpen] = useState(false);
+  const [credentialsDevice, setCredentialsDevice] = useState<DeviceInfo | null>(
+    null,
+  );
 
   const confirmUnassign = (targets: Array<DeviceInfo>) => {
     if (targets.length === 0) {
@@ -346,12 +354,34 @@ export default function EdgeDevicesPage() {
         ),
       },
     ];
+    // The View credentials button is visible to BOTH roles (ngx semantics:
+    // credentials are viewable on the edge device sub-page); it opens the
+    // modal read-only — edge scope never edits credentials.
+    const credentialsButton = (record: DeviceInfo) => (
+      <Button
+        key="credentials"
+        type="text"
+        size="small"
+        icon={<SafetyOutlined />}
+        data-testid={`dev-credentials-${record.id.id}`}
+        aria-label={formatMessage({
+          id: 'pages.edge.scope.actionViewCredentials',
+          defaultMessage: 'View credentials',
+        })}
+        title={formatMessage({
+          id: 'pages.edge.scope.actionViewCredentials',
+          defaultMessage: 'View credentials',
+        })}
+        onClick={() => setCredentialsDevice(record)}
+      />
+    );
     if (!readOnly) {
       cols.push({
         valueType: 'option',
-        width: 80,
+        width: 110,
         fixed: 'right',
         render: (_, record) => [
+          credentialsButton(record),
           <Dropdown
             key="more"
             trigger={['click']}
@@ -371,6 +401,15 @@ export default function EdgeDevicesPage() {
             <Button type="text" size="small" icon={<MoreOutlined />} />
           </Dropdown>,
         ],
+      });
+    } else {
+      // CU keeps a slim option column: the View credentials button only
+      // (assignment ops stay hidden).
+      cols.push({
+        valueType: 'option',
+        width: 60,
+        fixed: 'right',
+        render: (_, record) => [credentialsButton(record)],
       });
     }
     return cols;
@@ -630,6 +669,12 @@ export default function EdgeDevicesPage() {
           setBatchOpen(false);
           batch.reset();
         }}
+      />
+      <DeviceCredentialsModal
+        open={!!credentialsDevice}
+        device={credentialsDevice}
+        readOnly
+        onClose={() => setCredentialsDevice(null)}
       />
     </EdgeScopePageShell>
   );

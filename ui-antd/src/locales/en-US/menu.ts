@@ -26,6 +26,7 @@ export default {
   'menu.otaPackages.detail': 'OTA package detail',
   'menu.edge': 'Edge management',
   'menu.edge.instances': 'Edge instances',
+  'menu.edge.ruleChainTemplates': 'Rule chain templates',
   'menu.assetProfiles': 'Asset profiles',
   'menu.assetProfiles.detail': 'Asset profile detail',
   'menu.tenants': 'Tenants',

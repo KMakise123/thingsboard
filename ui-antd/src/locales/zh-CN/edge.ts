@@ -253,4 +253,44 @@ export default {
   'pages.edge.customerEdges.unassignManyText':
     '确认后所选 Edge 将被取消分配，客户将无法再访问。',
   'pages.edge.customerEdges.manage': 'Edge 实例',
+
+  // ruleChains 作用域页（wave 5b）
+  'pages.edge.scope.ruleChainsTitle': '规则链',
+  'pages.edge.scope.ruleChainsSearch': '搜索规则链',
+  'pages.edge.scope.ruleChainsLoadFailed': '加载规则链失败',
+  'pages.edge.scope.ruleChainsEmpty': '该 Edge 下暂无规则链',
+  'pages.edge.scope.assignRuleChains': '分配已有规则链',
+  'pages.edge.scope.columnRoot': '根链',
+  'pages.edge.scope.actionViewCredentials': '查看凭据',
+  'pages.edge.rc.actionSetRoot': '设为根',
+  'pages.edge.rc.setRootTitle': '设为根规则链？',
+  'pages.edge.rc.setRootText':
+    '确认后该规则链将成为此 Edge 的根规则链（当前根链将被替换）。',
+  'pages.edge.rc.toastSetRoot': '该规则链已成为此 Edge 的根规则链。',
+  'pages.edge.rc.missingAlertTitle':
+    '部分已分配规则链引用了未分配到该 Edge 的规则链',
+  'pages.edge.rc.missingAlertItem': '「{chain}」缺少：{missing}',
+
+  // 规则链模板页（wave 5b）
+  'pages.edge.templates.search': '搜索规则链',
+  'pages.edge.templates.loadFailed': '加载 EDGE 规则链失败',
+  'pages.edge.templates.empty': '暂无 EDGE 类型规则链',
+  'pages.edge.templates.columnTemplateRoot': 'Edge 模板根链',
+  'pages.edge.templates.columnAssignToEdge': '自动分配到 Edge',
+  'pages.edge.templates.setTemplateRootTitle': '设为 Edge 模板根规则链？',
+  'pages.edge.templates.setTemplateRootText':
+    '确认后该规则链将成为新建 Edge 的根规则链（已创建的 Edge 保持现有根链不变）。',
+  'pages.edge.templates.actionSetTemplateRoot': '设为模板根链',
+  'pages.edge.templates.toastTemplateRoot': '该规则链已成为 Edge 模板根链。',
+  'pages.edge.templates.autoAssignOn': '已开启自动分配到 Edge。',
+  'pages.edge.templates.autoAssignOff': '已关闭自动分配到 Edge。',
+  'pages.edge.templates.actionNew': '新建规则链',
+  'pages.edge.templates.actionImport': '导入规则链',
+  'pages.edge.templates.newTitle': '新建 EDGE 规则链',
+  'pages.edge.templates.nameRequired': '名称必填',
+  'pages.edge.templates.description': '描述',
+  'pages.edge.templates.ok': '确定',
+  'pages.edge.templates.toastCreated': '规则链「{name}」已创建。',
+  'pages.edge.templates.toastImported': '规则链「{name}」已导入。',
+  'pages.edge.templates.importEdgeHint': '导入的规则链将以 EDGE 类型创建。',
 };

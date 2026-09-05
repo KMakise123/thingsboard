@@ -48,6 +48,10 @@ const deviceMock = vi.hoisted(() => ({
   getDeviceProfiles: vi.fn(),
   getDeviceTypes: vi.fn(),
   getTenantDevices: vi.fn(),
+  // Pulled in through DeviceCredentialsModal (the wave-5b view-only
+  // credentials button); never called by this page's own surface.
+  getDeviceCredentials: vi.fn(),
+  saveDeviceCredentials: vi.fn(),
 }));
 
 vi.mock('@/services/tb/edge', () => edgeMock);

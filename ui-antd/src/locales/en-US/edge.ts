@@ -267,4 +267,49 @@ export default {
   'pages.edge.customerEdges.unassignManyText':
     'After the confirmation the selected edges will be unassigned and will not be accessible by the customer.',
   'pages.edge.customerEdges.manage': 'Edges',
+
+  // ruleChains scope page (wave 5b)
+  'pages.edge.scope.ruleChainsTitle': 'Rule chains',
+  'pages.edge.scope.ruleChainsSearch': 'Search rule chains',
+  'pages.edge.scope.ruleChainsLoadFailed': 'Failed to load rule chains',
+  'pages.edge.scope.ruleChainsEmpty': 'No rule chains on this edge',
+  'pages.edge.scope.assignRuleChains': 'Assign existing rule chains',
+  'pages.edge.scope.columnRoot': 'Root',
+  'pages.edge.scope.actionViewCredentials': 'View credentials',
+  'pages.edge.rc.actionSetRoot': 'Set as root',
+  'pages.edge.rc.setRootTitle': 'Set as root rule chain?',
+  'pages.edge.rc.setRootText':
+    'After the confirmation the rule chain becomes the root chain of this edge (the current root chain is replaced).',
+  'pages.edge.rc.toastSetRoot':
+    'The rule chain is now the root chain of this edge.',
+  'pages.edge.rc.missingAlertTitle':
+    'Some assigned rule chains reference rule chains that are not assigned to this edge',
+  'pages.edge.rc.missingAlertItem': '"{chain}" is missing: {missing}',
+
+  // rule chain templates page (wave 5b)
+  'pages.edge.templates.search': 'Search rule chains',
+  'pages.edge.templates.loadFailed': 'Failed to load EDGE rule chains',
+  'pages.edge.templates.empty': 'No EDGE rule chains',
+  'pages.edge.templates.columnTemplateRoot': 'Edge template root',
+  'pages.edge.templates.columnAssignToEdge': 'Auto-assign to edge',
+  'pages.edge.templates.setTemplateRootTitle':
+    'Set as Edge template root rule chain?',
+  'pages.edge.templates.setTemplateRootText':
+    'After the confirmation the rule chain becomes the root chain for newly created edges (existing edges keep their current root chain).',
+  'pages.edge.templates.actionSetTemplateRoot': 'Set as template root',
+  'pages.edge.templates.toastTemplateRoot':
+    'The rule chain is now the Edge template root.',
+  'pages.edge.templates.autoAssignOn': 'Auto-assign to edge enabled.',
+  'pages.edge.templates.autoAssignOff': 'Auto-assign to edge disabled.',
+  'pages.edge.templates.actionNew': 'New rule chain',
+  'pages.edge.templates.actionImport': 'Import rule chain',
+  'pages.edge.templates.newTitle': 'New EDGE rule chain',
+  'pages.edge.templates.nameRequired': 'Name is required',
+  'pages.edge.templates.description': 'Description',
+  'pages.edge.templates.ok': 'OK',
+  'pages.edge.templates.toastCreated': 'Rule chain "{name}" has been created.',
+  'pages.edge.templates.toastImported':
+    'Rule chain "{name}" has been imported.',
+  'pages.edge.templates.importEdgeHint':
+    'The imported chain is created as an EDGE chain.',
 };

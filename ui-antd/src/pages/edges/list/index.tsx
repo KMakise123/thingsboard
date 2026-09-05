@@ -13,7 +13,12 @@
  * notDisplayInstructionsAfterAddEdge user preference opts out. CSV import
  * posts the ngx edge column mapping to /api/edge/bulk_import (R25).
  *
- * Customer-scope and CUSTOMER_USER read-only faces ride wave 5.
+ * CUSTOMER_USER rides this wave too: the query pins to the own-customer
+ * edgeInfos endpoint (the JWT customerId claim), every write control hides
+ * (create/import/delete/action matrix/batch, incl. the selection boxes) and
+ * the tenant-only customer/public columns collapse. List, row-to-detail and
+ * the type filter stay. The tenant-admin customer-scope page lives at
+ * /customers/:id/edges (wave 5a).
  */
 import {
   DeleteOutlined,
@@ -52,10 +57,12 @@ import { AssignCustomerModal } from '@/components/entities/AssignCustomerModal';
 import { serverErrorText } from '@/components/entities/server-error-text';
 import PageContainer from '@/components/layout/page-container';
 import { BatchProgressModal } from '@/components/shared/BatchProgressModal';
+import { useAuthority } from '@/components/shared/use-authority';
 import { useBatchRun } from '@/components/shared/use-batch-run';
 import {
   assignEdgeToCustomer,
   deleteEdge,
+  getCustomerEdgeInfos,
   getEdgeTypes,
   getTenantEdgeInfos,
   getUserSettings,
@@ -99,6 +106,10 @@ export default function EdgeListPage() {
   const queryClient = useQueryClient();
   const { state: urlState, patch } = useEdgeListUrlState();
   const [form] = Form.useForm<EdgeFormValues>();
+  // CU reads the customer-scoped endpoint over the own customerId (JWT
+  // claim, v1 device-list precedent) and gets the read-only collapse.
+  const { authority, customerId: cuCustomerId } = useAuthority();
+  const readOnly = authority === 'CUSTOMER_USER';
 
   // ---- text search (server-side, debounced; URL carries the committed value)
   const [searchInput, setSearchInput] = useState(urlState.textSearch);
@@ -123,6 +134,8 @@ export default function EdgeListPage() {
   const edgesQuery = useQuery({
     queryKey: [
       ...EDGE_QUERY_KEY,
+      authority,
+      cuCustomerId,
       urlState.page,
       urlState.pageSize,
       urlState.sortProperty,
@@ -130,7 +143,14 @@ export default function EdgeListPage() {
       urlState.textSearch,
       urlState.type,
     ],
-    queryFn: () => getTenantEdgeInfos(toPageLink(urlState), urlState.type),
+    queryFn: () =>
+      readOnly && cuCustomerId
+        ? getCustomerEdgeInfos(
+            cuCustomerId,
+            toPageLink(urlState),
+            urlState.type,
+          )
+        : getTenantEdgeInfos(toPageLink(urlState), urlState.type),
     placeholderData: keepPreviousData,
   });
   const edges: Array<EdgeInfo> = edgesQuery.data?.data ?? [];
@@ -144,11 +164,12 @@ export default function EdgeListPage() {
     staleTime: 60_000,
   });
 
-  // ---- "don't show instructions again" preference
+  // ---- "don't show instructions again" preference (a TA-only flow feeds it)
   const settingsQuery = useQuery({
     queryKey: SETTINGS_QUERY_KEY,
     queryFn: getUserSettings,
     staleTime: Infinity,
+    enabled: !readOnly,
   });
   const hideInstructionsAfterAdd =
     settingsQuery.data?.notDisplayInstructionsAfterAddEdge === true;
@@ -526,123 +547,136 @@ export default function EdgeListPage() {
         sortOrder: sortOrderFor('label'),
         render: (_, record) => record.label || '-',
       },
-      {
-        title: formatMessage({
-          id: 'pages.edge.customer',
-          defaultMessage: 'Customer',
-        }),
-        dataIndex: 'customerTitle',
-        sorter: true,
-        sortOrder: sortOrderFor('customerTitle'),
-        render: (_, record) => record.customerTitle || '-',
-      },
-      {
-        title: formatMessage({
-          id: 'pages.edge.public',
-          defaultMessage: 'Public',
-        }),
-        dataIndex: 'customerIsPublic',
-        width: 90,
-        render: (_, record) => (
-          <Checkbox checked={record.customerIsPublic} disabled />
-        ),
-      },
+      // Tenant-only columns: CU collapses to the four base columns (ngx
+      // customer_user parity).
+      ...(!readOnly
+        ? [
+            {
+              title: formatMessage({
+                id: 'pages.edge.customer',
+                defaultMessage: 'Customer',
+              }),
+              dataIndex: 'customerTitle',
+              sorter: true,
+              sortOrder: sortOrderFor('customerTitle'),
+              render: (_: unknown, record: EdgeInfo) =>
+                record.customerTitle || '-',
+            },
+            {
+              title: formatMessage({
+                id: 'pages.edge.public',
+                defaultMessage: 'Public',
+              }),
+              dataIndex: 'customerIsPublic',
+              width: 90,
+              render: (_: unknown, record: EdgeInfo) => (
+                <Checkbox checked={record.customerIsPublic} disabled />
+              ),
+            },
+          ]
+        : []),
     ];
-    cols.push({
-      valueType: 'option',
-      width: 110,
-      fixed: 'right',
-      render: (_, record) => [
-        <Button
-          key="sync"
-          type="text"
-          size="small"
-          icon={<SyncOutlined spin={syncingId === record.id.id} />}
-          disabled={syncingId !== undefined && syncingId !== record.id.id}
-          aria-label={formatMessage({
-            id: 'pages.edge.action.sync',
-            defaultMessage: 'Sync Edge',
-          })}
-          title={formatMessage({
-            id: 'pages.edge.action.sync',
-            defaultMessage: 'Sync Edge',
-          })}
-          onClick={() => void syncOne(record)}
-        />,
-        <Dropdown
-          key="more"
-          trigger={['click']}
-          menu={{
-            items: [
-              ...(hasCustomer(record)
-                ? [
-                    record.customerIsPublic
-                      ? {
-                          key: 'makePrivate',
-                          label: formatMessage({
-                            id: 'pages.edge.action.makePrivate',
-                            defaultMessage: 'Make edge private',
-                          }),
-                          onClick: () => confirmMakePrivate(record),
-                        }
-                      : {
-                          key: 'unassign',
-                          label: formatMessage({
-                            id: 'pages.edge.action.unassign',
-                            defaultMessage: 'Unassign from customer',
-                          }),
-                          onClick: () => confirmUnassign(record),
-                        },
-                  ]
-                : [
-                    {
-                      key: 'makePublic',
-                      label: formatMessage({
-                        id: 'pages.edge.action.makePublic',
-                        defaultMessage: 'Make edge public',
-                      }),
-                      onClick: () => confirmMakePublic(record),
-                    },
-                    {
-                      key: 'assign',
-                      label: formatMessage({
-                        id: 'pages.edge.action.assign',
-                        defaultMessage: 'Assign to customer',
-                      }),
-                      onClick: () => setAssignTargets([record]),
-                    },
-                  ]),
-              { type: 'divider' as const },
-              ...MANAGE_TARGETS.map((target) => ({
-                key: `manage-${target.suffix}`,
-                // Sub-entity routes mount in wave 5 — dead links are known
-                // and accepted for this wave.
-                label: formatMessage({
-                  id: target.labelId,
-                  defaultMessage: target.defaultMessage,
-                }),
-                onClick: () =>
-                  history.push(`/edges/${record.id.id}/${target.suffix}`),
-              })),
-              { type: 'divider' as const },
-              {
-                key: 'delete',
-                danger: true,
-                label: formatMessage({
-                  id: 'pages.edge.action.delete',
-                  defaultMessage: 'Delete',
-                }),
-                onClick: () => confirmDeleteOne(record),
-              },
-            ],
-          }}
-        >
-          <Button type="text" size="small" icon={<MoreOutlined />} />
-        </Dropdown>,
-      ],
-    });
+    if (!readOnly) {
+      cols.push({
+        valueType: 'option',
+        width: 110,
+        fixed: 'right',
+        render: (_, record) => [
+          <Button
+            key="sync"
+            type="text"
+            size="small"
+            icon={<SyncOutlined spin={syncingId === record.id.id} />}
+            disabled={syncingId !== undefined && syncingId !== record.id.id}
+            aria-label={formatMessage({
+              id: 'pages.edge.action.sync',
+              defaultMessage: 'Sync Edge',
+            })}
+            title={formatMessage({
+              id: 'pages.edge.action.sync',
+              defaultMessage: 'Sync Edge',
+            })}
+            onClick={() => void syncOne(record)}
+          />,
+          <Dropdown
+            key="more"
+            trigger={['click']}
+            menu={{
+              items: [
+                ...(hasCustomer(record)
+                  ? [
+                      record.customerIsPublic
+                        ? {
+                            key: 'makePrivate',
+                            label: formatMessage({
+                              id: 'pages.edge.action.makePrivate',
+                              defaultMessage: 'Make edge private',
+                            }),
+                            onClick: () => confirmMakePrivate(record),
+                          }
+                        : {
+                            key: 'unassign',
+                            label: formatMessage({
+                              id: 'pages.edge.action.unassign',
+                              defaultMessage: 'Unassign from customer',
+                            }),
+                            onClick: () => confirmUnassign(record),
+                          },
+                    ]
+                  : [
+                      {
+                        key: 'makePublic',
+                        label: formatMessage({
+                          id: 'pages.edge.action.makePublic',
+                          defaultMessage: 'Make edge public',
+                        }),
+                        onClick: () => confirmMakePublic(record),
+                      },
+                      {
+                        key: 'assign',
+                        label: formatMessage({
+                          id: 'pages.edge.action.assign',
+                          defaultMessage: 'Assign to customer',
+                        }),
+                        onClick: () => setAssignTargets([record]),
+                      },
+                    ]),
+                { type: 'divider' as const },
+                ...MANAGE_TARGETS.map((target) => ({
+                  key: `manage-${target.suffix}`,
+                  label: formatMessage({
+                    id: target.labelId,
+                    defaultMessage: target.defaultMessage,
+                  }),
+                  onClick: () =>
+                    history.push(`/edges/${record.id.id}/${target.suffix}`),
+                })),
+                { type: 'divider' as const },
+                {
+                  key: 'delete',
+                  danger: true,
+                  label: formatMessage({
+                    id: 'pages.edge.action.delete',
+                    defaultMessage: 'Delete',
+                  }),
+                  onClick: () => confirmDeleteOne(record),
+                },
+              ],
+            }}
+          >
+            <Button type="text" size="small" icon={<MoreOutlined />} />
+          </Dropdown>,
+        ],
+      });
+    }
     return cols;
-  }, [formatMessage, urlState.sortProperty, urlState.sortDirection, syncingId]);
+  }, [
+    formatMessage,
+    urlState.sortProperty,
+    urlState.sortDirection,
+    syncingId,
+    readOnly,
+  ]);
 
   function sortOrderFor(property: string): 'ascend' | 'descend' | undefined {
     if (urlState.sortProperty !== property) {
@@ -733,52 +767,58 @@ export default function EdgeListPage() {
             })}
           </Button>
           <div className="flex-1" />
-          <Space>
-            {selectedEdges.length > 0 && (
-              <>
-                <Typography.Text type="secondary">
-                  {formatMessage(
-                    {
-                      id: 'pages.edge.selectedCount',
-                      defaultMessage: '{count} selected',
-                    },
-                    { count: selectedEdges.length },
-                  )}
-                </Typography.Text>
-                <Button
-                  danger
-                  icon={<DeleteOutlined />}
-                  onClick={confirmDeleteSelected}
-                >
-                  {formatMessage({
-                    id: 'pages.edge.batchDelete',
-                    defaultMessage: 'Delete selected',
-                  })}
-                </Button>
-                <Button onClick={() => setAssignTargets(selectedEdges)}>
-                  {formatMessage({
-                    id: 'pages.edge.batchAssign',
-                    defaultMessage: 'Assign to customer',
-                  })}
-                </Button>
-              </>
-            )}
-            <Button
-              icon={<UploadOutlined />}
-              onClick={() => setImportOpen(true)}
-            >
-              {formatMessage({
-                id: 'pages.edge.import',
-                defaultMessage: 'Import edges',
-              })}
-            </Button>
-            <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
-              {formatMessage({
-                id: 'pages.edge.add',
-                defaultMessage: 'Add edge',
-              })}
-            </Button>
-          </Space>
+          {!readOnly && (
+            <Space>
+              {selectedEdges.length > 0 && (
+                <>
+                  <Typography.Text type="secondary">
+                    {formatMessage(
+                      {
+                        id: 'pages.edge.selectedCount',
+                        defaultMessage: '{count} selected',
+                      },
+                      { count: selectedEdges.length },
+                    )}
+                  </Typography.Text>
+                  <Button
+                    danger
+                    icon={<DeleteOutlined />}
+                    onClick={confirmDeleteSelected}
+                  >
+                    {formatMessage({
+                      id: 'pages.edge.batchDelete',
+                      defaultMessage: 'Delete selected',
+                    })}
+                  </Button>
+                  <Button onClick={() => setAssignTargets(selectedEdges)}>
+                    {formatMessage({
+                      id: 'pages.edge.batchAssign',
+                      defaultMessage: 'Assign to customer',
+                    })}
+                  </Button>
+                </>
+              )}
+              <Button
+                icon={<UploadOutlined />}
+                onClick={() => setImportOpen(true)}
+              >
+                {formatMessage({
+                  id: 'pages.edge.import',
+                  defaultMessage: 'Import edges',
+                })}
+              </Button>
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={openCreate}
+              >
+                {formatMessage({
+                  id: 'pages.edge.add',
+                  defaultMessage: 'Add edge',
+                })}
+              </Button>
+            </Space>
+          )}
         </div>
       }
     >
@@ -825,10 +865,14 @@ export default function EdgeListPage() {
             defaultMessage: 'No edges found',
           }),
         }}
-        rowSelection={{
-          selectedRowKeys,
-          onChange: (keys) => setSelectedRowKeys(keys),
-        }}
+        rowSelection={
+          readOnly
+            ? undefined
+            : {
+                selectedRowKeys,
+                onChange: (keys) => setSelectedRowKeys(keys),
+              }
+        }
       />
 
       <Modal

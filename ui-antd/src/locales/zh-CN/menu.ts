@@ -30,6 +30,7 @@ export default {
   'menu.otaPackages.detail': 'OTA 包详情',
   'menu.edge': 'Edge 管理',
   'menu.edge.instances': 'Edge 实例',
+  'menu.edge.ruleChainTemplates': '规则链模板',
   'menu.assetProfiles': '资产配置',
   'menu.assetProfiles.detail': '资产配置详情',
   'menu.tenants': '租户',
