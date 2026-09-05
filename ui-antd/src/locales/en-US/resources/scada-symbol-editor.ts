@@ -26,7 +26,10 @@ export default {
   'pages.resources.scadaSymbolEditor.exitDirtyOk': 'Discard changes',
   // ---- save / validation messages ----
   'pages.resources.scadaSymbolEditor.saveSuccess': 'Symbol saved',
-  'pages.resources.scadaSymbolEditor.saveFailed': 'Failed to save the symbol: {message}',
+  'pages.resources.scadaSymbolEditor.loadFailed':
+    'Failed to load the symbol; returning to the list.',
+  'pages.resources.scadaSymbolEditor.saveFailed':
+    'Failed to save the symbol: {message}',
   'pages.resources.scadaSymbolEditor.metadataInvalid':
     'The metadata panel has validation errors; fix them first.',
   'pages.resources.scadaSymbolEditor.invalidXml':
@@ -38,12 +41,15 @@ export default {
   'pages.resources.scadaSymbolEditor.panel.apply': 'Apply',
   'pages.resources.scadaSymbolEditor.panel.cancel': 'Cancel',
   'pages.resources.scadaSymbolEditor.panel.removeTag': 'Remove tag',
-  'pages.resources.scadaSymbolEditor.panel.editStateRender': 'Tag render function',
-  'pages.resources.scadaSymbolEditor.panel.editClickAction': 'Click action function',
+  'pages.resources.scadaSymbolEditor.panel.editStateRender':
+    'Tag render function',
+  'pages.resources.scadaSymbolEditor.panel.editClickAction':
+    'Click action function',
   'pages.resources.scadaSymbolEditor.panel.hidden': 'hidden',
   // ---- metadata: general ----
   'pages.resources.scadaSymbolEditor.general.title': 'Title',
-  'pages.resources.scadaSymbolEditor.general.titleRequired': 'Title is required',
+  'pages.resources.scadaSymbolEditor.general.titleRequired':
+    'Title is required',
   'pages.resources.scadaSymbolEditor.general.description': 'Description',
   'pages.resources.scadaSymbolEditor.general.searchTags': 'Search tags',
   'pages.resources.scadaSymbolEditor.general.searchTagsPlaceholder':
@@ -56,7 +62,8 @@ export default {
   'pages.resources.scadaSymbolEditor.tags.empty':
     'No tags yet. Hover an element on the canvas to add one.',
   'pages.resources.scadaSymbolEditor.tags.tagName': 'Tag',
-  'pages.resources.scadaSymbolEditor.tags.stateRenderFunction': 'State render function',
+  'pages.resources.scadaSymbolEditor.tags.stateRenderFunction':
+    'State render function',
   'pages.resources.scadaSymbolEditor.tags.clickAction': 'Click action function',
   'pages.resources.scadaSymbolEditor.tags.delete': 'Delete tag',
   // ---- metadata: behavior ----
@@ -68,7 +75,8 @@ export default {
   'pages.resources.scadaSymbolEditor.behavior.type': 'Type',
   'pages.resources.scadaSymbolEditor.behavior.typeValue': 'Value',
   'pages.resources.scadaSymbolEditor.behavior.typeAction': 'Action',
-  'pages.resources.scadaSymbolEditor.behavior.typeWidgetAction': 'Widget action',
+  'pages.resources.scadaSymbolEditor.behavior.typeWidgetAction':
+    'Widget action',
   'pages.resources.scadaSymbolEditor.behavior.valueType': 'Value type',
   'pages.resources.scadaSymbolEditor.behavior.valueTypeString': 'String',
   'pages.resources.scadaSymbolEditor.behavior.valueTypeInteger': 'Integer',
@@ -78,8 +86,10 @@ export default {
   'pages.resources.scadaSymbolEditor.behavior.trueLabel': 'True label',
   'pages.resources.scadaSymbolEditor.behavior.falseLabel': 'False label',
   'pages.resources.scadaSymbolEditor.behavior.stateLabel': 'State label',
-  'pages.resources.scadaSymbolEditor.behavior.defaultSettings': 'Default settings (JSON)',
-  'pages.resources.scadaSymbolEditor.behavior.resetDefault': 'Reset to defaults',
+  'pages.resources.scadaSymbolEditor.behavior.defaultSettings':
+    'Default settings (JSON)',
+  'pages.resources.scadaSymbolEditor.behavior.resetDefault':
+    'Reset to defaults',
   'pages.resources.scadaSymbolEditor.behavior.settingsInvalidJson':
     'Settings are not valid JSON.',
   'pages.resources.scadaSymbolEditor.behavior.delete': 'Delete behavior',
@@ -101,12 +111,19 @@ export default {
   'pages.resources.scadaSymbolEditor.preview.size':
     'Rendered at the metadata size ({sizeX}×{sizeY} cells)',
   // ---- create widget from symbol ----
-  'pages.resources.scadaSymbolEditor.createWidget.title': 'Create widget from symbol',
+  'pages.resources.scadaSymbolEditor.createWidget.title':
+    'Create widget from symbol',
   'pages.resources.scadaSymbolEditor.createWidget.name': 'Widget name',
-  'pages.resources.scadaSymbolEditor.createWidget.nameRequired': 'Widget name is required',
-  'pages.resources.scadaSymbolEditor.createWidget.bundle': 'Add to widgets bundle (optional)',
-  'pages.resources.scadaSymbolEditor.createWidget.bundlePlaceholder': 'No bundle',
+  'pages.resources.scadaSymbolEditor.createWidget.nameRequired':
+    'Widget name is required',
+  'pages.resources.scadaSymbolEditor.createWidget.bundle':
+    'Add to widgets bundle (optional)',
+  'pages.resources.scadaSymbolEditor.createWidget.bundlePlaceholder':
+    'No bundle',
+  'pages.resources.scadaSymbolEditor.createWidget.ok': 'Create',
   'pages.resources.scadaSymbolEditor.createWidget.success': 'Widget created',
-  'pages.resources.scadaSymbolEditor.createWidget.gotoList': 'Open the widget types list',
-  'pages.resources.scadaSymbolEditor.createWidget.failed': 'Failed to create the widget',
+  'pages.resources.scadaSymbolEditor.createWidget.gotoList':
+    'Open the widget types list',
+  'pages.resources.scadaSymbolEditor.createWidget.failed':
+    'Failed to create the widget',
 };

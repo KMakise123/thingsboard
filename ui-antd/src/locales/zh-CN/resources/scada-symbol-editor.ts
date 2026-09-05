@@ -26,10 +26,13 @@ export default {
   'pages.resources.scadaSymbolEditor.exitDirtyOk': '丢弃修改',
   // ---- 保存 / 校验消息 ----
   'pages.resources.scadaSymbolEditor.saveSuccess': '符号已保存',
+  'pages.resources.scadaSymbolEditor.loadFailed':
+    '符号加载失败，即将返回列表。',
   'pages.resources.scadaSymbolEditor.saveFailed': '符号保存失败：{message}',
   'pages.resources.scadaSymbolEditor.metadataInvalid':
     '属性面板存在校验错误，请先修正。',
-  'pages.resources.scadaSymbolEditor.invalidXml': 'XML 内容无法解析，请先修正。',
+  'pages.resources.scadaSymbolEditor.invalidXml':
+    'XML 内容无法解析，请先修正。',
   // ---- 画布 hover 面板 ----
   'pages.resources.scadaSymbolEditor.panel.addTag': '添加标签',
   'pages.resources.scadaSymbolEditor.panel.updateTag': '修改标签',
@@ -78,7 +81,8 @@ export default {
   'pages.resources.scadaSymbolEditor.behavior.trueLabel': 'True 标签',
   'pages.resources.scadaSymbolEditor.behavior.falseLabel': 'False 标签',
   'pages.resources.scadaSymbolEditor.behavior.stateLabel': '状态标签',
-  'pages.resources.scadaSymbolEditor.behavior.defaultSettings': '默认设置（JSON）',
+  'pages.resources.scadaSymbolEditor.behavior.defaultSettings':
+    '默认设置（JSON）',
   'pages.resources.scadaSymbolEditor.behavior.resetDefault': '恢复默认设置',
   'pages.resources.scadaSymbolEditor.behavior.settingsInvalidJson':
     '设置不是合法 JSON。',
@@ -98,14 +102,20 @@ export default {
   // ---- 静态预览 ----
   'pages.resources.scadaSymbolEditor.preview.title': '符号预览',
   'pages.resources.scadaSymbolEditor.preview.back': '返回编辑',
-  'pages.resources.scadaSymbolEditor.preview.size': '按属性尺寸渲染（{sizeX}×{sizeY} 格）',
+  'pages.resources.scadaSymbolEditor.preview.size':
+    '按属性尺寸渲染（{sizeX}×{sizeY} 格）',
   // ---- 从符号创建 Widget ----
   'pages.resources.scadaSymbolEditor.createWidget.title': '从符号创建 Widget',
   'pages.resources.scadaSymbolEditor.createWidget.name': 'Widget 名称',
-  'pages.resources.scadaSymbolEditor.createWidget.nameRequired': 'Widget 名称必填',
-  'pages.resources.scadaSymbolEditor.createWidget.bundle': '加入 Widget 包（可选）',
-  'pages.resources.scadaSymbolEditor.createWidget.bundlePlaceholder': '不加入任何包',
+  'pages.resources.scadaSymbolEditor.createWidget.nameRequired':
+    'Widget 名称必填',
+  'pages.resources.scadaSymbolEditor.createWidget.bundle':
+    '加入 Widget 包（可选）',
+  'pages.resources.scadaSymbolEditor.createWidget.bundlePlaceholder':
+    '不加入任何包',
+  'pages.resources.scadaSymbolEditor.createWidget.ok': '创建',
   'pages.resources.scadaSymbolEditor.createWidget.success': 'Widget 已创建',
-  'pages.resources.scadaSymbolEditor.createWidget.gotoList': '查看 Widget 类型列表',
+  'pages.resources.scadaSymbolEditor.createWidget.gotoList':
+    '查看 Widget 类型列表',
   'pages.resources.scadaSymbolEditor.createWidget.failed': 'Widget 创建失败',
 };
