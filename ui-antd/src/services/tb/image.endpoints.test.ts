@@ -6,6 +6,7 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { EntityType } from '@/types/tb/entity';
 import { ResourceSubType } from '@/types/tb/resource';
 import type { ImageResourceInfo } from '@/types/tb/image';
 
@@ -50,24 +51,27 @@ const PAGE_LINK = {
   sortOrder: { property: 'createdTime', direction: 'DESC' as const },
 };
 
-const TENANT_ID = { entityType: 'TENANT', id: 'tenant-1' };
-const NULL_TENANT_ID = {
-  entityType: 'TENANT',
+const TENANT_ID: ImageResourceInfo['tenantId'] = {
+  entityType: EntityType.TENANT,
+  id: 'tenant-1',
+};
+const NULL_TENANT_ID: ImageResourceInfo['tenantId'] = {
+  entityType: EntityType.TENANT,
   id: '13814000-1dd2-11b2-8080-808080808080',
 };
 
 function image(
   resourceKey: string,
-  tenantId: { entityType: string; id: string } = TENANT_ID,
+  tenantId: ImageResourceInfo['tenantId'] = TENANT_ID,
 ): ImageResourceInfo {
   return {
-    id: { entityType: 'TB_RESOURCE', id: `img-${resourceKey}` },
+    id: { entityType: EntityType.TB_RESOURCE, id: `img-${resourceKey}` },
     tenantId,
     title: resourceKey,
     resourceType: 'IMAGE',
     resourceSubType: ResourceSubType.IMAGE,
     resourceKey,
-    link: `/api/images/${tenantId.id === NULL_TENANT_ID.id ? 'system' : 'tenant'}/${resourceKey}`,
+    link: `/api/images/${tenantId?.id === NULL_TENANT_ID?.id ? 'system' : 'tenant'}/${resourceKey}`,
   };
 }
 

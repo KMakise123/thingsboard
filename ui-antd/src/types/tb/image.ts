@@ -21,7 +21,8 @@
  *     `{success, references}` shape handled by the resource domain.
  */
 
-import type { ResourceScope, TbResourceInfo } from './resource';
+import type { EntityIdOf, EntityType, EpochMillis } from './entity';
+import type { ResourceScope, ResourceSubType } from './resource';
 
 /**
  * Ownership scope of an image row: `system` rows carry the NULL tenant
@@ -43,10 +44,26 @@ export interface ImageDescriptor {
 }
 
 /**
- * `GET /api/images` row and the info endpoints' answer. Every read returns
+ * `GET /api/images` row and the info endpoints' answer — the image face of
+ * TbResourceInfo (fields duplicated instead of `extends` + `Omit` because
+ * the base's string index signature defeats Omit, and `resourceType`
+ * narrows to the wire reality of the image subsystem: always `IMAGE`, a
+ * value the shared frontend enum deliberately omits). Every read returns
  * the id + link, so consumers can rely on them after any list call.
  */
-export interface ImageResourceInfo extends TbResourceInfo<ImageDescriptor> {
+export interface ImageResourceInfo {
+  id: EntityIdOf<EntityType.TB_RESOURCE>;
+  /** ms since epoch (server-assigned). */
+  readonly createdTime?: EpochMillis;
+  /** NULL-tenant id = system image (read-only for TENANT sessions). */
+  readonly tenantId?: EntityIdOf<EntityType.TENANT>;
+  title?: string;
+  resourceType?: 'IMAGE';
+  resourceSubType?: ResourceSubType;
+  resourceKey?: string;
+  fileName?: string;
+  publicResourceKey?: string;
+  descriptor?: ImageDescriptor;
   /** Server-computed authenticated URL (`/api/images/{scope}/{key}`). */
   readonly link?: string;
   /** Present ONLY while `public` — the no-auth embed URL. */
