@@ -105,11 +105,11 @@
 ### 4.0 通用边界（通知族共守）
 
 - 路由族 `/notifications/**`（inbox / sent / templates / recipients / rules 五页）；access 对齐 ui-ngx `notification-routing.module.ts:30-119`：**inbox 三角色**（SYS_ADMIN / TENANT_ADMIN / CUSTOMER_USER），其余四页 SYS + TENANT；CUSTOMER_USER 差异收敛为「只读收件箱 + 无发送按钮」一条权限契约。
-- 触发类型 14 种 = 8 种 tenant 级 + 6 种 sysadmin 级（ui-ngx `notification.models.ts:674-706`）；规则/模板/接收人对话框内 trigger、notificationType、usersFilter 候选均按 authority 收缩（SYS 独有项 tenant 不可见）。
+- 触发类型 14 种 = 8 种 tenant 级 + 6 种 sysadmin 级（ui-ngx `notification.models.ts:674-706`）；**候选按角色二分（非并集）**：规则 trigger 候选 tenant=8 种 tenant 级、SYS=6 种 sysadmin 级（ngx `rule-notification-dialog:530-532`）；接收人 usersFilter 候选 tenant=6 变体、SYS=4 变体（ngx `recipient-dialog:210-218`，fork 头注已声明收缩理由：SYS 无 GET /api/users 数据源）。模板 notificationType 候选同按角色二分（`template-notification-dialog:182-197`）。
 - 投递方式 6 种（WEB/EMAIL/SMS/SLACK/MICROSOFT_TEAMS/MOBILE_APP）；可用方式经 GET /api/notification/deliveryMethods 运行时探测，不可用方式禁用（WEB 本机恒可用；EMAIL/SMS/SLACK/MOBILE_APP 的 provider 配置入口 = `/settings/notifications`，归 M14 settings tab，登记不实施）。
 - **真实通道验收边界**：端到端发送链路以 WEB 通道验收（POST request → 收件箱 REST/WS 可见 → 已读）；SMS/EMAIL/SLACK/Teams/MOBILE_APP 真实到达需真实网关/SMTP/bot/webhook/Firebase，**留人工验收**——自动化验收只认到「配置表单等价 + 不可用通道禁用/错误路径可见」。
 - 用户级偏好 `/account/notificationSettings`（类型 × 投递方式矩阵）与 `/settings/notifications`：登记不实施（归账号/settings 域后续波次）；未读通知 widget 归 widget 域。
-- WS 链路沿 ui-antd 既有遥测订阅管理器：`NOTIFICATIONS`/`NOTIFICATIONS_COUNT` 命令族（`core/ws/protocol.ts:193-198` 已预定义），铃铛未读数走既有 `subscribeUnreadNotificationCount()`，收件箱/弹层列表补 `subscribeNotifications()`；WS 数据不写 queryClient（manager 红线）。
+- WS 链路沿 ui-antd 既有遥测订阅管理器：`NOTIFICATIONS`/`NOTIFICATIONS_COUNT` 命令族（`core/ws/protocol.ts:193-198` 已预定义），铃铛未读数与弹层/收件箱列表共用单条 `subscribeNotifications()` 订阅（快照 `totalUnreadCount` 供数；既有 `subscribeUnreadNotificationCount()` 读 `msg.count` 与服务端推送字段不符，属既有缺陷，登记待修）；已读操作走 REST（PUT read / PUT read-all），WS `MARK_*` 命令登记为能力级增强；WS 数据不写 queryClient（manager 红线）。
 - 自动化回归项归 #12 基线扩充（沿 M11 §3.8 衔接条口径）；本 spec = 人工验收载体。
 
 ### 4.1 收件箱 inbox（三角色）
@@ -123,7 +123,7 @@
 ### 4.2 顶栏铃铛（三角色）
 
 - [ ] 铃铛按钮 + 未读数徽标（≥100 显示 99+），未读数走 WS 订阅（`notification-bell.component.ts:47-56,102-109`）
-- [ ] popover：标题 + 全部标记已读（有通知时显示）；最近 6 条；未读单条已读（WS 命令）；空态；「查看全部」跳 inbox（`show-notification-popover.component.*`）
+- [ ] popover：标题 + 全部标记已读（有通知时显示）；最近 6 条；未读单条已读；空态；「查看全部」跳 inbox（`show-notification-popover.component.*`）〔已读通道实现为 REST，见 4.0〕
 - [ ] 通知项渲染：自定义图标（additionalConfig.icon）或按 type 图标、标题/正文、动作按钮（LINK 外链新窗 / DASHBOARD 带 state 站内跳转）、ALARM 按严重级别着色、相对时间（`notification.component.*`）
 - [ ] popover 打开期间暂停 count 订阅、关闭恢复（`notification-bell.component.ts:77-100`）
 
@@ -150,7 +150,7 @@
 
 - [ ] 列表：createdTime/name/templateName/triggerType/描述；新增/行点击编辑/删除单条+批量（`rule-table-config.resolver.ts:57-86`）
 - [ ] 行内：启用/停用 toggle（即改即存）+「复制规则」（名称追加 "(copy)"）（:93-144）
-- [ ] 对话框 stepper：基本设置（name/enabled/triggerType/模板选择按 triggerType 过滤、可新建可编辑）→ 触发器设置（按 triggerType 动态步骤）；编辑时 triggerType 锁定（`rule-notification-dialog.*:34-118,374-386`）
+- [ ] 对话框 stepper：基本设置（name/enabled/triggerType/模板选择按 triggerType 过滤搜索；内联新建/编辑模板登记 4.7）→ 触发器设置（按 triggerType 动态步骤）；编辑时 triggerType 锁定（`rule-notification-dialog.*:34-118,374-386`）
 - [ ] 接收面二分：非 ALARM → targets 多选 + 新建接收人入口；ALARM → 升级链（首级 0 秒固定、后续间隔 1 分钟–7 天、动态行增删）+ clearRule（仅升级链 >1 级时可配）（`escalations.*`、`escalation-form.*`）
 - [ ] trigger 配置表单 14 种（候选按 authority 收缩；默认 SYS=ENTITIES_LIMIT、TENANT=ALARM）：ALARM / DEVICE_ACTIVITY（设备|设备配置档二选一）/ ENTITY_ACTION / ALARM_COMMENT / ALARM_ASSIGNMENT / RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT（含 ruleNode 子区联动）/ EDGE_CONNECTION / EDGE_COMMUNICATION_FAILURE / ENTITIES_LIMIT（threshold 0-100% → ÷100）/ API_USAGE_LIMIT / NEW_PLATFORM_VERSION（无字段）/ RATE_LIMITS / TASK_PROCESSING_FAILURE（仅描述）/ RESOURCES_SHORTAGE（三滑杆）——字段级对照见 `docs/agents/m12-ngx-inventory.md` §5
 - [ ] 每个 trigger 步骤底部 additionalConfig.description；保存把表单值并入 triggerConfig（:441-467）
@@ -167,8 +167,20 @@
 ### 4.7 能力级增强登记（不设硬门槛）
 
 - 邮件正文 WYSIWYG 视觉形态（4.6 已述等价边界）
-- ENTITIES_LIMIT_INCREASE_REQUEST / RULE_NODE 等无页面入口的 NotificationType（后端/规则链内部使用，不进模板类型候选的页面化）
-- popover 打开期间暂停 count 订阅的省流优化（若首版以双订阅并存交付，不判缺陷）
+- ENTITIES_LIMIT_INCREASE_REQUEST / RULE_NODE 等无页面入口的 NotificationType（后端/规则链内部使用；RULE_NODE 在模板类型候选中随 ngx 收缩法保留）
+- popover 打开期间暂停 count 订阅的省流优化（实现以单订阅常开交付，不判缺陷）
+- 已读操作的 WS `MARK_NOTIFICATIONS_AS_READ`/`MARK_ALL_NOTIFICATIONS_AS_READ` 命令（实现以 REST 等价交付，见 4.0；protocol 命令族已预定义）
+- 规则向导模板选择的内联新建/编辑入口（模板管理走模板页等价覆盖）
+- 发送向导权限门 tooltip 的角色细分文案（实现统一「联系管理员」；跳转设置页链接待 M14 settings tab 落地后补）
+- 共性收敛（沿仓内 12 处 per-page 先例，多页重复待统一波）：搜索防抖与 url-state 的共享 hook 化（5 份近同）、`METHOD_NAME_KEYS` 投递方式文案映射（4 份）、`normalizeTemplateValue`/`withMethodEnabled`（2 份，行为微差需先裁决）、`SendNotificationButton` 自页面目录上移 `components/notifications/`
+- rules 触发表单的 edge 实体选择直用 tbHttp（`/api/tenant/edgeInfos`），待 edge service 建立时迁移
+- 服务层预留无 UI 消费者的端点函数（notification settings / user notification settings / entities-limit-increase / target recipients 列表），供 M14 settings tab 与账号设置域消费
+
+### 4.8 已知后端缺陷登记（前端已规避/待后端修复）
+
+- `GET /api/notification/targets/notificationType/{type}`（及 `/targets?notificationType=`）在 `sortProperty=createdTime` 时 500 "Database error"（自定义查询映射不了该列）；`sortProperty=name` 或不带排序正常。前端两处选择器均按 name 排序规避。
+- `subscribeUnreadNotificationCount()`（ui-antd core/ws）读 `msg.count`，服务端 `NOTIFICATIONS_COUNT` 推送字段为 `totalUnreadCount`，该订阅在真消息下不更新；铃铛改用 `subscribeNotifications` 快照供数，旧方法登记待修。
+- 上游缺陷对照：ui-ngx 规则对话框对 SYS_ADMIN 禁用 targets 选择，致 SYS 必然违反后端 `@NotEmpty` 保存失败；fork 实现允许 SYS 选择接收人（故意偏离）。
 
 ## 5. M13 Edge + OTA（骨架，开工补定）
 
@@ -184,6 +196,7 @@
 
 ## 修订记录
 
+- 2026-09-05：**M12 复审回写（双轴 code-review + 真机裁决后收口）**：4.0 勘误「候选按角色二分非并集」（SYS trigger=6 种、usersFilter=4 变体，均以 ngx 源码为准）与已读/未读数通道口径（REST + `subscribeNotifications` 快照，WS MARK_* 登记 4.7）；4.5 模板内联新建/编辑降登记；新增 **4.7 六项登记**（共性收敛清单、edge service 迁移、服务层预留函数等）与 **4.8 后端缺陷登记**（filtered targets 500 on createdTime sort、`subscribeUnreadNotificationCount` 字段错读、上游 SYS targets 禁用缺陷）。实现侧同步修复：inbox 列表 useMemo 过期闭包（ADR 0007 §5）、发送向导切回过滤端点（name 排序规避）、不可用投递方式归零。
 - 2026-09-05：**M12 段定稿（§4 全量补定）**：4.0 通用边界（路由/角色矩阵、14 trigger 双级收缩、投递方式运行时探测、**WEB 通道为端到端验收基准、真实 SMS/EMAIL 等到达留人工验收**、settings/account 两处登记不实施）+ 4.1–4.6 六块操作面 + 4.7 能力级增强登记。依据 ui-ngx 通知族源码侦察与后端四控制器契约盘点（工作底稿 `docs/agents/m12-*.md`）；随 M12 开工落盘。
 - 2026-09-05：**M11 3V 波真机走查收账（§3.1–3.7 逐项勾账）**——✅ 26 项 / 受阻或未覆盖 6 项保持未勾并登记；新登记缺陷 V1-1（bundle 装 system 类型后端静默丢弃，Major）、V1-2（bundle 图片字段过渡实现未回接，Minor）、V8-1（JS 新建 MODULE 走错端点 400，Major）、V8-2（批量上传 toast 占位符未注入，Minor）；§3.6 两条按主会话裁决口径勾账并回写 editors spec；走查证据全文见 [v2-m11-browser-walkthrough.md](./v2-m11-browser-walkthrough.md)。
 - 2026-09-05：**§3.3 预览模式勘误为静态形态 + §3.8 新登记 scada 符号 widget 运行时渲染器缺口**（波 2C 合入时事实核查：fork widget 注册表无 scada 渲染器，M7 占位三态既有事实覆盖；波 2E 同步证实抽屉数据源为 registry-only）。另：上传大小上限（authState.maxResourceSize）fork 无来源，波 1A/2C 均未做假实现，登记随 auth 波接入。
