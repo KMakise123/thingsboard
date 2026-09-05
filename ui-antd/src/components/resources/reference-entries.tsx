@@ -19,6 +19,7 @@ import {
   TabletOutlined,
   ToolOutlined,
 } from '@ant-design/icons';
+import type { PrimitiveType } from 'intl-messageformat';
 import type { ReactNode } from 'react';
 
 import { EntityType } from '@/types/tb/entity';
@@ -29,7 +30,7 @@ import type { ResourceReferenceEntry } from './resources-in-use';
 /** Caller-side formatMessage (structural — keeps this file UI-agnostic). */
 export type FormatMessage = (
   descriptor: { id: string; defaultMessage?: string },
-  values?: Record<string, unknown>,
+  values?: Record<string, PrimitiveType>,
 ) => string;
 
 /** entity type → translated display name (i18n keys live with the library page locale). */

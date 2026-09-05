@@ -22,10 +22,16 @@ describe('referencesToEntries', () => {
     const entries = referencesToEntries(
       {
         WIDGET_TYPE: [
-          { id: { entityType: EntityType.WIDGET_TYPE, id: 'wt-1' }, name: 'Thermometer' },
+          {
+            id: { entityType: EntityType.WIDGET_TYPE, id: 'wt-1' },
+            name: 'Thermometer',
+          },
         ],
         DASHBOARD: [
-          { id: { entityType: EntityType.DASHBOARD, id: 'dash-1' }, name: 'Plant A' },
+          {
+            id: { entityType: EntityType.DASHBOARD, id: 'dash-1' },
+            name: 'Plant A',
+          },
         ],
       },
       formatMessage,
@@ -48,9 +54,14 @@ describe('referencesToEntries', () => {
     const entries = referencesToEntries(
       {
         CALCULATED_FIELD: [
-          { id: { entityType: EntityType.CALCULATED_FIELD, id: 'cf-1' }, name: 'CF' },
+          {
+            id: { entityType: EntityType.CALCULATED_FIELD, id: 'cf-1' },
+            name: 'CF',
+          },
         ],
-        SOMETHING_NEW: [{ id: { entityType: 'OTHER' as EntityType, id: 'x-1' } }],
+        SOMETHING_NEW: [
+          { id: { entityType: 'OTHER' as EntityType, id: 'x-1' } },
+        ],
       },
       formatMessage,
     );
@@ -67,7 +78,10 @@ describe('referencesToEntries', () => {
     const entries = referencesToEntries(
       {
         RULE_CHAIN: [
-          { id: { entityType: EntityType.RULE_CHAIN, id: 'rc-1' }, name: 'Root chain' },
+          {
+            id: { entityType: EntityType.RULE_CHAIN, id: 'rc-1' },
+            name: 'Root chain',
+          },
         ],
       },
       formatMessage,

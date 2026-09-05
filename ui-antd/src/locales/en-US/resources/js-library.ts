@@ -43,6 +43,7 @@ export default {
     'The scripts below are still referenced by other entities; select the ones to force-delete.',
   'pages.resources.jsLibrary.deleteInUse': 'Delete anyway',
   'pages.resources.jsLibrary.cancel': 'Cancel',
+  'pages.resources.jsLibrary.references': 'References',
   // ---- feedback ----
   'pages.resources.jsLibrary.toastDeleted': 'Script deleted.',
   'pages.resources.jsLibrary.toastSaved': 'Script saved.',

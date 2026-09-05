@@ -4,12 +4,12 @@
  * callbacks. The component is wording-agnostic — tests pass literal
  * strings exactly like the pages do.
  */
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import {
-  ResourcesInUseModal,
   type ResourceInUseItem,
+  ResourcesInUseModal,
 } from './resources-in-use';
 
 function item(id: string, title: string, names: string[]): ResourceInUseItem {
@@ -50,7 +50,12 @@ describe('ResourcesInUseModal', () => {
       id: 'res-1',
       title: 'helper.js',
       references: [
-        { key: 'a', typeName: 'Widget type', name: 'Thermometer', href: '/widgets/editor/wt-1' },
+        {
+          key: 'a',
+          typeName: 'Widget type',
+          name: 'Thermometer',
+          href: '/widgets/editor/wt-1',
+        },
         { key: 'b', typeName: 'Widget type', name: 'Gauge' },
         { key: 'c', typeName: 'Dashboard', name: 'Plant A' },
       ],

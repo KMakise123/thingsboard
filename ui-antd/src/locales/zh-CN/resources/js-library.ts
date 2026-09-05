@@ -40,6 +40,7 @@ export default {
     '下列脚本仍被其他实体引用，勾选后可强行删除。',
   'pages.resources.jsLibrary.deleteInUse': '仍要删除',
   'pages.resources.jsLibrary.cancel': '取消',
+  'pages.resources.jsLibrary.references': '引用',
   // ---- 反馈 ----
   'pages.resources.jsLibrary.toastDeleted': '脚本已删除。',
   'pages.resources.jsLibrary.toastSaved': '脚本已保存。',
