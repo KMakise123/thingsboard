@@ -15,7 +15,6 @@ import { serverErrorText } from '@/components/entities/server-error-text';
 import { useAuthority } from '@/components/shared/use-authority';
 import { validateAndUpdateDashboard } from '@/core/dashboard/model';
 import { getSystemResourceDashboard } from '@/services/tb/dashboard';
-import type { Dashboard } from '@/types/tb/dashboard';
 
 function isNotFound(error: unknown): boolean {
   return (
