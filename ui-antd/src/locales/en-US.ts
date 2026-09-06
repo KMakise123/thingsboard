@@ -3,6 +3,7 @@
  * (umi only scans top-level locale files).
  */
 import account from './en-US/account';
+import aiModel from './en-US/ai-model';
 import alarms from './en-US/alarms';
 import assetProfiles from './en-US/asset-profiles';
 import assets from './en-US/assets';
@@ -92,4 +93,5 @@ export default {
   ...ruleNode,
   ...widgetKit,
   ...vc,
+  ...aiModel,
 };
