@@ -514,6 +514,39 @@ export default [
         access: 'canSysAdmin',
         component: './settings/security-settings',
       },
+      // ---- M14 wave-3 settings additions (R25/R26/R27/R23) ----
+      {
+        // No access key: inherits the group gate (SA+TA) — one page with
+        // role-shaped cards (SYS: SMS provider + mobile app; TENANT: Slack).
+        name: 'notifications',
+        path: '/settings/notifications',
+        component: './settings/notifications',
+      },
+      {
+        name: 'queues',
+        path: '/settings/queues',
+        access: 'canSysAdmin',
+        component: './settings/queues',
+      },
+      {
+        name: 'detail',
+        path: '/settings/queues/:id',
+        access: 'canSysAdmin',
+        component: './settings/queues/detail',
+        hideInMenu: true,
+      },
+      {
+        name: 'aiModels',
+        path: '/settings/ai-models',
+        access: 'canTenantAdmin',
+        component: './settings/ai-models',
+      },
+      {
+        name: 'autoCommit',
+        path: '/settings/auto-commit',
+        access: 'canTenantAdmin',
+        component: './settings/auto-commit',
+      },
     ],
   },
   // ---- M11 resources library family (spec §3.1–3.5) ----

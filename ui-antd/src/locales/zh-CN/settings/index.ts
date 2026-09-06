@@ -333,4 +333,266 @@ export default {
     '更改 JWT 签名密钥会导致所有已签发的令牌失效，所有用户都需要重新登录。这也会影响使用 REST API/WebSocket 的脚本。',
   'pages.settings.security.jwtConfirmOk': '确认',
   'pages.settings.security.jwtConfirmCancel': '放弃更改',
+
+  // ---- M14 wave-3: notifications settings（R25）----
+  'pages.settings.notifications.smsCardTitle': '短信服务商设置',
+  'pages.settings.notifications.smsToastSaved': '短信服务商设置已保存。',
+  'pages.settings.notifications.sendTestSms': '发送测试短信',
+  'pages.settings.notifications.smsProviderType': '短信服务商类型',
+  'pages.settings.notifications.smsProviderTypeRequired':
+    '短信服务商类型为必填项。',
+  'pages.settings.notifications.provider.awsSns': 'Amazon SNS',
+  'pages.settings.notifications.provider.twilio': 'Twilio',
+  'pages.settings.notifications.provider.smpp': 'SMPP',
+  'pages.settings.notifications.aws.accessKeyId': 'AWS Access Key ID',
+  'pages.settings.notifications.aws.accessKeyIdRequired':
+    'AWS Access Key ID 为必填项',
+  'pages.settings.notifications.aws.secretAccessKey': 'AWS Secret Access Key',
+  'pages.settings.notifications.aws.secretAccessKeyRequired':
+    'AWS Secret Access Key 为必填项',
+  'pages.settings.notifications.aws.region': 'AWS 区域',
+  'pages.settings.notifications.aws.regionRequired': 'AWS 区域为必填项',
+  'pages.settings.notifications.twilio.numberFrom': '发送方号码',
+  'pages.settings.notifications.twilio.numberFromRequired':
+    '发送方号码为必填项。',
+  'pages.settings.notifications.twilio.numberFromHint':
+    'E.164 格式的号码/号码 SID/消息服务 SID，例如 +19995550123/PNXXX/MGXXX',
+  'pages.settings.notifications.twilio.numberFromPattern':
+    '号码无效。应为 E.164 格式的号码/号码 SID/消息服务 SID，例如 +19995550123/PNXXX/MGXXX。',
+  'pages.settings.notifications.twilio.accountSid': 'Twilio Account SID',
+  'pages.settings.notifications.twilio.accountSidRequired':
+    'Twilio Account SID 为必填项',
+  'pages.settings.notifications.twilio.accountToken': 'Twilio Account Token',
+  'pages.settings.notifications.twilio.accountTokenRequired':
+    'Twilio Account Token 为必填项',
+  'pages.settings.notifications.smpp.version': 'SMPP 版本',
+  'pages.settings.notifications.smpp.versionRequired': 'SMPP 版本为必填项',
+  'pages.settings.notifications.smpp.host': 'SMPP 主机',
+  'pages.settings.notifications.smpp.hostRequired': 'SMPP 主机为必填项',
+  'pages.settings.notifications.smpp.port': 'SMPP 端口',
+  'pages.settings.notifications.smpp.portRequired': 'SMPP 端口为必填项',
+  'pages.settings.notifications.smpp.systemId': 'System ID',
+  'pages.settings.notifications.smpp.systemIdRequired': 'System ID 为必填项',
+  'pages.settings.notifications.smpp.password': '密码',
+  'pages.settings.notifications.smpp.passwordRequired': '密码为必填项',
+  'pages.settings.notifications.smpp.systemType': 'System type',
+  'pages.settings.notifications.smpp.bindType': '绑定类型',
+  'pages.settings.notifications.smpp.serviceType': 'Service type',
+  'pages.settings.notifications.smpp.sourceAddress': '源地址',
+  'pages.settings.notifications.smpp.sourceTon': '源 TON',
+  'pages.settings.notifications.smpp.sourceNpi': '源 NPI',
+  'pages.settings.notifications.smpp.destinationTon': '目标 TON（号码类型）',
+  'pages.settings.notifications.smpp.destinationNpi':
+    '目标 NPI（编号计划标识）',
+  'pages.settings.notifications.smpp.addressRange': '地址范围',
+  'pages.settings.notifications.smpp.codingScheme': '编码方案',
+  'pages.settings.notifications.smpp.group.typeSettings': '类型设置',
+  'pages.settings.notifications.smpp.group.sourceSettings': '源设置',
+  'pages.settings.notifications.smpp.group.destinationSettings': '目标设置',
+  'pages.settings.notifications.smpp.group.additionalSettings': '附加设置',
+  'pages.settings.notifications.smpp.bind.tx': '发送器',
+  'pages.settings.notifications.smpp.bind.rx': '接收器',
+  'pages.settings.notifications.smpp.bind.trx': '收发器',
+  'pages.settings.notifications.smpp.ton.unknown': '未知',
+  'pages.settings.notifications.smpp.ton.international': '国际',
+  'pages.settings.notifications.smpp.ton.national': '国内',
+  'pages.settings.notifications.smpp.ton.networkSpecific': '网络专用',
+  'pages.settings.notifications.smpp.ton.subscriberNumber': '用户号码',
+  'pages.settings.notifications.smpp.ton.alphanumeric': '字母数字',
+  'pages.settings.notifications.smpp.ton.abbreviated': '缩位',
+  'pages.settings.notifications.smpp.npi.unknown': '0 - 未知',
+  'pages.settings.notifications.smpp.npi.isdn':
+    '1 - ISDN/电话编号计划 (E163/E164)',
+  'pages.settings.notifications.smpp.npi.dataNumberingPlan':
+    '3 - 数据编号计划 (X.121)',
+  'pages.settings.notifications.smpp.npi.telexNumberingPlan':
+    '4 - 电传编号计划 (F.69)',
+  'pages.settings.notifications.smpp.npi.landMobile': '6 - 陆地移动 (E.212)',
+  'pages.settings.notifications.smpp.npi.nationalNumberingPlan':
+    '8 - 国家编号计划',
+  'pages.settings.notifications.smpp.npi.privateNumberingPlan':
+    '9 - 专用编号计划',
+  'pages.settings.notifications.smpp.npi.ermesNumberingPlan':
+    '10 - ERMES 编号计划 (ETSI DE/PS 3 01-3)',
+  'pages.settings.notifications.smpp.npi.internet': '13 - 互联网 (IP)',
+  'pages.settings.notifications.smpp.npi.wapClientId':
+    '18 - WAP 客户端 ID (由 WAP 论坛定义)',
+  'pages.settings.notifications.smpp.scheme.smsc':
+    '0 - SMSC 默认字母表（短/长号码用 ASCII，toll-free 用 GSM）',
+  'pages.settings.notifications.smpp.scheme.ia5':
+    '1 - IA5（短/长号码用 ASCII，toll-free 用 Latin 9 (ISO-8859-9)）',
+  'pages.settings.notifications.smpp.scheme.octetUnspecified2':
+    '2 - 八位组未指定（8 位二进制）',
+  'pages.settings.notifications.smpp.scheme.latin1': '3 - Latin 1 (ISO-8859-1)',
+  'pages.settings.notifications.smpp.scheme.octetUnspecified4':
+    '4 - 八位组未指定（8 位二进制）',
+  'pages.settings.notifications.smpp.scheme.jis': '5 - JIS (X 0208-1990)',
+  'pages.settings.notifications.smpp.scheme.cyrillic':
+    '6 - 西里尔文 (ISO-8859-5)',
+  'pages.settings.notifications.smpp.scheme.latinHebrew':
+    '7 - 拉丁/希伯来文 (ISO-8859-8)',
+  'pages.settings.notifications.smpp.scheme.ucs2Utf16':
+    '8 - UCS2/UTF-16 (ISO/IEC-10646)',
+  'pages.settings.notifications.smpp.scheme.pictogramEncoding':
+    '9 - 象形文字编码',
+  'pages.settings.notifications.smpp.scheme.musicCodes':
+    '10 - 音乐代码 (ISO-2022-JP)',
+  'pages.settings.notifications.smpp.scheme.extendedKanjiJis':
+    '13 - 扩展汉字 JIS (X 0212-1990)',
+  'pages.settings.notifications.smpp.scheme.koreanGraphicCharacterSet':
+    '14 - 韩文字符集 (KS C 5601/KS X 1001)',
+  'pages.settings.notifications.slackCardTitle': 'Slack 设置',
+  'pages.settings.notifications.slackApiToken': 'Slack API 令牌',
+  'pages.settings.notifications.mobileAppTitle': '移动应用设置',
+  'pages.settings.notifications.firebaseFile':
+    'Firebase 服务账号凭据 JSON 文件',
+  'pages.settings.notifications.firebaseSelect': '选择文件',
+  'pages.settings.notifications.toastSaved': '通知设置已保存。',
+  'pages.settings.notifications.testSmsSent': '测试短信发送成功！',
+  'pages.settings.notifications.testSmsNoProvider': '短信服务商尚未配置。',
+  'pages.settings.notifications.testSmsNumberTo': '目标手机号',
+  'pages.settings.notifications.testSmsNumberToRequired':
+    '目标手机号为必填项。',
+  'pages.settings.notifications.testSmsNumberToPattern':
+    '手机号必须为 E.164 格式，例如 +19995550123。',
+  'pages.settings.notifications.testSmsMessage': '短信内容',
+  'pages.settings.notifications.testSmsMessageRequired': '短信内容为必填项。',
+  'pages.settings.notifications.testSmsMessageMaxLength':
+    '短信内容不能超过 1600 个字符',
+  'pages.settings.notifications.testSmsSend': '发送',
+
+  // ---- M14 wave-3: queues（R26）----
+  'pages.settings.queues.name': '名称',
+  'pages.settings.queues.nameRequired': '队列名称为必填项！',
+  'pages.settings.queues.namePattern':
+    '队列名称只能包含 ASCII 字母数字以及“.”、“_”、“-”！',
+  'pages.settings.queues.topic': '主题',
+  'pages.settings.queues.submitSettings': '提交设置',
+  'pages.settings.queues.processingSettings': '重试处理设置',
+  'pages.settings.queues.pollingSettings': '轮询设置',
+  'pages.settings.queues.submitStrategy': '策略类型',
+  'pages.settings.queues.submitStrategyTypeRequired': '提交策略类型为必填项！',
+  'pages.settings.queues.submitStrategyColumn': '提交策略',
+  'pages.settings.queues.processingStrategy': '处理类型',
+  'pages.settings.queues.processingStrategyTypeRequired':
+    '处理策略类型为必填项！',
+  'pages.settings.queues.processingStrategyColumn': '处理策略',
+  'pages.settings.queues.groupingParameter': '分组参数',
+  'pages.settings.queues.batchSizeRequired': '批大小为必填项！',
+  'pages.settings.queues.retries': '重试次数（0 – 不限制）',
+  'pages.settings.queues.retriesRequired': '重试次数为必填项！',
+  'pages.settings.queues.failurePercentage': '跳过重试的失败消息占比（%）',
+  'pages.settings.queues.failurePercentageRequired': '失败占比为必填项！',
+  'pages.settings.queues.pauseBetweenRetries': '重试间隔（毫秒）',
+  'pages.settings.queues.pauseBetweenRetriesRequired': '重试间隔为必填项！',
+  'pages.settings.queues.maxPauseBetweenRetries': '重试额外间隔（毫秒）',
+  'pages.settings.queues.maxPauseBetweenRetriesRequired':
+    '重试额外间隔为必填项！',
+  'pages.settings.queues.maxPauseLessThanPause':
+    '重试额外间隔不能小于重试间隔。',
+  'pages.settings.queues.pollInterval': '轮询间隔（毫秒）',
+  'pages.settings.queues.pollIntervalRequired': '轮询间隔为必填项！',
+  'pages.settings.queues.partitions': '分区数',
+  'pages.settings.queues.partitionsRequired': '分区数为必填项！',
+  'pages.settings.queues.packProcessingTimeout': '批次处理超时（毫秒）',
+  'pages.settings.queues.packProcessingTimeoutRequired':
+    '批次处理超时为必填项！',
+  'pages.settings.queues.consumerPerPartition': '每分区独立消费者',
+  'pages.settings.queues.duplicateMsgToAllPartitions': '将消息复制到所有分区',
+  'pages.settings.queues.customProperties': '自定义属性',
+  'pages.settings.queues.customPropertiesHint':
+    '分号分隔的 key:value 对，例如 retention.ms:604800000;retention.bytes:1048576000',
+  'pages.settings.queues.description': '描述',
+  'pages.settings.queues.strategies.sequentialByOriginator': '按消息源顺序',
+  'pages.settings.queues.strategies.sequentialByOriginatorHint':
+    '例如设备 A 的新消息在上一条消息确认之前不会被提交',
+  'pages.settings.queues.strategies.sequentialByTenant': '按租户顺序',
+  'pages.settings.queues.strategies.sequentialByTenantHint':
+    '例如租户 A 的新消息在上一条消息确认之前不会被提交',
+  'pages.settings.queues.strategies.sequential': '顺序',
+  'pages.settings.queues.strategies.sequentialHint':
+    '新消息在上一条消息确认之前不会被提交',
+  'pages.settings.queues.strategies.burst': '突发',
+  'pages.settings.queues.strategies.burstHint':
+    '所有消息按到达顺序提交给规则链',
+  'pages.settings.queues.strategies.batch': '批量',
+  'pages.settings.queues.strategies.batchHint':
+    '新批次在上一批次确认之前不会被提交',
+  'pages.settings.queues.strategies.retryFailedAndTimeout': '重试失败和超时',
+  'pages.settings.queues.strategies.retryFailedAndTimeoutHint':
+    '重试处理包中所有失败和超时的消息',
+  'pages.settings.queues.strategies.skipAllFailures': '跳过所有失败',
+  'pages.settings.queues.strategies.skipAllFailuresHint': '忽略所有失败',
+  'pages.settings.queues.strategies.skipAllFailuresAndTimeouts':
+    '跳过所有失败和超时',
+  'pages.settings.queues.strategies.skipAllFailuresAndTimeoutsHint':
+    '忽略所有失败和超时',
+  'pages.settings.queues.strategies.retryAll': '全部重试',
+  'pages.settings.queues.strategies.retryAllHint': '重试处理包中的所有消息',
+  'pages.settings.queues.strategies.retryFailed': '重试失败',
+  'pages.settings.queues.strategies.retryFailedHint':
+    '重试处理包中所有失败的消息',
+  'pages.settings.queues.strategies.retryTimeout': '重试超时',
+  'pages.settings.queues.strategies.retryTimeoutHint':
+    '重试处理包中所有超时的消息',
+  'pages.settings.queues.addQueue': '新增队列',
+  'pages.settings.queues.search': '搜索队列',
+  'pages.settings.queues.delete': '删除',
+  'pages.settings.queues.refresh': '刷新',
+  'pages.settings.queues.selectedCount': '已选 {count} 项',
+  'pages.settings.queues.deleteSelected': '删除所选',
+  'pages.settings.queues.deleteOneTitle': '确认删除队列“{name}”吗？',
+  'pages.settings.queues.deleteOneText':
+    '注意：确认后队列及其所有相关数据将不可恢复。',
+  'pages.settings.queues.deleteManyTitle':
+    '确认删除 {count, plural, =1 {1 个队列} other {# 个队列}} 吗？',
+  'pages.settings.queues.deleteManyText':
+    '确认后所有选中的队列都将被删除且无法访问。',
+  'pages.settings.queues.toastSaved': '队列已保存。',
+  'pages.settings.queues.toastDeleted': '队列已删除。',
+  'pages.settings.queues.batchResult': '{ok} 个成功，{fail} 个失败。',
+  'pages.settings.queues.total': '共 {count} 条',
+  'pages.settings.queues.empty': '暂无队列',
+  'pages.settings.queues.loadFailed': '加载队列失败',
+
+  // ---- M14 wave-3: auto-commit settings（R23）----
+  'pages.settings.autoCommit.title': '自动提交设置',
+  'pages.settings.autoCommit.gateHint':
+    '请先配置版本控制仓库，然后才能管理自动提交设置。',
+  'pages.settings.autoCommit.entities': '自动提交实体',
+  'pages.settings.autoCommit.noEntitiesPrompt': '尚未配置自动提交实体',
+  'pages.settings.autoCommit.addEntityType': '新增实体类型',
+  'pages.settings.autoCommit.removeEntityType': '移除',
+  'pages.settings.autoCommit.removeAll': '全部移除',
+  'pages.settings.autoCommit.entityTypeLabel': '实体类型',
+  'pages.settings.autoCommit.branch': '分支',
+  'pages.settings.autoCommit.branchPlaceholder': '默认（仓库默认分支）',
+  'pages.settings.autoCommit.saveCredentials': '导出凭据',
+  'pages.settings.autoCommit.saveAttributes': '导出属性',
+  'pages.settings.autoCommit.saveRelations': '导出关系',
+  'pages.settings.autoCommit.saveCalculatedFields': '导出计算字段和告警规则',
+  'pages.settings.autoCommit.readOnlyHint':
+    '仓库设置启用只读后，自动提交功能不可用。',
+  'pages.settings.autoCommit.delete': '删除',
+  'pages.settings.autoCommit.deleteConfirmTitle': '确认删除自动提交设置吗？',
+  'pages.settings.autoCommit.deleteConfirmText':
+    '注意：确认后自动提交设置将被移除，所有实体将停用自动提交。',
+  'pages.settings.autoCommit.toastSaved': '自动提交设置已保存。',
+  'pages.settings.autoCommit.toastDeleted': '自动提交设置已删除。',
+  'pages.settings.autoCommit.entityTypes.ASSET': '资产',
+  'pages.settings.autoCommit.entityTypes.DEVICE': '设备',
+  'pages.settings.autoCommit.entityTypes.ENTITY_VIEW': '实体视图',
+  'pages.settings.autoCommit.entityTypes.DASHBOARD': '仪表盘',
+  'pages.settings.autoCommit.entityTypes.CUSTOMER': '客户',
+  'pages.settings.autoCommit.entityTypes.DEVICE_PROFILE': '设备配置',
+  'pages.settings.autoCommit.entityTypes.ASSET_PROFILE': '资产配置',
+  'pages.settings.autoCommit.entityTypes.RULE_CHAIN': '规则链',
+  'pages.settings.autoCommit.entityTypes.WIDGET_TYPE': '部件类型',
+  'pages.settings.autoCommit.entityTypes.WIDGETS_BUNDLE': '部件包',
+  'pages.settings.autoCommit.entityTypes.TB_RESOURCE': '资源库',
+  'pages.settings.autoCommit.entityTypes.OTA_PACKAGE': 'OTA 包',
+  'pages.settings.autoCommit.entityTypes.NOTIFICATION_TEMPLATE': '通知模板',
+  'pages.settings.autoCommit.entityTypes.NOTIFICATION_TARGET': '通知收件人',
+  'pages.settings.autoCommit.entityTypes.NOTIFICATION_RULE': '通知规则',
+  'pages.settings.autoCommit.entityTypes.AI_MODEL': 'AI 模型',
 };

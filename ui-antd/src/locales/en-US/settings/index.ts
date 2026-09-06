@@ -362,4 +362,289 @@ export default {
     'Change of the JWT Signing Key will cause all issued tokens to be invalid. All users will need to re-login. This will also affect scripts that use Rest API/Websockets.',
   'pages.settings.security.jwtConfirmOk': 'Confirm',
   'pages.settings.security.jwtConfirmCancel': 'Discard changes',
+
+  // ---- M14 wave-3: notifications settings (R25, ngx admin.sms-* parity) ----
+  'pages.settings.notifications.smsCardTitle': 'SMS provider settings',
+  'pages.settings.notifications.smsToastSaved': 'SMS provider settings saved.',
+  'pages.settings.notifications.sendTestSms': 'Send test SMS',
+  'pages.settings.notifications.smsProviderType': 'SMS provider type',
+  'pages.settings.notifications.smsProviderTypeRequired':
+    'SMS provider type is required.',
+  'pages.settings.notifications.provider.awsSns': 'Amazon SNS',
+  'pages.settings.notifications.provider.twilio': 'Twilio',
+  'pages.settings.notifications.provider.smpp': 'SMPP',
+  'pages.settings.notifications.aws.accessKeyId': 'AWS Access Key ID',
+  'pages.settings.notifications.aws.accessKeyIdRequired':
+    'AWS Access Key ID is required',
+  'pages.settings.notifications.aws.secretAccessKey': 'AWS Secret Access Key',
+  'pages.settings.notifications.aws.secretAccessKeyRequired':
+    'AWS Secret Access Key is required',
+  'pages.settings.notifications.aws.region': 'AWS Region',
+  'pages.settings.notifications.aws.regionRequired': 'AWS Region is required',
+  'pages.settings.notifications.twilio.numberFrom': 'Phone Number From',
+  'pages.settings.notifications.twilio.numberFromRequired':
+    'Phone Number From is required.',
+  'pages.settings.notifications.twilio.numberFromHint':
+    "Phone Number in E.164 format/Phone Number's SID/Messaging Service SID, ex. +19995550123/PNXXX/MGXXX",
+  'pages.settings.notifications.twilio.numberFromPattern':
+    "Invalid phone number. Should be in E.164 format/Phone Number's SID/Messaging Service SID, ex. +19995550123/PNXXX/MGXXX.",
+  'pages.settings.notifications.twilio.accountSid': 'Twilio Account SID',
+  'pages.settings.notifications.twilio.accountSidRequired':
+    'Twilio Account SID is required',
+  'pages.settings.notifications.twilio.accountToken': 'Twilio Account Token',
+  'pages.settings.notifications.twilio.accountTokenRequired':
+    'Twilio Account Token is required',
+  'pages.settings.notifications.smpp.version': 'SMPP version',
+  'pages.settings.notifications.smpp.versionRequired':
+    'SMPP version is required',
+  'pages.settings.notifications.smpp.host': 'SMPP host',
+  'pages.settings.notifications.smpp.hostRequired': 'SMPP host is required',
+  'pages.settings.notifications.smpp.port': 'SMPP port',
+  'pages.settings.notifications.smpp.portRequired': 'SMPP port is required',
+  'pages.settings.notifications.smpp.systemId': 'System ID',
+  'pages.settings.notifications.smpp.systemIdRequired': 'System ID is required',
+  'pages.settings.notifications.smpp.password': 'Password',
+  'pages.settings.notifications.smpp.passwordRequired': 'Password is required',
+  'pages.settings.notifications.smpp.systemType': 'System type',
+  'pages.settings.notifications.smpp.bindType': 'Bind type',
+  'pages.settings.notifications.smpp.serviceType': 'Service type',
+  'pages.settings.notifications.smpp.sourceAddress': 'Source address',
+  'pages.settings.notifications.smpp.sourceTon': 'Source TON',
+  'pages.settings.notifications.smpp.sourceNpi': 'Source NPI',
+  'pages.settings.notifications.smpp.destinationTon':
+    'Destination TON (Type of Number)',
+  'pages.settings.notifications.smpp.destinationNpi':
+    'Destination NPI (Numbering Plan Identification)',
+  'pages.settings.notifications.smpp.addressRange': 'Address range',
+  'pages.settings.notifications.smpp.codingScheme': 'Coding scheme',
+  'pages.settings.notifications.smpp.group.typeSettings': 'Type settings',
+  'pages.settings.notifications.smpp.group.sourceSettings': 'Source settings',
+  'pages.settings.notifications.smpp.group.destinationSettings':
+    'Destination settings',
+  'pages.settings.notifications.smpp.group.additionalSettings':
+    'Additional settings',
+  'pages.settings.notifications.smpp.bind.tx': 'Transmitter',
+  'pages.settings.notifications.smpp.bind.rx': 'Receiver',
+  'pages.settings.notifications.smpp.bind.trx': 'Transciever',
+  'pages.settings.notifications.smpp.ton.unknown': 'Unknown',
+  'pages.settings.notifications.smpp.ton.international': 'International',
+  'pages.settings.notifications.smpp.ton.national': 'National',
+  'pages.settings.notifications.smpp.ton.networkSpecific': 'Network Specific',
+  'pages.settings.notifications.smpp.ton.subscriberNumber': 'Subscriber Number',
+  'pages.settings.notifications.smpp.ton.alphanumeric': 'Alphanumeric',
+  'pages.settings.notifications.smpp.ton.abbreviated': 'Abbreviated',
+  'pages.settings.notifications.smpp.npi.unknown': '0 - Unknown',
+  'pages.settings.notifications.smpp.npi.isdn':
+    '1 - ISDN/telephone numbering plan (E163/E164)',
+  'pages.settings.notifications.smpp.npi.dataNumberingPlan':
+    '3 - Data numbering plan (X.121)',
+  'pages.settings.notifications.smpp.npi.telexNumberingPlan':
+    '4 - Telex numbering plan (F.69)',
+  'pages.settings.notifications.smpp.npi.landMobile': '6 - Land Mobile (E.212)',
+  'pages.settings.notifications.smpp.npi.nationalNumberingPlan':
+    '8 - National numbering plan',
+  'pages.settings.notifications.smpp.npi.privateNumberingPlan':
+    '9 - Private numbering plan',
+  'pages.settings.notifications.smpp.npi.ermesNumberingPlan':
+    '10 - ERMES numbering plan (ETSI DE/PS 3 01-3)',
+  'pages.settings.notifications.smpp.npi.internet': '13 - Internet (IP)',
+  'pages.settings.notifications.smpp.npi.wapClientId':
+    '18 - WAP Client Id (to be defined by WAP Forum)',
+  'pages.settings.notifications.smpp.scheme.smsc':
+    '0 - SMSC Default Alphabet (ASCII for short and long code and to GSM for toll-free)',
+  'pages.settings.notifications.smpp.scheme.ia5':
+    '1 - IA5 (ASCII for short and long code, Latin 9 for toll-free (ISO-8859-9))',
+  'pages.settings.notifications.smpp.scheme.octetUnspecified2':
+    '2 - Octet Unspecified (8-bit binary)',
+  'pages.settings.notifications.smpp.scheme.latin1': '3 - Latin 1 (ISO-8859-1)',
+  'pages.settings.notifications.smpp.scheme.octetUnspecified4':
+    '4 - Octet Unspecified (8-bit binary)',
+  'pages.settings.notifications.smpp.scheme.jis': '5 - JIS (X 0208-1990)',
+  'pages.settings.notifications.smpp.scheme.cyrillic':
+    '6 - Cyrillic (ISO-8859-5)',
+  'pages.settings.notifications.smpp.scheme.latinHebrew':
+    '7 - Latin/Hebrew (ISO-8859-8)',
+  'pages.settings.notifications.smpp.scheme.ucs2Utf16':
+    '8 - UCS2/UTF-16 (ISO/IEC-10646)',
+  'pages.settings.notifications.smpp.scheme.pictogramEncoding':
+    '9 - Pictogram Encoding',
+  'pages.settings.notifications.smpp.scheme.musicCodes':
+    '10 - Music Codes (ISO-2022-JP)',
+  'pages.settings.notifications.smpp.scheme.extendedKanjiJis':
+    '13 - Extended Kanji JIS (X 0212-1990)',
+  'pages.settings.notifications.smpp.scheme.koreanGraphicCharacterSet':
+    '14 - Korean Graphic Character Set (KS C 5601/KS X 1001)',
+  'pages.settings.notifications.slackCardTitle': 'Slack settings',
+  'pages.settings.notifications.slackApiToken': 'Slack API token',
+  'pages.settings.notifications.mobileAppTitle': 'Mobile app settings',
+  'pages.settings.notifications.firebaseFile':
+    'Firebase service account credentials JSON file',
+  'pages.settings.notifications.firebaseSelect': 'Select a file',
+  'pages.settings.notifications.toastSaved': 'Notification settings saved.',
+  'pages.settings.notifications.testSmsSent': 'Test SMS was successfully sent!',
+  'pages.settings.notifications.testSmsNoProvider':
+    'SMS provider is not configured yet.',
+  'pages.settings.notifications.testSmsNumberTo': 'Phone number to',
+  'pages.settings.notifications.testSmsNumberToRequired':
+    'Phone number to is required.',
+  'pages.settings.notifications.testSmsNumberToPattern':
+    'Phone number must be in E.164 format, ex. +19995550123.',
+  'pages.settings.notifications.testSmsMessage': 'SMS message',
+  'pages.settings.notifications.testSmsMessageRequired':
+    'SMS message is required.',
+  'pages.settings.notifications.testSmsMessageMaxLength':
+    "SMS message can't be longer 1600 characters",
+  'pages.settings.notifications.testSmsSend': 'Send',
+
+  // ---- M14 wave-3: queues (R26, ngx queue.* / admin.queues parity) ----
+  'pages.settings.queues.name': 'Name',
+  'pages.settings.queues.nameRequired': 'Queue name is required!',
+  'pages.settings.queues.namePattern':
+    "Queue name contains a character other than ASCII alphanumerics, '.', '_' and '-'!",
+  'pages.settings.queues.topic': 'Topic',
+  'pages.settings.queues.submitSettings': 'Submit settings',
+  'pages.settings.queues.processingSettings': 'Retries processing settings',
+  'pages.settings.queues.pollingSettings': 'Polling settings',
+  'pages.settings.queues.submitStrategy': 'Strategy type',
+  'pages.settings.queues.submitStrategyTypeRequired':
+    'Submit strategy type is required!',
+  'pages.settings.queues.submitStrategyColumn': 'Submit strategy',
+  'pages.settings.queues.processingStrategy': 'Processing type',
+  'pages.settings.queues.processingStrategyTypeRequired':
+    'Processing strategy type is required!',
+  'pages.settings.queues.processingStrategyColumn': 'Processing strategy',
+  'pages.settings.queues.groupingParameter': 'Grouping parameter',
+  'pages.settings.queues.batchSizeRequired': 'Batch size is required!',
+  'pages.settings.queues.retries': 'Number of retries (0 – unlimited)',
+  'pages.settings.queues.retriesRequired': 'Retries is required!',
+  'pages.settings.queues.failurePercentage':
+    'Percentage of failed messages to skip retries (%)',
+  'pages.settings.queues.failurePercentageRequired':
+    'Failure percentage is required!',
+  'pages.settings.queues.pauseBetweenRetries': 'Pause between retries (ms)',
+  'pages.settings.queues.pauseBetweenRetriesRequired':
+    'Pause between retries is required!',
+  'pages.settings.queues.maxPauseBetweenRetries':
+    'Additional pause between retries (ms)',
+  'pages.settings.queues.maxPauseBetweenRetriesRequired':
+    'Max pause between retries is required!',
+  'pages.settings.queues.maxPauseLessThanPause':
+    'The additional pause between retries cannot be smaller than the pause between retries.',
+  'pages.settings.queues.pollInterval': 'Polling interval (ms)',
+  'pages.settings.queues.pollIntervalRequired': 'Polling interval is required!',
+  'pages.settings.queues.partitions': 'Partitions',
+  'pages.settings.queues.partitionsRequired': 'Partitions is required!',
+  'pages.settings.queues.packProcessingTimeout': 'Pack processing timeout (ms)',
+  'pages.settings.queues.packProcessingTimeoutRequired':
+    'Pack processing timeout is required!',
+  'pages.settings.queues.consumerPerPartition': 'Consumer per partition',
+  'pages.settings.queues.duplicateMsgToAllPartitions':
+    'Duplicate messages to all partitions',
+  'pages.settings.queues.customProperties': 'Custom properties',
+  'pages.settings.queues.customPropertiesHint':
+    'Semicolon-separated key:value pairs, ex. retention.ms:604800000;retention.bytes:1048576000',
+  'pages.settings.queues.description': 'Description',
+  'pages.settings.queues.strategies.sequentialByOriginator':
+    'Sequential by originator',
+  'pages.settings.queues.strategies.sequentialByOriginatorHint':
+    'New message for e.g. device A is not submitted until previous message for device A is acknowledged',
+  'pages.settings.queues.strategies.sequentialByTenant': 'Sequential by tenant',
+  'pages.settings.queues.strategies.sequentialByTenantHint':
+    'New message for e.g tenant A is not submitted until previous message for tenant A is acknowledged',
+  'pages.settings.queues.strategies.sequential': 'Sequential',
+  'pages.settings.queues.strategies.sequentialHint':
+    'New message is not submitted until previous message is acknowledged',
+  'pages.settings.queues.strategies.burst': 'Burst',
+  'pages.settings.queues.strategies.burstHint':
+    'All messages are submitted to the rule chains in the order they arrive',
+  'pages.settings.queues.strategies.batch': 'Batch',
+  'pages.settings.queues.strategies.batchHint':
+    'New batch is not submitted until previous batch is acknowledged',
+  'pages.settings.queues.strategies.retryFailedAndTimeout':
+    'Retry failed and timeout',
+  'pages.settings.queues.strategies.retryFailedAndTimeoutHint':
+    'Retry all failed and timed-out messages from processing pack',
+  'pages.settings.queues.strategies.skipAllFailures': 'Skip all failures',
+  'pages.settings.queues.strategies.skipAllFailuresHint': 'Ignore all failures',
+  'pages.settings.queues.strategies.skipAllFailuresAndTimeouts':
+    'Skip all failures and timeouts',
+  'pages.settings.queues.strategies.skipAllFailuresAndTimeoutsHint':
+    'Ignore all failures and timeouts',
+  'pages.settings.queues.strategies.retryAll': 'Retry all',
+  'pages.settings.queues.strategies.retryAllHint':
+    'Retry all messages from processing pack',
+  'pages.settings.queues.strategies.retryFailed': 'Retry failed',
+  'pages.settings.queues.strategies.retryFailedHint':
+    'Retry all failed messages from processing pack',
+  'pages.settings.queues.strategies.retryTimeout': 'Retry timeout',
+  'pages.settings.queues.strategies.retryTimeoutHint':
+    'Retry all timed-out messages from processing pack',
+  'pages.settings.queues.addQueue': 'Add queue',
+  'pages.settings.queues.search': 'Search queues',
+  'pages.settings.queues.delete': 'Delete',
+  'pages.settings.queues.refresh': 'Refresh',
+  'pages.settings.queues.selectedCount': '{count} selected',
+  'pages.settings.queues.deleteSelected': 'Delete selected',
+  'pages.settings.queues.deleteOneTitle':
+    "Are you sure you want to delete the queue '{name}'?",
+  'pages.settings.queues.deleteOneText':
+    'Be careful, after the confirmation the queue and all related data will become unrecoverable.',
+  'pages.settings.queues.deleteManyTitle':
+    'Are you sure you want to delete {count, plural, =1 {1 queue} other {# queues}}?',
+  'pages.settings.queues.deleteManyText':
+    "After the confirmation all selected queues will be deleted and won't be accessible.",
+  'pages.settings.queues.toastSaved': 'Queue saved.',
+  'pages.settings.queues.toastDeleted': 'Queue deleted.',
+  'pages.settings.queues.batchResult': '{ok} succeeded, {fail} failed.',
+  'pages.settings.queues.total': '{count} total',
+  'pages.settings.queues.empty': 'No queues found',
+  'pages.settings.queues.loadFailed': 'Failed to load queues',
+
+  // ---- M14 wave-3: auto-commit settings (R23, ngx admin.auto-commit parity) ----
+  'pages.settings.autoCommit.title': 'Auto-commit settings',
+  'pages.settings.autoCommit.gateHint':
+    'Configure a version-control repository first to manage auto-commit settings.',
+  'pages.settings.autoCommit.entities': 'Auto-commit entities',
+  'pages.settings.autoCommit.noEntitiesPrompt':
+    'No entities configured for auto-commit',
+  'pages.settings.autoCommit.addEntityType': 'Add entity type',
+  'pages.settings.autoCommit.removeEntityType': 'Remove',
+  'pages.settings.autoCommit.removeAll': 'Remove all',
+  'pages.settings.autoCommit.entityTypeLabel': 'Entity type',
+  'pages.settings.autoCommit.branch': 'Branch',
+  'pages.settings.autoCommit.branchPlaceholder':
+    'Default (repository default branch)',
+  'pages.settings.autoCommit.saveCredentials': 'Export credentials',
+  'pages.settings.autoCommit.saveAttributes': 'Export attributes',
+  'pages.settings.autoCommit.saveRelations': 'Export relations',
+  'pages.settings.autoCommit.saveCalculatedFields':
+    'Export calculated fields and alarm rules',
+  'pages.settings.autoCommit.readOnlyHint':
+    "Auto-commit feature doesn't work with enabled read-only option in Repository settings.",
+  'pages.settings.autoCommit.delete': 'Delete',
+  'pages.settings.autoCommit.deleteConfirmTitle':
+    'Are you sure you want to delete auto-commit settings?',
+  'pages.settings.autoCommit.deleteConfirmText':
+    'Be careful, after the confirmation the auto-commit settings will be removed and auto-commit will be disabled for all entities.',
+  'pages.settings.autoCommit.toastSaved': 'Auto-commit settings saved.',
+  'pages.settings.autoCommit.toastDeleted': 'Auto-commit settings deleted.',
+  'pages.settings.autoCommit.entityTypes.ASSET': 'Assets',
+  'pages.settings.autoCommit.entityTypes.DEVICE': 'Devices',
+  'pages.settings.autoCommit.entityTypes.ENTITY_VIEW': 'Entity views',
+  'pages.settings.autoCommit.entityTypes.DASHBOARD': 'Dashboards',
+  'pages.settings.autoCommit.entityTypes.CUSTOMER': 'Customers',
+  'pages.settings.autoCommit.entityTypes.DEVICE_PROFILE': 'Device profiles',
+  'pages.settings.autoCommit.entityTypes.ASSET_PROFILE': 'Asset profiles',
+  'pages.settings.autoCommit.entityTypes.RULE_CHAIN': 'Rule chains',
+  'pages.settings.autoCommit.entityTypes.WIDGET_TYPE': 'Widget types',
+  'pages.settings.autoCommit.entityTypes.WIDGETS_BUNDLE': 'Widgets bundles',
+  'pages.settings.autoCommit.entityTypes.TB_RESOURCE': 'Resources library',
+  'pages.settings.autoCommit.entityTypes.OTA_PACKAGE': 'OTA packages',
+  'pages.settings.autoCommit.entityTypes.NOTIFICATION_TEMPLATE':
+    'Notification templates',
+  'pages.settings.autoCommit.entityTypes.NOTIFICATION_TARGET':
+    'Notification recipients',
+  'pages.settings.autoCommit.entityTypes.NOTIFICATION_RULE':
+    'Notification rules',
+  'pages.settings.autoCommit.entityTypes.AI_MODEL': 'AI models',
 };
