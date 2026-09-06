@@ -10,11 +10,7 @@
  * Model candidates are a FRONTEND static list — there is no models API.
  */
 
-import type {
-  BaseData,
-  EntityType,
-  HasTenantIdAndCustomer,
-} from './entity';
+import type { BaseData, EntityType, HasTenantIdAndCustomer } from './entity';
 
 export type AiProvider =
   | 'OPENAI'
@@ -138,7 +134,12 @@ export const AI_MODEL_PROVIDER_MAP: Readonly<
       'gemini-2.5-flash',
       'gemini-2.5-flash-lite',
     ],
-    providerFieldsList: ['projectId', 'location', 'serviceAccountKey', 'fileName'],
+    providerFieldsList: [
+      'projectId',
+      'location',
+      'serviceAccountKey',
+      'fileName',
+    ],
     modelFieldsList: [
       'temperature',
       'topP',

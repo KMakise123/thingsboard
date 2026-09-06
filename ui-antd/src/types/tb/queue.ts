@@ -8,11 +8,7 @@
  * / isDuplicateMsgToAllPartitions read them from there).
  */
 
-import type {
-  BaseData,
-  EntityType,
-  HasTenantIdAndCustomer,
-} from './entity';
+import type { BaseData, EntityType, HasTenantIdAndCustomer } from './entity';
 
 export type QueueSubmitStrategyType =
   | 'BURST'

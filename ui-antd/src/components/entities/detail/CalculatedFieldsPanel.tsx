@@ -151,7 +151,10 @@ export default function CalculatedFieldsPanel({
       debugMode: field.debugMode ?? false,
       expression:
         field.type === 'SIMPLE'
-          ? String(field.configuration?.expression ?? '')
+          ? String(
+              (field.configuration as unknown as Record<string, unknown>)
+                ?.expression ?? '',
+            )
           : undefined,
     });
     setModalOpen(true);
@@ -165,7 +168,13 @@ export default function CalculatedFieldsPanel({
         debugMode: values.debugMode,
         configuration:
           editing.type === 'SIMPLE' && values.expression !== undefined
-            ? { ...editing.configuration, expression: values.expression }
+            ? ({
+                ...(editing.configuration as unknown as Record<
+                  string,
+                  unknown
+                >),
+                expression: values.expression,
+              } as CalculatedField['configuration'])
             : editing.configuration,
       });
       return;
