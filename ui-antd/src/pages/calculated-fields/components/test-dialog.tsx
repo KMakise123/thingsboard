@@ -15,6 +15,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { CodeEditor } from '@/components/code-editor';
 import { tbelCompletionSource } from '@/components/code-editor/tbel';
+import { serverErrorText } from '@/components/entities/server-error-text';
 import type { CalculatedFieldArgument } from '@/types/tb/calculated-fields';
 import {
   buildRunPayload,
@@ -98,6 +99,10 @@ export default function CfTestDialog({
         );
         setPassed(true);
       }
+    } catch (httpError) {
+      // HTTP-level failure (e.g. the empty-expression / TBEL-disabled 400):
+      // surface it inline like an envelope error — never a toast.
+      setError(serverErrorText(httpError));
     } finally {
       setRunning(false);
     }

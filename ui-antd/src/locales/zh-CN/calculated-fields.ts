@@ -45,7 +45,7 @@ export default {
   'pages.calculatedFields.copy': '复制',
   'pages.calculatedFields.export': '导出',
   'pages.calculatedFields.events': '事件',
-  'pages.calculatedFields.eventsTitle': "事件：'{name}'",
+  'pages.calculatedFields.eventsTitle': '事件：“{name}”',
   'pages.calculatedFields.delete': '删除',
   'pages.calculatedFields.edit': '编辑',
   'pages.calculatedFields.cancel': '取消',

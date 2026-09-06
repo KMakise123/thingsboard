@@ -144,6 +144,38 @@ export function prepareConfiguration<T extends CalculatedFieldConfiguration>(
 }
 
 /**
+ * SIMPLE↔SCRIPT transition: keep the user's arguments/output (ngx
+ * setupTypeChange) while re-stamping the wire discriminator `type` to the
+ * new value. Moving to SCRIPT seeds the ngx default script when the kept
+ * configuration carries no expression; moving back to SIMPLE resets
+ * useLatestTs (a SIMPLE-only field).
+ */
+export function migrateSimpleFamilyConfiguration(
+  previous: CalculatedFieldConfiguration | undefined,
+  next: CalculatedFieldType,
+): CalculatedFieldConfiguration {
+  const args = previous && 'arguments' in previous ? previous.arguments : {};
+  const output = previous && 'output' in previous ? previous.output : undefined;
+  const expression = configurationExpression(previous);
+  const fallbackOutput = defaultTimeSeriesOutput();
+  if (next === 'SCRIPT') {
+    return {
+      type: 'SCRIPT',
+      expression: expression || CALCULATED_FIELD_DEFAULT_SCRIPT,
+      arguments: args,
+      output: output ?? fallbackOutput,
+    };
+  }
+  return {
+    type: 'SIMPLE',
+    expression,
+    arguments: args,
+    useLatestTs: false,
+    output: output ?? fallbackOutput,
+  };
+}
+
+/**
  * ngx setupTypeChange: SIMPLE↔SCRIPT keep the configuration; any other
  * transition wipes it back to the target type's defaults.
  */

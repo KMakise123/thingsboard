@@ -20,6 +20,7 @@ import {
   deepTrim,
   defaultConfiguration,
   interpretPrecheckOutcome,
+  migrateSimpleFamilyConfiguration,
   precheckRequired,
   prepareConfiguration,
   seedTestTexts,
@@ -49,6 +50,41 @@ describe('cf type-switch rule (ngx setupTypeChange)', () => {
         'ENTITY_AGGREGATION',
       ),
     ).toBe(true);
+  });
+
+  it('migrates SIMPLE→SCRIPT: keeps arguments/output, stamps type + default expression', () => {
+    const simple = {
+      type: 'SIMPLE',
+      expression: '',
+      arguments: { a: argument() },
+      useLatestTs: true,
+      output: {
+        type: 'TIME_SERIES',
+        name: 'out',
+        strategy: { type: 'RULE_CHAIN' },
+      },
+    } as unknown as CalculatedFieldConfiguration;
+    const migrated = migrateSimpleFamilyConfiguration(simple, 'SCRIPT');
+    expect(migrated.type).toBe('SCRIPT');
+    expect(migrated.type === 'SCRIPT' && migrated.arguments).toEqual({
+      a: argument(),
+    });
+    expect(migrated.type === 'SCRIPT' && migrated.expression).toBe(
+      CALCULATED_FIELD_DEFAULT_SCRIPT,
+    );
+    expect(migrated.type === 'SCRIPT' && migrated.output).toMatchObject({
+      type: 'TIME_SERIES',
+    });
+  });
+
+  it('migrates SCRIPT→SIMPLE: keeps expression and resets useLatestTs', () => {
+    const script = defaultConfiguration('SCRIPT');
+    const migrated = migrateSimpleFamilyConfiguration(script, 'SIMPLE');
+    expect(migrated.type).toBe('SIMPLE');
+    expect(migrated.type === 'SIMPLE' && migrated.useLatestTs).toBe(false);
+    expect(migrated.type === 'SIMPLE' && migrated.expression).toBe(
+      CALCULATED_FIELD_DEFAULT_SCRIPT,
+    );
   });
 });
 

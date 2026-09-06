@@ -41,6 +41,7 @@ import {
   defaultConfiguration,
   defaultDebugSettings,
   interpretPrecheckOutcome,
+  migrateSimpleFamilyConfiguration,
   precheckRequired,
   prepareConfiguration,
   typeChangeClearsConfiguration,
@@ -254,9 +255,19 @@ export default function CfDialog({
 
   const onTypeChange = (next: CalculatedFieldType) => {
     const previous = type;
-    if (previous !== next && typeChangeClearsConfiguration(previous, next)) {
-      setConfiguration(defaultConfiguration(next));
+    if (previous === next) {
+      return;
     }
+    if (typeChangeClearsConfiguration(previous, next)) {
+      setConfiguration(defaultConfiguration(next));
+      return;
+    }
+    // SIMPLE↔SCRIPT keeps the user's configuration (ngx setupTypeChange) —
+    // but the wire discriminator must be re-stamped and a SCRIPT target
+    // needs an expression (the ngx default script when coming from SIMPLE).
+    setConfiguration((previousConfig) =>
+      migrateSimpleFamilyConfiguration(previousConfig, next),
+    );
   };
 
   return (

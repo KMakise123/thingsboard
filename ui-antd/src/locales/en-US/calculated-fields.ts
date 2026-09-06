@@ -47,14 +47,14 @@ export default {
   'pages.calculatedFields.copy': 'Copy',
   'pages.calculatedFields.export': 'Export',
   'pages.calculatedFields.events': 'Events',
-  'pages.calculatedFields.eventsTitle': "Events: '{name}'",
+  'pages.calculatedFields.eventsTitle': 'Events: "{name}"',
   'pages.calculatedFields.delete': 'Delete',
   'pages.calculatedFields.edit': 'Edit',
   'pages.calculatedFields.cancel': 'Cancel',
   'pages.calculatedFields.apply': 'Apply',
   'pages.calculatedFields.save': 'Save',
   'pages.calculatedFields.deleteOneTitle':
-    "Are you sure you want to delete the calculated field '{name}'?",
+    'Are you sure you want to delete the calculated field "{name}"?',
   'pages.calculatedFields.deleteManyTitle':
     'Are you sure you want to delete {count, plural, =1 {1 calculated field} other {# calculated fields}}?',
   'pages.calculatedFields.deleteText':
@@ -79,7 +79,7 @@ export default {
   'pages.calculatedFields.debugSettings': 'Debug settings',
   'pages.calculatedFields.debugFailures': 'Debug failures',
   'pages.calculatedFields.debugAll': 'Debug all',
-  'pages.calculatedFields.debugFor': "Debug switches for '{name}'.",
+  'pages.calculatedFields.debugFor': 'Debug switches for "{name}".',
   'pages.calculatedFields.debugSettingsHint':
     'Debug events appear under the Events row action while debugging is on.',
   'pages.calculatedFields.fixProblems':
@@ -111,7 +111,7 @@ export default {
   'pages.calculatedFields.argument.nameDuplicate':
     'Argument name is already used in this field.',
   'pages.calculatedFields.argument.nameForbidden':
-    "'{name}' is a reserved name and cannot be used.",
+    '"{name}" is a reserved name and cannot be used.',
   'pages.calculatedFields.argument.source': 'Source entity',
   'pages.calculatedFields.argument.sourceHint':
     'Where the argument reads its value from: the target entity itself, a concrete entity, the tenant or the owner.',

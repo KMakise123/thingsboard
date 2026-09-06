@@ -168,7 +168,9 @@ function EntitiesFilterSelect({
       onChange={(next) => onChange?.(next)}
       options={(rowsQuery.data?.data ?? []).map((row) => ({
         label: row.name,
-        value: row.id,
+        // row.id is the EntityId object ({entityType, id}) — the wire UUID
+        // is row.id.id; a raw object value would crash the options render.
+        value: row.id.id,
       }))}
       placeholder={
         enabled
@@ -822,6 +824,7 @@ export default function CalculatedFieldsListPage() {
             }}
             tenantId={tenantId}
             eventTypes={['DEBUG_CALCULATED_FIELD']}
+            defaultEventType="DEBUG_CALCULATED_FIELD"
           />
         )}
       </Modal>
