@@ -442,38 +442,51 @@ export default [
     hideInMenu: true,
   },
   {
+    // M14 R01: the settings tree serves both admin roles — the group gate
+    // is the shared SA+TA ceiling, each child narrows its own access.
     name: 'settings',
     icon: 'setting',
     path: '/settings',
-    access: 'canSysAdmin',
+    access: 'canSysAdminOrTenantAdmin',
     routes: [
       // Child names stay relative: umi nests them under the parent name, so
       // the menu id is menu.settings.general (etc.). A parent redirect would
       // make umi render the whole subtree as EmptyRoute (blank page).
-      { path: '/settings', redirect: '/settings/general' },
+      {
+        // Role-aware landing instead of a static redirect: SA → general,
+        // TA → home (the entry component decides, ngx redirectTo parity).
+        path: '/settings',
+        component: './settings/entry',
+        hideInMenu: true,
+      },
       {
         name: 'general',
         path: '/settings/general',
+        access: 'canSysAdmin',
         component: './settings/general',
       },
       {
         name: 'outgoingMail',
         path: '/settings/outgoing-mail',
+        access: 'canSysAdmin',
         component: './settings/outgoing-mail',
       },
       {
         name: 'twoFa',
         path: '/settings/two-fa',
+        access: 'canSysAdmin',
         component: './settings/two-fa',
       },
       {
         name: 'oauth2',
         path: '/settings/oauth2',
+        access: 'canSysAdmin',
         component: './settings/oauth2',
       },
       {
         name: 'auditLogs',
         path: '/settings/audit-logs',
+        access: 'canSysAdmin',
         component: './settings/audit-logs',
       },
     ],
