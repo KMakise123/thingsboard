@@ -238,12 +238,14 @@
 - **max<min 联动拦截实证**：min=10 时在 max 输入 4 → 错误行内「最长密码长度必须大于最短密码长度」+ 保存按钮禁用 + 零新增网络请求（跨字段 validator `dependencies` + InputNumber min 钳制，index.tsx:469-505）；后端无校验（wave1 T7-④ 死锁策略可存）→ 前端为唯一防线，实测在岗。
 - 结论：✅。
 
-### 6.4-3 JWT 卡 ✅（换发全链留人工，见注）
+### 6.4-3 JWT 卡 ✅（换发全链真机实证，2026-09-07 主会话补驱动）
 
 - 字段：tokenIssuer 必填（thingsboard.io）/ tokenSigningKey（base64 ≥64 位 + 「生成密钥」按钮）/ tokenExpirationTime 9000 / refreshTokenExpTime 604800（后者>前者）。
 - **保存链确认框实证**：issuer 改为 `thingsboard.io-walk` 保存 → 确认框「所有用户将被重新登录——更改 JWT 签名密钥会导致所有已签发的令牌失效…放弃更改/确认」→ 点**放弃更改** → `POST /api/admin/jwtSettings` **零请求**（jwtSettings 请求计数前后不变，网络断言）。
-- 注：确认后「POST 换发新 token → 就地换发会话 → 回读」全链不在真机执行——JWT key 轮换属**不可逆系统级变更**（GET 不回显旧 key，无法复位），与数据保全硬要求冲突；保存链由实现与单测锚定（index.tsx jwt save 分支），留人工窗口复核。
-- 结论：✅（换发执行段留人工，不构成缺口）。
+- **换发全链真机实证（补驱动；GET 实际回显当前 key，轮换可逆，A 段"不可逆"判断修正）**：「生成密钥」→ key 变更 → 保存 → 确认框警示文案完整在场 → 确认 → `POST 200` → **token 热替换实证**（jwt_token 尾号 `…FtIHPhGplw` → `…u6v-_K1iNw`，336ms，会话未掉线仍在本页）→ 新 token `GET /api/admin/jwtSettings` 200 且返回新 key → **表单回读新 key**（formShowsNewKey=true）。
+- **复原驱动**：原生 setter 填回原 key → 保存 → 确认 → token 二次换发（`…zm258-YdoQ`）→ `GET` 复核 `keyRestored=true`，issuer/9000/604800 全部还原。
+- W-9（环境观察，真机不可归因产品）：确认弹窗存在**双实例叠层残留**——首次确认的 modal wrap display 卡 block（rAF 冻结残留），第二次确认时 querySelector 命中死壳致点击无效，需按实例索引点活壳。走查手法登记，非产品缺陷（真机可见环境单实例无此象）。
+- 结论：✅（6.4 全链闭环，无留人工项）。
 
 ## 3. 角色矩阵快照
 
@@ -264,7 +266,7 @@
 - trendz：复位 `{enabled:false,baseUrl:"",apiKey:""}`（回读复核）；home：复位 `{dashboardId:null,hideDashboardToolbar:true}`（回读复核）。
 - repositorySettings：删除仓库 → `{configured:false}`（回读复核）；autoCommitSettings：全部移除 → GET 404（未配置基线）。
 - git fixture：`local/m14-wa-walk.git` 裸仓目录删除。
-- system 数据零改动：唯一触碰的 system 级行为 sms admin settings 与 securitySettings，均已复位基线（见上）；JWT key 未轮换。
+- system 数据零改动：唯一触碰的 system 级行为 sms admin settings 与 securitySettings，均已复位基线（见上）；JWT key 已轮换并复原（6.4-3 补驱动，`keyRestored=true` 复核）。
 
 ## 5. 走查缺陷与观察登记（W）
 
@@ -278,7 +280,7 @@
 
 - §6.1：18 条全部走查，18 ✅（含 W-1/W-2 两处已修小缺陷、W-3 一处环境观察）。
 - §6.3：12 条全部走查，12 ✅。
-- §6.4：3 条全部走查，3 ✅（JWT 换发执行段按数据保全原则留人工）。
+- §6.4：3 条全部走查，3 ✅（JWT 换发全链 2026-09-07 补驱动闭环并复原，见 §2 注）。
 - 缺陷：❌ 0；⚠️ 观察项 2（W-3/W-4，均环境敏感、留人工）；trivial 已修 2（W-1/W-2）。
 - 引用：后端行为结论直接引用 `docs/agents/m14-wave1-t1-t10.md`（T1–T10），未重复测试。
 

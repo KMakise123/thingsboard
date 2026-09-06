@@ -303,69 +303,69 @@
 
 ### 6.1 计算字段独立页操作面（对齐 ngx CF 盘点 §2–§11）
 
-- [ ] 列表页骨架：列 createdTime(默认排序 createdTime DESC)/name/entityType/entityName（实体详情页跳链）/type，搜索/分页/排序白名单 createdTime|name，行点击进详情态（锚点 `calculated-fields-table-config.ts:110-170`）
-- [ ] 三维过滤面板（仅独立页）：types 多选六型 / entityType 四实体型 / entities 实体多选，按钮文案拼已选条件，变更后刷新（锚点 `calculated-fields-filter-config.component.ts:134-138,257-286`）
-- [ ] 新增入口与类型域：Create（开编辑 dialog）+ Import 两件；类型下拉六型不含 ALARM（钉死）；「Add from IoT Hub」不做（6.6）；批量仅删除（锚点 `:137-156`、`calculated-field.models.ts:131`）
-- [ ] 编辑表单骨架：name（必填 ≤255）/ debugSettings（失败调试默认开）/ entityId（`tb-entity-select` 等价四实体型选择器，编辑态锁定+owner 联动）/ type 切换规则（SIMPLE↔SCRIPT 互切保配置、其余清空 configuration）（锚点 `calculated-field-form.service.ts:39-94`、component ts:142-168）
-- [ ] 参数套件（六型共用）：参数表格 + popover 编辑面板 + 校验（组内唯一、保留名 ctx/e/pi、attribute 型 scope 联动、Rolling 仅 SCRIPT 可选、watchKeyChange 跟随）（锚点 scout-cf §5）
-- [ ] 服务端限额消费：maxArgumentsPerCF / maxDataPointsPerRollingArg / maxRelationLevelPerCfArgument / maxRelatedEntitiesToReturnPerCfArgument / 各 minAllowed*Interval / intermediateAggregationInterval 八参数接进表单校验边界（锚点 scout-cf §12）
-- [ ] 输出套件：ATTRIBUTES/TIME_SERIES + scope（仅 ATTRIBUTES×Device 族）+ 输出策略 IMMEDIATE（参数开关组+useCustomTtl）/RULE_CHAIN（参数面板锁定）+ 载入无 strategy 补默认（锚点 scout-cf §6）
-- [ ] SIMPLE 配置器：参数表禁 Rolling（报错提示）+ 表达式 input（必填 ≤255 + math 函数帮助弹窗可省略）+ useLatestTs 仅 Timeseries 输出（锚点 scout-cf §4）
-- [ ] SCRIPT 配置器：代码编辑器（Ace 等价物）+ functionName=calculate + TBEL 语义 + 参数名补全与高亮（数据结构照抄 ngx models.ts:606-1042）+ 测试按钮（arguments 无效禁用）+ 默认脚本（锚点 scout-cf §4）
-- [ ] 表达式测试对话框：SCRIPT/RELATED_ENTITIES_AGGREGATION/PROPAGATION-带表达式 三入口；已存 CF 用最新 debug 事件预填；Test script 走 `POST /api/calculatedField/testScript`（错误进 error 字段非 HTTP 错误）；Save 回填表达式；提交前自动预检（error 非空阻断、TBEL 400 降级放行+警示）= 已实现增强见 6.6（后端保存链不校验语法）（锚点 scout-cf §8、backend §5-1）
-- [ ] debug 事件与 debug settings：行内 debug 配置按钮（策略面板等价）+ 事件查看（列表=通用事件弹窗、详情态=debug 专页）+ 「Test with this message」回填链（锚点 scout-cf §8）
-- [ ] PROPAGATION 配置器：relation（direction 默认 TO、relationType 写死 ['Contains','Manages'] 照抄收口成常量）+ applyExpressionToResolvedArguments 联动 + 表达式默认脚本 + output（锚点 scout-cf §7.1）
-- [ ] RELATED_ENTITIES_AGGREGATION 配置器：relation（FROM 默认）+ 变体参数表（defaultValue 必填、候选按 relation 过滤）+ metrics 面板 + deduplicationIntervalInSec 默认服务端 min（锚点 scout-cf §7.3）
-- [ ] ENTITY_AGGREGATION 配置器：周期八值 + tz + CUSTOM durationSec 下限 + offsetSec 动态 hint（可简化为静态提示，登记增强）+ allowWatermark + produceIntermediateResult 阈值联动 + metrics 共用面板（锚点 scout-cf §7.4/7.5）
-- [ ] GEOFENCING 配置器：entityCoordinates（经纬 key 名必填，antd 建模补 ngx TS 漏字段）+ zoneGroups 两件套（zone 面板：引用实体/CURRENT/TENANT/OWNER/RELATION_QUERY、relation levels 拖拽上限 2、perimeterKeyName、reportStrategy 三值、createRelations 联动）+ scheduledUpdateEnabled 默认开（锚点 scout-cf §7.2）
-- [ ] 导入导出：单条 JSON 导出（剥 entityId）+ 导入（ALARM/未知 type 拒收 toast、TENANT 引用 id 改写、类型选择禁用）（锚点 `import-export.service.ts:179-190,1247-1249`、table-config :350-396）
-- [ ] 复制与删除：Copy（deepClone 删 id，pageMode 清 entityId/entityName 要求重选）+ 删除单条/批量 + 确认四件套（锚点 table-config :172-200,321-348）
-- [ ] 实体 tab 双模式换挂：device/asset/device-profile/asset-profile 四处详情 tab 换挂共享 `CalculatedFieldsTable`（entity/tenant 双模式，照 ngx 同一 table-config 同构；v1 简版 `CalculatedFieldsPanel` 同 PR 退役），tab 模式无三维过滤、行内 Edit、编辑走 dialog；alarm-rules tab 归告警域不动（锚点 scout-cf §11、arch R17、ngx device-tabs:34-41）
+- [x] 列表页骨架：列 createdTime(默认排序 createdTime DESC)/name/entityType/entityName（实体详情页跳链）/type，搜索/分页/排序白名单 createdTime|name，行点击进详情态（锚点 `calculated-fields-table-config.ts:110-170`）
+- [x] 三维过滤面板（仅独立页）：types 多选六型 / entityType 四实体型 / entities 实体多选，按钮文案拼已选条件，变更后刷新（锚点 `calculated-fields-filter-config.component.ts:134-138,257-286`）
+- [x] 新增入口与类型域：Create（开编辑 dialog）+ Import 两件；类型下拉六型不含 ALARM（钉死）；「Add from IoT Hub」不做（6.6）；批量仅删除（锚点 `:137-156`、`calculated-field.models.ts:131`）
+- [x] 编辑表单骨架：name（必填 ≤255）/ debugSettings（失败调试默认开）/ entityId（`tb-entity-select` 等价四实体型选择器，编辑态锁定+owner 联动）/ type 切换规则（SIMPLE↔SCRIPT 互切保配置、其余清空 configuration）（锚点 `calculated-field-form.service.ts:39-94`、component ts:142-168）
+- [x] 参数套件（六型共用）：参数表格 + popover 编辑面板 + 校验（组内唯一、保留名 ctx/e/pi、attribute 型 scope 联动、Rolling 仅 SCRIPT 可选、watchKeyChange 跟随）（锚点 scout-cf §5）
+- [x] 服务端限额消费：maxArgumentsPerCF / maxDataPointsPerRollingArg / maxRelationLevelPerCfArgument / maxRelatedEntitiesToReturnPerCfArgument / 各 minAllowed*Interval / intermediateAggregationInterval 八参数接进表单校验边界（锚点 scout-cf §12）
+- [x] 输出套件：ATTRIBUTES/TIME_SERIES + scope（仅 ATTRIBUTES×Device 族）+ 输出策略 IMMEDIATE（参数开关组+useCustomTtl）/RULE_CHAIN（参数面板锁定）+ 载入无 strategy 补默认（锚点 scout-cf §6）
+- [x] SIMPLE 配置器：参数表禁 Rolling（报错提示）+ 表达式 input（必填 ≤255 + math 函数帮助弹窗可省略）+ useLatestTs 仅 Timeseries 输出（锚点 scout-cf §4）
+- [x] SCRIPT 配置器：代码编辑器（Ace 等价物）+ functionName=calculate + TBEL 语义 + 参数名补全与高亮（数据结构照抄 ngx models.ts:606-1042）+ 测试按钮（arguments 无效禁用）+ 默认脚本（锚点 scout-cf §4）
+- [x] 表达式测试对话框：SCRIPT/RELATED_ENTITIES_AGGREGATION/PROPAGATION-带表达式 三入口；已存 CF 用最新 debug 事件预填；Test script 走 `POST /api/calculatedField/testScript`（错误进 error 字段非 HTTP 错误）；Save 回填表达式；提交前自动预检（error 非空阻断、TBEL 400 降级放行+警示）= 已实现增强见 6.6（后端保存链不校验语法）（锚点 scout-cf §8、backend §5-1）
+- [x] debug 事件与 debug settings：行内 debug 配置按钮（策略面板等价）+ 事件查看（列表=通用事件弹窗、详情态=debug 专页）+ 「Test with this message」回填链（锚点 scout-cf §8）
+- [x] PROPAGATION 配置器：relation（direction 默认 TO、relationType 写死 ['Contains','Manages'] 照抄收口成常量）+ applyExpressionToResolvedArguments 联动 + 表达式默认脚本 + output（锚点 scout-cf §7.1）
+- [x] RELATED_ENTITIES_AGGREGATION 配置器：relation（FROM 默认）+ 变体参数表（defaultValue 必填、候选按 relation 过滤）+ metrics 面板 + deduplicationIntervalInSec 默认服务端 min（锚点 scout-cf §7.3）
+- [x] ENTITY_AGGREGATION 配置器：周期八值 + tz + CUSTOM durationSec 下限 + offsetSec 动态 hint（可简化为静态提示，登记增强）+ allowWatermark + produceIntermediateResult 阈值联动 + metrics 共用面板（锚点 scout-cf §7.4/7.5）
+- [x] GEOFENCING 配置器：entityCoordinates（经纬 key 名必填，antd 建模补 ngx TS 漏字段）+ zoneGroups 两件套（zone 面板：引用实体/CURRENT/TENANT/OWNER/RELATION_QUERY、relation levels 拖拽上限 2、perimeterKeyName、reportStrategy 三值、createRelations 联动）+ scheduledUpdateEnabled 默认开（锚点 scout-cf §7.2）
+- [x] 导入导出：单条 JSON 导出（剥 entityId）+ 导入（ALARM/未知 type 拒收 toast、TENANT 引用 id 改写、类型选择禁用）（锚点 `import-export.service.ts:179-190,1247-1249`、table-config :350-396）
+- [x] 复制与删除：Copy（deepClone 删 id，pageMode 清 entityId/entityName 要求重选）+ 删除单条/批量 + 确认四件套（锚点 table-config :172-200,321-348）
+- [x] 实体 tab 双模式换挂：device/asset/device-profile/asset-profile 四处详情 tab 换挂共享 `CalculatedFieldsTable`（entity/tenant 双模式，照 ngx 同一 table-config 同构；v1 简版 `CalculatedFieldsPanel` 同 PR 退役），tab 模式无三维过滤、行内 Edit、编辑走 dialog；alarm-rules tab 归告警域不动（锚点 scout-cf §11、arch R17、ngx device-tabs:34-41）
 
 ### 6.2 VC 独立页与详情 tab 挂载（对齐 ngx VC 盘点 §2–§6）
 
-- [ ] 独立页二段开关：无仓库→内嵌 repository settings 表单；有仓库→Versions 表；dirty 离开确认（ConfirmOnExit 等价）；「仓库是否已配置」二段呈现为行为契约（探测机制实现定，见 6.0）（锚点 `version-control.component.html:18-34`）
-- [ ] repository settings 表单：repositoryUri/defaultBranch(默认 main)/readOnly/showMergeCommits/authMethod 双态动态校验（USERNAME_PASSWORD/PRIVATE_KEY）+ 凭据不回显两段式（Change password/passphrase 勾选解锁）+ Check access（留空沿用存储值）+ Delete 确认 + readOnly 全域联动 + 保存后清分支缓存；空凭据删字段契约端点单测钉住（锚点 scout-vc §3、backend §5-6）
-- [ ] Versions 表（复数+单实体共用形态）：分支选择器（selectionMode 只选已有/自由输入两形态）/ 搜索 400ms 防抖 / 列 timestamp(默认 DESC)/id(截断+复制全 hash)/name/author / 分页 10/20/30 / readOnly 时 Create 禁用 / 单复数空态文案（锚点 `entity-versions-table.component.*`）
-- [ ] 复数 create 面板：branch + versionName + syncStrategy（MERGE/OVERWRITE 必选带 hint）+ entityTypes 面板（16 类型展开面板：per-type syncStrategy/saveCredentials 仅 DEVICE/saveAttributes/saveRelations/saveCalculatedFields、allEntities 关则实体手选）（锚点 `complex-version-create.component.*`、`entity-types-version-create.component.html`）
-- [ ] 复数 restore 面板：entityTypes 面板（removeOtherEntities 危险开关**逐字输入确认**、findExistingEntityByName 默认 true、load 四开关含 saveCalculatedFields 文案分支）+ rollbackOnError 默认 true + 按类型结果计数 + 错误三态文案（凭据冲突/缺引用实体/运行时）（锚点 scout-vc §2）
-- [ ] 单实体 create/restore 弹层：versionName 默认 `{{entityName}} update`、saveCredentials 仅 DEVICE、saveCalculatedFields 按 typesWithCalculatedFields 显隐（CUSTOMER 文案换 alarm-rules）；restore 前先 getEntityDataInfo 探测显隐四开关（锚点 `entity-version-create/restore.component.*`）
-- [ ] 异步任务与结果流：commit/restore「POST→requestId→2s 轮询」+ 全局 loading 锁 + done 且 added+modified=0 显示 nothing-to-commit + HTTP/任务错误双通道展示 + finalize 清分支缓存（锚点 `entities-version-control.service.ts:92-159`）
-- [ ] 详情 tab 补挂三处：OTA 详情（M13 §5.6 兑现，守卫 TA+租户包）/ rule-chain 详情对话框加 tab / widget-type 详情 tab（路由在场 `routes.ts:165-172`，v1 头注「路由缺口」过时）（锚点 `ota-update-tabs.component.html:19-25`、`rulechain-tabs.component.html:67-74`）；dashboard 编辑器 VC 占位按钮接真登记 6.6（ngx `dashboard-page.component.html:172-184` 弹层语义）
-- [ ] 详情 tab 存量回归六处：customer/asset/device/entity-view/device-profile/asset-profile 的 VersionControlPanel 与独立页共用一套实现后仍可用（commit/版本表/diff/restore 冒烟）；device-profile 保持非编辑态条件（锚点 panel-scope §0-11 消费图谱）
-- [ ] 「未配仓库」降级提示升级：面板/独立页未配仓库态补「去配置」跳转链接指向 `/settings/repository`（M13 遗留连带，锚点 `VersionControlPanel.tsx:13-14` 自留接口）
+- [x] 独立页二段开关：无仓库→内嵌 repository settings 表单；有仓库→Versions 表；dirty 离开确认（ConfirmOnExit 等价）；「仓库是否已配置」二段呈现为行为契约（探测机制实现定，见 6.0）（锚点 `version-control.component.html:18-34`）
+- [x] repository settings 表单：repositoryUri/defaultBranch(默认 main)/readOnly/showMergeCommits/authMethod 双态动态校验（USERNAME_PASSWORD/PRIVATE_KEY）+ 凭据不回显两段式（Change password/passphrase 勾选解锁）+ Check access（留空沿用存储值）+ Delete 确认 + readOnly 全域联动 + 保存后清分支缓存；空凭据删字段契约端点单测钉住（锚点 scout-vc §3、backend §5-6）
+- [x] Versions 表（复数+单实体共用形态）：分支选择器（selectionMode 只选已有/自由输入两形态）/ 搜索 400ms 防抖 / 列 timestamp(默认 DESC)/id(截断+复制全 hash)/name/author / 分页 10/20/30 / readOnly 时 Create 禁用 / 单复数空态文案（锚点 `entity-versions-table.component.*`）
+- [x] 复数 create 面板：branch + versionName + syncStrategy（MERGE/OVERWRITE 必选带 hint）+ entityTypes 面板（16 类型展开面板：per-type syncStrategy/saveCredentials 仅 DEVICE/saveAttributes/saveRelations/saveCalculatedFields、allEntities 关则实体手选）（锚点 `complex-version-create.component.*`、`entity-types-version-create.component.html`）
+- [x] 复数 restore 面板：entityTypes 面板（removeOtherEntities 危险开关**逐字输入确认**、findExistingEntityByName 默认 true、load 四开关含 saveCalculatedFields 文案分支）+ rollbackOnError 默认 true + 按类型结果计数 + 错误三态文案（凭据冲突/缺引用实体/运行时）（锚点 scout-vc §2）〔M14 走查 ✅：错字拒/逐字亮/门亮后取消全链；破坏性执行为登记偏离——租户 14 台真设备会被误删，安全恢复路径已实证（走查文档 §7）〕
+- [x] 单实体 create/restore 弹层：versionName 默认 `{{entityName}} update`、saveCredentials 仅 DEVICE、saveCalculatedFields 按 typesWithCalculatedFields 显隐（CUSTOMER 文案换 alarm-rules）；restore 前先 getEntityDataInfo 探测显隐四开关（锚点 `entity-version-create/restore.component.*`）
+- [x] 异步任务与结果流：commit/restore「POST→requestId→2s 轮询」+ 全局 loading 锁 + done 且 added+modified=0 显示 nothing-to-commit + HTTP/任务错误双通道展示 + finalize 清分支缓存（锚点 `entities-version-control.service.ts:92-159`）
+- [x] 详情 tab 补挂三处：OTA 详情（M13 §5.6 兑现，守卫 TA+租户包）/ rule-chain 详情对话框加 tab / widget-type 详情 tab（路由在场 `routes.ts:165-172`，v1 头注「路由缺口」过时）（锚点 `ota-update-tabs.component.html:19-25`、`rulechain-tabs.component.html:67-74`）；dashboard 编辑器 VC 占位按钮接真登记 6.6（ngx `dashboard-page.component.html:172-184` 弹层语义）
+- [x] 详情 tab 存量回归六处：customer/asset/device/entity-view/device-profile/asset-profile 的 VersionControlPanel 与独立页共用一套实现后仍可用（commit/版本表/diff/restore 冒烟）；device-profile 保持非编辑态条件（锚点 panel-scope §0-11 消费图谱）〔M14 走查 ✅：device/customer 真机抽查 + 其余四处定向测试 69+30 绿（走查文档 §8）〕
+- [x] 「未配仓库」降级提示升级：面板/独立页未配仓库态补「去配置」跳转链接指向 `/settings/repository`（M13 遗留连带，锚点 `VersionControlPanel.tsx:13-14` 自留接口）
 
 ### 6.3 settings 七件操作面（对齐 ngx settings 盘点 §2–§8）
 
-- [ ] queues 列表（SYS only）：四列 name/partitions/submitStrategy/processingStrategy、锁 TB_RULE_ENGINE、Main 行无勾选框无删除（前端保护）、搜索/分页/默认 createdTime DESC、行点击详情抽屉 + Open details page（锚点 `queues-table-config.resolver.ts:44-132`）
-- [ ] queues 表单（嵌套策略三面板）：name 编辑态锁死 + topic 自动派生不可输入（钉死）+ submitStrategy 五值 radio（BATCH 出 batchSize 默认 1000）+ processingStrategy 六值 radio + retries/failurePercentage/pause 三数字组 + pollInterval/partitions/packProcessingTimeout/consumerPerPartition/additionalInfo 三件；删除吃后端 400 引用报错（锚点 scout-settings §2.2、backend §3）
-- [ ] notifications tab SYS 形态：SMS provider 卡（AWS_SNS/TWILIO/SMPP 三型子表单，无 smtp 型钉死）+ MOBILE_APP 卡（Firebase service account JSON 上传）+ Send test sms 弹窗（numberTo pattern + message ≤1600，不必先保存）（锚点 scout-settings §3.2）
-- [ ] notifications tab TENANT 形态与保存链：仅 Slack botToken 卡；保存走 `POST /api/notification/settings`（deepTrim + 逐投递方式清洗：空串删整个 method、否则补 method 字段）；confirmForm 双表单盯 dirty（锚点 `sms-provider.component.ts:111-148`）
-- [ ] home settings（TENANT only）：dashboardId 选择器（scope=tenant、不自动选第一个）+ hideDashboardToolbar（默认 true）→ `POST /api/tenant/dashboard/home/info`；**验收口径=保存成功即达标，/home 生效面归 M15**（锚点 `home-settings.component.*`、DashboardController:472-514）
-- [ ] repository / auto-commit 两 tab 挂载：`/settings/repository`、`/settings/auto-commit` TENANT only + dirty 离开确认；表单本体按 6.2-2 验收不重复；auto-commit tab 二段开关（无仓库先见 repository 表单）（锚点 `admin-routing.module.ts:333-356`、`auto-commit-admin-settings.component.html:18-24`）
-- [ ] auto-commit 设置面板：按 EntityType 粒度展开面板（选项=16 类型去重已用）+ 每项 branch 自由输入补全（空=Default）+ 四 checkbox（saveCredentials 仅 DEVICE、saveCalculatedFields 显隐）+ readOnly 全 fieldset 禁用 + hint + remove-all；**无 syncStrategy 钉死**（与手动 create 面板不要混）；非法分支名吃后端 400（锚点 scout-vc §4）
-- [ ] trendz settings（TENANT only）：isTrendzEnabled + trendzUrl（启用时必填 + URL pattern）+ apiKey（trim）→ `POST /api/trendz/settings` + 保存后同步全局状态位（菜单/入口按此显隐，antd 对等实现）（锚点 `trendz-settings.component.ts:45-102`）
-- [ ] ai-models 列表（TENANT only）：四列 createdTime/name/provider/modelId、行点击即编辑 dialog（无详情页钉死）、删除单条+批量、搜索/分页/默认 createdTime DESC、无导出导入（锚点 scout-settings §7.1）
-- [ ] ai-models 编辑对话框：name + provider 九值下拉 + providerConfig 按白名单启停矩阵（9 provider 字段表）+ OPENAI baseUrl 特例（非官方地址 apiKey 变选填）+ OLLAMA 认证三态 + modelId 静态清单补全（空清单自由输入）+ 采样参数白名单渲染（锚点 `ai-model-dialog.component.*`、`ai-model.models.ts:60-226`）
-- [ ] ai-models Check connectivity：表单未保存可测（invalid 禁用）、`POST /api/ai/model/chat` 探测、成功态/失败 errorDetails 展示（锚点 `check-connectivity-dialog.component.ts:48-82`）
-- [ ] outgoing-mail 回归（v1 已交付不重做）：预设覆写、OFFICE_365 派生、change-password 闸门、redirect-URI 构造、generate-token 跳转五链路冒烟；**「密码留空=不带字段」语义 + testMail 回填**回归确认（T6 定论回写 6.7）（锚点 `pages/settings/outgoing-mail/index.tsx:234-248`）
+- [x] queues 列表（SYS only）：四列 name/partitions/submitStrategy/processingStrategy、锁 TB_RULE_ENGINE、Main 行无勾选框无删除（前端保护）、搜索/分页/默认 createdTime DESC、行点击详情抽屉 + Open details page（锚点 `queues-table-config.resolver.ts:44-132`）
+- [x] queues 表单（嵌套策略三面板）：name 编辑态锁死 + topic 自动派生不可输入（钉死）+ submitStrategy 五值 radio（BATCH 出 batchSize 默认 1000）+ processingStrategy 六值 radio + retries/failurePercentage/pause 三数字组 + pollInterval/partitions/packProcessingTimeout/consumerPerPartition/additionalInfo 三件；删除吃后端 400 引用报错（锚点 scout-settings §2.2、backend §3）
+- [x] notifications tab SYS 形态：SMS provider 卡（AWS_SNS/TWILIO/SMPP 三型子表单，无 smtp 型钉死）+ MOBILE_APP 卡（Firebase service account JSON 上传）+ Send test sms 弹窗（numberTo pattern + message ≤1600，不必先保存）（锚点 scout-settings §3.2）
+- [x] notifications tab TENANT 形态与保存链：仅 Slack botToken 卡；保存走 `POST /api/notification/settings`（deepTrim + 逐投递方式清洗：空串删整个 method、否则补 method 字段）；confirmForm 双表单盯 dirty（锚点 `sms-provider.component.ts:111-148`）
+- [x] home settings（TENANT only）：dashboardId 选择器（scope=tenant、不自动选第一个）+ hideDashboardToolbar（默认 true）→ `POST /api/tenant/dashboard/home/info`；**验收口径=保存成功即达标，/home 生效面归 M15**（锚点 `home-settings.component.*`、DashboardController:472-514）
+- [x] repository / auto-commit 两 tab 挂载：`/settings/repository`、`/settings/auto-commit` TENANT only + dirty 离开确认；表单本体按 6.2-2 验收不重复；auto-commit tab 二段开关（无仓库先见 repository 表单）（锚点 `admin-routing.module.ts:333-356`、`auto-commit-admin-settings.component.html:18-24`）
+- [x] auto-commit 设置面板：按 EntityType 粒度展开面板（选项=16 类型去重已用）+ 每项 branch 自由输入补全（空=Default）+ 四 checkbox（saveCredentials 仅 DEVICE、saveCalculatedFields 显隐）+ readOnly 全 fieldset 禁用 + hint + remove-all；**无 syncStrategy 钉死**（与手动 create 面板不要混）；非法分支名吃后端 400（锚点 scout-vc §4）
+- [x] trendz settings（TENANT only）：isTrendzEnabled + trendzUrl（启用时必填 + URL pattern）+ apiKey（trim）→ `POST /api/trendz/settings` + 保存后同步全局状态位（菜单/入口按此显隐，antd 对等实现）（锚点 `trendz-settings.component.ts:45-102`）
+- [x] ai-models 列表（TENANT only）：四列 createdTime/name/provider/modelId、行点击即编辑 dialog（无详情页钉死）、删除单条+批量、搜索/分页/默认 createdTime DESC、无导出导入（锚点 scout-settings §7.1）
+- [x] ai-models 编辑对话框：name + provider 九值下拉 + providerConfig 按白名单启停矩阵（9 provider 字段表）+ OPENAI baseUrl 特例（非官方地址 apiKey 变选填）+ OLLAMA 认证三态 + modelId 静态清单补全（空清单自由输入）+ 采样参数白名单渲染（锚点 `ai-model-dialog.component.*`、`ai-model.models.ts:60-226`）
+- [x] ai-models Check connectivity：表单未保存可测（invalid 禁用）、`POST /api/ai/model/chat` 探测、成功态/失败 errorDetails 展示（锚点 `check-connectivity-dialog.component.ts:48-82`）
+- [x] outgoing-mail 回归（v1 已交付不重做）：预设覆写、OFFICE_365 派生、change-password 闸门、redirect-URI 构造、generate-token 跳转五链路冒烟；**「密码留空=不带字段」语义 + testMail 回填**回归确认（T6 定论回写 6.7）（锚点 `pages/settings/outgoing-mail/index.tsx:234-248`）
 
 ### 6.4 密码策略页操作面（SYS only，对齐 ngx security-settings §5）
 
-- [ ] General policy 组：maxFailedLoginAttempts（空=不锁定）/ userLockoutNotificationEmail（email 格式）/ userActivationTokenTtl（1-24 默认 24）/ passwordResetTokenTtl（同）/ mobileSecretKeyLength（min1）；Undo 按钮 + dirty 离开确认（锚点 `security-settings.component.ts:79-83`）
-- [ ] Password policy 组：minimumLength(6-50)/maximumLength（**不得小于 minimumLength 联动校验**，防 min>max 死锁策略）/ 四类最少字符 / passwordExpirationPeriodDays / passwordReuseFrequencyDays（antd 类型补全 ngx TS 漏字段）/ allowWhitespaces（默认 true）/ forceUserToResetPasswordIfNotValid（默认 false 带 hint）（锚点 ts:84-97,136-146、backend §5-12）
-- [ ] JWT 卡：tokenIssuer 必填 + tokenSigningKey（base64 解码 ≥64 位 + Generate key 按钮）+ tokenExpirationTime/refreshTokenExpTime（后者必须大于前者）+ **保存链**：issuer/key 被改先弹确认框 → `POST /api/admin/jwtSettings` 返回新 token 对 → 就地换发当前会话 → 回读刷新表单（锚点 ts:101-134,160-219）
+- [x] General policy 组：maxFailedLoginAttempts（空=不锁定）/ userLockoutNotificationEmail（email 格式）/ userActivationTokenTtl（1-24 默认 24）/ passwordResetTokenTtl（同）/ mobileSecretKeyLength（min1）；Undo 按钮 + dirty 离开确认（锚点 `security-settings.component.ts:79-83`）
+- [x] Password policy 组：minimumLength(6-50)/maximumLength（**不得小于 minimumLength 联动校验**，防 min>max 死锁策略）/ 四类最少字符 / passwordExpirationPeriodDays / passwordReuseFrequencyDays（antd 类型补全 ngx TS 漏字段）/ allowWhitespaces（默认 true）/ forceUserToResetPasswordIfNotValid（默认 false 带 hint）（锚点 ts:84-97,136-146、backend §5-12）
+- [x] JWT 卡：tokenIssuer 必填 + tokenSigningKey（base64 解码 ≥64 位 + Generate key 按钮）+ tokenExpirationTime/refreshTokenExpTime（后者必须大于前者）+ **保存链**：issuer/key 被改先弹确认框 → `POST /api/admin/jwtSettings` 返回新 token 对 → 就地换发当前会话 → 回读刷新表单（锚点 ts:101-134,160-219）〔M14 走查 ✅：换发全链真机实证并复原——token 热替换 336ms/表单回读新钥/新 token GET 200/原钥复原 keyRestored=true（走查文档 §2）〕
 
 ### 6.5 M12/M13 连带交付与横切收尾
 
-- [ ] 发送向导「渠道未配置」tooltip 升级：`deliveryMethodNotConfigured` 死文案改为跳 `/settings/notifications` 链接（SA/TA 按 tab 可达性显隐；CU 保留文案）（锚点 `wizard.tsx:641-651`、M12 §4.7 登记兑现）
-- [ ] notification settings 预留函数消费：getNotificationSettings/saveNotificationSettings/getAvailableDeliveryMethods 三函数接入 6.3-3/4 页面（零 UI 消费方状态终结）；user 偏好两函数维持登记不实施（锚点 `services/tb/notification.ts:151-202`）
-- [ ] 权限快照三登录：CU 直达 `/calculatedFields`、`/version-control`、`/settings/*` TENANT 页与 security-settings 全部拒绝页；SYS 登录 `/settings` 落 general、TENANT 落 home；TA 无 queues/security-settings/outgoing-mail 入口（矩阵见 6.0）
-- [ ] i18n 横切：新增 `pages.calculatedFields.*`/VC 独立页/settings 增量域 zh/en key 全等（check-locale 门禁）+ 新 menu key 双语；退役的 v1 CF 面板旧 key（`pages.devices.detail.cf*` 族）同 PR 删除（锚点 scout-antd §7、arch R32）
-- [ ] 主题横切：零内联色值，新增页颜色全走 antd token（沿 M11 §3.7 口径）
-- [ ] 数据保全：CF/VC fixture（计算字段/版本/分支/queue/ai model）终态全 DELETE；git 仓库 fixture 清理；jwtSettings/securitySettings/trendz 走查后回读默认值；system 数据零改动
-- [ ] 门禁：lint 0 error（基线 warnings 只降不升，grep `^Found` 防截尾）/ tsc / vitest 定向全绿（波次门禁用目标目录跑法）/ check-locale
-- [ ] e2e 与 #12 登记：settings 走查补进 `e2e/specs/smoke/sys-admin.spec.ts`；M14 回归项（CF CRUD 主路径、VC commit/restore 异步闭环、settings 七页保存链）登记 #12 基线扩充（comment 留痕）
+- [x] 发送向导「渠道未配置」tooltip 升级：`deliveryMethodNotConfigured` 死文案改为跳 `/settings/notifications` 链接（SA/TA 按 tab 可达性显隐；CU 保留文案）（锚点 `wizard.tsx:641-651`、M12 §4.7 登记兑现）
+- [x] notification settings 预留函数消费：getNotificationSettings/saveNotificationSettings/getAvailableDeliveryMethods 三函数接入 6.3-3/4 页面（零 UI 消费方状态终结）；user 偏好两函数维持登记不实施（锚点 `services/tb/notification.ts:151-202`）
+- [x] 权限快照三登录：CU 直达 `/calculatedFields`、`/version-control`、`/settings/*` TENANT 页与 security-settings 全部拒绝页；SYS 登录 `/settings` 落 general、TENANT 落 home；TA 无 queues/security-settings/outgoing-mail 入口（矩阵见 6.0）
+- [x] i18n 横切：新增 `pages.calculatedFields.*`/VC 独立页/settings 增量域 zh/en key 全等（check-locale 门禁）+ 新 menu key 双语；退役的 v1 CF 面板旧 key（`pages.devices.detail.cf*` 族）同 PR 删除（锚点 scout-antd §7、arch R32）
+- [x] 主题横切：零内联色值，新增页颜色全走 antd token（沿 M11 §3.7 口径）
+- [x] 数据保全：CF/VC fixture（计算字段/版本/分支/queue/ai model）终态全 DELETE；git 仓库 fixture 清理；jwtSettings/securitySettings/trendz 走查后回读默认值；system 数据零改动
+- [x] 门禁：lint 0 error（基线 warnings 只降不升，grep `^Found` 防截尾）/ tsc / vitest 定向全绿（波次门禁用目标目录跑法）/ check-locale
+- [x] e2e 与 #12 登记：settings 走查补进 `e2e/specs/smoke/sys-admin.spec.ts`；M14 回归项（CF CRUD 主路径、VC commit/restore 异步闭环、settings 七页保存链）登记 #12 基线扩充（comment 留痕）
 
 ### 6.6 能力级增强登记（只登记不验收，不设硬门槛）
 
@@ -405,6 +405,7 @@
 - VC swagger 注释 8 种可版本化类型滞后（实际 16 种，`DefaultEntitiesExportImportService.java:67-74`）：验收以真仓实测为准；后端实测不支持的类型走 errata 登记，不擅自裁前端清单。
 - 上游 TS 模型滞后三处对照：ngx `CalculatedFieldGeofencingConfiguration` 漏 entityCoordinates、`RepositorySettings` 漏 readOnly、`UserPasswordPolicy` 漏 passwordReuseFrequencyDays——antd 建模一律补全（后端字段均实存），不照抄缺口。
 - 上游小瑕疵对照：ai-model 对话框标题不随 add/edit 切换；ngx TS 模型 RELATED/ENTITY_AGGREGATION 的 output.decimalsByDefault 字段 UI 不渲染（payload 直传保留）——antd 按「模型补全、UI 照 ngx 面呈现」处理，注释留痕。
+- 走查缺陷与观察登记（2026-09-06/07 真机走查）：**W-1/W-2 已修**（CF 测试对话框预填竞态、tab 模式实体缺口无提示——各带单测）；**W-3～W-9 观察项**不构成验收缺口（自动化环境错误边界不复现、beforeunload 只拦刷新/关页为既定等价口径、Windows JGit pack 句柄锁环境问题、版本 id 截断位数不一致等）——全文见 [v2-m14-browser-walkthrough.md](./v2-m14-browser-walkthrough.md) §5/§11。
 - **admin settings 保存缺陷（T6-① 已实锤 2026-09-06，前端，wave-2 修复）**：v1 已交付 general/connectivity/outgoing-mail 三页保存 body 只回传 `{key, jsonValue}` 不带 `id`，后端对同 key 无 id POST 一律 400 "Admin settings with such name already exists!"（dao 层无 upsert，系统初始化预建记录）——真机二次保存 400 复现；修复 = payload 带快照 id（`AdminSettings` 类型已补 `id` 字段），M14 新 settings 页一律带 id 编码；三存量页随 wave-2 回归修复。
 
 ## 7. M15 home 首页 + 匿名公共仪表盘 + 收口（骨架，开工补定）
@@ -413,6 +414,7 @@
 
 ## 修订记录
 
+- 2026-09-07：**M14 走查勾账（§6 全量勾账）**：§6.1–6.5 **51/51 勾**（CF 18 + VC 10 + settings 12 + 密码策略 3 + 连带 8），零 ❌；走查全文 [v2-m14-browser-walkthrough.md](./v2-m14-browser-walkthrough.md)（A 段 CF/settings、B 段 VC/挂载/横切 + 全局数据保全 16 项 API 审计全回基线）；JWT 换发全链 2026-09-07 补驱动闭环并复原（6.4-3 注）；W-1/W-2 已修（带单测），W-3–W-9 观察项登记。六波实现 + 两段走查工作底稿 `docs/agents/m14-*.md`；**AutoCommitCard 退役（R23b 默认执行）已随 wave-7 交付**。
 - 2026-09-06：**M14 段定稿（§6 全量补定）**：6.0 通用边界（四域 TENANT/SA/CU 三层角色矩阵钉死——CF/VC 连 SYS 后端能力都没有、queues SYS only 照 ngx、settings 组级放权子级收权；「无」清单钉死 ALARM 不进独立页/GEOFENCING 无地图/pwned-password 双侧不存在；行为契约：CF testScript 先于保存、VC 凭据空串≠留空、16 类型清单照前端常量、mail 留空=不带字段、密码策略前端自校验 min≤max）+ 6.1–6.4 四块操作面（CF 六型全量含 GEOFENCING 末波不降级；VC 复数双面板 + removeOtherEntities 逐字确认 + 详情 tab 6 回归 3 补挂；settings 七件收口勘误 + outgoing-mail 回归不重做；密码策略两卡 + JWT 换发链）+ 6.5 连带交付（M12/M13 三件：向导跳转链接、notification settings 预留函数消费、VC 面板补链）+ 6.6 增强登记 + 6.7 缺陷登记 17 条（admin settings 无 id 保存缺陷静态发现、T6/T10 随 wave-1 实测回写）。依据五份侦察底稿 + 三镜头专家合议（工作底稿 `docs/agents/m14-*.md` 八份）；实现清单见 [v2-m14-implementation-brief.md](./v2-m14-implementation-brief.md)。
 - 2026-09-06：**M13 段定稿（§5 全量补定）**：5.0 通用边界（角色矩阵钉死无 SYS 视角、edgeInfos/info 端点契约、events 两表语义分开、key/secret 前端生成保存后只读、OTA 两步保存 + 后端算 checksum + 创建即定型、edges.enabled 开关不接为有意偏离）+ 5.1–5.5 五块操作面（**CU 只读面经用户拍板随 M13 交付**；子实体平级路由页钉死；Downlinks 排序经 ngx 源码复核定案 = 服务端 seqId ASC 直渲、客户端倒排登记增强）+ 5.6 增强登记 + 5.7 缺陷登记（含本机后端两条实测实锤：customerTitle 排序 500、otaPackage full GET base64 回带；实测新缺陷：OTA 无 profile 上传步 500 空指针）。依据 ui-ngx 源码侦察、后端契约盘点与三镜头专家合议（工作底稿 `docs/agents/m13-*.md` 七份）；实现清单见 [v2-m13-implementation-brief.md](./v2-m13-implementation-brief.md)。
 - 2026-09-06：**M13 走查收账 + 复审回写**：§5.1–5.5 逐条勾账（✅ 30 项 / 未勾 7 项：3V 未驱动 4、受阻·后端事件未落库 2、消费集成单测覆盖 1，均带注记）；§5.2 复制三连与 §5.5 URL 下载两处**勘误**（实现照 ngx 锚点，URL 外链打开降级 §5.6）；§5.7 新增 W-1（「不再显示」同会话失效，已修——保存时现读偏好）与 W-2（Set root 行刷新滞后，后端异步观察）；走查证据全文见 [v2-m13-browser-walkthrough.md](./v2-m13-browser-walkthrough.md)。走查前置双轴 code-review：标准轴 0 硬违规（5 条 smell 已修——剪贴板/authority/批量解除三处去重 + 零引用类型删除 + 9 处依赖抑制逐处复核，6 处真隐患修根因），规格轴缺失 0。
