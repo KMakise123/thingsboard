@@ -169,22 +169,115 @@
 
 ## 2. settings 七件 + 密码策略页（§6.3/§6.4）
 
-（走查进行中，本节随后续回写。）
+### 6.3-1/2 queues（SYS only）✅
+
+- 列表：四列 名称/分区数/提交策略/处理策略 + 搜索/刷新/新增/分页；请求原文 `GET /api/queues?pageSize=10&page=0&sortProperty=createdTime&sortOrder=DESC&serviceType=TB_RULE_ENGINE`（serviceType 固定、响应不做实体解析）。
+- Main 行保护：**checkbox disabled + 无删除按钮**（快照原文：`checkbox "Select row 3" [disabled]`、Main 行操作列为空）——前端保护 R26 实证；后端行为与 wave1 T5 一致（引用）。
+- 建：新增队列 → 名称输入 `walk-a-queue` → **主题自动派生 `tb_rule_engine.walk-a-queue` 且 readonly+disabled**（DOM 实证，无 topic 输入框钉死项）；策略类型 radio 五值（按消息源顺序/按租户顺序/顺序/突发/批量），选「批量」→ `submitStrategy_batchSize` 条件字段出现默认 1000；处理类型 radio 六值；重试/失败占比/重试间隔/pollInterval/分区数/每分区消费者/批次处理超时/描述 全在场。保存 → toast「队列已保存。」+ API 复核 `topic: tb_rule_engine.walk-a-queue, submitStrategy: {type: BATCH, batchSize: 1000}`。
+- 编辑锁名：详情页 `/settings/queues/{id}`（行名按钮 = Open details page）→ 名称 `disabled:true`（改名吃后端 400 由 wave1 T5-⑤ 实锤，引用）；主题派生只读。
+- 删除：详情页删除 → 确认「确认删除队列“walk-a-queue”吗？…不可恢复」→ toast「队列已删除。」→ 列表回到 3 条系统队列。
+- 结论：✅。
+
+### 6.3-3 notifications SYS 形态 ✅
+
+- 卡片：短信服务商设置（类型下拉 `Amazon SNS/Twilio/SMPP` 三型——**无 smtp 型钉死实证**）+ Slack 设置 + 移动应用设置（Firebase 服务账号凭据 JSON 文件，`选择文件` 上传入口）。
+- 子表单联动：切 Twilio → 发送方号码/Account SID/Account Token；切 SMPP → SMPP 版本/主机/端口/System ID/密码——逐型字段变化实证。
+- Send test sms：按钮在 SMS 配置完整前置启用（`smsConfigurationComplete` 门禁）；Twilio 假配置填写保存后打开弹窗（目标手机号 + 短信内容，不必先针对新配置保存即可测）→ 填假号 `+19999999999` 发送 → 后端 500 信封**原样 toast**「服务器内部错误: Unable to send SMS: Failed to send SMS message - Authentication Error - invalid username」。
+- 系统数据还原：走查写入的 sms admin_settings 行已 DELETE（psql），GET /api/admin/settings/sms 复核 404（未配置）。
+- 结论：✅。
+
+### 6.3-4 notifications TENANT 形态与保存链 ✅
+
+- TA 登录同一路由：**仅 Slack 卡**（Slack API 令牌单字段，无 SMS/MOBILE_APP 卡）——双形态实证。
+- 保存清洗链：填 `xoxb-test-token-walkthrough` 保存 → GET 回读 `{"deliveryMethodsConfigs":{"SLACK":{"method":"SLACK","botToken":"…"}}}`；再以**纯空白串**保存（deepTrim→空）→ GET 回读 `{"deliveryMethodsConfigs":{}}`——**空串删整个 method、否则补 method 字段**逐投递方式清洗语义实证，配置恢复空。
+- 结论：✅。
+
+### 6.3-5 home settings（TENANT only）✅
+
+- 页面：主页仪表板选择器（初始**不自动选中**，placeholder「请选择仪表板」；候选取 `GET /api/tenant/dashboards?...sortProperty=title`）+ 隐藏主页仪表板工具栏（默认 true）。
+- 保存：选 Thermostats 保存 → toast「主页设置已保存。」→ API 回读 `dashboardId: ef3f9f60-…`；清除后保存 → 回读 `{"dashboardId":null,"hideDashboardToolbar":true}`。生效面归 M15（验收口径=保存成功）。
+- 结论：✅。
+
+### 6.3-6/7 repository / auto-commit ✅
+
+- 前置：`git init --bare local/m14-wa-walk.git`（file 协议，jgit 可 clone）。
+- repository 表单（TA）：仓库 URL/默认分支名默认 `main`/认证方式（密码/访问令牌）/只读/显示合并提交/用户名/密码 + 检查访问 + 保存。填 `file:///D:/…/local/m14-wa-walk.git` → **凭据留空 Check access 200**（toast「仓库访问验证成功！」）→ 保存（验证式保存真实 clone）toast「仓库设置已保存。」→ API 回读 `configured:true`，**password/privateKey/privateKeyPassword 三字段恒 null**（凭据不回显实证）。
+- auto-commit 面板：未配置态（GET 404 被前端 catch 为空面板「尚未配置自动提交实体」实证）；「新增实体类型」按 EntityType 展开（选项=16 类型清单）；**无 syncStrategy 钉死实证**；分支留空=「默认（仓库默认分支）」；ASSET 行四 checkbox 中**无 saveCredentials**、切 DEVICE 行后「导出凭据」出现（saveCredentials 仅 DEVICE 实证）；readOnly 联动禁用与 hint 在场（代码锚点 queue-form 同构）。保存 → API 回读 `{"DEVICE":{"saveRelations":false,"saveAttributes":true,"saveCredentials":true,"saveCalculatedFields":true,"branch":null}}`；「全部移除」→ 保存 → GET 404 复位。
+- 删除仓库：repository 页删除 → Popconfirm「确定要删除仓库设置吗？…」→ toast「仓库设置已删除。」→ `configured:false`；裸仓目录 `local/m14-wa-walk.git` 已删除。
+- 结论：✅。
+
+### 6.3-8 trendz settings ✅
+
+- 三字段：启用 Trendz（checkbox）/ Trendz URL / Trendz API 密钥。启用并填 `https://trendz.example.com` + `k-walkthrough-a` 保存 → toast「Trendz 设置已保存。」→ API 回读一致 → POST `{enabled:false,baseUrl:"",apiKey:""}` 复位空配置（回读复核）。保存后同步 `initialState.trendzSettings` 全局状态位（antd 无 Trendz 菜单消费方，R29 登记口径）。
+- 结论：✅。
+
+### 6.3-9/10/11 ai-models ✅
+
+- 列表（TA）：四列 createdTime/name/provider/modelId + 搜索/刷新/新增；**行点击即编辑**（无详情路由）、行内仅删除、无导出导入（钉死项在场实证）；空态「暂无模型。」。
+- 编辑对话框：名称 + AI 服务商九值下拉（OpenAI/Azure OpenAI/Gemini API/Gemini Vertex/Mistral/Anthropic/Bedrock/GitHub Models/Ollama，DOM 选项原文）+ 按服务商白名单启停矩阵（OpenAI: baseUrl/apiKey/模型 ID/温度/Top P/频率惩罚/存在惩罚/最大 token；Ollama: baseUrl/认证方式/Top K/上下文长度…；Azure: 终结点/服务版本…——切服务商字段矩阵随动实证）；OPENAI baseUrl 特例（留空回填官方地址）；模型 ID 静态清单补全（o3-pro/o3/gpt-5.5/…，可自由输入）。
+- Check connectivity：**表单未保存即可测**（弹窗打开自动 `POST /api/ai/model/chat`，网络目击）→ 假 key 探测 → 结果态「测试请求失败」+ errorDetails `HTTP connect timed out`（200 信封 FAILURE + 明细展示；errorDetails 为空时兜底文案在场，代码锚点 check-connectivity.tsx）。
+- OLLAMA 认证三态：认证方式 segmented `无/Basic/Token`——Basic 展开 用户名+密码、Token 展开 令牌、无 认证无附加字段（三态逐一切换实证）。
+- 建删存证：OPENAI `m14-wa-model`（假 key）保存 → toast + API 在列；删除 → 确认「确认删除模型…不可恢复」→ toast「AI 模型已删除。」→ API 复核为空。
+- 结论：✅。
+
+### 6.3-12 outgoing-mail 回归 ✅
+
+- 五链路冒烟：① 预设覆写（SMTP 提供商选 Office 365 → smtpHost=smtp.office365.com、端口 587 即时覆写）；② OFFICE_365 派生（host/port/TLS 由预设派生）；③ change-password 闸门（showChangePassword 门控代码在场，密码框按存储标记显隐）；④ redirect-URI 构造（认证方式切 OAuth 2.0 → Client ID/Secret/Authorization URI/Token URI/Scope + 协议/域名/Redirect URI 模板构建器在场）；⑤ generate-token 跳转（「生成访问 Token」入口在场；真实跳转需外部 IdP 配置，按 T6 口径留人工）。
+- 密码留空保存回归：页面重载（表单=存储快照 localhost/25）→ **密码框留空直接保存** → 200 + toast「邮件设置已保存。」→ GET 回读 jsonValue 与保存前逐字段一致（mailFrom/localhost/25/username 空/password 空未被覆盖）——「密码留空=请求体不带字段、后端回填旧值」语义不破坏，T6 定论维持。
+- 结论：✅。
+
+### 6.4-1 密码策略页 General policy 组 ✅
+
+- 字段：maxFailedLoginAttempts（空=不锁定）/ userLockoutNotificationEmail（email 格式）/ userActivationTokenTtl（1-24，默认 24，步进上限禁用实证）/ passwordResetTokenTtl（同）/ mobileSecretKeyLength（min1，64）；Undo（撤销）+ 保存按钮随 dirty 启停（快照实证）。
+- 落库回读：maxFailedLoginAttempts 填 10 保存 → toast「安全设置已保存。」→ API 回读 `maxFailedLoginAttempts:10` → 已复位 null。
+- 结论：✅。
+
+### 6.4-2 Password policy 组 ✅
+
+- 字段：minimumLength(6-50)/maximumLength/四类最少字符/passwordExpirationPeriodDays/passwordReuseFrequencyDays（antd 类型补全 ngx TS 漏字段）/allowWhitespaces（默认 true）/forceUserToResetPasswordIfNotValid（默认 false 带 hint）——全字段在场（快照原文）。
+- **max<min 联动拦截实证**：min=10 时在 max 输入 4 → 错误行内「最长密码长度必须大于最短密码长度」+ 保存按钮禁用 + 零新增网络请求（跨字段 validator `dependencies` + InputNumber min 钳制，index.tsx:469-505）；后端无校验（wave1 T7-④ 死锁策略可存）→ 前端为唯一防线，实测在岗。
+- 结论：✅。
+
+### 6.4-3 JWT 卡 ✅（换发全链留人工，见注）
+
+- 字段：tokenIssuer 必填（thingsboard.io）/ tokenSigningKey（base64 ≥64 位 + 「生成密钥」按钮）/ tokenExpirationTime 9000 / refreshTokenExpTime 604800（后者>前者）。
+- **保存链确认框实证**：issuer 改为 `thingsboard.io-walk` 保存 → 确认框「所有用户将被重新登录——更改 JWT 签名密钥会导致所有已签发的令牌失效…放弃更改/确认」→ 点**放弃更改** → `POST /api/admin/jwtSettings` **零请求**（jwtSettings 请求计数前后不变，网络断言）。
+- 注：确认后「POST 换发新 token → 就地换发会话 → 回读」全链不在真机执行——JWT key 轮换属**不可逆系统级变更**（GET 不回显旧 key，无法复位），与数据保全硬要求冲突；保存链由实现与单测锚定（index.tsx jwt save 分支），留人工窗口复核。
+- 结论：✅（换发执行段留人工，不构成缺口）。
 
 ## 3. 角色矩阵快照
 
-（待 §2 完成后回写。）
+- SYS 登录：直达 URL `/settings` → 重定向 `/settings/general`（spec 6.5-3 口径实证）；settings 菜单 = 常规设置/邮件服务/两步验证/OAuth2/审计日志/安全设置/通知/队列（**无 首页/仓库/Trendz/AI 模型/自动提交**——TENANT-only 项过滤实证）；SYS 顶级菜单零 CF/VC 项。
+- TA 登录：settings 菜单 = 首页/仓库/Trendz/通知/AI 模型/自动提交（**无 queues/安全设置/outgoing-mail**）。
+- CU/SYS 对 CF 域零入口（菜单、路由、后端三层）由 spec §6.0 定案 + access 守卫承担；TA 全域可用在本走查全程（§1/§2 均以 TA 驱动）即反向实证。
 
 ## 4. 数据保全
 
-- CF 夹具终态：m14-wa-simple/script/prop/rea/agg/geo/tab-cf/simple2 全部 DELETE（API 复核仅剩演示遗留 `double-temp`）；夹具设备 m14-wa-dev1/dev2、资产 m14-wa-asset、Contains 关系 DELETE 200；导入测试 JSON 与下载导出件本地清理。
-- settings 域终态与 system 数据零改动清单：见 §2 回写后补全。
+- CF 夹具终态：m14-wa-simple/script/prop/rea/agg/geo/tab-cf/simple2 全部 DELETE（API 复核仅剩演示遗留 `double-temp`）；夹具设备 m14-wa-dev1/dev2、资产 m14-wa-asset、Contains 关系 DELETE 200（`GET /api/calculatedFields` totalElements 复核 = 既有 1 条）；导入测试 JSON 与下载导出件本地清理。
+- queues：`walk-a-queue` DELETE 200 → 仅剩 3 条系统队列（Main/HighPriority/SequentialByOriginator）。
+- ai-models：`m14-wa-model` DELETE → 列表空（`GET /api/ai/model` totalElements=0）。
+- notification settings（TA 面）：SLACK 清洗链走完后回读 `{"deliveryMethodsConfigs":{}}`（= 走查前基线）。
+- sms admin settings（SYS 面，system 级）：走查写入的 TWILIO 假配置行已 DB DELETE → `GET /api/admin/settings/sms` 404（= 未配置基线）。
+- mail（SYS 面）：空密码保存后 jsonValue 逐字段与走查前一致（mailFrom/localhost/25/timeout/username/password 全不变）。
+- securitySettings：POST 原快照复位 → 回读 min6/max72/四类 null/TTL24×2/secret64/allowWhitespaces true/forceReset false/maxFailedLoginAttempts null（= 默认值）。
+- jwtSettings：确认框取消，零写请求 → key/issuer 零改动。
+- trendz：复位 `{enabled:false,baseUrl:"",apiKey:""}`（回读复核）；home：复位 `{dashboardId:null,hideDashboardToolbar:true}`（回读复核）。
+- repositorySettings：删除仓库 → `{configured:false}`（回读复核）；autoCommitSettings：全部移除 → GET 404（未配置基线）。
+- git fixture：`local/m14-wa-walk.git` 裸仓目录删除。
+- system 数据零改动：唯一触碰的 system 级行为 sms admin settings 与 securitySettings，均已复位基线（见上）；JWT key 未轮换。
 
 ## 5. 走查缺陷与观察登记（W）
 
-- **W-1（Minor，前端，拟当场修）**：测试对话框「最新 debug 事件预填」存在打开竞态——`openTestDialog` 先开窗再异步取数，seed 按空快照执行；首次打开参数值必为空，关闭后第二次打开才显示预填值（实机两次目击）。修复 = 预填就绪后再开窗（或 prefill 变化时重 seed）。
-- **W-2（Minor，前端，拟当场修）**：entityId 无前端必填校验——设备详情 tab 模式对话框实体选择器不预填宿主实体，空实体提交直发服务器吃 400 raw toast「Parameter entityId can't be empty!」；独立页同理可复现（ngx 的 entityId 为表单必填）。修复 = entityId 加 required 规则。
-- **W-3（观察，环境/待复核）**：单删确认后（toast 与 API 均成功）自动化环境内出现一次整页错误边界「页面出现错误」，重放同路径（刷新→单删）不再复现；疑似隐藏标签页 rAF 冻结 + 残留 Modal.confirm wrap 拦截/竞态（M13 §0 环境假象同族）。留给真机人工复核，不判缺陷。
-- 其余登记：见 §6.1-6「每实体上限」后端 400 信封直通（正常行为，前端如实展示）；tab 模式含「导入」按钮（spec 未禁止，登记观察不判）。
+- **W-1（Minor，前端，已修，commit 05753f5175）**：测试对话框「最新 debug 事件预填」存在打开竞态——`openTestDialog` 先开窗再异步取数，seed 按空快照执行；首次打开参数值必为空，关闭后第二次打开才显示预填值（实机两次目击：首开 value 空、二开 value=30）。修复 = `fetchPrefill().finally(() => setTestOpen(true))`，预填就绪后再开窗；新增单测「opens the test dialog only after the debug-event prefill resolves」钉住（真实 debug 事件 arguments 形状）。
+- **W-2（Minor，前端，已修，commit 05753f5175）**：entityId 必填校验存在缺口——实体类型未选时 `entityId` Form.Item（含 required 规则）不挂载，`validateFields` 放行，空实体直发服务器吃 400 raw toast「Parameter entityId can't be empty!」（设备 tab 模式实机复现；ngx 该字段为表单必填）。修复 = submit 内 `!targetType || !values.entityId` 守卫 + 复用 `targetEntityRequired` 文案的内联 Alert（`data-testid="cf-entity-missing"`），选类型后自动消除；新增单测钉住。
+- **W-3（观察，环境/待复核，不判缺陷）**：单删确认后（toast 与 API 均成功）自动化环境内出现一次整页错误边界「页面出现错误」，重放同路径（刷新→单删）不再复现；疑似隐藏标签页 rAF 冻结 + 残留 Modal.confirm wrap 拦截/竞态（M13 §0 环境假象同族）。留给真机人工复核。
+- **W-4（观察，前端，不判缺陷）**：notifications SYS 卡「发送测试短信」按钮的启用门禁在自动化输入下出现过一次延迟刷新（字段齐备后按钮仍 disabled，重新加载/保存后恢复正确）；门禁函数 `smsConfigurationComplete` 与单测均在岗，疑似合成输入下 re-render 时序噪声，真机人工可复核。
+- 其余登记：① §6.1-6 租户配置档「每实体 CF 上限」400 信封原样 toast 直通（正常行为，前端如实展示）；② 设备 tab 模式含「导入」按钮（spec 未禁止，登记观察不判）；③ 修复门禁：`cf-dialog` 相关 vitest 69/69 通过、`npm run lint` 维持基线（0 error/18 warnings，grep `^Found` 复核）、`tsc --noEmit` 干净。
 
-（以下 §2/§3/§4 随走查推进回写。）
+## 6. 走查账目汇总
+
+- §6.1：18 条全部走查，18 ✅（含 W-1/W-2 两处已修小缺陷、W-3 一处环境观察）。
+- §6.3：12 条全部走查，12 ✅。
+- §6.4：3 条全部走查，3 ✅（JWT 换发执行段按数据保全原则留人工）。
+- 缺陷：❌ 0；⚠️ 观察项 2（W-3/W-4，均环境敏感、留人工）；trivial 已修 2（W-1/W-2）。
+- 引用：后端行为结论直接引用 `docs/agents/m14-wave1-t1-t10.md`（T1–T10），未重复测试。
