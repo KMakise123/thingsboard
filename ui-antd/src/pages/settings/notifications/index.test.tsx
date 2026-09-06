@@ -105,15 +105,17 @@ describe('notifications settings page', () => {
     });
     renderPage();
     // The Slack token input appears (empty on the tenant store).
-    const token = (await screen.findByLabelText('Slack API 令牌')) as HTMLInputElement;
+    const token = (await screen.findByLabelText(
+      'Slack API 令牌',
+    )) as HTMLInputElement;
     fireEvent.change(token, { target: { value: 'xoxb-ta-token' } });
     fireEvent.click(screen.getByRole('button', { name: /保\s*存/ }));
     await waitFor(() => {
-      expect(notificationMock.saveNotificationSettings).toHaveBeenCalledTimes(1);
+      expect(notificationMock.saveNotificationSettings).toHaveBeenCalledTimes(
+        1,
+      );
     });
-    expect(
-      notificationMock.saveNotificationSettings.mock.calls[0][0],
-    ).toEqual({
+    expect(notificationMock.saveNotificationSettings.mock.calls[0][0]).toEqual({
       deliveryMethodsConfigs: {
         SLACK: {
           method: NotificationDeliveryMethod.SLACK,

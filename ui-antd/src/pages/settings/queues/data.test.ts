@@ -3,6 +3,7 @@
  * create-vs-edit payload shape, Main-queue guard.
  */
 import { describe, expect, it } from 'vitest';
+import { EntityType } from '@/types/tb/entity';
 import type { Queue } from '@/types/tb/queue';
 import {
   defaultQueueFormValues,
@@ -14,9 +15,9 @@ import {
 
 function storedQueue(): Queue {
   return {
-    id: { entityType: 'QUEUE', id: 'q-1' },
+    id: { entityType: EntityType.QUEUE, id: 'q-1' },
     createdTime: 1_700_000_000_000,
-    tenantId: { entityType: 'TENANT', id: 't-1' },
+    tenantId: { entityType: EntityType.TENANT, id: 't-1' },
     name: 'Main',
     topic: 'tb_rule_engine.Main',
     pollInterval: 25,
@@ -31,7 +32,10 @@ function storedQueue(): Queue {
       pauseBetweenRetries: 3,
       maxPauseBetweenRetries: 3,
     },
-    additionalInfo: { description: 'stock', duplicateMsgToAllPartitions: false },
+    additionalInfo: {
+      description: 'stock',
+      duplicateMsgToAllPartitions: false,
+    },
   };
 }
 

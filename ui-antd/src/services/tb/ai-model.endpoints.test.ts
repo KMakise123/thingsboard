@@ -12,6 +12,7 @@ vi.mock('./http', () => ({
     post: vi.fn(),
     put: vi.fn(),
     delete: vi.fn(),
+    request: vi.fn(),
   },
 }));
 
@@ -26,6 +27,7 @@ import {
 const get = vi.mocked(tbHttp.get);
 const post = vi.mocked(tbHttp.post);
 const del = vi.mocked(tbHttp.delete);
+const request = vi.mocked(tbHttp.request);
 
 describe('ai-model transport endpoints', () => {
   beforeEach(() => {
@@ -81,12 +83,12 @@ describe('ai-model transport endpoints', () => {
     expect(del).toHaveBeenCalledWith('/api/ai/model/m-gone');
   });
 
-  it('posts the chat probe and surfaces the 200 envelope', async () => {
-    post.mockResolvedValue({
+  it('posts the chat probe and surfaces the 200 envelope (client timeout exceeds the 20s backend window)', async () => {
+    request.mockResolvedValue({
       status: 'FAILURE',
       errorDetails: 'connect ECONNREFUSED',
     } as never);
-    const request = {
+    const probe = {
       userMessage: {
         contents: [{ contentType: 'TEXT', text: 'What is the capital of Ukraine?' }],
       },
@@ -98,8 +100,15 @@ describe('ai-model transport endpoints', () => {
         timeoutSeconds: 20,
       },
     };
-    const response = await checkAiModelConnectivity(request as never);
-    expect(post).toHaveBeenCalledWith('/api/ai/model/chat', request);
+    const response = await checkAiModelConnectivity(probe as never);
+    // The probe rides request() (NOT post) with a 25s client timeout —
+    // the shared 10s default aborts probes the backend is still waiting
+    // on (its DeferredResult runs up to timeoutSeconds = 20s).
+    expect(request).toHaveBeenCalledWith('/api/ai/model/chat', {
+      method: 'POST',
+      body: probe,
+      timeoutMs: 25_000,
+    });
     expect(response).toEqual({
       status: 'FAILURE',
       errorDetails: 'connect ECONNREFUSED',

@@ -121,9 +121,7 @@ describe('settings ai-models page', () => {
     fireEvent.click(await screen.findByText('检查连通性'));
     expect(await screen.findByText('测试请求失败')).toBeDefined();
     await waitFor(() => {
-      expect(
-        screen.getByText(/Incorrect API key/),
-      ).toBeDefined();
+      expect(screen.getByText(/Incorrect API key/)).toBeDefined();
     });
     expect(servicesMock.checkAiModelConnectivity).toHaveBeenCalledTimes(1);
     const request = servicesMock.checkAiModelConnectivity.mock.calls[0][0];

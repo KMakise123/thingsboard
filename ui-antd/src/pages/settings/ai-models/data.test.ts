@@ -4,15 +4,15 @@
  * normalization round-trip and the connectivity probe request shape.
  */
 import { describe, expect, it } from 'vitest';
-import type { AiModel } from '@/types/tb/ai-model';
+import type { AiChatModelConfig, AiModel } from '@/types/tb/ai-model';
 import {
+  type AiModelFormValues,
   buildConnectivityRequest,
   isOpenAiApiKeyOptional,
   OPENAI_OFFICIAL_BASE_URL,
   parseConnectivityError,
   toAiModelFormValue,
   toAiModelPayload,
-  type AiModelFormValues,
 } from './data';
 
 function openAiValues(): AiModelFormValues {
@@ -48,7 +48,7 @@ describe('toAiModelPayload', () => {
       authType: 'TOKEN',
       authToken: 'leak',
     });
-    const config = payload.configuration as Record<string, unknown>;
+    const config = payload.configuration as unknown as Record<string, unknown>;
     const providerConfig = config.providerConfig as Record<string, unknown>;
     expect(config.provider).toBe('OPENAI');
     expect(config.modelId).toBe('gpt-5');
@@ -68,10 +68,10 @@ describe('toAiModelPayload', () => {
       ...openAiValues(),
       baseUrl: undefined,
     });
-    const config = payload.configuration as Record<string, unknown>;
-    expect(
-      (config.providerConfig as Record<string, unknown>).baseUrl,
-    ).toBe(OPENAI_OFFICIAL_BASE_URL);
+    const config = payload.configuration as unknown as Record<string, unknown>;
+    expect((config.providerConfig as Record<string, unknown>).baseUrl).toBe(
+      OPENAI_OFFICIAL_BASE_URL,
+    );
   });
 
   it('builds the OLLAMA auth block from the flat values', () => {
@@ -85,8 +85,9 @@ describe('toAiModelPayload', () => {
       authUsername: 'user',
       authPassword: 'pass',
     });
-    const providerConfig = (payload.configuration as Record<string, unknown>)
-      .providerConfig as Record<string, unknown>;
+    const providerConfig = (
+      payload.configuration as unknown as Record<string, unknown>
+    ).providerConfig as Record<string, unknown>;
     expect(providerConfig.baseUrl).toBe('http://ollama.internal:11434');
     expect(providerConfig.auth).toEqual({
       type: 'BASIC',
@@ -124,7 +125,8 @@ describe('toAiModelPayload', () => {
 describe('connectivity probe', () => {
   it('rides the unsaved config with maxRetries 0 + 20s timeout (ngx parity)', () => {
     const values = openAiValues();
-    const configuration = toAiModelPayload(values).configuration;
+    const configuration = toAiModelPayload(values)
+      .configuration as AiChatModelConfig;
     const request = buildConnectivityRequest(configuration);
     expect(request.userMessage.contents[0].text).toBe(
       'What is the capital of Ukraine?',

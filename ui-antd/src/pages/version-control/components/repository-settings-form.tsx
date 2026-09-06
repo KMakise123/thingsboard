@@ -324,7 +324,13 @@ export default function RepositorySettingsForm({
         id: 'pages.versionControl.repository.title',
         defaultMessage: 'Repository settings',
       })}
-      loading={infoQuery.isPending || settingsQuery.isPending}
+      loading={
+        // A disabled settingsQuery (unconfigured repo) stays `pending`
+        // forever in React Query v5 — only treat it as loading when it can
+        // actually fetch (the info query already says "configured").
+        infoQuery.isPending ||
+        (infoQuery.data?.configured === true && settingsQuery.isPending)
+      }
     >
       <Form<RepositorySettingsFormValues>
         form={form}

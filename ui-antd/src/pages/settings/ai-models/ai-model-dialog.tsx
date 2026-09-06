@@ -32,7 +32,7 @@ import {
   Select,
   Tooltip,
 } from 'antd';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { serverErrorText } from '@/components/entities/server-error-text';
 import { saveAiModel } from '@/services/tb/ai-model';
@@ -87,6 +87,15 @@ export default function AiModelDialog({
   /** Validated UNSAVED form values for the connectivity probe. */
   const [connectivityFormValues, setConnectivityFormValues] =
     useState<AiModelFormValues>();
+  // Stable identity per check-click: the probe dialog's effect keys off the
+  // configuration object, so re-renders must not re-arm it.
+  const probeConfiguration = useMemo(
+    () =>
+      connectivityFormValues
+        ? toAiModelPayload(connectivityFormValues, model).configuration
+        : undefined,
+    [connectivityFormValues, model],
+  );
 
   const provider = Form.useWatch('provider', form) as
     | AiModelFormValues['provider']
@@ -458,11 +467,7 @@ export default function AiModelDialog({
 
       <CheckConnectivityDialog
         open={connectivityOpen}
-        configuration={
-          connectivityFormValues
-            ? toAiModelPayload(connectivityFormValues, model).configuration
-            : undefined
-        }
+        configuration={probeConfiguration}
         onClose={() => setConnectivityOpen(false)}
       />
     </Modal>

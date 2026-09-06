@@ -80,9 +80,17 @@ export async function deleteAiModel(modelId: string): Promise<boolean> {
  * config rides in the request). HTTP 200 ALWAYS — check
  * TbChatResponse.status: SUCCESS carries generatedContent, FAILURE
  * carries errorDetails.
+ *
+ * The chatModelConfig's timeoutSeconds (probe: 20s) bounds the backend's
+ * DeferredResult, so the CLIENT timeout must exceed it — the shared 10s
+ * default aborts legitimate probes (live-checked in wave-3).
  */
 export async function checkAiModelConnectivity(
   request: TbChatRequest,
 ): Promise<TbChatResponse> {
-  return tbHttp.post<TbChatResponse>('/api/ai/model/chat', request);
+  return tbHttp.request<TbChatResponse>('/api/ai/model/chat', {
+    method: 'POST',
+    body: request,
+    timeoutMs: 25_000,
+  });
 }

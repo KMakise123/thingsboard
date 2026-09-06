@@ -7,13 +7,15 @@ import { describe, expect, it } from 'vitest';
 import type { AutoVersionCreateConfig } from '@/services/tb/version-control';
 import { EntityType } from '@/types/tb/entity';
 import {
+  type AutoCommitRow,
   availableEntityTypes,
   toAutoCommitRows,
   toAutoCommitSettings,
-  type AutoCommitRow,
 } from './data';
 
-function config(overrides: Partial<AutoVersionCreateConfig> = {}): AutoVersionCreateConfig {
+function config(
+  overrides: Partial<AutoVersionCreateConfig> = {},
+): AutoVersionCreateConfig {
   return {
     branch: '',
     saveAttributes: true,

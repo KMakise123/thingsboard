@@ -7,7 +7,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { App as AntdApp, Form } from 'antd';
 import { createIntl, RawIntlProvider } from 'react-intl';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import zhCommon from '@/locales/zh-CN/common';
 import zhSettings from '@/locales/zh-CN/settings';
 import type { QueueFormValues } from './data';
@@ -18,69 +18,30 @@ const intl = createIntl({
   messages: { ...zhCommon, ...zhSettings },
 });
 
-/** Harness: hoists the antd form instance + latest values to the test. */
+/** Harness: hoists the antd form instance to the test. */
 function TestHost({
   editMode,
-  initialValues,
   formRef,
-  valuesRef,
 }: {
   editMode: boolean;
-  initialValues?: QueueFormValues;
   formRef: (form: ReturnType<typeof Form.useForm<QueueFormValues>>[0]) => void;
-  valuesRef?: (values: QueueFormValues | undefined) => void;
 }) {
   const [form] = Form.useForm<QueueFormValues>();
   formRef(form);
   return (
     <AntdApp>
       <RawIntlProvider value={intl}>
-        {initialValues ? (
-          <QueueFormInitializer
-            form={form}
-            editMode={editMode}
-            initialValues={initialValues}
-            valuesRef={valuesRef}
-          />
-        ) : (
-          <QueueForm
-            form={form}
-            editMode={editMode}
-          />
-        )}
+        <QueueForm form={form} editMode={editMode} />
       </RawIntlProvider>
     </AntdApp>
   );
 }
 
-function QueueFormInitializer({
-  form,
-  editMode,
-  initialValues,
-  valuesRef,
-}: {
-  form: ReturnType<typeof Form.useForm<QueueFormValues>>[0];
-  editMode: boolean;
-  initialValues: QueueFormValues;
-  valuesRef?: (values: QueueFormValues | undefined) => void;
-}) {
-  return (
-    <>
-      <QueueForm form={form} editMode={editMode} />
-      <Form form={form} component={false} initialValues={initialValues} />
-      <Form.Consumer>
-        {() => {
-          valuesRef?.(form.getFieldsValue(true) as QueueFormValues);
-          return null;
-        }}
-      </Form.Consumer>
-    </>
-  );
-}
-
 describe('queue form', () => {
   it('shows the BATCH batchSize field only for the BATCH radio', async () => {
-    const formRef: { current?: ReturnType<typeof Form.useForm>[0] } = {};
+    const formRef: {
+      current?: ReturnType<typeof Form.useForm<QueueFormValues>>[0];
+    } = {};
     render(
       <TestHost
         editMode={false}
@@ -108,7 +69,9 @@ describe('queue form', () => {
   });
 
   it('locks the name input in edit mode', () => {
-    const formRef: { current?: ReturnType<typeof Form.useForm>[0] } = {};
+    const formRef: {
+      current?: ReturnType<typeof Form.useForm<QueueFormValues>>[0];
+    } = {};
     const { container } = render(
       <TestHost
         editMode
@@ -122,7 +85,9 @@ describe('queue form', () => {
   });
 
   it('derives the topic preview while typing the name', async () => {
-    const formRef: { current?: ReturnType<typeof Form.useForm>[0] } = {};
+    const formRef: {
+      current?: ReturnType<typeof Form.useForm<QueueFormValues>>[0];
+    } = {};
     const { container } = render(
       <TestHost
         editMode={false}
@@ -142,7 +107,9 @@ describe('queue form', () => {
   });
 
   it('rejects maxPause smaller than pause (server-400 preemption)', async () => {
-    const formRef: { current?: ReturnType<typeof Form.useForm>[0] } = {};
+    const formRef: {
+      current?: ReturnType<typeof Form.useForm<QueueFormValues>>[0];
+    } = {};
     render(
       <TestHost
         editMode={false}
@@ -151,7 +118,9 @@ describe('queue form', () => {
         }}
       />,
     );
-    const form = formRef.current as ReturnType<typeof Form.useForm>[0];
+    const form = formRef.current as ReturnType<
+      typeof Form.useForm<QueueFormValues>
+    >[0];
     await form.setFieldsValue({
       processingStrategy: {
         type: 'RETRY_FAILED_AND_TIMED_OUT',
@@ -163,11 +132,7 @@ describe('queue form', () => {
     });
     await expect(form.validateFields()).rejects.toThrow();
     await waitFor(() => {
-      expect(
-        screen.getByText(
-          '重试额外间隔不能小于重试间隔。',
-        ),
-      ).toBeDefined();
+      expect(screen.getByText('重试额外间隔不能小于重试间隔。')).toBeDefined();
     });
   });
 });

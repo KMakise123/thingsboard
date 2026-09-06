@@ -10,6 +10,7 @@ import { useMutation } from '@tanstack/react-query';
 import { Modal, Spin, Typography, theme } from 'antd';
 import { useEffect } from 'react';
 import { useIntl } from 'react-intl';
+import { serverErrorText } from '@/components/entities/server-error-text';
 import { checkAiModelConnectivity } from '@/services/tb/ai-model';
 import type { AiChatModelConfig } from '@/types/tb/ai-model';
 import { buildConnectivityRequest, parseConnectivityError } from './data';
@@ -44,7 +45,7 @@ export default function CheckConnectivityDialog({
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  }, [open, mutation.reset, mutation.mutate, configuration]);
 
   return (
     <Modal
@@ -91,6 +92,25 @@ export default function CheckConnectivityDialog({
                   defaultMessage: 'The provider returned no error details.',
                 })}
             </pre>
+          </>
+        )}
+        {/* HTTP-layer failures (transport abort / non-envelope status) —
+            the protocol path itself always answers 200 + envelope. */}
+        {mutation.error && (
+          <>
+            <CloseCircleOutlined
+              className="text-5xl"
+              style={{ color: token.colorError }}
+            />
+            <Typography.Text type="danger">
+              {formatMessage({
+                id: 'pages.aiModels.checkConnectivityFailed',
+                defaultMessage: 'Test request failed',
+              })}
+            </Typography.Text>
+            <Typography.Text type="secondary" className="px-4 text-center">
+              {serverErrorText(mutation.error)}
+            </Typography.Text>
           </>
         )}
       </div>
