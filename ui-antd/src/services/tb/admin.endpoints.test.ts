@@ -18,10 +18,15 @@ vi.mock('./http', () => ({
 import {
   generateMailOauth2AccessToken,
   getAdminSettings,
+  getJwtSettings,
   getMailConfigTemplates,
   getMailOauth2LoginProcessingUrl,
+  getSecuritySettings,
   saveAdminSettings,
+  saveJwtSettings,
+  saveSecuritySettings,
   sendTestMail,
+  sendTestSms,
 } from './admin';
 
 const get = vi.mocked(tbHttp.get);
@@ -75,5 +80,60 @@ describe('admin settings transport endpoints', () => {
     expect(get).toHaveBeenCalledWith('/api/admin/mail/oauth2/authorize');
     await getMailConfigTemplates();
     expect(get).toHaveBeenCalledWith('/api/mail/config/template');
+  });
+
+  it('security settings round-trip (M14 wave-1)', async () => {
+    get.mockResolvedValue({
+      passwordPolicy: { minimumLength: 6 },
+      userActivationTokenTtl: 24,
+      passwordResetTokenTtl: 24,
+    } as never);
+    await getSecuritySettings();
+    expect(get).toHaveBeenCalledWith('/api/admin/securitySettings');
+
+    const settings = {
+      passwordPolicy: { minimumLength: 8 },
+      maxFailedLoginAttempts: 5,
+      userLockoutNotificationEmail: 'ops@example.com',
+      mobileSecretKeyLength: 16,
+      userActivationTokenTtl: 24,
+      passwordResetTokenTtl: 24,
+    };
+    await saveSecuritySettings(settings);
+    expect(post).toHaveBeenCalledWith('/api/admin/securitySettings', settings);
+  });
+
+  it('jwt settings read + save (save responds with a fresh token pair)', async () => {
+    get.mockResolvedValue({
+      tokenExpirationTime: 9000,
+      refreshTokenExpTime: 604800,
+      tokenIssuer: 'thingsboard.io',
+      tokenSigningKey: 'abc==',
+    } as never);
+    await getJwtSettings();
+    expect(get).toHaveBeenCalledWith('/api/admin/jwtSettings');
+
+    const settings = { tokenIssuer: 'thingsboard.io', tokenSigningKey: 'abc==' };
+    post.mockResolvedValue({ token: 't', refreshToken: 'r' } as never);
+    await expect(saveJwtSettings(settings)).resolves.toEqual({
+      token: 't',
+      refreshToken: 'r',
+    });
+    expect(post).toHaveBeenCalledWith('/api/admin/jwtSettings', settings);
+  });
+
+  it('test sms posts the request-body configuration (no save first)', async () => {
+    const request = {
+      providerConfiguration: {
+        type: 'TWILIO' as const,
+        accountSid: 'sid',
+        accountToken: 'tok',
+        numberFrom: '+10000000000',
+      },
+      numberTo: '+10000000001',
+      message: 'tb test',
+    };
+    await sendTestSms(request);
+    expect(post).toHaveBeenCalledWith('/api/admin/settings/testSms', request);
   });
 });

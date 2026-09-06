@@ -26,4 +26,7 @@ export * from './calculated-fields';
 export * from './notification';
 export * from './edge';
 export * from './ota';
+export * from './queue';
+export * from './ai-model';
+export * from './trendz';
 export { setTbLanguage, setTbUnauthorizedHandler, tbHttp } from './http';

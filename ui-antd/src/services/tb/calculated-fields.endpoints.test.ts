@@ -20,8 +20,13 @@ vi.mock('./http', () => ({
 
 import {
   deleteCalculatedField,
+  getCalculatedFieldById,
+  getCalculatedFieldNames,
+  getCalculatedFields,
   getCalculatedFieldsByEntityId,
+  getLatestCalculatedFieldDebugEvent,
   saveCalculatedField,
+  testCalculatedFieldScript,
 } from './calculated-fields';
 
 const get = vi.mocked(tbHttp.get);
@@ -69,5 +74,88 @@ describe('calculated-field transport endpoints', () => {
     });
     await deleteCalculatedField('cf-1');
     expect(del).toHaveBeenCalledWith('/api/calculatedField/cf-1');
+  });
+
+  it('queries the tenant-wide page with flattened filters (M14 wave-1)', async () => {
+    await getCalculatedFields(
+      {
+        pageSize: 10,
+        page: 0,
+        textSearch: 'temp',
+        sortOrder: { property: 'createdTime', direction: 'DESC' },
+      },
+      {
+        types: ['SIMPLE', 'SCRIPT'],
+        entityType: 'DEVICE',
+        entities: ['d-1', 'd-2'],
+        names: ['a', 'b'],
+      },
+    );
+    expect(get).toHaveBeenCalledWith('/api/calculatedFields', {
+      pageSize: 10,
+      page: 0,
+      textSearch: 'temp',
+      sortProperty: 'createdTime',
+      sortOrder: 'DESC',
+      // Repeatable wire params (`types`, `entities`, `name`) are joined —
+      // Spring binds the comma form to the array params.
+      types: 'SIMPLE,SCRIPT',
+      entityType: 'DEVICE',
+      entities: 'd-1,d-2',
+      name: 'a,b',
+    });
+
+    // No filters → the filter params disappear entirely.
+    await getCalculatedFields({
+      pageSize: 10,
+      page: 0,
+      sortOrder: { property: 'name', direction: 'ASC' },
+    });
+    expect(get).toHaveBeenLastCalledWith('/api/calculatedFields', {
+      pageSize: 10,
+      page: 0,
+      textSearch: undefined,
+      sortProperty: 'name',
+      sortOrder: 'ASC',
+      types: undefined,
+      entityType: undefined,
+      entities: undefined,
+      name: undefined,
+    });
+  });
+
+  it('reads names with the type param and no sortProperty (backend pins name)', async () => {
+    await getCalculatedFieldNames('SIMPLE', {
+      pageSize: 50,
+      page: 0,
+      textSearch: 'dou',
+      sortOrder: { property: 'name', direction: 'ASC' },
+    });
+    expect(get).toHaveBeenCalledWith('/api/calculatedFields/names', {
+      type: 'SIMPLE',
+      pageSize: 50,
+      page: 0,
+      textSearch: 'dou',
+      sortOrder: 'ASC',
+    });
+  });
+
+  it('reads a single calculated field by id', async () => {
+    await getCalculatedFieldById('cf-9');
+    expect(get).toHaveBeenCalledWith('/api/calculatedField/cf-9');
+  });
+
+  it('posts the testScript probe (errors live in the 200 envelope)', async () => {
+    post.mockResolvedValue({ error: 'boom' } as never);
+    const payload = { expression: 'return 1;', arguments: {} };
+    const result = await testCalculatedFieldScript(payload);
+    expect(post).toHaveBeenCalledWith('/api/calculatedField/testScript', payload);
+    expect(result).toEqual({ error: 'boom' });
+  });
+
+  it('reads the latest debug event', async () => {
+    get.mockResolvedValue({ arguments: {} } as never);
+    await getLatestCalculatedFieldDebugEvent('cf-9');
+    expect(get).toHaveBeenCalledWith('/api/calculatedField/cf-9/debug');
   });
 });

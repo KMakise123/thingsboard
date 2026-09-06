@@ -13,26 +13,18 @@ import type {
   LoginResponse,
   User,
 } from '@/types/tb';
+import type { UserPasswordPolicy } from '@/types/tb/admin';
 import type { Oauth2ClientLoginInfo } from '@/types/tb/oauth2';
 import type { TwoFaProviderInfo, TwoFaProviderType } from '@/types/tb/two-fa';
 
 import { tbHttp } from './http';
 
-/** GET /api/noauth/userPasswordPolicy response — every field optional (openapi). */
-export interface UserPasswordPolicy {
-  minimumLength?: number;
-  maximumLength?: number;
-  minimumUppercaseLetters?: number;
-  minimumLowercaseLetters?: number;
-  minimumDigits?: number;
-  minimumSpecialCharacters?: number;
-  allowWhitespaces?: boolean;
-  forceUserToResetPasswordIfNotValid?: boolean;
-  /** Force expiration after N days (absent when disabled). */
-  passwordExpirationPeriodDays?: number;
-  /** Disallow reuse within N days (absent when disabled). */
-  passwordReuseFrequencyDays?: number;
-}
+/**
+ * GET /api/noauth/userPasswordPolicy response — every field optional
+ * (openapi). Canonical home is types/tb/admin.ts (M14 R10 move); this
+ * re-export keeps the existing auth-domain import paths stable.
+ */
+export type { UserPasswordPolicy };
 
 /** POST /api/auth/login */
 export async function login(request: LoginRequest): Promise<LoginResponse> {
