@@ -307,6 +307,7 @@ function buildTabItems({
         <VersionControlPanel
           entityId={profile.id}
           entityType={EntityType.DEVICE_PROFILE}
+          entityName={profile.name}
         />
       ) : null,
     },

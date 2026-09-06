@@ -176,6 +176,7 @@ export default function AssetProfileDetailPage() {
         <VersionControlPanel
           entityId={profile.id}
           entityType={EntityType.ASSET_PROFILE}
+          entityName={profile.name}
         />
       ) : null,
     },

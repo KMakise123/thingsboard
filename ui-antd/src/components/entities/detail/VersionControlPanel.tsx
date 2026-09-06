@@ -3,12 +3,24 @@
  *
  * Parity with ui-ngx's entity version-control tab, AntD-ized and in-place
  * (spec principle 4 — never navigates to the VC standalone page): commit
- * this device to the repository, version list, compare-with-current diff
+ * this entity to the repository, version list, compare-with-current diff
  * (rendered as a changed-fields table) and restore. Plus the auto-commit
- * settings for DEVICE, scoped to its own settings entry.
+ * settings for DEVICE, scoped to its own settings entry (retirement is
+ * M14 wave-7, R23b).
  *
- * Without a configured repository the tab degrades to a hint (repository
- * settings belong to the v2 settings pages) instead of dead forms.
+ * M14 wave-6 upgrades (spec 6.2-6 + 6.2-10): the create dialog defaults
+ * the version name to "<entityName> update", shows per-family flags per
+ * the ngx type sets (credentials only for DEVICE, relations/attributes
+ * hidden for the no-related-data types, calculated fields for the
+ * CF-capable types — hidden flags are force-false in the payload, ngx
+ * parity) and reads "nothing to commit"; the branch selectors converge on
+ * the shared BranchSelect (R24); the not-configured hint gains the
+ * "go to settings" jump to /settings/repository. The ngx CUSTOMER-only
+ * "export/load alarm rules" wording branch is registered-not-implemented —
+ * the combined "calculated fields and alarm rules" label covers it.
+ *
+ * Without a configured repository the tab degrades to a hint + jump
+ * instead of dead forms.
  */
 import {
   CloudUploadOutlined,
@@ -16,10 +28,10 @@ import {
   HistoryOutlined,
 } from '@ant-design/icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { history } from '@umijs/max';
 import {
   Alert,
   App,
-  AutoComplete,
   Button,
   Card,
   Checkbox,
@@ -37,6 +49,11 @@ import dayjs from 'dayjs';
 import { useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { serverErrorText } from '@/components/entities/server-error-text';
+import BranchSelect from '@/pages/version-control/components/branch-select';
+import {
+  ENTITY_TYPES_WITHOUT_RELATED_DATA,
+  TYPES_WITH_CALCULATED_FIELDS,
+} from '@/pages/version-control/components/vc-data';
 import type {
   BranchInfo,
   EntityDataDiff,
@@ -60,6 +77,7 @@ import {
   saveEntitiesVersion,
 } from '@/services/tb/version-control';
 import type { EntityId, EntityType } from '@/types/tb';
+import { EntityType as EntityTypeEnum } from '@/types/tb/entity';
 
 type DiffStatus = 'CHANGED' | 'ADDED' | 'REMOVED' | 'SAME';
 
@@ -135,6 +153,7 @@ const formatCellValue = (value: unknown): string =>
 export default function VersionControlPanel({
   entityId,
   entityType,
+  entityName,
 }: {
   /** Polymorphic entity reference (DEVICE / ASSET / ENTITY_VIEW / ...). */
   entityId: EntityId;
@@ -143,6 +162,11 @@ export default function VersionControlPanel({
    * (one branch/flags config per entity type, ui-ngx parity).
    */
   entityType: EntityType;
+  /**
+   * Display name — keys the default commit version name "<entityName>
+   * update" (ngx commits against entity.name; falls back to the raw id).
+   */
+  entityName?: string;
 }) {
   const { formatMessage } = useIntl();
 
@@ -181,18 +205,38 @@ export default function VersionControlPanel({
           defaultMessage:
             'Version control needs a Git repository configured in system settings (provided in v2).',
         })}
+        description={
+          <Button
+            type="link"
+            className="!px-0"
+            onClick={() => history.push('/settings/repository')}
+          >
+            {formatMessage({
+              id: 'pages.versionControl.goToSettings',
+              defaultMessage: 'Configure it in the repository settings',
+            })}
+          </Button>
+        }
       />
     );
   }
-  return <VersionControlContent entityId={entityId} entityType={entityType} />;
+  return (
+    <VersionControlContent
+      entityId={entityId}
+      entityType={entityType}
+      entityName={entityName}
+    />
+  );
 }
 
 function VersionControlContent({
   entityId,
   entityType,
+  entityName,
 }: {
   entityId: EntityId;
   entityType: EntityType;
+  entityName?: string;
 }) {
   const { formatMessage } = useIntl();
   const queryClient = useQueryClient();
@@ -313,23 +357,13 @@ function VersionControlContent({
   return (
     <Flex vertical gap={16}>
       <Space wrap align="center">
-        <AutoComplete
+        <BranchSelect
+          branches={branches}
           value={branch || undefined}
           onChange={(next) => {
             setBranch(next ?? '');
             setPage(1);
           }}
-          style={{ minWidth: 200 }}
-          options={branches.map((entry: BranchInfo) => ({
-            value: entry.name,
-            label: entry.default
-              ? `${entry.name} (${formatMessage({ id: 'pages.devices.detail.vcDefaultBranch', defaultMessage: 'default' })})`
-              : entry.name,
-          }))}
-          placeholder={formatMessage({
-            id: 'pages.devices.detail.vcBranch',
-            defaultMessage: 'Branch',
-          })}
         />
         <div className="flex-1" />
         <Button
@@ -387,6 +421,8 @@ function VersionControlContent({
         branch={branch}
         branches={branches}
         entityId={entityId}
+        entityType={entityType}
+        entityName={entityName}
         onClose={() => setCommitOpen(false)}
         onCommitted={invalidateVersions}
       />
@@ -433,12 +469,14 @@ interface CommitFormValues {
   saveCalculatedFields: boolean;
 }
 
-/** Commit-this-device dialog: branch + version name + per-family flags. */
+/** Commit-this-entity dialog: branch + version name + per-family flags. */
 function CommitModal({
   open,
   branch,
   branches,
   entityId,
+  entityType,
+  entityName,
   onClose,
   onCommitted,
 }: {
@@ -446,25 +484,43 @@ function CommitModal({
   branch: string;
   branches: Array<BranchInfo>;
   entityId: EntityId;
+  entityType: EntityType;
+  entityName?: string;
   onClose: () => void;
   onCommitted: () => void;
 }) {
   const { formatMessage } = useIntl();
   const { message } = App.useApp();
+  const queryClient = useQueryClient();
   const [form] = Form.useForm<CommitFormValues>();
+
+  // Per-family flag visibility (ngx entity-version-create type sets):
+  // credentials only for DEVICE; attributes/relations hidden for the
+  // no-related-data types; calculated fields for the CF-capable types.
+  // A hidden flag is force-false in the payload (ngx parity).
+  const showCredentials = entityType === EntityTypeEnum.DEVICE;
+  const noRelatedData = ENTITY_TYPES_WITHOUT_RELATED_DATA.has(entityType);
+  const showCalculatedFields = TYPES_WITH_CALCULATED_FIELDS.has(entityType);
 
   useEffect(() => {
     if (open) {
       form.resetFields();
       form.setFieldsValue({
         branch,
+        versionName: formatMessage(
+          {
+            id: 'pages.versionControl.defaultVersionName',
+            defaultMessage: '{entityName} update',
+          },
+          { entityName: entityName ?? entityId.id },
+        ),
         saveCredentials: true,
         saveAttributes: true,
         saveRelations: true,
         saveCalculatedFields: true,
       });
     }
-  }, [open, branch, form]);
+  }, [open, branch, form, entityId.id, entityName, formatMessage]);
 
   const commitMutation = useMutation({
     mutationFn: async (values: CommitFormValues) => {
@@ -474,10 +530,11 @@ function CommitModal({
         versionName: values.versionName,
         entityId: entityId,
         config: {
-          saveCredentials: values.saveCredentials,
-          saveAttributes: values.saveAttributes,
-          saveRelations: values.saveRelations,
-          saveCalculatedFields: values.saveCalculatedFields,
+          saveCredentials: showCredentials && values.saveCredentials,
+          saveAttributes: !noRelatedData && values.saveAttributes,
+          saveRelations: !noRelatedData && values.saveRelations,
+          saveCalculatedFields:
+            showCalculatedFields && values.saveCalculatedFields,
         },
       });
       return awaitVersionCreateResult(requestId);
@@ -485,6 +542,13 @@ function CommitModal({
     onSuccess: (result: VersionCreationResult) => {
       if (result.error) {
         void message.error(result.error);
+      } else if (!result.added && !result.modified && !result.removed) {
+        void message.info(
+          formatMessage({
+            id: 'pages.versionControl.nothingToCommit',
+            defaultMessage: 'No changes to commit',
+          }),
+        );
       } else {
         void message.success(
           formatMessage(
@@ -503,6 +567,8 @@ function CommitModal({
       }
       onClose();
       onCommitted();
+      // Finalize: a commit may have created the branch (spec 6.2-7).
+      void queryClient.invalidateQueries({ queryKey: ['vc-branches'] });
     },
     onError: (error) => void message.error(serverErrorText(error)),
   });
@@ -550,14 +616,7 @@ function CommitModal({
             },
           ]}
         >
-          <AutoComplete
-            options={branches.map((entry: BranchInfo) => ({
-              value: entry.name,
-              label: entry.default
-                ? `${entry.name} (${formatMessage({ id: 'pages.devices.detail.vcDefaultBranch', defaultMessage: 'default' })})`
-                : entry.name,
-            }))}
-          />
+          <BranchSelect branches={branches} freeInput />
         </Form.Item>
         <Form.Item
           name="versionName"
@@ -579,26 +638,34 @@ function CommitModal({
           <Input maxLength={255} />
         </Form.Item>
         <Flex vertical gap={8}>
-          <FlagCheckbox
-            name="saveCredentials"
-            labelId="pages.devices.detail.vcSaveCredentials"
-            defaultMessage="Export credentials"
-          />
-          <FlagCheckbox
-            name="saveAttributes"
-            labelId="pages.devices.detail.vcSaveAttributes"
-            defaultMessage="Export attributes"
-          />
-          <FlagCheckbox
-            name="saveRelations"
-            labelId="pages.devices.detail.vcSaveRelations"
-            defaultMessage="Export relations"
-          />
-          <FlagCheckbox
-            name="saveCalculatedFields"
-            labelId="pages.devices.detail.vcSaveCalculatedFields"
-            defaultMessage="Export calculated fields"
-          />
+          {showCredentials && (
+            <FlagCheckbox
+              name="saveCredentials"
+              labelId="pages.devices.detail.vcSaveCredentials"
+              defaultMessage="Export credentials"
+            />
+          )}
+          {!noRelatedData && (
+            <>
+              <FlagCheckbox
+                name="saveAttributes"
+                labelId="pages.devices.detail.vcSaveAttributes"
+                defaultMessage="Export attributes"
+              />
+              <FlagCheckbox
+                name="saveRelations"
+                labelId="pages.devices.detail.vcSaveRelations"
+                defaultMessage="Export relations"
+              />
+            </>
+          )}
+          {showCalculatedFields && (
+            <FlagCheckbox
+              name="saveCalculatedFields"
+              labelId="pages.versionControl.exportCalculatedFields"
+              defaultMessage="Export calculated fields and alarm rules"
+            />
+          )}
         </Flex>
       </Form>
     </Modal>
@@ -796,8 +863,10 @@ const RESTORE_FLAGS: Array<{
   {
     name: 'loadCalculatedFields',
     info: 'hasCalculatedFields',
-    labelId: 'pages.devices.detail.vcLoadCalculatedFields',
-    defaultMessage: 'Load calculated fields',
+    // Combined wording (ngx's CUSTOMER-only "alarm rules" branch is the
+    // registered-not-implemented note in the file header).
+    labelId: 'pages.versionControl.loadCalculatedFields',
+    defaultMessage: 'Load calculated fields and alarm rules',
   },
 ];
 
@@ -1076,17 +1145,15 @@ function AutoCommitCard({
               })}
               className="!mb-0"
             >
-              <AutoComplete
+              <BranchSelect
+                branches={branches}
+                freeInput
                 allowClear
-                style={{ maxWidth: 240 }}
+                defaultHint={false}
                 placeholder={formatMessage({
                   id: 'pages.devices.detail.vcAutoCommitDefaultBranch',
                   defaultMessage: 'Repository default branch',
                 })}
-                options={branches.map((entry: BranchInfo) => ({
-                  value: entry.name,
-                  label: entry.name,
-                }))}
               />
             </Form.Item>
             <Space wrap>

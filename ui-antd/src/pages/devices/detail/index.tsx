@@ -452,6 +452,7 @@ function buildTabItems({
           <VersionControlPanel
             entityId={device.id}
             entityType={EntityType.DEVICE}
+            entityName={device.name}
           />
         ) : null,
     },
