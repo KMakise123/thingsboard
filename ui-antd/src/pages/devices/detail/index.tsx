@@ -32,7 +32,6 @@ import AlarmRulesPanel from '@/components/entities/detail/AlarmRulesPanel';
 import AlarmsPanel from '@/components/entities/detail/AlarmsPanel';
 import AttributesPanel from '@/components/entities/detail/AttributesPanel';
 import AuditLogsPanel from '@/components/entities/detail/AuditLogsPanel';
-import CalculatedFieldsPanel from '@/components/entities/detail/CalculatedFieldsPanel';
 import {
   assembleDetailTabs,
   type DetailTabEntry,
@@ -42,6 +41,7 @@ import RelationsPanel from '@/components/entities/detail/RelationsPanel';
 import VersionControlPanel from '@/components/entities/detail/VersionControlPanel';
 import { serverErrorText } from '@/components/entities/server-error-text';
 import PageContainer from '@/components/layout/page-container';
+import CalculatedFieldsTable from '@/pages/calculated-fields/components/calculated-fields-table';
 import {
   getDeviceInfoById,
   unassignDeviceFromCustomer,
@@ -378,7 +378,13 @@ function buildTabItems({
         defaultMessage: 'Calculated fields',
       }),
       render: () =>
-        device ? <CalculatedFieldsPanel entityId={device.id} /> : null,
+        device ? (
+          <CalculatedFieldsTable
+            mode="entity"
+            entityId={device.id}
+            tenantId={device.tenantId?.id ?? ''}
+          />
+        ) : null,
     },
     {
       key: 'alarm-rules',

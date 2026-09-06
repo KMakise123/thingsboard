@@ -27,10 +27,10 @@ import { useCallback, useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
 import AlarmRulesPanel from '@/components/entities/detail/AlarmRulesPanel';
 import AuditLogsPanel from '@/components/entities/detail/AuditLogsPanel';
-import CalculatedFieldsPanel from '@/components/entities/detail/CalculatedFieldsPanel';
 import VersionControlPanel from '@/components/entities/detail/VersionControlPanel';
 import { serverErrorText } from '@/components/entities/server-error-text';
 import PageContainer from '@/components/layout/page-container';
+import CalculatedFieldsTable from '@/pages/calculated-fields/components/calculated-fields-table';
 import { getDeviceProfileById } from '@/services/tb/device-profile';
 import { EntityType } from '@/types/tb';
 import type { DeviceProfile } from '@/types/tb/device-profile';
@@ -266,7 +266,11 @@ function buildTabItems({
         defaultMessage: 'Calculated fields',
       }),
       children: profile ? (
-        <CalculatedFieldsPanel entityId={profile.id} />
+        <CalculatedFieldsTable
+          mode="entity"
+          entityId={profile.id}
+          tenantId={profile.tenantId?.id ?? ''}
+        />
       ) : null,
     },
     {

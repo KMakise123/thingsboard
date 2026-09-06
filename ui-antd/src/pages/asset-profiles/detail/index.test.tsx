@@ -54,7 +54,7 @@ vi.mock('@ant-design/pro-components', () => ({
 }));
 
 const panelsMock = vi.hoisted(() => ({
-  CalculatedFieldsPanel: vi.fn(({ entityId }) => (
+  CalculatedFieldsTable: vi.fn(({ entityId }) => (
     <div data-testid="cf-panel">{entityId.id}</div>
   )),
   AlarmRulesPanel: vi.fn(({ entityId }) => (
@@ -68,8 +68,8 @@ const panelsMock = vi.hoisted(() => ({
   )),
 }));
 
-vi.mock('@/components/entities/detail/CalculatedFieldsPanel', () => ({
-  default: panelsMock.CalculatedFieldsPanel,
+vi.mock('@/pages/calculated-fields/components/calculated-fields-table', () => ({
+  default: panelsMock.CalculatedFieldsTable,
 }));
 vi.mock('@/components/entities/detail/AlarmRulesPanel', () => ({
   default: panelsMock.AlarmRulesPanel,
