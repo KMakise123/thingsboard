@@ -88,3 +88,30 @@ test('SA settings: general form and audit-logs table reachable', async ({
       .first(),
   ).toBeVisible();
 });
+
+// M14 wave-7 (R35, spec 6.5-8): the settings family reachable for SA —
+// presence-only assertions, no deep interactions (the TA-only members
+// home/repository/auto-commit/trendz/ai-models belong to the tenant spec).
+test('SA settings: queues, notifications, security-settings reachable', async ({
+  page,
+}) => {
+  // queues: SA-only rule-engine list renders (Main row + strategy columns).
+  await page.goto('/settings/queues');
+  await expect(page.locator('.ant-table, .ant-empty').first()).toBeVisible();
+
+  // notifications: the settings face renders its cards/forms.
+  await page.goto('/settings/notifications');
+  await expect(page.locator('main form, main .ant-card').first()).toBeVisible();
+
+  // security-settings: both cards render (SecuritySettings + JWT).
+  await page.goto('/settings/security-settings');
+  await expect(page.getByText(/安全设置|Security settings/i)).toBeVisible();
+  await expect(
+    page.getByText(/密码策略|Password policy/i).first(),
+  ).toBeVisible();
+  await expect(page.getByText(/JWT/i).first()).toBeVisible();
+
+  // outgoing-mail regression: the mail card stays reachable for SA.
+  await page.goto('/settings/outgoing-mail');
+  await expect(page.locator('main form, main .ant-card').first()).toBeVisible();
+});
