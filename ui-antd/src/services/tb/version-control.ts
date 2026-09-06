@@ -192,6 +192,16 @@ export interface EntityTypeVersionLoadRequest {
   rollbackOnError?: boolean;
 }
 
+/** Both shapes POST to /api/entities/vc/version (discriminated on `type`). */
+export type VersionCreateRequest =
+  | SingleEntityVersionCreateRequest
+  | ComplexVersionCreateRequest;
+
+/** Both shapes POST to /api/entities/vc/entity (discriminated on `type`). */
+export type VersionLoadRequest =
+  | SingleEntityVersionLoadRequest
+  | EntityTypeVersionLoadRequest;
+
 /**
  * GET/POST /api/admin/repositorySettings (openapi RepositorySettings).
  * GET strips the three credential fields to null; on the way UP a missing
@@ -362,7 +372,7 @@ export async function listEntityVersions(
 
 /** POST /api/entities/vc/version → version-create request id. */
 export async function saveEntitiesVersion(
-  request: SingleEntityVersionCreateRequest,
+  request: VersionCreateRequest,
 ): Promise<string> {
   return tbHttp.post<string>('/api/entities/vc/version', request);
 }
@@ -400,7 +410,7 @@ export async function getEntityDataInfo(
 
 /** POST /api/entities/vc/entity → version-load request id. */
 export async function loadEntitiesVersion(
-  request: SingleEntityVersionLoadRequest,
+  request: VersionLoadRequest,
 ): Promise<string> {
   return tbHttp.post<string>('/api/entities/vc/entity', request);
 }

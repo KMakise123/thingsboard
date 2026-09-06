@@ -18,6 +18,7 @@ export default {
   'menu.dashboards': 'Dashboards',
   'menu.ruleChains': 'Rule chains',
   'menu.calculatedFields': 'Calculated fields',
+  'menu.versionControl': 'Version control',
   'menu.dashboards.view': 'Dashboard detail',
   'menu.usage': 'Api usage',
   'menu.gateways': 'Gateways',

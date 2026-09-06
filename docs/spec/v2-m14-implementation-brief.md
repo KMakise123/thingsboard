@@ -27,7 +27,7 @@
 | 范围 | 实测与自动化 | T1–T10 curl 实测随 wave-1 真机执行，结论回写 spec §6.7（trendz 泄露、mail 覆盖语义两项必测）；e2e 回归项归 #12 基线扩充 | scope #26、arch R35 |
 | 范围 | 验收体量 | spec §6 定稿预计 51 条（6.1×18 + 6.2×10 + 6.3×12 + 6.4×3 + 6.5×8）+ 6.0 行为契约 + 6.6/6.7 登记面 | scope §1 |
 | 落位 | settings 组改造 | 组级 access 放宽 `canSysAdminOrTenantAdmin`，既有五子页显式收窄 `canSysAdmin`；静态 redirect 换按角色入口组件（SA→general / TA→home）；归 wave-1 前置 | arch R01、scope #14 |
-| 落位 | 新页路由 | CF=`/calculatedFields`（TA-only 平铺，无详情路由页）；VC=`/versionControl`（TA-only 平铺）；密码策略=`/settings/security-settings`（SA-only）；queues=`/settings/queues`+`:id`；home/trendz/ai-models/repository/auto-commit=TA-only 组内子路由 | arch R02/R03/R04/R23/R26/R27/R28/R29 |
+| 落位 | 新页路由 | CF=`/calculatedFields`（TA-only 平铺，无详情路由页）；VC=`/version-control`（TA-only 平铺；spec §6.0 定稿口径为准，arch R03 的 `/versionControl` 驼峰写法勘误）；密码策略=`/settings/security-settings`（SA-only）；queues=`/settings/queues`+`:id`；home/trendz/ai-models/repository/auto-commit=TA-only 组内子路由 | arch R02/R03/R04/R23/R26/R27/R28/R29、scope §3 |
 | 落位 | access key | 零新增，全用 `src/access.ts:20-27` 既有 6 个；notifications tab 不写 access 继承组级 | arch R06 |
 | 落位 | 服务层增量 | CF 增 5 函数 + 新建 `types/tb/calculated-fields.ts`（7 型判别联合，Geofencing 补 ngx 漏写的 entityCoordinates）；VC 增 listVersions + repositorySettings 四函数 + COMPLEX 类型，轮询基建不新建（POLL_TIMEOUT 120s→180s）；新建 queue/ai-model/trendz 三服务文件；admin.ts 增 securitySettings/jwtSettings/testSms；全部挂 `services/tb/index.ts` | arch R07–R10、contract #12/#17 |
 | 落位 | CF 列表形态 | ProTable 手动喂数 + 页面私有 url-state + 排序白名单 `createdTime\|name` 钉死 + types/entityType/entities 三维过滤 + 编辑 Dialog；行内动作 Create/Import/Copy/Export/Events（EventsPanel 零改造复用）/Debug 设置/Delete | arch R12/R15、contract #17 |

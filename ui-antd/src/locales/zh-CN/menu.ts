@@ -22,6 +22,7 @@ export default {
   'menu.dashboards': '仪表盘',
   'menu.ruleChains': '规则链',
   'menu.calculatedFields': '计算字段',
+  'menu.versionControl': '版本控制',
   'menu.dashboards.view': '仪表盘详情',
   'menu.usage': '使用统计',
   'menu.gateways': '网关',

@@ -154,6 +154,18 @@ export default [
     component: './calculated-fields/list',
   },
   {
+    // M14 R03 (spec §6.0 final path — kebab /version-control, not the
+    // camelCase of the arch draft): tenant-only flat version-control page —
+    // repository gate two-stage (unconfigured → shared RepositorySettingsForm,
+    // configured → the repository-wide versions table + complex create /
+    // restore panels). ngx /features/vc parity.
+    name: 'versionControl',
+    icon: 'history',
+    path: '/version-control',
+    access: 'canTenantAdmin',
+    component: './version-control/page',
+  },
+  {
     // M9 widget editor (spec §5): /widgets/editor is the create entry — it
     // opens the new-type dialog in-page (the library listing belongs to the
     // resources subsystem, M9 brief §0). Hidden. Access widened to SA+TA in
