@@ -231,4 +231,51 @@ describe('CfDialog', () => {
     const payload = servicesMock.saveCalculatedField.mock.calls[0][0];
     expect(payload.id).toBeUndefined();
   });
+
+  // W-2 (M14 walkthrough): with no entity type picked the entityId rule
+  // never mounts, so an empty entity reached the server as a raw 400.
+  it('blocks the save inline when no target entity was chosen (create)', async () => {
+    renderDialog(
+      { ...EDIT_FIELD, id: undefined, entityId: undefined } as never,
+      'create',
+    );
+    const ok = document.querySelector<HTMLElement>(
+      '.ant-modal .ant-modal-footer .ant-btn-primary',
+    );
+    expect(ok).toBeTruthy();
+    fireEvent.click(ok as HTMLElement);
+    await waitFor(() => {
+      expect(screen.getByTestId('cf-entity-missing').textContent).toContain(
+        '目标实体必填',
+      );
+    });
+    expect(servicesMock.saveCalculatedField).not.toHaveBeenCalled();
+  });
+
+  // W-1 (M14 walkthrough): the dialog seeds from the open-time snapshot, so
+  // it must open only after the latest-debug-event prefill has settled.
+  it('opens the test dialog only after the debug-event prefill resolves', async () => {
+    let resolveLatest!: (value: unknown) => void;
+    servicesMock.getLatestCalculatedFieldDebugEvent.mockReturnValue(
+      new Promise((resolve) => {
+        resolveLatest = resolve;
+      }),
+    );
+    renderDialog();
+    await pickType('脚本');
+    await screen.findByText(/function calculate/);
+    const testButton = screen
+      .getAllByRole('button')
+      .find((button) => /测\s*试\s*脚\s*本/.test(button.textContent ?? ''));
+    expect(testButton).toBeTruthy();
+    fireEvent.click(testButton as HTMLElement);
+    expect(screen.queryByText(/测试计算字段表达式/)).toBeNull();
+    resolveLatest({
+      arguments: JSON.stringify({
+        temperatureF: { type: 'SINGLE_VALUE', ts: 1, value: 21 },
+      }),
+    });
+    await screen.findByText(/测试计算字段表达式/);
+    await screen.findByDisplayValue('21');
+  });
 });

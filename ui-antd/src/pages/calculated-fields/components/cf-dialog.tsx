@@ -134,6 +134,8 @@ export default function CfDialog({
   const [problems, setProblems] = useState<Array<string>>([]);
   const [precheckError, setPrecheckError] = useState('');
   const [precheckWarning, setPrecheckWarning] = useState('');
+  /** No entity type chosen → the entityId rule never mounts; guard the submit (W-2). */
+  const [entityMissing, setEntityMissing] = useState(false);
   const [testOpen, setTestOpen] = useState(false);
   const [testPrefill, setTestPrefill] = useState<Record<
     string,
@@ -200,8 +202,9 @@ export default function CfDialog({
         setTestPrefill(null);
       }
     };
-    void fetchPrefill();
-    setTestOpen(true);
+    // Open only once the prefill settles — the test dialog seeds from the
+    // open-time snapshot, so opening earlier would drop the prefill (W-1).
+    void fetchPrefill().finally(() => setTestOpen(true));
   };
 
   /**
@@ -251,6 +254,13 @@ export default function CfDialog({
       if (nextProblems.length > 0) {
         return;
       }
+      // The entityId required rule only mounts once an entity type is picked;
+      // block here so an empty entity never reaches the server (W-2).
+      if (!targetType || !values.entityId) {
+        setEntityMissing(true);
+        return;
+      }
+      setEntityMissing(false);
       if (precheckRequired(configuration) && !(await runPrecheck())) {
         return;
       }
@@ -390,6 +400,7 @@ export default function CfDialog({
               onChange={(next) => {
                 // Switching the host type invalidates the chosen entity.
                 setTargetType(next);
+                setEntityMissing(false);
                 form.setFieldValue('entityId', undefined);
               }}
             />
@@ -451,6 +462,18 @@ export default function CfDialog({
         </Space>
       </Form>
 
+      {entityMissing && (
+        <Alert
+          type="error"
+          showIcon
+          className="mb-3"
+          message={formatMessage({
+            id: 'pages.calculatedFields.targetEntityRequired',
+            defaultMessage: 'Target entity is required.',
+          })}
+          data-testid="cf-entity-missing"
+        />
+      )}
       {precheckError && (
         <Alert
           type="error"
