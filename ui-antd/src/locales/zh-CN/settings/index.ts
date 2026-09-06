@@ -235,4 +235,102 @@ export default {
   'pages.settings.auditLogs.statusFailure': '失败',
   'pages.settings.auditLogs.empty': '未找到日志',
   'pages.settings.auditLogs.total': '共 {count} 条',
+
+  // ---- M14 wave-2 additions (home / trendz / security-settings) ----
+  'pages.settings.home.title': '首页设置',
+  'pages.settings.home.dashboard': '主页仪表板',
+  'pages.settings.home.dashboardPlaceholder': '请选择仪表板',
+  'pages.settings.home.hideToolbar': '隐藏主页仪表板工具栏',
+  'pages.settings.home.toastSaved': '主页设置已保存。',
+
+  'pages.settings.trendz.title': 'Trendz 设置',
+  'pages.settings.trendz.enable': '启用 Trendz',
+  'pages.settings.trendz.url': 'Trendz URL',
+  'pages.settings.trendz.urlRequired': 'Trendz URL 为必填项。',
+  'pages.settings.trendz.urlPatternError': 'Trendz URL 无效。',
+  'pages.settings.trendz.apiKey': 'Trendz API 密钥',
+  'pages.settings.trendz.apiKeyPatternError':
+    'Trendz API 密钥不能包含空白字符。',
+  'pages.settings.trendz.toastSaved': 'Trendz 设置已保存。',
+
+  'pages.settings.security.title': '安全设置',
+  'pages.settings.security.toastSaved': '安全设置已保存。',
+  'pages.settings.security.generalPolicy': '通用策略',
+  'pages.settings.security.maxFailedLoginAttempts':
+    '锁定账户前允许的最大登录失败次数',
+  'pages.settings.security.maxFailedLoginAttemptsRange':
+    '最大登录失败次数不能为负数',
+  'pages.settings.security.lockoutEmail': '用户账户锁定时，发送通知到该邮箱',
+  'pages.settings.security.invalidEmailFormat': '邮箱格式无效。',
+  'pages.settings.security.activationTokenTtl': '用户激活链接有效期（小时）',
+  'pages.settings.security.activationTokenTtlRange':
+    '用户激活链接有效期必须在 1 到 24 小时之间',
+  'pages.settings.security.resetTokenTtl': '密码重置链接有效期（小时）',
+  'pages.settings.security.resetTokenTtlRange':
+    '密码重置链接有效期必须在 1 到 24 小时之间',
+  'pages.settings.security.mobileSecretKeyLength': '移动端密钥长度',
+  'pages.settings.security.mobileSecretKeyLengthRange':
+    '移动端密钥长度必须为正数',
+  'pages.settings.security.passwordPolicy': '密码策略',
+  'pages.settings.security.minimumPasswordLength': '最短密码长度',
+  'pages.settings.security.minimumPasswordLengthRequired':
+    '最短密码长度为必填项',
+  'pages.settings.security.minimumPasswordLengthRange':
+    '最短密码长度应在 6 到 50 之间',
+  'pages.settings.security.maximumPasswordLength': '最长密码长度',
+  'pages.settings.security.maximumPasswordLengthMin': '最长密码长度至少为 6',
+  'pages.settings.security.maximumPasswordLengthLessMin':
+    '最长密码长度必须大于最短密码长度',
+  'pages.settings.security.minimumUppercaseLetters': '最少大写字母数',
+  'pages.settings.security.minimumUppercaseLettersRange':
+    '最少大写字母数不能为负数',
+  'pages.settings.security.minimumLowercaseLetters': '最少小写字母数',
+  'pages.settings.security.minimumLowercaseLettersRange':
+    '最少小写字母数不能为负数',
+  'pages.settings.security.minimumDigits': '最少数字数',
+  'pages.settings.security.minimumDigitsRange': '最少数字数不能为负数',
+  'pages.settings.security.minimumSpecialCharacters': '最少特殊字符数',
+  'pages.settings.security.minimumSpecialCharactersRange':
+    '最少特殊字符数不能为负数',
+  'pages.settings.security.passwordExpirationPeriodDays': '密码有效期（天）',
+  'pages.settings.security.passwordExpirationPeriodDaysRange':
+    '密码有效期不能为负数',
+  'pages.settings.security.passwordReuseFrequencyDays': '密码重用频率（天）',
+  'pages.settings.security.passwordReuseFrequencyDaysRange':
+    '密码重用频率不能为负数',
+  'pages.settings.security.allowWhitespace': '允许空格',
+  'pages.settings.security.forceResetPasswordIfNotValid':
+    '密码不符合策略时强制重置',
+  'pages.settings.security.forceResetPasswordIfNotValidHint':
+    '启用该功能请务必谨慎：密码已不符合策略的用户，会在下次登录时被要求通过邮件重置密码。',
+  'pages.settings.security.jwtTitle': 'JWT 安全设置',
+  'pages.settings.security.jwtSaved': 'JWT 设置已保存。',
+  'pages.settings.security.jwtIssuer': '签发者名称',
+  'pages.settings.security.jwtIssuerRequired': '签发者名称为必填项。',
+  'pages.settings.security.jwtSigningKey': '签名密钥',
+  'pages.settings.security.jwtSigningKeyRequired': '签名密钥为必填项。',
+  'pages.settings.security.jwtSigningKeyBase64': '签名密钥必须是 base64 格式。',
+  'pages.settings.security.jwtSigningKeyMinLength':
+    '签名密钥必须至少为 512 位数据。',
+  'pages.settings.security.jwtGenerateKey': '生成密钥',
+  'pages.settings.security.jwtExpirationTime': '令牌有效期（秒）',
+  'pages.settings.security.jwtExpirationTimeRequired': '令牌有效期为必填项。',
+  'pages.settings.security.jwtExpirationTimeMin':
+    '最短有效期为 60 秒（1 分钟）。',
+  'pages.settings.security.jwtExpirationTimeMax':
+    '最长有效期为 2147483647 秒（68 年）。',
+  'pages.settings.security.jwtRefreshExpirationTime': '刷新令牌有效期（秒）',
+  'pages.settings.security.jwtRefreshExpirationTimeRequired':
+    '刷新令牌有效期为必填项。',
+  'pages.settings.security.jwtRefreshExpirationTimeMin':
+    '最短有效期为 900 秒（15 分钟）。',
+  'pages.settings.security.jwtRefreshExpirationTimeMax':
+    '最长有效期为 2147483647 秒（68 年）。',
+  'pages.settings.security.jwtRefreshExpirationTimeLessToken':
+    '刷新令牌有效期必须大于令牌有效期。',
+  'pages.settings.security.jwtConfirmTitle': '所有用户将被重新登录',
+  'pages.settings.security.jwtConfirmMessage':
+    '更改 JWT 签名密钥会导致所有已签发的令牌失效，所有用户都需要重新登录。这也会影响使用 REST API/WebSocket 的脚本。',
+  'pages.settings.security.jwtConfirmOk': '确认',
+  'pages.settings.security.jwtConfirmCancel': '放弃更改',
 };

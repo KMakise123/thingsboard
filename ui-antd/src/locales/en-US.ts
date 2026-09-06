@@ -44,6 +44,7 @@ import settings from './en-US/settings';
 import tenantProfiles from './en-US/tenant-profiles';
 import tenants from './en-US/tenants';
 import users from './en-US/users';
+import vc from './en-US/vc';
 import widgetKit from './en-US/widget-kit';
 
 export default {
@@ -90,4 +91,5 @@ export default {
   ...editorRulechainPage,
   ...ruleNode,
   ...widgetKit,
+  ...vc,
 };

@@ -252,4 +252,114 @@ export default {
   'pages.settings.auditLogs.statusFailure': 'Failure',
   'pages.settings.auditLogs.empty': 'No audit logs',
   'pages.settings.auditLogs.total': '{count} total',
+
+  // ---- M14 wave-2 additions (home / trendz / security-settings) ----
+  'pages.settings.home.title': 'Home settings',
+  'pages.settings.home.dashboard': 'Home dashboard',
+  'pages.settings.home.dashboardPlaceholder': 'Select a dashboard',
+  'pages.settings.home.hideToolbar': 'Hide home dashboard toolbar',
+  'pages.settings.home.toastSaved': 'Home dashboard settings saved.',
+
+  'pages.settings.trendz.title': 'Trendz settings',
+  'pages.settings.trendz.enable': 'Enable Trendz',
+  'pages.settings.trendz.url': 'Trendz URL',
+  'pages.settings.trendz.urlRequired': 'Trendz URL is required.',
+  'pages.settings.trendz.urlPatternError': 'Trendz URL is invalid.',
+  'pages.settings.trendz.apiKey': 'Trendz API key',
+  'pages.settings.trendz.apiKeyPatternError':
+    'Trendz API key must not contain whitespace.',
+  'pages.settings.trendz.toastSaved': 'Trendz settings saved.',
+
+  'pages.settings.security.title': 'Security settings',
+  'pages.settings.security.toastSaved': 'Security settings saved.',
+  'pages.settings.security.generalPolicy': 'General policy',
+  'pages.settings.security.maxFailedLoginAttempts':
+    'Maximum number of failed login attempts, before account is locked',
+  'pages.settings.security.maxFailedLoginAttemptsRange':
+    "Maximum number of failed login attempts can't be negative",
+  'pages.settings.security.lockoutEmail':
+    'In case user account lockout, send notification to email',
+  'pages.settings.security.invalidEmailFormat': 'Invalid email format.',
+  'pages.settings.security.activationTokenTtl':
+    'User activation link TTL in hours',
+  'pages.settings.security.activationTokenTtlRange':
+    'User activation link TTL must be in range from 1 to 24 hours',
+  'pages.settings.security.resetTokenTtl': 'Password reset link TTL in hours',
+  'pages.settings.security.resetTokenTtlRange':
+    'Password reset link TTL must be in range from 1 to 24 hours',
+  'pages.settings.security.mobileSecretKeyLength': 'Mobile secret key length',
+  'pages.settings.security.mobileSecretKeyLengthRange':
+    'Mobile secret key length must be positive',
+  'pages.settings.security.passwordPolicy': 'Password policy',
+  'pages.settings.security.minimumPasswordLength': 'Minimum password length',
+  'pages.settings.security.minimumPasswordLengthRequired':
+    'Minimum password length is required',
+  'pages.settings.security.minimumPasswordLengthRange':
+    'Minimum password length should be in a range from 6 to 50',
+  'pages.settings.security.maximumPasswordLength': 'Maximum password length',
+  'pages.settings.security.maximumPasswordLengthMin':
+    'Maximum password length should be at least 6',
+  'pages.settings.security.maximumPasswordLengthLessMin':
+    'Maximum password length should be greater than minimum length',
+  'pages.settings.security.minimumUppercaseLetters':
+    'Minimum number of uppercase letters',
+  'pages.settings.security.minimumUppercaseLettersRange':
+    "Minimum number of uppercase letters can't be negative",
+  'pages.settings.security.minimumLowercaseLetters':
+    'Minimum number of lowercase letters',
+  'pages.settings.security.minimumLowercaseLettersRange':
+    "Minimum number of lowercase letters can't be negative",
+  'pages.settings.security.minimumDigits': 'Minimum number of digits',
+  'pages.settings.security.minimumDigitsRange':
+    "Minimum number of digits can't be negative",
+  'pages.settings.security.minimumSpecialCharacters':
+    'Minimum number of special characters',
+  'pages.settings.security.minimumSpecialCharactersRange':
+    "Minimum number of special characters can't be negative",
+  'pages.settings.security.passwordExpirationPeriodDays':
+    'Password expiration period in days',
+  'pages.settings.security.passwordExpirationPeriodDaysRange':
+    "Password expiration period in days can't be negative",
+  'pages.settings.security.passwordReuseFrequencyDays':
+    'Password reuse frequency in days',
+  'pages.settings.security.passwordReuseFrequencyDaysRange':
+    "Password reuse frequency in days can't be negative",
+  'pages.settings.security.allowWhitespace': 'Allow whitespace',
+  'pages.settings.security.forceResetPasswordIfNotValid':
+    'Force to reset password if not valid',
+  'pages.settings.security.forceResetPasswordIfNotValidHint':
+    'Please be careful when enabling this feature: users with a no-longer-valid password will be asked to reset it via email at their next login.',
+  'pages.settings.security.jwtTitle': 'JWT security settings',
+  'pages.settings.security.jwtSaved': 'JWT settings saved.',
+  'pages.settings.security.jwtIssuer': 'Issuer name',
+  'pages.settings.security.jwtIssuerRequired': 'Issuer name is required.',
+  'pages.settings.security.jwtSigningKey': 'Signing key',
+  'pages.settings.security.jwtSigningKeyRequired': 'Signing key is required.',
+  'pages.settings.security.jwtSigningKeyBase64':
+    'Signing key must be base64 format.',
+  'pages.settings.security.jwtSigningKeyMinLength':
+    'Signing key must be at least 512 bits of data.',
+  'pages.settings.security.jwtGenerateKey': 'Generate key',
+  'pages.settings.security.jwtExpirationTime': 'Token expiration time (sec)',
+  'pages.settings.security.jwtExpirationTimeRequired':
+    'Token expiration time is required.',
+  'pages.settings.security.jwtExpirationTimeMin':
+    'Minimum time is 60 seconds (1 minute).',
+  'pages.settings.security.jwtExpirationTimeMax':
+    'Maximum allowed time is 2147483647 seconds(68 years).',
+  'pages.settings.security.jwtRefreshExpirationTime':
+    'Refresh token expiration time (sec)',
+  'pages.settings.security.jwtRefreshExpirationTimeRequired':
+    'Refresh token expiration time is required.',
+  'pages.settings.security.jwtRefreshExpirationTimeMin':
+    'Minimum time is 900 seconds (15 minute).',
+  'pages.settings.security.jwtRefreshExpirationTimeMax':
+    'Maximum allowed time is 2147483647 seconds (68 years).',
+  'pages.settings.security.jwtRefreshExpirationTimeLessToken':
+    'Refresh token time must be greater token time.',
+  'pages.settings.security.jwtConfirmTitle': 'All users will be re-logged-in',
+  'pages.settings.security.jwtConfirmMessage':
+    'Change of the JWT Signing Key will cause all issued tokens to be invalid. All users will need to re-login. This will also affect scripts that use Rest API/Websockets.',
+  'pages.settings.security.jwtConfirmOk': 'Confirm',
+  'pages.settings.security.jwtConfirmCancel': 'Discard changes',
 };

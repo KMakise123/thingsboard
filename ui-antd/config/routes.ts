@@ -489,6 +489,31 @@ export default [
         access: 'canSysAdmin',
         component: './settings/audit-logs',
       },
+      // ---- M14 wave-2 settings additions (R28/R29/R04/R22) ----
+      {
+        name: 'home',
+        path: '/settings/home',
+        access: 'canTenantAdmin',
+        component: './settings/home',
+      },
+      {
+        name: 'repository',
+        path: '/settings/repository',
+        access: 'canTenantAdmin',
+        component: './settings/repository',
+      },
+      {
+        name: 'trendz',
+        path: '/settings/trendz',
+        access: 'canTenantAdmin',
+        component: './settings/trendz',
+      },
+      {
+        name: 'securitySettings',
+        path: '/settings/security-settings',
+        access: 'canSysAdmin',
+        component: './settings/security-settings',
+      },
     ],
   },
   // ---- M11 resources library family (spec §3.1–3.5) ----
