@@ -24,10 +24,12 @@ import {
   getDashboardInfo,
   getSystemResourceDashboard,
   getTenantDashboards,
+  getTenantHomeDashboardInfo,
   makeDashboardPrivate,
   makeDashboardPublic,
   removeDashboardCustomers,
   saveDashboard,
+  setTenantHomeDashboardInfo,
   updateDashboardCustomers,
 } from './dashboard';
 
@@ -109,6 +111,33 @@ describe('dashboard transport endpoints', () => {
     expect(get).toHaveBeenCalledWith(
       '/api/resource/dashboard/system/gateways_dashboard.json',
     );
+  });
+
+  it('pins the tenant home-dashboard info pair (M14 wave-2)', async () => {
+    get.mockResolvedValue({
+      dashboardId: null,
+      hideDashboardToolbar: true,
+    } as never);
+    await getTenantHomeDashboardInfo();
+    expect(get).toHaveBeenCalledWith('/api/tenant/dashboard/home/info');
+
+    // POST returns 200 with an empty body; dashboardId null clears.
+    await setTenantHomeDashboardInfo({
+      dashboardId: { entityType: 'DASHBOARD', id: 'dash-1' },
+      hideDashboardToolbar: false,
+    });
+    expect(post).toHaveBeenCalledWith('/api/tenant/dashboard/home/info', {
+      dashboardId: { entityType: 'DASHBOARD', id: 'dash-1' },
+      hideDashboardToolbar: false,
+    });
+    await setTenantHomeDashboardInfo({
+      dashboardId: null,
+      hideDashboardToolbar: true,
+    });
+    expect(post).toHaveBeenLastCalledWith('/api/tenant/dashboard/home/info', {
+      dashboardId: null,
+      hideDashboardToolbar: true,
+    });
   });
 
   // NOTE: the widgetType fqn probe lives with its typed M9 surface in

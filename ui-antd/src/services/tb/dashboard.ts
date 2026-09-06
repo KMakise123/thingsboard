@@ -24,6 +24,33 @@ import {
 
 import { tbHttp } from './http';
 
+/**
+ * GET/POST /api/tenant/dashboard/home/info body (openapi HomeDashboardInfo).
+ * GET never 404s: an unconfigured tenant reads `{dashboardId: null,
+ * hideDashboardToolbar: true}`. POST returns 200 with an empty body and
+ * `dashboardId: null` CLEARS the assignment (stored in Tenant.additionalInfo
+ * — unrelated to tenant profiles, contract #23).
+ */
+export interface TenantHomeDashboardInfo {
+  /** `{"entityType":"DASHBOARD","id":<uuid>}` object form; null = unset. */
+  dashboardId: { entityType: 'DASHBOARD'; id: string } | null;
+  hideDashboardToolbar: boolean;
+}
+
+/** GET /api/tenant/dashboard/home/info — home-dashboard assignment (TA only). */
+export async function getTenantHomeDashboardInfo(): Promise<TenantHomeDashboardInfo> {
+  return tbHttp.get<TenantHomeDashboardInfo>(
+    '/api/tenant/dashboard/home/info',
+  );
+}
+
+/** POST /api/tenant/dashboard/home/info — save (200, empty body). */
+export async function setTenantHomeDashboardInfo(
+  info: TenantHomeDashboardInfo,
+): Promise<void> {
+  await tbHttp.post<void>('/api/tenant/dashboard/home/info', info);
+}
+
 /** GET /api/tenant/dashboards — tenant-scope paged dashboard list. */
 export async function getTenantDashboards(
   pageLink: PageLink,
