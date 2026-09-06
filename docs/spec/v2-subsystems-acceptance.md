@@ -392,19 +392,19 @@
 - CF 更新禁改 entityId（`DefaultTbCalculatedFieldService.java:185-189`）：前端规避 = 编辑态锁定目标实体选择器（6.1-4）。
 - CF 列表 sortProperty 别名 500 风险（dao 无列映射，`JpaCalculatedFieldDao.java:81-110`；`entityName` 是内存拼接字段）：前端规避 = 排序白名单 `createdTime|name`，与 swagger 白名单一致、无 M13 customerTitle 型陷阱。
 - `/api/calculatedFields` 缺省剔除 ALARM 型（`CalculatedFieldController.java:213-216`）：上游行为非缺陷——「无 ALARM 聚合入口」照 ngx 钉死，登记为边界对照。
-- `/api/queues` 角色名不副实：save/delete 仅 SYS_ADMIN，TENANT GET 通常空列表（非 isolated 租户真队列在 tenant profile JSON）：前端规避 = 页面 SYS only（6.3-1）。
+- `/api/queues` 角色名不副实：save/delete 仅 SYS_ADMIN；TENANT GET 返回的是系统队列（fork `getSystemOrIsolatedTenantId` 使非 isolated 租户读 system 租户队列，T5 实测 3 条；真租户队列在 tenant profile JSON 不经此端点）：前端规避 = 页面 SYS only（6.3-1）。
 - `saveQueue` 对非 TB-RULE-ENGINE serviceType 返回 null 空 body（`QueueController.java:143-144`）：前端固定传 TB-RULE-ENGINE 且不解析响应体。
 - VC 凭据「空串 ≠ 留空」（Jackson 空串非 null、restore 回填只认 null，backend §5-6）：前端规避 = 空凭据字段序列化时删字段（`stripBlankCredentials`），端点单测钉住。
 - `GET /api/admin/autoCommitSettings` 未配置时 404（checkNotNull 非 404 语义兜底）：前端规避 = 先 exists 或 catch 404 视为空配置。
-- trendz apiKey 对 CUSTOMER_USER 裸露（`TrendzController.java:70-78` 无脱敏，T10 实测定论）：前端规避 = 不建 CU 入口；**待后端修复候选**（收紧 TENANT-only 或 GET 脱敏）。
-- mail 整包覆盖保存无密码回填（testMail 有、saveAdminSettings 无，backend §5-11）：前端规避 = 「密码框留空=请求体不带 password 字段」既有实现维持；T6 实测（空串是否覆盖）定论后回写本条。
+- trendz apiKey 对 CUSTOMER_USER 裸露（`TrendzController.java:70-78` 无脱敏；T10 已实锤：CU token 明文读得 apiKey）：前端规避 = 不建 CU 入口；**待后端修复候选**（收紧 TENANT-only 或 GET 脱敏）。
+- mail 整包覆盖保存无密码回填（testMail 有、saveAdminSettings 无）：前端规避 = 「密码框留空=请求体不带 password 字段」既有实现维持；T6 实测定论（2026-09-06）：缺字段回填 / 空串真覆盖 / testMail 独立回填三点全部实锤，testMail 失败形态 500 非 400。
 - securitySettings 的 passwordPolicy 全字段无 @Min/@Max（`UserPasswordPolicy.java:25-48`，可存出 min>max 死锁策略）：前端规避 = maximumLength ≥ minimumLength 联动校验 + 各字段范围（照 ngx 前端）；后端补约束另立 issue。
 - `POST /api/admin/jwtSettings` 保存即签发新 token 对（旧 token 是否失效取决于签名 key 是否变更）：前端规避 = 保存成功就地换发会话（6.4-3 交互链整体对齐）。
 - VC DeferredResult 180s 超时（大 repo 首次 clone 可能顶满，`EntitiesVersionControlController.java:88-89`）：前端 loading/重试按此设计；超时错误形态（AsyncRequestTimeoutException → 500）进错误映射占位。
 - VC swagger 注释 8 种可版本化类型滞后（实际 16 种，`DefaultEntitiesExportImportService.java:67-74`）：验收以真仓实测为准；后端实测不支持的类型走 errata 登记，不擅自裁前端清单。
 - 上游 TS 模型滞后三处对照：ngx `CalculatedFieldGeofencingConfiguration` 漏 entityCoordinates、`RepositorySettings` 漏 readOnly、`UserPasswordPolicy` 漏 passwordReuseFrequencyDays——antd 建模一律补全（后端字段均实存），不照抄缺口。
 - 上游小瑕疵对照：ai-model 对话框标题不随 add/edit 切换；ngx TS 模型 RELATED/ENTITY_AGGREGATION 的 output.decimalsByDefault 字段 UI 不渲染（payload 直传保留）——antd 按「模型补全、UI 照 ngx 面呈现」处理，注释留痕。
-- **admin settings 保存疑缺陷（panel-contract #2 实测待坐实）**：v1 已交付 general/connectivity/outgoing-mail 三页保存 body 只回传 `{key, jsonValue}` 不带 `id`，后端对同 key 无 id POST 一律 400（dao 层无 upsert，系统初始化预建记录）——静态判定二次保存必挂；修复 = payload 带快照 id，M14 新 settings 页一律带 id 编码；三存量页同波修复（T6-① 实测定论后回写）。
+- **admin settings 保存缺陷（T6-① 已实锤 2026-09-06，前端，wave-2 修复）**：v1 已交付 general/connectivity/outgoing-mail 三页保存 body 只回传 `{key, jsonValue}` 不带 `id`，后端对同 key 无 id POST 一律 400 "Admin settings with such name already exists!"（dao 层无 upsert，系统初始化预建记录）——真机二次保存 400 复现；修复 = payload 带快照 id（`AdminSettings` 类型已补 `id` 字段），M14 新 settings 页一律带 id 编码；三存量页随 wave-2 回归修复。
 
 ## 7. M15 home 首页 + 匿名公共仪表盘 + 收口（骨架，开工补定）
 

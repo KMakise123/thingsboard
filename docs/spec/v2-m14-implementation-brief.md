@@ -57,7 +57,7 @@
 
 ### A. settings 域（admin settings / mail / 安全 / 通知）
 
-- **admin settings 保存必须带 id**：`POST /api/admin/settings` 是「无 id 则创建、有 id 则更新」语义（`DataValidator.validate` → `AdminSettingsDataValidator.validateCreate` 同 key 已存在抛 400 "Admin settings with such name already exists!"）；系统初始化即预建 general/mail/connectivity 三条，dao 层 save 无 upsert-by-key。**已交付三页（general/connectivity/outgoing-mail）保存 body 均只回传 `{key, jsonValue}` 不带 id = 疑似缺陷，第二次起保存必 400**。修复：`AdminSettings` TS 类型补 `id` 字段（现 `types/tb/admin.ts:9-12` 无）+ 三页 payload 带快照 id；M14 新 settings 页一律带 id 编码，`saveAdminSettings` JSDoc 钉死该契约。修复落地随 wave-2 settings 回归（contract #2；wave-1 实测 **T6-①** 实锤——若实测 200 则降级重查，但新页带 id 编码不变）。
+- **admin settings 保存必须带 id**：`POST /api/admin/settings` 是「无 id 则创建、有 id 则更新」语义（`DataValidator.validate` → `AdminSettingsDataValidator.validateCreate` 同 key 已存在抛 400 "Admin settings with such name already exists!"）；系统初始化即预建 general/mail/connectivity 三条，dao 层 save 无 upsert-by-key。**已交付三页（general/connectivity/outgoing-mail）保存 body 均只回传 `{key, jsonValue}` 不带 id = 缺陷已实锤（wave-1 T6-① 真机二次保存 400 复现）**。修复：`AdminSettings` TS 类型已补 `id` 字段（wave-1 交付）+ 三页 payload 带快照 id；M14 新 settings 页一律带 id 编码，`saveAdminSettings` JSDoc 钉死该契约。修复落地随 wave-2 settings 回归。
 - **mail 密码留空语义**：GET 恒脱敏；保存是「缺字段回填」——payload 不存在 `password`/`refreshToken` 字段时服务端从旧值回填；**空串 `""` 会以空串落库毁掉邮件发送**。前端姿势：重输密码时带新值、未重输时把字段从 payload **delete 掉**（不是置空串）。outgoing-mail 既有 change-password 闸门（`outgoing-mail/index.tsx:243-246`）语义正确，回归确认不被破坏。OAuth2 联动：providerId/clientId/clientSecret/redirectUri/providerTenantId 任一变更服务端删 refreshToken → UI 引导重新 Generate token。testMail/testSms 用请求体现场发信不必先保存；testMail 缺 password 服务端回填存储值，失败 400 带底层原因（contract #1/#3/#4；**T6-②③④** 坐实回填/空串/回填发信）。
 - **jwtSettings 保存=就地换发**：响应是**当前用户新 JwtPair**（与是否改 key 无关）→ 保存链：改 issuer/key 先弹确认框 → POST → 新 token 对写 `token-store` + 刷新 currentUser → 回读刷新表单；取消=不发请求。旧 token 是否失效只取决于签名 key 是否变更。（contract #5；无对应 T，静态源码定案）
 - **securitySettings 前端自校验是唯一防线**：GET 永不 404（有默认值）；服务端仅两 TTL 有校验（1-24），passwordPolicy 全字段无范围校验——`maximumLength ≤ minimumLength` 时上限**静默失效**不报错，能存出死锁策略。前端必须做 minimumLength 6-50、maximumLength ≥ minimumLength 联动、refreshTokenExpTime > tokenExpirationTime 等（矩阵照 R30）。`passwordReuseFrequencyDays` 类型已在 `services/tb/auth.ts:22-34`（:34）与 openapi 生成类型——**无需补**，落位调整（auth.ts → `types/tb/admin.ts` + auth.ts re-export）照 R10 执行。`forceUserToResetPasswordIfNotValid` 只改登录行为，页面文案不得暗示「保存即强制所有人改密」。（contract #6；**T7** 坐实默认值/TTL @Min/裸奔三点）
@@ -66,7 +66,7 @@
 ### B. VC 域
 
 - **凭据三态与空串禁提交**：GET 恒脱敏三字段（password/privateKey/privateKeyPassword = null）；提交时 **null/缺字段=服务端回填旧值（判断只认 null）**；**空串=把空凭据交给真实 clone/fetch 验证**（失败整次保存 500、旧值不丢）。前端硬规则：凭据输入框留空时序列化必须**剥除字段**（不发 null、不发空串），封 `stripUnchangedCredentials` 纯函数 + 往返单测；checkAccess 同理。POST 的 `localOnly` 不由前端发（服务端强制 false）。保存是验证式（真实 clone/fetch 成功才落库）。（contract #8；**T3-①②④**）
-- **保存 vs 检查的错误形态差**：save 失败 = 500 笼统 "Failed to init repository!"（无底层原因）；checkAccess 失败 = 400 带 "Unable to access repository: \<底层原因\>" → UI 把 Check access 作为保存前置引导，保存 500 的 toast 引导先 Check access。分支名非法（禁空格/`..`/`~`/`^`/`:`/`\`、禁 `/`、`.lock` 结尾）两者都是 400 "Branch name is invalid"。（contract #9；**T3-③⑤**）
+- **保存 vs 检查的错误形态差（T3 实测修正）**：save 失败与 checkAccess 失败本机均 **500**（异步绕过同步 catch），但 checkAccess 的错误消息带底层原因（"Unable to access repository: \<原因\>"），save 为笼统 "Failed to init repository!" → UI 引导不变：把 Check access 作为保存前置（先暴露底层原因），保存 500 的 toast 引导先 Check access。分支名非法（禁空格/`..`/`~`/`^`/`:`/`\`、禁 `/`、`.lock` 结尾）两者都是 400 "Branch name is invalid"。（contract #9 + wave-1 T3；**T3-③⑤**）
 - **异步任务轮询序列**：commit/restore = POST 立即回 requestId → **2s 间隔**轮询 status（既有 `awaitVersionCreateResult`/`awaitVersionLoadResult` 直接消费，不新建 hook）。成功与失败都是 **`done=true` 终态**（失败 error 在结果对象里，load 侧为结构化 `EntityLoadError{DEVICE_CREDENTIALS_CONFLICT|MISSING_REFERENCED_ENTITY|RUNTIME}`）。轮询器必须容忍两个**非终态**：400 "Invalid task"（POST 已受理但结果未入缓存的窄窗）与 404 "Task execution timed-out"（结果缓存 TTL 20 分钟/后端重启）——**连续 3 次内继续轮询、超限判失败**（对 ngx「HTTP 错误直接终止流」的等价内稳健性增强）。DeferredResult 硬上限 180s 作用于 POST 与 branches/diff 同步端点，超时 → 500 "Request timeout" 入错误映射；**`POLL_TIMEOUT_MS` 从 120s 提到 180s**（wave-1 一行改动 + fake-timers 测试钉住）。（contract #10；**T4**）
 - **hasRepository 状态源**：`GET /api/admin/repositorySettings/info`（`{configured, readOnly}` 一次拿全，未配置 200 非 404）；`/repositorySettings/exists` 不进服务层；实现维持 per-mount `useQuery(['vc-repo-info'])`（`getRepositorySettingsInfo` 已在 `version-control.ts:136`）+ 保存/删除后 `invalidateQueries` 同 key。fork 单机 `vc.git.service=local` 默认激活，VC 全端点可用无后端补洞。（contract #11/#13；T3 前置）
 - **autoCommitSettings**：未配置 GET 404 → null（既有降级保持）；branch 名校验先于 ACL；**无**真实 clone 校验（与 repositorySettings 本质差异）；readOnly 仓库时 auto-commit 后端静默跳过 → 设置页 readOnly 整表禁用 + hint。branches 列表 default 分支排首位。（contract #13；**T3-⑤**）
@@ -87,7 +87,7 @@
 
 - **trendz**：GET 未配置返回空对象（非 404）；POST 响应为入参回显；apiKey 对 CUSTOMER_USER 裸露是上游有意设计 → antd 不建 CU 入口即规避，后端收紧另立 issue 不阻塞 M14。（contract #22；**T10**）
 - **home**：只做 `GET/POST /api/tenant/dashboard/home/info`；存 **`Tenant.additionalInfo`**（与 tenant profile 无关，勿混写）；GET 恒 200，未配置 = `{dashboardId:null, hideDashboardToolbar:true}`；**dashboardId 传 null = 清除配置**；POST 200 空 body。（contract #23；无对应 T，静态源码定案）
-- **ai-model**：5 端点全消费；分页 sortProperty 白名单 `createdTime,name,provider,modelId` 四列安全；**delete 不存在返回 200 body `false`**（非 404，前端按 false 提示已不存在）；**chat = 编辑对话框 Check connectivity 按钮**（表单未保存可测、invalid 禁用；探测消息硬编码照 ngx 不必中文化；不存在的是对话 UI 而非该按钮）；**chat 错误走 200 + Failure 信封**（HTTP 层不报错，前端解析信封而非 catch HTTP）；SSRF：内网 baseUrl → 400 "AI model provider URL is not allowed: ..."；模型候选=前端静态清单，不发明 models API。（contract #24；**T9**）
+- **ai-model**：5 端点全消费；分页 sortProperty 白名单 `createdTime,name,provider,modelId` 四列安全；**delete 不存在返回 200 body `false`**（非 404，前端按 false 提示已不存在）；**chat = 编辑对话框 Check connectivity 按钮**（表单未保存可测、invalid 禁用；探测消息硬编码照 ngx 不必中文化；不存在的是对话 UI 而非该按钮）；**chat 错误走 200 + Failure 信封**（HTTP 层不报错，前端解析信封而非 catch HTTP）；SSRF：内网 baseUrl → 400 "AI model provider URL is not allowed: ..."（T9 实测修正：该拦截由 `ssrf_protection_enabled` 门控且本机默认关——测试断言不得建在此项上）；模型候选=前端静态清单，不发明 models API。（contract #24；**T9**）
 
 ## 3. Waves（七波严格序；每波收口跑定向门禁并独立 commit，限额中断可从任意波续做）
 
@@ -145,7 +145,7 @@
 | 3 | admin settings 不带 id 二次保存 400 | 保存必带快照 id；三已交付页 wave-2 修复（T6-①） |
 | 4 | mail 密码空串=真覆盖 | 留空=从 payload 删字段（服务端回填）；禁置空串（T6-②③） |
 | 5 | VC 凭据空串≠留空 | 留空序列化剥字段（`stripUnchangedCredentials`）；GET 三字段恒 null（T3） |
-| 6 | VC 保存失败 500 笼统 / checkAccess 400 带原因 | UI 引导「先 Check access 再 Save」（T3-③） |
+| 6 | VC 保存与 checkAccess 失败均 500（checkAccess 消息带底层原因） | UI 引导「先 Check access 再 Save」（T3-③ 实测） |
 | 7 | VC 轮询两非终态 + 180s 超时 | 400 "Invalid task"/404 "timed-out" 连续 3 次内继续轮询；POLL_TIMEOUT 提 180s（T4） |
 | 8 | CF 同名同型 400 / 更新禁改 entityId | 编辑态锁实体选择器；换实体=删了重建引导（T1-④/T2-②） |
 | 9 | testScript 错误在 200 信封不在 HTTP 层 | error 非空行内呈现不 toast；TBEL 未装配是 400 特例（T2） |
