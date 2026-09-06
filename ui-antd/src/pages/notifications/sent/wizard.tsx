@@ -10,12 +10,17 @@
  * SendNotificationButton for other pages.
  */
 
-import { PlusOutlined, ReloadOutlined } from '@ant-design/icons';
+import {
+  PlusOutlined,
+  ReloadOutlined,
+  SettingOutlined,
+} from '@ant-design/icons';
 import {
   keepPreviousData,
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
+import { history, useModel } from '@umijs/max';
 import {
   Alert,
   App,
@@ -53,6 +58,7 @@ import {
   getNotificationTemplates,
   sendNotificationRequest,
 } from '@/services/tb/notification';
+import { Authority } from '@/types/tb';
 import {
   NotificationDeliveryMethod,
   type NotificationRequest,
@@ -144,6 +150,13 @@ export function SendNotificationWizard({
   const { message } = App.useApp();
   const queryClient = useQueryClient();
   const [form] = Form.useForm<SetupFormValues>();
+  const { initialState } = useModel('@@initialState');
+  // M14 wave-3 (6.5-1): SA/TA can reach /settings/notifications and get a
+  // jump link instead of the dead "contact your administrator" text; the
+  // settings group is SA+TA-gated, so CU keeps the plain copy.
+  const canOpenNotificationSettings =
+    initialState?.currentUser?.authority === Authority.SYS_ADMIN ||
+    initialState?.currentUser?.authority === Authority.TENANT_ADMIN;
 
   const [prefill, setPrefill] = useState<WizardPrefill>(emptyWizardPrefill());
   const [templateValue, setTemplateValue] = useState<TemplateValue>({});
@@ -639,15 +652,32 @@ export function SendNotificationWizard({
                           )}
                         </Typography.Text>
                       ) : !available ? (
-                        <Typography.Text
-                          type="warning"
-                          style={{ fontSize: 12 }}
-                        >
-                          {label(
-                            'pages.notifications.sent.wizard.deliveryMethodNotConfigured',
-                            'Delivery method is not configured. Contact your system administrator.',
-                          )}
-                        </Typography.Text>
+                        canOpenNotificationSettings ? (
+                          <Button
+                            type="link"
+                            size="small"
+                            className="px-0"
+                            icon={<SettingOutlined />}
+                            onClick={() =>
+                              history.push('/settings/notifications')
+                            }
+                          >
+                            {label(
+                              'pages.notifications.sent.wizard.configureDeliveryMethod',
+                              'Configure delivery method',
+                            )}
+                          </Button>
+                        ) : (
+                          <Typography.Text
+                            type="warning"
+                            style={{ fontSize: 12 }}
+                          >
+                            {label(
+                              'pages.notifications.sent.wizard.deliveryMethodNotConfigured',
+                              'Delivery method is not configured. Contact your system administrator.',
+                            )}
+                          </Typography.Text>
+                        )
                       ) : null}
                     </span>
                   );

@@ -54,7 +54,14 @@ const customersMock = vi.hoisted(() => ({
 const tokenStoreMock = vi.hoisted(() => ({
   decodeTokenClaims: vi.fn(),
 }));
+const umiMock = vi.hoisted(() => ({
+  history: { push: vi.fn(), replace: vi.fn() },
+  useModel: vi.fn(),
+  useSelectedRoutes: () => [],
+  useAppData: () => ({ clientRoutes: [] }),
+}));
 
+vi.mock('@umijs/max', () => umiMock);
 vi.mock('@/services/tb/notification', () => servicesMock);
 vi.mock('@/services/tb/user', () => usersMock);
 vi.mock('@/services/tb/tenant', () => tenantsMock);
@@ -163,6 +170,11 @@ async function gotoStep(testid: string) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // M14 6.5-1: the wizard reads the session authority to decide between the
+  // "configure delivery method" jump link (SA/TA) and the legacy copy (CU).
+  umiMock.useModel.mockReturnValue({
+    initialState: { currentUser: { authority: 'TENANT_ADMIN' } },
+  });
   servicesMock.getAvailableDeliveryMethods.mockResolvedValue(ALL_METHODS);
   servicesMock.getNotificationTargetsByNotificationType.mockResolvedValue(
     TARGETS_PAGE,
@@ -347,7 +359,31 @@ describe('SendNotificationWizard', () => {
     expect(servicesMock.getNotificationRequestPreview).not.toHaveBeenCalled();
   });
 
-  it('flags unconfigured delivery methods as contact-administrator', async () => {
+  it('offers SA/TA a jump to the notification settings for unconfigured methods (M14 6.5-1)', async () => {
+    servicesMock.getAvailableDeliveryMethods.mockResolvedValue([
+      NotificationDeliveryMethod.WEB,
+    ]);
+    renderWizard();
+    const slackRow = await screen.findByTestId(
+      `wizard-method-${NotificationDeliveryMethod.SLACK}`,
+    );
+    // TENANT_ADMIN (the beforeEach authority) gets the jump link.
+    const link = within(slackRow).getByText('前往配置通知渠道');
+    fireEvent.click(link);
+    expect(umiMock.history.push).toHaveBeenCalledWith(
+      '/settings/notifications',
+    );
+    // WEB stays forced on regardless.
+    const webSwitch = screen
+      .getByTestId('wizard-method-WEB')
+      .querySelector('.ant-switch') as HTMLElement;
+    expect(webSwitch.className).toContain('ant-switch-checked');
+  });
+
+  it('keeps the contact-administrator copy for customer users (M14 6.5-1)', async () => {
+    umiMock.useModel.mockReturnValue({
+      initialState: { currentUser: { authority: 'CUSTOMER_USER' } },
+    });
     servicesMock.getAvailableDeliveryMethods.mockResolvedValue([
       NotificationDeliveryMethod.WEB,
     ]);
@@ -358,10 +394,5 @@ describe('SendNotificationWizard', () => {
     expect(
       within(slackRow).getByText('发送方式未配置。请联系系统管理员。'),
     ).toBeInTheDocument();
-    // WEB stays forced on regardless.
-    const webSwitch = screen
-      .getByTestId('wizard-method-WEB')
-      .querySelector('.ant-switch') as HTMLElement;
-    expect(webSwitch.className).toContain('ant-switch-checked');
   });
 });
