@@ -35,6 +35,7 @@ import {
   setTbLanguage,
   setTbUnauthorizedHandler,
 } from '@/services/tb';
+import type { TrendzSettings } from '@/services/tb/trendz';
 import { getThemeConfig } from '@/theme/brand';
 import type { User } from '@/types/tb';
 import defaultSettings from '../config/defaultSettings';
@@ -93,6 +94,9 @@ export async function getInitialState(): Promise<{
   settings?: Partial<LayoutSettings>;
   currentUser?: User | null;
   fetchUserInfo?: () => Promise<User | null>;
+  /** M14 R29 minimal global bit: mirror of the saved Trendz settings
+   * (no antd consumer today — the settings page writes it on save). */
+  trendzSettings?: TrendzSettings;
 }> {
   // umi's locale plugin has already restored the persisted choice from
   // localStorage; redirect Accept-Language for every services/tb call.
