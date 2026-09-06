@@ -17,6 +17,7 @@ export default {
   'menu.alarms': 'Alarms',
   'menu.dashboards': 'Dashboards',
   'menu.ruleChains': 'Rule chains',
+  'menu.calculatedFields': 'Calculated fields',
   'menu.dashboards.view': 'Dashboard detail',
   'menu.usage': 'Api usage',
   'menu.gateways': 'Gateways',

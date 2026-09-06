@@ -9,6 +9,7 @@ import aiModel from './zh-CN/ai-model';
 import alarms from './zh-CN/alarms';
 import assetProfiles from './zh-CN/asset-profiles';
 import assets from './zh-CN/assets';
+import calculatedFields from './zh-CN/calculated-fields';
 import common from './zh-CN/common';
 import crashGuard from './zh-CN/crash-guard';
 import customers from './zh-CN/customers';
@@ -95,5 +96,6 @@ export default {
   ...ruleNode,
   ...widgetKit,
   ...vc,
+  ...calculatedFields,
   ...aiModel,
 };

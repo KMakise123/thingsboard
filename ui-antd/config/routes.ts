@@ -144,6 +144,16 @@ export default [
     hideInMenu: true,
   },
   {
+    // M14 R02: calculated fields — tenant-only flat list (ngx TENANT
+    // "Data & processing" sibling of rule chains). No detail route: the
+    // list + edit dialog carry every operation (R02 convergence).
+    name: 'calculatedFields',
+    icon: 'function',
+    path: '/calculatedFields',
+    access: 'canTenantAdmin',
+    component: './calculated-fields/list',
+  },
+  {
     // M9 widget editor (spec §5): /widgets/editor is the create entry — it
     // opens the new-type dialog in-page (the library listing belongs to the
     // resources subsystem, M9 brief §0). Hidden. Access widened to SA+TA in
