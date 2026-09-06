@@ -203,11 +203,194 @@ export default {
   'pages.calculatedFields.output.ruleChainHint':
     'The calculated values are forwarded to the rule chain — the immediate-write parameters above are disabled.',
 
-  // wave-5 placeholder
-  'pages.calculatedFields.placeholderTitle':
-    'Configurator delivered in a later wave',
-  'pages.calculatedFields.placeholderHint':
-    'Saving is disabled until the full editor ships.',
-  'pages.calculatedFields.placeholderDescription':
-    'The full editor for this calculated-field type ships with the M14 wave-5 delivery (propagation, aggregations, geofencing). Choose SIMPLE or SCRIPT to continue in this wave.',
+  // ---- M14 wave-5: PROPAGATION / aggregations / GEOFENCING (spec 6.1-12..15) ----
+
+  // shared
+  'pages.calculatedFields.direction': 'Relation direction',
+  'pages.calculatedFields.relationType': 'Relation type',
+  'pages.calculatedFields.relationTypeRequired': 'Relation type is required.',
+  'pages.calculatedFields.script': 'Script',
+
+  // PROPAGATION (6.1-12)
+  'pages.calculatedFields.propagation.relationTitle':
+    'Propagation path to related entities',
+  'pages.calculatedFields.propagation.relationHint':
+    'The calculated values propagate along this relation path (up to {max} related entities per argument).',
+  'pages.calculatedFields.propagation.direction.TO': 'Up to parent',
+  'pages.calculatedFields.propagation.direction.FROM': 'Down to child',
+  'pages.calculatedFields.propagation.dataToPropagate': 'Data to propagate',
+  'pages.calculatedFields.propagation.argumentsOnly': 'Arguments only',
+  'pages.calculatedFields.propagation.expressionResult': 'Expression result',
+  'pages.calculatedFields.propagation.outputKey': 'Output key',
+
+  // Arguments-table variants (6.1-13/14) + propagation group checks
+  'pages.calculatedFields.propagationArgumentsCurrentOnly':
+    'Without an expression every argument must read from the current entity — remove entity references (and switch rolling arguments to latest telemetry).',
+  'pages.calculatedFields.propagationNeedCurrentArgument':
+    'At least one argument must read from the current entity in the expression-result propagation mode.',
+  'pages.calculatedFields.argumentsNeedDefaultValue':
+    'Every argument needs a default value — related entities may have no data yet when the aggregation runs.',
+  'pages.calculatedFields.argument.defaultValueRequired':
+    'Default value is required.',
+  'pages.calculatedFields.argument.source.relationQuery': 'Related entities',
+
+  // Metrics panel (both aggregations, 6.1-13/14)
+  'pages.calculatedFields.metrics.title': 'Metrics',
+  'pages.calculatedFields.metrics.addMetric': 'Add metric',
+  'pages.calculatedFields.metrics.empty':
+    'No metrics yet — at least one is required',
+  'pages.calculatedFields.metrics.metricSettings': 'Metric settings',
+  'pages.calculatedFields.metrics.metricName': 'Metric name',
+  'pages.calculatedFields.metrics.metricNameRequired':
+    'Metric name is required.',
+  'pages.calculatedFields.metrics.metricNameMaxLength':
+    'Metric name should be less than 256 characters.',
+  'pages.calculatedFields.metrics.metricNameDuplicate':
+    'Metric with such name already exists.',
+  'pages.calculatedFields.metrics.aggregation': 'Aggregation',
+  'pages.calculatedFields.metrics.agg.AVG': 'Average',
+  'pages.calculatedFields.metrics.agg.MIN': 'Minimum',
+  'pages.calculatedFields.metrics.agg.MAX': 'Maximum',
+  'pages.calculatedFields.metrics.agg.SUM': 'Sum',
+  'pages.calculatedFields.metrics.agg.COUNT': 'Count',
+  'pages.calculatedFields.metrics.agg.COUNT_UNIQUE': 'Count unique',
+  'pages.calculatedFields.metrics.argumentName': 'Argument name',
+  'pages.calculatedFields.metrics.argumentNameRequired':
+    'Argument name is required.',
+  'pages.calculatedFields.metrics.filtered': 'Filtered',
+  'pages.calculatedFields.metrics.valueSource': 'Value source',
+  'pages.calculatedFields.metrics.valueSourceType.key': 'Key',
+  'pages.calculatedFields.metrics.valueSourceType.function': 'Function',
+  'pages.calculatedFields.metrics.filter': 'Filter',
+  'pages.calculatedFields.metrics.filterHint':
+    'Enables filtering of entities during aggregation. The filter function must return a boolean value and can use all configured arguments.',
+  'pages.calculatedFields.metrics.mapFunction': 'Map function',
+  'pages.calculatedFields.metrics.defaultValue': 'Default value',
+  'pages.calculatedFields.metrics.noArguments':
+    'Add at least one argument — a metric reads its value from an argument key.',
+  'pages.calculatedFields.metricsRequired': 'At least one metric is required.',
+  'pages.calculatedFields.metricsInvalid':
+    'Some metrics are missing a name or a value source — fix them before saving.',
+
+  // RELATED_ENTITIES_AGGREGATION (6.1-13)
+  'pages.calculatedFields.relatedAggregation.relationTitle':
+    'Related entities relation',
+  'pages.calculatedFields.relatedAggregation.relationHint':
+    'Aggregation runs over the entities reached through this relation; argument keys are read from the current entity and a default value is required.',
+  'pages.calculatedFields.relatedAggregation.argumentsHint':
+    'Each argument reads a key of the current entity and must carry a default value for entities without data yet.',
+  'pages.calculatedFields.relatedAggregation.deduplicationInterval':
+    'Deduplication interval (seconds)',
+  'pages.calculatedFields.relatedAggregation.deduplicationHint':
+    'Minimum time between telemetry aggregations.',
+  'pages.calculatedFields.relatedAggregation.deduplicationMin':
+    'At least {sec} seconds.',
+  'pages.calculatedFields.deduplicationIntervalMin':
+    'The deduplication interval cannot be below {sec, number} seconds.',
+
+  // ENTITY_AGGREGATION (6.1-14)
+  'pages.calculatedFields.entityAggregation.argumentsHint':
+    'Each argument reads a latest-telemetry key of the target entity; the aggregation folds them over the interval.',
+  'pages.calculatedFields.entityAggregation.intervalTitle':
+    'Aggregation interval',
+  'pages.calculatedFields.entityAggregation.intervalType':
+    'Aggregate interval type',
+  'pages.calculatedFields.entityAggregation.timezone': 'Timezone',
+  'pages.calculatedFields.entityAggregation.tzRequired':
+    'Timezone is required.',
+  'pages.calculatedFields.entityAggregation.intervalValue':
+    'Aggregate interval value (seconds)',
+  'pages.calculatedFields.entityAggregation.intervalMin':
+    'Aggregate interval value should be at least {sec} seconds.',
+  'pages.calculatedFields.intervalDurationMin':
+    'The aggregate interval value is below the allowed minimum.',
+  'pages.calculatedFields.intervalTzRequired': 'Timezone is required.',
+  'pages.calculatedFields.aggregatePeriod.HOUR': 'Hour',
+  'pages.calculatedFields.aggregatePeriod.DAY': 'Day',
+  'pages.calculatedFields.aggregatePeriod.WEEK': 'Week (Mon - Sun)',
+  'pages.calculatedFields.aggregatePeriod.WEEK_SUN_SAT': 'Week (Sun - Sat)',
+  'pages.calculatedFields.aggregatePeriod.MONTH': 'Month',
+  'pages.calculatedFields.aggregatePeriod.QUARTER': 'Quarter',
+  'pages.calculatedFields.aggregatePeriod.YEAR': 'Year',
+  'pages.calculatedFields.aggregatePeriod.CUSTOM': 'Custom',
+  'pages.calculatedFields.entityAggregation.applyOffset':
+    'Apply offset to interval boundaries',
+  'pages.calculatedFields.entityAggregation.offsetValue': 'Offset (seconds)',
+  'pages.calculatedFields.entityAggregation.offsetHint':
+    'The offset shifts every interval boundary — e.g. an HOUR interval with a 900s offset aggregates 00:15–01:15, 01:15–02:15 and so on (shifted by the timezone).',
+  'pages.calculatedFields.entityAggregation.waitDelay':
+    'Wait delay (watermark)',
+  'pages.calculatedFields.entityAggregation.duration': 'Duration (seconds)',
+  'pages.calculatedFields.entityAggregation.durationHint':
+    'Late data arriving within this delay is still counted into the current interval.',
+  'pages.calculatedFields.entityAggregation.produceIntermediateResult':
+    'Produce intermediate results',
+  'pages.calculatedFields.entityAggregation.intermediateThreshold':
+    '(only for intervals longer than {sec} seconds)',
+
+  // GEOFENCING (6.1-15)
+  'pages.calculatedFields.geofencing.entityCoordinates': 'Entity coordinates',
+  'pages.calculatedFields.geofencing.entityCoordinatesHint':
+    'Time-series keys of the target entity carrying the latitude / longitude position.',
+  'pages.calculatedFields.geofencing.latitudeKeyName':
+    'Latitude time series key',
+  'pages.calculatedFields.geofencing.latitudeKeyRequired':
+    'Latitude time series key is required.',
+  'pages.calculatedFields.geofencing.longitudeKeyName':
+    'Longitude time series key',
+  'pages.calculatedFields.geofencing.longitudeKeyRequired':
+    'Longitude time series key is required.',
+  'pages.calculatedFields.geofencing.zoneGroups': 'Geofencing zone groups',
+  'pages.calculatedFields.geofencing.zoneGroupsHint':
+    'Zones reference a perimeter attribute key on another entity — there is no map editor by design.',
+  'pages.calculatedFields.geofencing.zoneGroupsEmpty':
+    'No zone groups yet — at least one is required',
+  'pages.calculatedFields.geofencing.addZone': 'Add zone group',
+  'pages.calculatedFields.geofencing.zoneSettings':
+    'Geofencing zone group settings',
+  'pages.calculatedFields.geofencing.zoneEntity': 'Zone entity',
+  'pages.calculatedFields.geofencing.zoneEntityType': 'Zone entity type',
+  'pages.calculatedFields.geofencing.zoneEntityHint':
+    'The entity holding the zone perimeter attribute: the target entity, a concrete entity, the tenant, the owner or the entities reached through relations.',
+  'pages.calculatedFields.geofencing.nameRequired': 'Zone name is required.',
+  'pages.calculatedFields.geofencing.nameDuplicate':
+    'Zone name is already used.',
+  'pages.calculatedFields.geofencing.tenantHint':
+    'The zone perimeter is read from the current tenant.',
+  'pages.calculatedFields.geofencing.ownerHint':
+    'The zone perimeter is read from the entity owner (resolved at runtime).',
+  'pages.calculatedFields.geofencing.relationPath': 'Path from entity to zones',
+  'pages.calculatedFields.geofencing.relationPathHint':
+    'Relation levels walked from the entity to the zone holders — up to {max} levels, order matters (drag equivalent: reorder with the arrows).',
+  'pages.calculatedFields.geofencing.addLevel': 'Add level',
+  'pages.calculatedFields.geofencing.levelDirection.TO': 'Up',
+  'pages.calculatedFields.geofencing.levelDirection.FROM': 'Down',
+  'pages.calculatedFields.geofencing.levelsRequired':
+    'Every relation level needs a relation type — at least one level is required.',
+  'pages.calculatedFields.geofencing.perimeterKeyName': 'Perimeter key name',
+  'pages.calculatedFields.geofencing.perimeterKeyRequired':
+    'Perimeter key name is required.',
+  'pages.calculatedFields.geofencing.reportStrategy': 'Report strategy',
+  'pages.calculatedFields.geofencing.reportStrategy.REPORT_TRANSITION_EVENTS_AND_PRESENCE_STATUS':
+    'Presence status and transition events',
+  'pages.calculatedFields.geofencing.reportStrategy.REPORT_TRANSITION_EVENTS_ONLY':
+    'Transition events only',
+  'pages.calculatedFields.geofencing.reportStrategy.REPORT_PRESENCE_STATUS_ONLY':
+    'Presence status only',
+  'pages.calculatedFields.geofencing.createRelations':
+    'Create relations with matched zones',
+  'pages.calculatedFields.geofencing.scheduledUpdateEnabled':
+    'Zone groups refresh interval',
+  'pages.calculatedFields.geofencing.scheduledUpdateMin':
+    'At least {min} seconds.',
+  'pages.calculatedFields.geofencing.scheduledUpdateOffHint':
+    'Relation-resolved zones are only refreshed when new telemetry arrives — presence may go stale.',
+  'pages.calculatedFields.zoneGroupsRequired':
+    'At least one zone group is required.',
+  'pages.calculatedFields.zoneGroupInvalid':
+    'Some zone groups are missing the perimeter key or relation settings — fix them before saving.',
+
+  // Test dialog (RELATED entry cannot write back)
+  'pages.calculatedFields.testSaveDisabledHint':
+    'This calculated-field type has no expression to save back.',
 };

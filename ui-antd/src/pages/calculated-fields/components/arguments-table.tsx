@@ -30,6 +30,24 @@ export interface ArgumentsTableProps {
   hostEntityType: CfHostEntityType | undefined;
   tenantId: string;
   disabled?: boolean;
+  /**
+   * Variant switches for the wave-5 configurators (ngx table subclasses):
+   * `currentOnly` = propagation WITHOUT an expression (source pinned to the
+   * CURRENT entity, group error when an argument references another entity);
+   * `defaultValueRequired` = related-entities-aggregation (every argument
+   * needs a defaultValue); `hideDefaultValue` / `hideKeyType` =
+   * entity-aggregation (CURRENT TS_LATEST keys only).
+   */
+  currentOnly?: boolean;
+  /** Propagation WITH an expression needs ≥1 CURRENT-entity argument. */
+  requireCurrentArgument?: boolean;
+  defaultValueRequired?: boolean;
+  hideDefaultValue?: boolean;
+  hideKeyType?: boolean;
+  /** Propagation without expression renames the argument column. */
+  nameLabelKey?: string;
+  /** Extra reserved names (propagation's `propagationCtx`). */
+  extraForbiddenNames?: ReadonlyArray<string>;
 }
 
 interface PanelState {
@@ -96,12 +114,23 @@ export default function ArgumentsTable({
   hostEntityType,
   tenantId,
   disabled,
+  currentOnly,
+  requireCurrentArgument,
+  defaultValueRequired,
+  hideDefaultValue,
+  hideKeyType,
+  nameLabelKey,
+  extraForbiddenNames,
 }: ArgumentsTableProps) {
   const { formatMessage } = useIntl();
   const [panel, setPanel] = useState<PanelState | null>(null);
 
   const entries = useMemo(() => Object.entries(value ?? {}), [value]);
-  const groupError = argumentTableError(value ?? {}, isScript);
+  const groupError = argumentTableError(value ?? {}, isScript, {
+    currentOnly,
+    requireCurrentArgument,
+    requireDefaultValue: defaultValueRequired,
+  });
 
   const tenantQuery = useQuery({
     queryKey: ['cf-argument-tenant', tenantId],
@@ -184,7 +213,7 @@ export default function ArgumentsTable({
         columns={[
           {
             title: formatMessage({
-              id: 'pages.calculatedFields.argument.name',
+              id: nameLabelKey ?? 'pages.calculatedFields.argument.name',
               defaultMessage: 'Name',
             }),
             dataIndex: 'name',
@@ -314,6 +343,39 @@ export default function ArgumentsTable({
           })}
         />
       )}
+      {groupError === 'propagate-current-only' && (
+        <Alert
+          type="error"
+          showIcon
+          message={formatMessage({
+            id: 'pages.calculatedFields.propagationArgumentsCurrentOnly',
+            defaultMessage:
+              'Without an expression every argument must read from the current entity — remove entity references (and switch rolling arguments to latest telemetry).',
+          })}
+        />
+      )}
+      {groupError === 'propagateNeedCurrentArgument' && (
+        <Alert
+          type="error"
+          showIcon
+          message={formatMessage({
+            id: 'pages.calculatedFields.propagationNeedCurrentArgument',
+            defaultMessage:
+              'At least one argument must read from the current entity in the expression-result propagation mode.',
+          })}
+        />
+      )}
+      {groupError === 'argumentsNeedDefaultValue' && (
+        <Alert
+          type="error"
+          showIcon
+          message={formatMessage({
+            id: 'pages.calculatedFields.argumentsNeedDefaultValue',
+            defaultMessage:
+              'Every argument needs a default value — related entities may have no data yet when the aggregation runs.',
+          })}
+        />
+      )}
 
       {panel && (
         <ArgumentPanel
@@ -324,6 +386,12 @@ export default function ArgumentsTable({
           )}
           isScript={isScript}
           hostEntityType={hostEntityType}
+          fixedSource={currentOnly || defaultValueRequired || hideDefaultValue}
+          defaultValueRequired={defaultValueRequired}
+          hideDefaultValue={hideDefaultValue}
+          hideKeyType={hideKeyType}
+          extraForbiddenNames={extraForbiddenNames}
+          nameLabelKey={nameLabelKey}
           onCancel={() => setPanel(null)}
           onApply={applyPanel}
         />

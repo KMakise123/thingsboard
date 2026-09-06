@@ -152,15 +152,18 @@ describe('CfDialog', () => {
     });
     expect(screen.getAllByText('temperatureF').length).toBeGreaterThan(0);
 
-    // SCRIPT→GEOFENCING clears it: placeholder mounts, Save disables.
+    // SCRIPT→GEOFENCING clears it: the real configurator mounts (wave-5).
     await pickType('地理围栏');
     await waitFor(() => {
-      expect(screen.getByText('配置器将在后续波次交付')).toBeTruthy();
+      expect(screen.getByTestId('cf-geofencing-latitude')).toBeTruthy();
     });
+    expect(screen.getByTestId('cf-geofencing-longitude')).toBeTruthy();
+    expect(screen.getAllByText('地理围栏区域组').length).toBeGreaterThan(0);
     expect(screen.queryByText('temperatureF')).toBeNull();
+    // No placeholder — the Save button is enabled and validation gates it.
     const apply = screen
       .getAllByRole('button', { name: /应\s*用/ })
-      .find((button) => (button as HTMLButtonElement).disabled);
+      .find((button) => !(button as HTMLButtonElement).disabled);
     expect(apply).toBeTruthy();
   });
 

@@ -183,9 +183,169 @@ export default {
   'pages.calculatedFields.output.ruleChainHint':
     '计算结果将转发给规则链——上方的直接落库参数已禁用。',
 
-  // wave-5 placeholder
-  'pages.calculatedFields.placeholderTitle': '配置器将在后续波次交付',
-  'pages.calculatedFields.placeholderHint': '完整编辑器交付前暂不能保存。',
-  'pages.calculatedFields.placeholderDescription':
-    '该类型的完整编辑器随 M14 wave-5 交付（属性传播、两类聚合、地理围栏）。本波次请先选择“简单”或“脚本”类型。',
+  // ---- M14 wave-5: PROPAGATION / aggregations / GEOFENCING（spec 6.1-12..15）----
+
+  // 通用
+  'pages.calculatedFields.direction': '关系方向',
+  'pages.calculatedFields.relationType': '关系类型',
+  'pages.calculatedFields.relationTypeRequired': '关系类型必填。',
+  'pages.calculatedFields.script': '脚本',
+
+  // PROPAGATION（6.1-12）
+  'pages.calculatedFields.propagation.relationTitle': '到关联实体的传播路径',
+  'pages.calculatedFields.propagation.relationHint':
+    '计算结果沿该关系路径传播（每个参数最多关联 {max} 个实体）。',
+  'pages.calculatedFields.propagation.direction.TO': '向上到父实体',
+  'pages.calculatedFields.propagation.direction.FROM': '向下到子实体',
+  'pages.calculatedFields.propagation.dataToPropagate': '传播的数据',
+  'pages.calculatedFields.propagation.argumentsOnly': '仅参数',
+  'pages.calculatedFields.propagation.expressionResult': '表达式结果',
+  'pages.calculatedFields.propagation.outputKey': '输出键',
+
+  // 参数套件变体（6.1-13/14）+ 传播参数组校验
+  'pages.calculatedFields.propagationArgumentsCurrentOnly':
+    '不使用表达式时，每个参数只能读取当前实体——请移除实体引用（并把滚动遥测参数改为最新遥测）。',
+  'pages.calculatedFields.propagationNeedCurrentArgument':
+    '“表达式结果”传播模式下，至少要有一个参数读取当前实体。',
+  'pages.calculatedFields.argumentsNeedDefaultValue':
+    '每个参数都必须填默认值——聚合运行时关联实体可能还没有数据。',
+  'pages.calculatedFields.argument.defaultValueRequired': '默认值必填。',
+  'pages.calculatedFields.argument.source.relationQuery': '关联实体',
+
+  // metrics 面板（两聚合共用，6.1-13/14）
+  'pages.calculatedFields.metrics.title': '指标',
+  'pages.calculatedFields.metrics.addMetric': '新增指标',
+  'pages.calculatedFields.metrics.empty': '暂无指标——至少需要一个指标',
+  'pages.calculatedFields.metrics.metricSettings': '指标设置',
+  'pages.calculatedFields.metrics.metricName': '指标名称',
+  'pages.calculatedFields.metrics.metricNameRequired': '指标名称必填。',
+  'pages.calculatedFields.metrics.metricNameMaxLength':
+    '指标名称长度需小于 256 个字符。',
+  'pages.calculatedFields.metrics.metricNameDuplicate': '同名指标已存在。',
+  'pages.calculatedFields.metrics.aggregation': '聚合方式',
+  'pages.calculatedFields.metrics.agg.AVG': '平均值',
+  'pages.calculatedFields.metrics.agg.MIN': '最小值',
+  'pages.calculatedFields.metrics.agg.MAX': '最大值',
+  'pages.calculatedFields.metrics.agg.SUM': '求和',
+  'pages.calculatedFields.metrics.agg.COUNT': '计数',
+  'pages.calculatedFields.metrics.agg.COUNT_UNIQUE': '去重计数',
+  'pages.calculatedFields.metrics.argumentName': '参数名',
+  'pages.calculatedFields.metrics.argumentNameRequired': '参数名必填。',
+  'pages.calculatedFields.metrics.filtered': '已过滤',
+  'pages.calculatedFields.metrics.valueSource': '取值来源',
+  'pages.calculatedFields.metrics.valueSourceType.key': '键',
+  'pages.calculatedFields.metrics.valueSourceType.function': '函数',
+  'pages.calculatedFields.metrics.filter': '过滤',
+  'pages.calculatedFields.metrics.filterHint':
+    '聚合时按脚本过滤参与实体，脚本必须返回布尔值，可使用全部已配置参数。',
+  'pages.calculatedFields.metrics.mapFunction': '映射函数',
+  'pages.calculatedFields.metrics.defaultValue': '默认值',
+  'pages.calculatedFields.metrics.noArguments':
+    '请先至少添加一个参数——指标从参数键取值。',
+  'pages.calculatedFields.metricsRequired': '至少需要一个指标。',
+  'pages.calculatedFields.metricsInvalid':
+    '部分指标缺少名称或取值来源，请修正后再保存。',
+
+  // RELATED_ENTITIES_AGGREGATION（6.1-13）
+  'pages.calculatedFields.relatedAggregation.relationTitle': '关联实体关系',
+  'pages.calculatedFields.relatedAggregation.relationHint':
+    '聚合沿该关系到达的实体运行；参数读取当前实体键，且必须填默认值。',
+  'pages.calculatedFields.relatedAggregation.argumentsHint':
+    '每个参数读取当前实体的一个键；聚合时实体可能还没有数据，必须填默认值。',
+  'pages.calculatedFields.relatedAggregation.deduplicationInterval':
+    '去重间隔（秒）',
+  'pages.calculatedFields.relatedAggregation.deduplicationHint':
+    '两次遥测聚合之间的最小时间。',
+  'pages.calculatedFields.relatedAggregation.deduplicationMin':
+    '至少 {sec} 秒。',
+  'pages.calculatedFields.deduplicationIntervalMin':
+    '去重间隔不能小于 {sec, number} 秒。',
+
+  // ENTITY_AGGREGATION（6.1-14）
+  'pages.calculatedFields.entityAggregation.argumentsHint':
+    '每个参数读取目标实体的一个最新遥测键；聚合在时间区间上折叠这些数据。',
+  'pages.calculatedFields.entityAggregation.intervalTitle': '聚合区间',
+  'pages.calculatedFields.entityAggregation.intervalType': '聚合区间类型',
+  'pages.calculatedFields.entityAggregation.timezone': '时区',
+  'pages.calculatedFields.entityAggregation.tzRequired': '时区必填。',
+  'pages.calculatedFields.entityAggregation.intervalValue': '聚合区间值（秒）',
+  'pages.calculatedFields.entityAggregation.intervalMin':
+    '聚合区间值至少 {sec} 秒。',
+  'pages.calculatedFields.intervalDurationMin': '聚合区间值不能小于下限。',
+  'pages.calculatedFields.intervalTzRequired': '时区必填。',
+  'pages.calculatedFields.aggregatePeriod.HOUR': '小时',
+  'pages.calculatedFields.aggregatePeriod.DAY': '天',
+  'pages.calculatedFields.aggregatePeriod.WEEK': '周（周一至周日）',
+  'pages.calculatedFields.aggregatePeriod.WEEK_SUN_SAT': '周（周日至周六）',
+  'pages.calculatedFields.aggregatePeriod.MONTH': '月',
+  'pages.calculatedFields.aggregatePeriod.QUARTER': '季度',
+  'pages.calculatedFields.aggregatePeriod.YEAR': '年',
+  'pages.calculatedFields.aggregatePeriod.CUSTOM': '自定义',
+  'pages.calculatedFields.entityAggregation.applyOffset': '为区间边界加偏移',
+  'pages.calculatedFields.entityAggregation.offsetValue': '偏移（秒）',
+  'pages.calculatedFields.entityAggregation.offsetHint':
+    '偏移会平移每个区间边界——例如“小时”区间加 900 秒偏移后按 00:15–01:15、01:15–02:15 依次聚合（并受时区影响）。',
+  'pages.calculatedFields.entityAggregation.waitDelay': '等待延迟（水位）',
+  'pages.calculatedFields.entityAggregation.duration': '持续时间（秒）',
+  'pages.calculatedFields.entityAggregation.durationHint':
+    '在该延迟内到达的迟到数据仍会计入当前区间。',
+  'pages.calculatedFields.entityAggregation.produceIntermediateResult':
+    '产出中间结果',
+  'pages.calculatedFields.entityAggregation.intermediateThreshold':
+    '（仅区间长于 {sec} 秒时可用）',
+
+  // GEOFENCING（6.1-15）
+  'pages.calculatedFields.geofencing.entityCoordinates': '实体坐标',
+  'pages.calculatedFields.geofencing.entityCoordinatesHint':
+    '目标实体上携带经纬度位置的时序键。',
+  'pages.calculatedFields.geofencing.latitudeKeyName': '纬度时序键',
+  'pages.calculatedFields.geofencing.latitudeKeyRequired': '纬度时序键必填。',
+  'pages.calculatedFields.geofencing.longitudeKeyName': '经度时序键',
+  'pages.calculatedFields.geofencing.longitudeKeyRequired': '经度时序键必填。',
+  'pages.calculatedFields.geofencing.zoneGroups': '地理围栏区域组',
+  'pages.calculatedFields.geofencing.zoneGroupsHint':
+    '区域引用其他实体上的周界属性键——按设计不提供地图编辑器。',
+  'pages.calculatedFields.geofencing.zoneGroupsEmpty':
+    '暂无区域组——至少需要一个',
+  'pages.calculatedFields.geofencing.addZone': '新增区域组',
+  'pages.calculatedFields.geofencing.zoneSettings': '区域组设置',
+  'pages.calculatedFields.geofencing.zoneEntity': '区域实体',
+  'pages.calculatedFields.geofencing.zoneEntityType': '区域实体类型',
+  'pages.calculatedFields.geofencing.zoneEntityHint':
+    '持有区域周界属性的实体：目标实体、具体实体、租户、属主，或经关系到达的实体。',
+  'pages.calculatedFields.geofencing.nameRequired': '区域名称必填。',
+  'pages.calculatedFields.geofencing.nameDuplicate': '区域名称已被使用。',
+  'pages.calculatedFields.geofencing.tenantHint':
+    '区域周界读取当前租户的数据。',
+  'pages.calculatedFields.geofencing.ownerHint':
+    '区域周界读取实体属主的数据（运行期解析）。',
+  'pages.calculatedFields.geofencing.relationPath': '从实体到区域的路径',
+  'pages.calculatedFields.geofencing.relationPathHint':
+    '从实体走到区域持有者的关系层级——最多 {max} 层，顺序有意义（用箭头调整顺序）。',
+  'pages.calculatedFields.geofencing.addLevel': '新增层级',
+  'pages.calculatedFields.geofencing.levelDirection.TO': '向上',
+  'pages.calculatedFields.geofencing.levelDirection.FROM': '向下',
+  'pages.calculatedFields.geofencing.levelsRequired':
+    '至少需要一层关系，且每层都要填关系类型。',
+  'pages.calculatedFields.geofencing.perimeterKeyName': '周界键名',
+  'pages.calculatedFields.geofencing.perimeterKeyRequired': '周界键名必填。',
+  'pages.calculatedFields.geofencing.reportStrategy': '上报策略',
+  'pages.calculatedFields.geofencing.reportStrategy.REPORT_TRANSITION_EVENTS_AND_PRESENCE_STATUS':
+    '进出事件与在区状态',
+  'pages.calculatedFields.geofencing.reportStrategy.REPORT_TRANSITION_EVENTS_ONLY':
+    '仅进出事件',
+  'pages.calculatedFields.geofencing.reportStrategy.REPORT_PRESENCE_STATUS_ONLY':
+    '仅在区状态',
+  'pages.calculatedFields.geofencing.createRelations': '与命中的区域建立关系',
+  'pages.calculatedFields.geofencing.scheduledUpdateEnabled': '区域组刷新间隔',
+  'pages.calculatedFields.geofencing.scheduledUpdateMin': '至少 {min} 秒。',
+  'pages.calculatedFields.geofencing.scheduledUpdateOffHint':
+    '关系解析的区域只在新遥测到达时刷新——在区状态可能过期。',
+  'pages.calculatedFields.zoneGroupsRequired': '至少需要一个区域组。',
+  'pages.calculatedFields.zoneGroupInvalid':
+    '部分区域组缺少周界键名或关系配置，请修正后再保存。',
+
+  // 测试对话框（RELATED 入口不可回写）
+  'pages.calculatedFields.testSaveDisabledHint':
+    '该计算字段类型没有可保存回写的表达式。',
 };

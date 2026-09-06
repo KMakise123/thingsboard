@@ -33,6 +33,13 @@ export interface CfTestDialogProps {
   prefill?: Record<string, unknown> | null;
   onRun: (payload: TestScriptPayload) => Promise<TestScriptEnvelope>;
   onClose: () => void;
+  /**
+   * False for configurations that carry NO wire expression
+   * (RELATED_ENTITIES_AGGREGATION): the dialog stays a scratch runner and
+   * Save is disabled — ngx writes the expression back into a config that
+   * has no such field, which would corrupt the payload.
+   */
+  allowSave?: boolean;
   /** Fired after a successful test — carries the dialog's expression. */
   onSave: (expression: string) => void;
 }
@@ -44,6 +51,7 @@ export default function CfTestDialog({
   prefill,
   onRun,
   onClose,
+  allowSave = true,
   onSave,
 }: CfTestDialogProps) {
   const { formatMessage } = useIntl();
@@ -123,7 +131,16 @@ export default function CfTestDialog({
           </Button>
           <Button
             type="primary"
-            disabled={!passed}
+            disabled={!passed || !allowSave}
+            title={
+              allowSave
+                ? undefined
+                : formatMessage({
+                    id: 'pages.calculatedFields.testSaveDisabledHint',
+                    defaultMessage:
+                      'This calculated-field type has no expression to save back.',
+                  })
+            }
             onClick={() => onSave(expressionText)}
           >
             {formatMessage({

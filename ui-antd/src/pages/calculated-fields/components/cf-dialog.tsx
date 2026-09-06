@@ -1,18 +1,22 @@
 /**
- * Calculated-field edit dialog (M14 wave-4, R13 骨架, spec 6.1-4..7): name /
- * debugSettings / target entity / type switch + the configuration branch
- * (SIMPLE/SCRIPT configurators; wave-5 types render the placeholder).
+ * Calculated-field edit dialog (M14 wave-4/5, R13 骨架, spec 6.1-4..15):
+ * name / debugSettings / target entity / type switch + the configuration
+ * branch (SIMPLE/SCRIPT + the four wave-5 configurators).
  *
  * Locked-in contract details: entityId is an OBJECT and immutable after
  * creation (edit mode locks the picker, contract #20); SIMPLE↔SCRIPT
  * switches keep the configuration while any other transition resets it to
  * the target defaults (ngx setupTypeChange); debug settings default to
  * failures-ON. Save runs the testScript precheck for expression-carrying
- * types — an envelope error blocks the save inline, a TBEL-disabled 400
- * degrades to a warning (spec 6.6 enhancement).
+ * configurations (SIMPLE / SCRIPT / PROPAGATION-with-expression) — an
+ * envelope error blocks the save inline, a TBEL-disabled 400 degrades to a
+ * warning (spec 6.6 enhancement). The test-dialog entry exists for
+ * SCRIPT / RELATED_ENTITIES_AGGREGATION / PROPAGATION-with-expression (ngx
+ * debugCfActionEnabled); for RELATED the dialog is a scratch runner and
+ * cannot write back (the wire shape carries no expression).
  */
 import { useMutation } from '@tanstack/react-query';
-import { Alert, App, Form, Input, Modal, Select, Space } from 'antd';
+import { Alert, App, Button, Form, Input, Modal, Select, Space } from 'antd';
 import { useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { serverErrorText } from '@/components/entities/server-error-text';
@@ -33,8 +37,8 @@ import {
   buildTestScriptPayload,
   CF_PAGE_TYPES,
   CF_SUPPORTED_ENTITY_TYPES,
-  CF_WAVE5_TYPES,
   type CfHostEntityType,
+  configurationCarriesExpression,
   configurationExpression,
   configurationProblems,
   deepTrim,
@@ -44,10 +48,14 @@ import {
   migrateSimpleFamilyConfiguration,
   precheckRequired,
   prepareConfiguration,
+  testActionEnabled,
   typeChangeClearsConfiguration,
 } from './data';
 import DebugSettingsButton from './debug-settings-button';
-import PlaceholderConfiguration from './placeholder-configuration';
+import EntityAggregationConfiguration from './entity-aggregation-configuration';
+import GeofencingConfiguration from './geofencing-configuration';
+import PropagationConfiguration from './propagation-configuration';
+import RelatedAggregationConfiguration from './related-entities-aggregation-configuration';
 import SimpleConfiguration from './simple-configuration';
 import CfTestDialog from './test-dialog';
 
@@ -74,9 +82,26 @@ const PROBLEM_MESSAGE_KEYS: Record<string, string> = {
   argumentsRequired: 'pages.calculatedFields.argumentsRequired',
   argumentsRollingInSimple: 'pages.calculatedFields.argumentsRollingInSimple',
   argumentsEntityNotFound: 'pages.calculatedFields.argumentsEntityNotFound',
+  propagationArgumentsCurrentOnly:
+    'pages.calculatedFields.propagationArgumentsCurrentOnly',
+  propagationNeedCurrentArgument:
+    'pages.calculatedFields.propagationNeedCurrentArgument',
+  argumentsNeedDefaultValue: 'pages.calculatedFields.argumentsNeedDefaultValue',
   expressionRequired: 'pages.calculatedFields.expressionRequired',
   expressionMaxLength: 'pages.calculatedFields.expressionMaxLength',
   expressionPattern: 'pages.calculatedFields.expressionPattern',
+  metricsRequired: 'pages.calculatedFields.metricsRequired',
+  metricsInvalid: 'pages.calculatedFields.metricsInvalid',
+  deduplicationIntervalMin: 'pages.calculatedFields.deduplicationIntervalMin',
+  intervalTzRequired: 'pages.calculatedFields.intervalTzRequired',
+  intervalDurationMin: 'pages.calculatedFields.intervalDurationMin',
+  latitudeKeyRequired: 'pages.calculatedFields.geofencing.latitudeKeyRequired',
+  latitudeKeyPattern: 'pages.calculatedFields.argument.keyPattern',
+  longitudeKeyRequired:
+    'pages.calculatedFields.geofencing.longitudeKeyRequired',
+  longitudeKeyPattern: 'pages.calculatedFields.argument.keyPattern',
+  zoneGroupsRequired: 'pages.calculatedFields.zoneGroupsRequired',
+  zoneGroupInvalid: 'pages.calculatedFields.zoneGroupInvalid',
   outputKeyRequired: 'pages.calculatedFields.outputKeyRequired',
   outputKeyPattern: 'pages.calculatedFields.outputKeyPattern',
 };
@@ -117,7 +142,6 @@ export default function CfDialog({
 
   const type = Form.useWatch('type', form) ?? initialField.type;
   const isScript = type === 'SCRIPT';
-  const isPlaceholder = CF_WAVE5_TYPES.includes(type);
   const editLocked = mode === 'edit';
 
   // Seed once per mount; the list page unmounts the dialog between opens,
@@ -227,7 +251,7 @@ export default function CfDialog({
       if (nextProblems.length > 0) {
         return;
       }
-      if (precheckRequired(type) && !(await runPrecheck())) {
+      if (precheckRequired(configuration) && !(await runPrecheck())) {
         return;
       }
       const base: CalculatedField =
@@ -285,7 +309,6 @@ export default function CfDialog({
             : 'pages.calculatedFields.add',
         defaultMessage: mode === 'edit' ? 'Apply' : 'Add',
       })}
-      okButtonProps={{ disabled: isPlaceholder }}
       cancelText={formatMessage({
         id: 'pages.calculatedFields.cancel',
         defaultMessage: 'Cancel',
@@ -401,15 +424,6 @@ export default function CfDialog({
               defaultMessage: 'Type',
             })}
             className="min-w-64"
-            extra={
-              isPlaceholder
-                ? formatMessage({
-                    id: 'pages.calculatedFields.placeholderHint',
-                    defaultMessage:
-                      'Saving is disabled until the full editor ships.',
-                  })
-                : undefined
-            }
           >
             <Select
               disabled={lockType}
@@ -476,8 +490,47 @@ export default function CfDialog({
         />
       )}
 
-      {isPlaceholder ? (
-        <PlaceholderConfiguration />
+      {type === 'PROPAGATION' ? (
+        <PropagationConfiguration
+          value={configuration}
+          onChange={setConfiguration}
+          hostEntityType={targetType}
+          tenantId={tenantId}
+          onTest={openTestDialog}
+        />
+      ) : type === 'RELATED_ENTITIES_AGGREGATION' ? (
+        <>
+          <RelatedAggregationConfiguration
+            value={configuration}
+            onChange={setConfiguration}
+            hostEntityType={targetType}
+            tenantId={tenantId}
+          />
+          {testActionEnabled(configuration) && (
+            <div className="mt-3">
+              <Button onClick={openTestDialog} data-testid="cf-related-test">
+                {formatMessage({
+                  id: 'pages.calculatedFields.testScript',
+                  defaultMessage: 'Test script',
+                })}
+              </Button>
+            </div>
+          )}
+        </>
+      ) : type === 'ENTITY_AGGREGATION' ? (
+        <EntityAggregationConfiguration
+          value={configuration}
+          onChange={setConfiguration}
+          hostEntityType={targetType}
+          tenantId={tenantId}
+        />
+      ) : type === 'GEOFENCING' ? (
+        <GeofencingConfiguration
+          value={configuration}
+          onChange={setConfiguration}
+          hostEntityType={targetType}
+          tenantId={tenantId}
+        />
       ) : (
         <SimpleConfiguration
           value={configuration}
@@ -501,6 +554,7 @@ export default function CfDialog({
           prefill={testPrefill}
           onRun={testCalculatedFieldScript}
           onClose={() => setTestOpen(false)}
+          allowSave={configurationCarriesExpression(configuration)}
           onSave={(expression) => {
             setConfiguration(
               (previous) =>

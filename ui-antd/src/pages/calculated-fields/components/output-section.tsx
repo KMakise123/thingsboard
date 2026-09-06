@@ -42,6 +42,14 @@ export interface OutputSectionProps {
   simpleMode: boolean;
   hostEntityType: CfHostEntityType | undefined;
   disabled?: boolean;
+  /**
+   * Aggregation variants (ngx output `hiddenName` / `disableType`): the
+   * aggregations derive their output keys from the metric names, so the
+   * key input is hidden (decimals still shown); ENTITY_AGGREGATION also
+   * pins the output type to TIME_SERIES.
+   */
+  hideName?: boolean;
+  disableType?: boolean;
 }
 
 const OUTPUT_TYPE_OPTIONS = ['TIME_SERIES', 'ATTRIBUTES'] as const;
@@ -74,6 +82,8 @@ export default function OutputSection({
   simpleMode,
   hostEntityType,
   disabled,
+  hideName,
+  disableType,
 }: OutputSectionProps) {
   const { formatMessage } = useIntl();
   const output: Output =
@@ -153,7 +163,7 @@ export default function OutputSection({
         >
           <Select
             value={output.type}
-            disabled={disabled}
+            disabled={disabled || disableType}
             className="w-44"
             onChange={(next) => switchType(next)}
             options={OUTPUT_TYPE_OPTIONS.map((type) => ({
@@ -195,33 +205,35 @@ export default function OutputSection({
 
       {simpleMode && (
         <Space wrap align="start">
-          <Form.Item
-            label={formatMessage({
-              id: isAttributes
-                ? 'pages.calculatedFields.output.attributeKey'
-                : 'pages.calculatedFields.output.timeseriesKey',
-              defaultMessage: 'Output key',
-            })}
-            required
-            className="mb-0"
-            validateStatus={!(output.name ?? '').trim() ? 'error' : undefined}
-            help={
-              !(output.name ?? '').trim()
-                ? formatMessage({
-                    id: 'pages.calculatedFields.output.keyRequired',
-                    defaultMessage: 'Output key is required.',
-                  })
-                : undefined
-            }
-          >
-            <Input
-              value={output.name}
-              disabled={disabled}
-              className="w-64"
-              maxLength={255}
-              onChange={(event) => patch({ name: event.target.value })}
-            />
-          </Form.Item>
+          {hideName ? null : (
+            <Form.Item
+              label={formatMessage({
+                id: isAttributes
+                  ? 'pages.calculatedFields.output.attributeKey'
+                  : 'pages.calculatedFields.output.timeseriesKey',
+                defaultMessage: 'Output key',
+              })}
+              required
+              className="mb-0"
+              validateStatus={!(output.name ?? '').trim() ? 'error' : undefined}
+              help={
+                !(output.name ?? '').trim()
+                  ? formatMessage({
+                      id: 'pages.calculatedFields.output.keyRequired',
+                      defaultMessage: 'Output key is required.',
+                    })
+                  : undefined
+              }
+            >
+              <Input
+                value={output.name}
+                disabled={disabled}
+                className="w-64"
+                maxLength={255}
+                onChange={(event) => patch({ name: event.target.value })}
+              />
+            </Form.Item>
+          )}
           <Form.Item
             label={formatMessage({
               id: 'pages.calculatedFields.output.decimals',
@@ -242,16 +254,19 @@ export default function OutputSection({
           </Form.Item>
         </Space>
       )}
-      {simpleMode && output.name && !CF_KEY_PATTERN.test(output.name) && (
-        <Alert
-          type="error"
-          showIcon
-          message={formatMessage({
-            id: 'pages.calculatedFields.output.keyPattern',
-            defaultMessage: 'Single spaces inside the key are allowed.',
-          })}
-        />
-      )}
+      {simpleMode &&
+        !hideName &&
+        output.name &&
+        !CF_KEY_PATTERN.test(output.name) && (
+          <Alert
+            type="error"
+            showIcon
+            message={formatMessage({
+              id: 'pages.calculatedFields.output.keyPattern',
+              defaultMessage: 'Single spaces inside the key are allowed.',
+            })}
+          />
+        )}
 
       <Form.Item
         label={formatMessage({

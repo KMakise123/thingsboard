@@ -90,6 +90,20 @@ export interface ArgumentPanelProps {
   usedNames: Array<string>;
   isScript: boolean;
   hostEntityType: CfHostEntityType | undefined;
+  /**
+   * Variant switches (ngx panelAdditionalCtx): the aggregation tables pin
+   * the source to the CURRENT entity, the related-entities table makes the
+   * defaultValue required, the entity-aggregation table hides the
+   * defaultValue and key type, and the propagation table (no expression)
+   * renames the field to "output key" and adds `propagationCtx` to the
+   * reserved names.
+   */
+  fixedSource?: boolean;
+  defaultValueRequired?: boolean;
+  hideDefaultValue?: boolean;
+  hideKeyType?: boolean;
+  extraForbiddenNames?: ReadonlyArray<string>;
+  nameLabelKey?: string;
   onCancel: () => void;
   onApply: (
     name: string,
@@ -268,6 +282,12 @@ export default function ArgumentPanel({
   usedNames,
   isScript,
   hostEntityType,
+  fixedSource,
+  defaultValueRequired,
+  hideDefaultValue,
+  hideKeyType,
+  extraForbiddenNames,
+  nameLabelKey,
   onCancel,
   onApply,
 }: ArgumentPanelProps) {
@@ -357,7 +377,7 @@ export default function ArgumentPanel({
         <Form.Item
           name="name"
           label={formatMessage({
-            id: 'pages.calculatedFields.argument.name',
+            id: nameLabelKey ?? 'pages.calculatedFields.argument.name',
             defaultMessage: 'Name',
           })}
           rules={[
@@ -406,8 +426,12 @@ export default function ArgumentPanel({
               },
             },
             {
-              validator: (_rule, value: string) =>
-                CF_ARGUMENT_FORBIDDEN_NAMES.includes((value ?? '').trim())
+              validator: (_rule, value: string) => {
+                const reserved = [
+                  ...CF_ARGUMENT_FORBIDDEN_NAMES,
+                  ...(extraForbiddenNames ?? []),
+                ];
+                return reserved.includes((value ?? '').trim())
                   ? Promise.reject(
                       new Error(
                         formatMessage(
@@ -420,7 +444,8 @@ export default function ArgumentPanel({
                         ),
                       ),
                     )
-                  : Promise.resolve(),
+                  : Promise.resolve();
+              },
             },
           ]}
         >
@@ -438,6 +463,7 @@ export default function ArgumentPanel({
             defaultMessage:
               'Where the argument reads its value from: the target entity itself, a concrete entity, the tenant or the owner.',
           })}
+          hidden={fixedSource}
         >
           <Select
             options={SOURCE_OPTIONS.map((option) => ({
@@ -522,6 +548,7 @@ export default function ArgumentPanel({
             id: 'pages.calculatedFields.argument.keyType',
             defaultMessage: 'Data type',
           })}
+          hidden={hideKeyType}
         >
           <Select
             options={KEY_TYPE_OPTIONS.filter(
@@ -609,8 +636,20 @@ export default function ArgumentPanel({
             id: 'pages.calculatedFields.argument.defaultValue',
             defaultMessage: 'Default value',
           })}
-          hidden={keyType === 'TS_ROLLING'}
+          hidden={hideDefaultValue || keyType === 'TS_ROLLING'}
           rules={[
+            ...(defaultValueRequired
+              ? [
+                  {
+                    required: true,
+                    whitespace: true,
+                    message: formatMessage({
+                      id: 'pages.calculatedFields.argument.defaultValueRequired',
+                      defaultMessage: 'Default value is required.',
+                    }),
+                  },
+                ]
+              : []),
             {
               pattern: CF_KEY_PATTERN,
               message: formatMessage({
