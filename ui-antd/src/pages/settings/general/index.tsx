@@ -80,6 +80,9 @@ export default function SettingsGeneralPage() {
   const generalSave = useMutation({
     mutationFn: (values: GeneralFormValues) => {
       const body: AdminSettings<GeneralSettings> = {
+        // Save contract (M14 wave-2, contract #2): no id = "create" on the
+        // server → a second save 400s. Always echo the snapshot id.
+        id: generalSnapshot?.id,
         key: 'general',
         jsonValue: { ...generalSnapshot?.jsonValue, ...values },
       };
@@ -126,6 +129,8 @@ export default function SettingsGeneralPage() {
   const connectivitySave = useMutation({
     mutationFn: (values: ConnectivityFormValues) => {
       const body: AdminSettings<ConnectivityFormValues> = {
+        // Same save contract: echo the snapshot id (contract #2).
+        id: connectivitySnapshot?.id,
         key: 'connectivity',
         jsonValue: { ...connectivitySnapshot?.jsonValue, ...values },
       };

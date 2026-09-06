@@ -77,6 +77,8 @@ export default {
     'At least one delivery method should be selected',
   'pages.notifications.sent.wizard.deliveryMethodNotConfigured':
     'Delivery method is not configured. Contact your system administrator.',
+  'pages.notifications.sent.wizard.configureDeliveryMethod':
+    'Configure delivery method',
   'pages.notifications.sent.wizard.refreshDeliveryMethods':
     'Refresh available delivery methods',
   'pages.notifications.sent.wizard.webAlwaysOn':

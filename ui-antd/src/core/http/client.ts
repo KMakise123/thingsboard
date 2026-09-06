@@ -68,6 +68,12 @@ export interface RequestOptions {
   /** Skip bearer injection and 401 refresh handling (login/token/noauth). */
   authExempt?: boolean;
   /**
+   * Per-call timeout override (ms). The client default is 10s; long-running
+   * server calls (e.g. the AI-model connectivity probe, whose backend
+   * DeferredResult window is 20s) need more.
+   */
+  timeoutMs?: number;
+  /**
    * 'blob' returns the raw response body as a Blob (binary downloads, e.g.
    * the TB image subsystem) instead of JSON/text parsing. Auth, 401 refresh
    * and 429 retry semantics are identical to JSON requests.
@@ -188,9 +194,10 @@ export function createTbHttpClient(
   const fetchWithTimeout = async (
     url: string,
     init: RequestInit,
+    perCallTimeoutMs = timeoutMs,
   ): Promise<Response> => {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const timer = setTimeout(() => controller.abort(), perCallTimeoutMs);
     const abortRace = new Promise<never>((_, reject) => {
       controller.signal.addEventListener('abort', () => {
         const err = new Error('Request timed out');
@@ -347,6 +354,7 @@ export function createTbHttpClient(
         response = await fetchWithTimeout(
           url,
           buildInit(requestOptions, exempt),
+          requestOptions.timeoutMs,
         );
       } catch (reason) {
         throw new ServerErrorError(networkServerError(reason));

@@ -12,17 +12,20 @@
  * source cannot render through the fork pipeline — the same honest
  * placeholder the editor page shows.
  *
- * ROUTING GAP (registered with the main session): wave 0 routes carry no
- * /resources/widget-types/:widgetTypeId segment, so this face is not
- * reachable until the route lands. The component reads the future param
- * name (`widgetTypeId`) so wiring the route requires no page change.
+ * M14 wave-7 (spec 6.2-8): the content became a two-tab layout — details /
+ * version-control. The VC tab mounts the shared VersionControlPanel with
+ * the ui-ngx widget-type-tabs double guard: TENANT_ADMIN session AND a
+ * tenant-owned type (`isTenantWidgetType()` semantics, tenantId ≠ the NULL
+ * tenant uuid) — system types and SA sessions get no tab, so a VC write
+ * can never 403 from this page.
  */
 import { EditOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
-import { history, useParams } from '@umijs/max';
-import { Alert, Button, Descriptions, Spin, Tag, Typography } from 'antd';
+import { history, useModel, useParams } from '@umijs/max';
+import { Alert, Button, Descriptions, Spin, Tabs, Tag, Typography } from 'antd';
 import { useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
+import VersionControlPanel from '@/components/entities/detail/VersionControlPanel';
 import { serverErrorText } from '@/components/entities/server-error-text';
 import PageContainer from '@/components/layout/page-container';
 import { widgetTypeToDraft } from '@/pages/widgets/editor/draft-convert';
@@ -34,6 +37,7 @@ import {
   getWidgetTypeById,
   getWidgetTypeInfoById,
 } from '@/services/tb/widget-type';
+import { Authority, EntityType } from '@/types/tb';
 import type { WidgetTypeDescriptor } from '@/types/tb/widget-type';
 
 /** TB's null-tenant UUID (EntityId.NULL_UUID) — the system marker. */
@@ -53,6 +57,7 @@ function scopeQualifiedFqn(
 export default function WidgetTypeDetailsPage() {
   const { widgetTypeId } = useParams<{ widgetTypeId: string }>();
   const { formatMessage } = useIntl();
+  const { initialState } = useModel('@@initialState');
   const [previewError, setPreviewError] = useState<WidgetPreviewError | null>(
     null,
   );
@@ -110,6 +115,10 @@ export default function WidgetTypeDetailsPage() {
   }
 
   const isReactType = runtime === 'react-1';
+  // ngx widget-type-tabs guard: TENANT_ADMIN session + a tenant-owned type.
+  const canUseVersionControl =
+    initialState?.currentUser?.authority === Authority.TENANT_ADMIN &&
+    row.tenantId?.id !== NULL_UUID;
 
   return (
     <PageContainer
@@ -128,157 +137,194 @@ export default function WidgetTypeDetailsPage() {
         </Button>
       }
     >
-      <div className="flex flex-col gap-4">
-        <Descriptions
-          size="small"
-          column={2}
-          bordered
-          data-testid="widget-details-meta"
-        >
-          <Descriptions.Item
-            label={formatMessage({
-              id: 'pages.resources.widgetTypes.name',
-              defaultMessage: 'Name',
-            })}
-          >
-            {row.name}
-          </Descriptions.Item>
-          <Descriptions.Item
-            label={formatMessage({
-              id: 'pages.resources.widgetTypes.fqn',
-              defaultMessage: 'Fully-qualified name',
-            })}
-          >
-            <Typography.Text code>
-              {scopeQualifiedFqn(row.fqn, row.tenantId?.id)}
-            </Typography.Text>
-          </Descriptions.Item>
-          <Descriptions.Item
-            label={formatMessage({
-              id: 'pages.resources.widgetTypes.kind',
-              defaultMessage: 'Type',
-            })}
-          >
-            {row.widgetType
-              ? formatMessage({
-                  id: `pages.resources.widgetTypes.kindValue.${row.widgetType}`,
-                  defaultMessage: row.widgetType,
-                })
-              : '-'}
-          </Descriptions.Item>
-          <Descriptions.Item
-            label={formatMessage({
-              id: 'pages.resources.widgetTypes.deprecated',
-              defaultMessage: 'Deprecated',
-            })}
-          >
-            {row.deprecated ? (
-              <Tag color="error">
-                {formatMessage({
-                  id: 'pages.resources.widgetTypes.deprecatedYes',
-                  defaultMessage: 'Deprecated',
-                })}
-              </Tag>
-            ) : (
-              '-'
-            )}
-          </Descriptions.Item>
-          <Descriptions.Item
-            label={formatMessage({
-              id: 'pages.resources.widgetTypes.bundles',
-              defaultMessage: 'Widgets bundles',
-            })}
-            span={2}
-          >
-            {row.bundles?.length
-              ? row.bundles.map((bundle) => (
-                  <Tag
-                    key={bundle.id?.id ?? bundle.name}
-                    style={{ cursor: 'pointer' }}
-                    onClick={() =>
-                      history.push(
-                        `/resources/widgets-bundles/${bundle.id?.id ?? ''}`,
-                      )
-                    }
+      <Tabs
+        items={[
+          {
+            key: 'details',
+            label: formatMessage({
+              id: 'pages.resources.widgetTypes.tabDetails',
+              defaultMessage: 'Details',
+            }),
+            children: (
+              <div className="flex flex-col gap-4">
+                <Descriptions
+                  size="small"
+                  column={2}
+                  bordered
+                  data-testid="widget-details-meta"
+                >
+                  <Descriptions.Item
+                    label={formatMessage({
+                      id: 'pages.resources.widgetTypes.name',
+                      defaultMessage: 'Name',
+                    })}
                   >
-                    {bundle.name}
-                  </Tag>
-                ))
-              : '-'}
-          </Descriptions.Item>
-          {row.description ? (
-            <Descriptions.Item
-              label={formatMessage({
-                id: 'pages.resources.widgetTypes.description',
-                defaultMessage: 'Description',
-              })}
-              span={2}
-            >
-              {row.description}
-            </Descriptions.Item>
-          ) : null}
-        </Descriptions>
+                    {row.name}
+                  </Descriptions.Item>
+                  <Descriptions.Item
+                    label={formatMessage({
+                      id: 'pages.resources.widgetTypes.fqn',
+                      defaultMessage: 'Fully-qualified name',
+                    })}
+                  >
+                    <Typography.Text code>
+                      {scopeQualifiedFqn(row.fqn, row.tenantId?.id)}
+                    </Typography.Text>
+                  </Descriptions.Item>
+                  <Descriptions.Item
+                    label={formatMessage({
+                      id: 'pages.resources.widgetTypes.kind',
+                      defaultMessage: 'Type',
+                    })}
+                  >
+                    {row.widgetType
+                      ? formatMessage({
+                          id: `pages.resources.widgetTypes.kindValue.${row.widgetType}`,
+                          defaultMessage: row.widgetType,
+                        })
+                      : '-'}
+                  </Descriptions.Item>
+                  <Descriptions.Item
+                    label={formatMessage({
+                      id: 'pages.resources.widgetTypes.deprecated',
+                      defaultMessage: 'Deprecated',
+                    })}
+                  >
+                    {row.deprecated ? (
+                      <Tag color="error">
+                        {formatMessage({
+                          id: 'pages.resources.widgetTypes.deprecatedYes',
+                          defaultMessage: 'Deprecated',
+                        })}
+                      </Tag>
+                    ) : (
+                      '-'
+                    )}
+                  </Descriptions.Item>
+                  <Descriptions.Item
+                    label={formatMessage({
+                      id: 'pages.resources.widgetTypes.bundles',
+                      defaultMessage: 'Widgets bundles',
+                    })}
+                    span={2}
+                  >
+                    {row.bundles?.length
+                      ? row.bundles.map((bundle) => (
+                          <Tag
+                            key={bundle.id?.id ?? bundle.name}
+                            style={{ cursor: 'pointer' }}
+                            onClick={() =>
+                              history.push(
+                                `/resources/widgets-bundles/${bundle.id?.id ?? ''}`,
+                              )
+                            }
+                          >
+                            {bundle.name}
+                          </Tag>
+                        ))
+                      : '-'}
+                  </Descriptions.Item>
+                  {row.description ? (
+                    <Descriptions.Item
+                      label={formatMessage({
+                        id: 'pages.resources.widgetTypes.description',
+                        defaultMessage: 'Description',
+                      })}
+                      span={2}
+                    >
+                      {row.description}
+                    </Descriptions.Item>
+                  ) : null}
+                </Descriptions>
 
-        <Typography.Title level={5}>
-          {formatMessage({
-            id: 'pages.resources.widgetTypes.previewTitle',
-            defaultMessage: 'Preview',
-          })}
-        </Typography.Title>
-        {previewError ? (
-          <Alert
-            type="error"
-            showIcon
-            data-testid="widget-details-preview-error"
-            message={previewError.message}
-          />
-        ) : null}
-        {!isReactType ? (
-          <Alert
-            type="warning"
-            showIcon
-            data-testid="widget-details-angular"
-            message={formatMessage({
-              id: 'pages.resources.widgetTypes.angularPreview',
-              defaultMessage:
-                'This type is an Angular widget; the fork preview renders react-1 types only.',
-            })}
-          />
-        ) : detailsQuery.isPending ? (
-          <Spin
-            style={{ display: 'block', margin: '32px auto' }}
-            tip={formatMessage({
-              id: 'pages.resources.widgetTypes.detailsLoading',
-              defaultMessage: 'Loading widget type…',
-            })}
-          >
-            <div style={{ minHeight: 120 }} />
-          </Spin>
-        ) : detailsQuery.error ? (
-          <Alert
-            type="error"
-            showIcon
-            message={serverErrorText(detailsQuery.error)}
-          />
-        ) : draft ? (
-          <div style={{ height: 420 }} data-testid="widget-details-preview">
-            <WidgetPreview
-              runId={1}
-              tsx={draft.source.tsx}
-              css={draft.source.css ?? ''}
-              settingsForm={draft.settingsForm}
-              defaultConfig={draft.defaultConfig}
-              onError={setPreviewError}
-              onConsoleEntry={() => {
-                /* read-only face: console pane omitted */
-              }}
-              onDefaultConfigChange={() => {
-                /* read-only face: preview-local settings only */
-              }}
-            />
-          </div>
-        ) : null}
-      </div>
+                <Typography.Title level={5}>
+                  {formatMessage({
+                    id: 'pages.resources.widgetTypes.previewTitle',
+                    defaultMessage: 'Preview',
+                  })}
+                </Typography.Title>
+                {previewError ? (
+                  <Alert
+                    type="error"
+                    showIcon
+                    data-testid="widget-details-preview-error"
+                    message={previewError.message}
+                  />
+                ) : null}
+                {!isReactType ? (
+                  <Alert
+                    type="warning"
+                    showIcon
+                    data-testid="widget-details-angular"
+                    message={formatMessage({
+                      id: 'pages.resources.widgetTypes.angularPreview',
+                      defaultMessage:
+                        'This type is an Angular widget; the fork preview renders react-1 types only.',
+                    })}
+                  />
+                ) : detailsQuery.isPending ? (
+                  <Spin
+                    style={{ display: 'block', margin: '32px auto' }}
+                    tip={formatMessage({
+                      id: 'pages.resources.widgetTypes.detailsLoading',
+                      defaultMessage: 'Loading widget type…',
+                    })}
+                  >
+                    <div style={{ minHeight: 120 }} />
+                  </Spin>
+                ) : detailsQuery.error ? (
+                  <Alert
+                    type="error"
+                    showIcon
+                    message={serverErrorText(detailsQuery.error)}
+                  />
+                ) : draft ? (
+                  <div
+                    style={{ height: 420 }}
+                    data-testid="widget-details-preview"
+                  >
+                    <WidgetPreview
+                      runId={1}
+                      tsx={draft.source.tsx}
+                      css={draft.source.css ?? ''}
+                      settingsForm={draft.settingsForm}
+                      defaultConfig={draft.defaultConfig}
+                      onError={setPreviewError}
+                      onConsoleEntry={() => {
+                        /* read-only face: console pane omitted */
+                      }}
+                      onDefaultConfigChange={() => {
+                        /* read-only face: preview-local settings only */
+                      }}
+                    />
+                  </div>
+                ) : null}
+              </div>
+            ),
+          },
+          ...(canUseVersionControl
+            ? [
+                {
+                  key: 'version-control',
+                  label: formatMessage({
+                    id: 'pages.resources.widgetTypes.tabVersionControl',
+                    defaultMessage: 'Version control',
+                  }),
+                  children: (
+                    <VersionControlPanel
+                      entityId={{
+                        entityType: EntityType.WIDGET_TYPE,
+                        id: widgetTypeId as string,
+                      }}
+                      entityType={EntityType.WIDGET_TYPE}
+                      entityName={row.name}
+                    />
+                  ),
+                },
+              ]
+            : []),
+        ]}
+      />
     </PageContainer>
   );
 }

@@ -144,6 +144,28 @@ export default [
     hideInMenu: true,
   },
   {
+    // M14 R02: calculated fields — tenant-only flat list (ngx TENANT
+    // "Data & processing" sibling of rule chains). No detail route: the
+    // list + edit dialog carry every operation (R02 convergence).
+    name: 'calculatedFields',
+    icon: 'function',
+    path: '/calculatedFields',
+    access: 'canTenantAdmin',
+    component: './calculated-fields/list',
+  },
+  {
+    // M14 R03 (spec §6.0 final path — kebab /version-control, not the
+    // camelCase of the arch draft): tenant-only flat version-control page —
+    // repository gate two-stage (unconfigured → shared RepositorySettingsForm,
+    // configured → the repository-wide versions table + complex create /
+    // restore panels). ngx /features/vc parity.
+    name: 'versionControl',
+    icon: 'history',
+    path: '/version-control',
+    access: 'canTenantAdmin',
+    component: './version-control/page',
+  },
+  {
     // M9 widget editor (spec §5): /widgets/editor is the create entry — it
     // opens the new-type dialog in-page (the library listing belongs to the
     // resources subsystem, M9 brief §0). Hidden. Access widened to SA+TA in
@@ -442,39 +464,110 @@ export default [
     hideInMenu: true,
   },
   {
+    // M14 R01: the settings tree serves both admin roles — the group gate
+    // is the shared SA+TA ceiling, each child narrows its own access.
     name: 'settings',
     icon: 'setting',
     path: '/settings',
-    access: 'canSysAdmin',
+    access: 'canSysAdminOrTenantAdmin',
     routes: [
       // Child names stay relative: umi nests them under the parent name, so
       // the menu id is menu.settings.general (etc.). A parent redirect would
       // make umi render the whole subtree as EmptyRoute (blank page).
-      { path: '/settings', redirect: '/settings/general' },
+      {
+        // Role-aware landing instead of a static redirect: SA → general,
+        // TA → home (the entry component decides, ngx redirectTo parity).
+        path: '/settings',
+        component: './settings/entry',
+        hideInMenu: true,
+      },
       {
         name: 'general',
         path: '/settings/general',
+        access: 'canSysAdmin',
         component: './settings/general',
       },
       {
         name: 'outgoingMail',
         path: '/settings/outgoing-mail',
+        access: 'canSysAdmin',
         component: './settings/outgoing-mail',
       },
       {
         name: 'twoFa',
         path: '/settings/two-fa',
+        access: 'canSysAdmin',
         component: './settings/two-fa',
       },
       {
         name: 'oauth2',
         path: '/settings/oauth2',
+        access: 'canSysAdmin',
         component: './settings/oauth2',
       },
       {
         name: 'auditLogs',
         path: '/settings/audit-logs',
+        access: 'canSysAdmin',
         component: './settings/audit-logs',
+      },
+      // ---- M14 wave-2 settings additions (R28/R29/R04/R22) ----
+      {
+        name: 'home',
+        path: '/settings/home',
+        access: 'canTenantAdmin',
+        component: './settings/home',
+      },
+      {
+        name: 'repository',
+        path: '/settings/repository',
+        access: 'canTenantAdmin',
+        component: './settings/repository',
+      },
+      {
+        name: 'trendz',
+        path: '/settings/trendz',
+        access: 'canTenantAdmin',
+        component: './settings/trendz',
+      },
+      {
+        name: 'securitySettings',
+        path: '/settings/security-settings',
+        access: 'canSysAdmin',
+        component: './settings/security-settings',
+      },
+      // ---- M14 wave-3 settings additions (R25/R26/R27/R23) ----
+      {
+        // No access key: inherits the group gate (SA+TA) — one page with
+        // role-shaped cards (SYS: SMS provider + mobile app; TENANT: Slack).
+        name: 'notifications',
+        path: '/settings/notifications',
+        component: './settings/notifications',
+      },
+      {
+        name: 'queues',
+        path: '/settings/queues',
+        access: 'canSysAdmin',
+        component: './settings/queues',
+      },
+      {
+        name: 'detail',
+        path: '/settings/queues/:id',
+        access: 'canSysAdmin',
+        component: './settings/queues/detail',
+        hideInMenu: true,
+      },
+      {
+        name: 'aiModels',
+        path: '/settings/ai-models',
+        access: 'canTenantAdmin',
+        component: './settings/ai-models',
+      },
+      {
+        name: 'autoCommit',
+        path: '/settings/auto-commit',
+        access: 'canTenantAdmin',
+        component: './settings/auto-commit',
       },
     ],
   },

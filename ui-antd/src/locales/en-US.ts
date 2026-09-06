@@ -3,9 +3,11 @@
  * (umi only scans top-level locale files).
  */
 import account from './en-US/account';
+import aiModel from './en-US/ai-model';
 import alarms from './en-US/alarms';
 import assetProfiles from './en-US/asset-profiles';
 import assets from './en-US/assets';
+import calculatedFields from './en-US/calculated-fields';
 import common from './en-US/common';
 import crashGuard from './en-US/crash-guard';
 import customers from './en-US/customers';
@@ -44,6 +46,7 @@ import settings from './en-US/settings';
 import tenantProfiles from './en-US/tenant-profiles';
 import tenants from './en-US/tenants';
 import users from './en-US/users';
+import vc from './en-US/vc';
 import widgetKit from './en-US/widget-kit';
 
 export default {
@@ -90,4 +93,7 @@ export default {
   ...editorRulechainPage,
   ...ruleNode,
   ...widgetKit,
+  ...vc,
+  ...calculatedFields,
+  ...aiModel,
 };

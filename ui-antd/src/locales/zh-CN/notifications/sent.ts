@@ -71,6 +71,7 @@ export default {
     '至少需要选择一种发送方式',
   'pages.notifications.sent.wizard.deliveryMethodNotConfigured':
     '发送方式未配置。请联系系统管理员。',
+  'pages.notifications.sent.wizard.configureDeliveryMethod': '前往配置通知渠道',
   'pages.notifications.sent.wizard.refreshDeliveryMethods':
     '刷新可用的发送方式',
   'pages.notifications.sent.wizard.webAlwaysOn':

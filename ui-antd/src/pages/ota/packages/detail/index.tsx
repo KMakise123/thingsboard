@@ -13,6 +13,12 @@
  * file packages carrying data; URL packages would make the endpoint 400),
  * Delete (back to the list on success) and the three copy buttons —
  * checksum / direct URL appear only when present.
+ *
+ * M14 wave-7 (spec 6.2-8): the card became a two-tab layout — details /
+ * version-control (ui-ngx ota-update-tabs parity). The VC tab mounts the
+ * shared VersionControlPanel and renders for TENANT packages only
+ * (`isTenantOtaUpdate()` semantics: tenantId ≠ the NULL tenant uuid); the
+ * TA half of the ngx guard is the route's canTenantAdmin access.
  */
 import {
   CopyOutlined,
@@ -33,10 +39,12 @@ import {
   Select,
   Space,
   Spin,
+  Tabs,
   Typography,
 } from 'antd';
 import { useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
+import VersionControlPanel from '@/components/entities/detail/VersionControlPanel';
 import { serverErrorText } from '@/components/entities/server-error-text';
 import PageContainer from '@/components/layout/page-container';
 import { downloadBlob } from '@/components/shared/download-blob';
@@ -48,9 +56,13 @@ import {
   saveOtaPackageInfo,
 } from '@/services/tb/ota';
 import type { DeviceProfileInfo } from '@/types/tb';
-import { OtaPackageType } from '@/types/tb/ota';
+import { EntityType, OtaPackageType } from '@/types/tb';
 import { downloadDisabledFor, openPackageExternalUrl } from '../package-view';
 import { useOtaCopy } from '../use-ota-copy';
+import { type DetailTab, useDetailTabUrlState } from './url-state';
+
+/** TB's null-tenant UUID (EntityId.NULL_UUID) — the system marker. */
+const NULL_TENANT_UUID = '13814000-1dd2-11b2-8080-808080808080';
 
 interface OtaDetailFormValues {
   title?: string;
@@ -73,6 +85,7 @@ export default function OtaPackageDetailPage() {
   const copy = useOtaCopy();
   const [form] = Form.useForm<OtaDetailFormValues>();
   const [saving, setSaving] = useState(false);
+  const { tab, setTab } = useDetailTabUrlState();
 
   const packageQuery = useQuery({
     queryKey: ['ota', 'packages', 'detail', id],
@@ -334,148 +347,187 @@ export default function OtaPackageDetailPage() {
           />
         )}
         {pkg && (
-          <Form<OtaDetailFormValues> form={form} layout="vertical">
-            <Form.Item
-              name="title"
-              label={formatMessage({
-                id: 'pages.ota.title',
-                defaultMessage: 'Title',
-              })}
-            >
-              <Input readOnly disabled />
-            </Form.Item>
-            <Form.Item
-              name="version"
-              label={formatMessage({
-                id: 'pages.ota.version',
-                defaultMessage: 'Version',
-              })}
-            >
-              <Input readOnly disabled />
-            </Form.Item>
-            <Form.Item
-              name="tag"
-              label={formatMessage({
-                id: 'pages.ota.tag',
-                defaultMessage: 'Version tag',
-              })}
-            >
-              <Input readOnly disabled />
-            </Form.Item>
-            <Form.Item
-              name="profileId"
-              label={formatMessage({
-                id: 'pages.ota.profile',
-                defaultMessage: 'Device profile',
-              })}
-            >
-              <Select
-                disabled
-                options={profiles.map((profile) => ({
-                  label: profile.name,
-                  value: profile.id.id,
-                }))}
-              />
-            </Form.Item>
-            <Form.Item
-              name="type"
-              label={formatMessage({
-                id: 'pages.ota.type',
-                defaultMessage: 'Package type',
-              })}
-            >
-              <Radio.Group
-                disabled
-                options={[
-                  {
-                    label: formatMessage({
-                      id: 'pages.ota.type.firmware',
-                      defaultMessage: 'Firmware',
-                    }),
-                    value: OtaPackageType.FIRMWARE,
-                  },
-                  {
-                    label: formatMessage({
-                      id: 'pages.ota.type.software',
-                      defaultMessage: 'Software',
-                    }),
-                    value: OtaPackageType.SOFTWARE,
-                  },
-                ]}
-              />
-            </Form.Item>
-            {pkg.url && (
-              <Form.Item
-                name="url"
-                label={formatMessage({
-                  id: 'pages.ota.url',
-                  defaultMessage: 'URL',
-                })}
-              >
-                <Input readOnly disabled />
-              </Form.Item>
-            )}
-            {pkg.fileName && (
-              <Form.Item
-                name="fileName"
-                label={formatMessage({
-                  id: 'pages.ota.fileName',
-                  defaultMessage: 'File name',
-                })}
-              >
-                <Input readOnly disabled />
-              </Form.Item>
-            )}
-            {pkg.dataSize !== undefined && pkg.dataSize !== null && (
-              <Form.Item
-                name="dataSize"
-                label={formatMessage({
-                  id: 'pages.ota.dataSize',
-                  defaultMessage: 'File size',
-                })}
-              >
-                <Input readOnly disabled suffix="bytes" />
-              </Form.Item>
-            )}
-            {pkg.contentType && (
-              <Form.Item
-                name="contentType"
-                label={formatMessage({
-                  id: 'pages.ota.contentType',
-                  defaultMessage: 'Content type',
-                })}
-              >
-                <Input readOnly disabled />
-              </Form.Item>
-            )}
-            <Form.Item
-              name="description"
-              label={formatMessage({
-                id: 'pages.ota.description',
-                defaultMessage: 'Description',
-              })}
-            >
-              <Input.TextArea rows={3} autoSize />
-            </Form.Item>
-            <Space>
-              <Button
-                type="primary"
-                icon={<SaveOutlined />}
-                loading={saving}
-                onClick={() => void saveDescription()}
-              >
-                {formatMessage({
-                  id: 'pages.ota.save',
-                  defaultMessage: 'Save',
-                })}
-              </Button>
-            </Space>
-          </Form>
-        )}
-        {pkg && (
-          <Typography.Paragraph type="secondary" className="mt-4 mb-0">
-            {pkg.id.id}
-          </Typography.Paragraph>
+          <Tabs
+            activeKey={tab}
+            onChange={(key) => setTab(key as DetailTab)}
+            items={[
+              {
+                key: 'details',
+                label: formatMessage({
+                  id: 'pages.ota.tabDetails',
+                  defaultMessage: 'Details',
+                }),
+                children: (
+                  <>
+                    <Form<OtaDetailFormValues> form={form} layout="vertical">
+                      <Form.Item
+                        name="title"
+                        label={formatMessage({
+                          id: 'pages.ota.title',
+                          defaultMessage: 'Title',
+                        })}
+                      >
+                        <Input readOnly disabled />
+                      </Form.Item>
+                      <Form.Item
+                        name="version"
+                        label={formatMessage({
+                          id: 'pages.ota.version',
+                          defaultMessage: 'Version',
+                        })}
+                      >
+                        <Input readOnly disabled />
+                      </Form.Item>
+                      <Form.Item
+                        name="tag"
+                        label={formatMessage({
+                          id: 'pages.ota.tag',
+                          defaultMessage: 'Version tag',
+                        })}
+                      >
+                        <Input readOnly disabled />
+                      </Form.Item>
+                      <Form.Item
+                        name="profileId"
+                        label={formatMessage({
+                          id: 'pages.ota.profile',
+                          defaultMessage: 'Device profile',
+                        })}
+                      >
+                        <Select
+                          disabled
+                          options={profiles.map((profile) => ({
+                            label: profile.name,
+                            value: profile.id.id,
+                          }))}
+                        />
+                      </Form.Item>
+                      <Form.Item
+                        name="type"
+                        label={formatMessage({
+                          id: 'pages.ota.type',
+                          defaultMessage: 'Package type',
+                        })}
+                      >
+                        <Radio.Group
+                          disabled
+                          options={[
+                            {
+                              label: formatMessage({
+                                id: 'pages.ota.type.firmware',
+                                defaultMessage: 'Firmware',
+                              }),
+                              value: OtaPackageType.FIRMWARE,
+                            },
+                            {
+                              label: formatMessage({
+                                id: 'pages.ota.type.software',
+                                defaultMessage: 'Software',
+                              }),
+                              value: OtaPackageType.SOFTWARE,
+                            },
+                          ]}
+                        />
+                      </Form.Item>
+                      {pkg.url && (
+                        <Form.Item
+                          name="url"
+                          label={formatMessage({
+                            id: 'pages.ota.url',
+                            defaultMessage: 'URL',
+                          })}
+                        >
+                          <Input readOnly disabled />
+                        </Form.Item>
+                      )}
+                      {pkg.fileName && (
+                        <Form.Item
+                          name="fileName"
+                          label={formatMessage({
+                            id: 'pages.ota.fileName',
+                            defaultMessage: 'File name',
+                          })}
+                        >
+                          <Input readOnly disabled />
+                        </Form.Item>
+                      )}
+                      {pkg.dataSize !== undefined && pkg.dataSize !== null && (
+                        <Form.Item
+                          name="dataSize"
+                          label={formatMessage({
+                            id: 'pages.ota.dataSize',
+                            defaultMessage: 'File size',
+                          })}
+                        >
+                          <Input readOnly disabled suffix="bytes" />
+                        </Form.Item>
+                      )}
+                      {pkg.contentType && (
+                        <Form.Item
+                          name="contentType"
+                          label={formatMessage({
+                            id: 'pages.ota.contentType',
+                            defaultMessage: 'Content type',
+                          })}
+                        >
+                          <Input readOnly disabled />
+                        </Form.Item>
+                      )}
+                      <Form.Item
+                        name="description"
+                        label={formatMessage({
+                          id: 'pages.ota.description',
+                          defaultMessage: 'Description',
+                        })}
+                      >
+                        <Input.TextArea rows={3} autoSize />
+                      </Form.Item>
+                      <Space>
+                        <Button
+                          type="primary"
+                          icon={<SaveOutlined />}
+                          loading={saving}
+                          onClick={() => void saveDescription()}
+                        >
+                          {formatMessage({
+                            id: 'pages.ota.save',
+                            defaultMessage: 'Save',
+                          })}
+                        </Button>
+                      </Space>
+                    </Form>
+                    <Typography.Paragraph
+                      type="secondary"
+                      className="mt-4 mb-0"
+                    >
+                      {pkg.id.id}
+                    </Typography.Paragraph>
+                  </>
+                ),
+              },
+              // ui-ngx ota-update-tabs: the version-control tab renders for
+              // TENANT packages only (isTenantOtaUpdate; the TA half of the
+              // guard is the route access).
+              ...(pkg.tenantId?.id !== NULL_TENANT_UUID
+                ? [
+                    {
+                      key: 'version-control',
+                      label: formatMessage({
+                        id: 'pages.ota.tabVersionControl',
+                        defaultMessage: 'Version control',
+                      }),
+                      children: (
+                        <VersionControlPanel
+                          entityId={pkg.id}
+                          entityType={EntityType.OTA_PACKAGE}
+                          entityName={pkg.title}
+                        />
+                      ),
+                    },
+                  ]
+                : []),
+            ]}
+          />
         )}
       </Card>
     </PageContainer>

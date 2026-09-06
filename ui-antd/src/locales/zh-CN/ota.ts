@@ -64,6 +64,8 @@ export default {
 
   // detail page
   'pages.ota.detailLoadFailed': '加载 OTA 包详情失败',
+  'pages.ota.tabDetails': '详情',
+  'pages.ota.tabVersionControl': '版本控制',
   'pages.ota.description': '描述',
   'pages.ota.contentType': '内容类型',
   'pages.ota.url': 'URL',

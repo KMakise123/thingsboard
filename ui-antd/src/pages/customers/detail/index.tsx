@@ -433,6 +433,7 @@ function buildTabItems({
           <VersionControlPanel
             entityId={customer.id}
             entityType={EntityType.CUSTOMER}
+            entityName={customer.title}
           />
         ) : null,
     },

@@ -14,6 +14,16 @@ import zhCommon from '@/locales/zh-CN/common';
 import zhDetail from '@/locales/zh-CN/devices/detail';
 import { EntityType } from '@/types/tb';
 
+const panelsMock = vi.hoisted(() => ({
+  CalculatedFieldsTable: vi.fn(({ entityId, mode }) => (
+    <div data-testid="cf-table">{`${mode}:${entityId.id}`}</div>
+  )),
+}));
+
+vi.mock('@/pages/calculated-fields/components/calculated-fields-table', () => ({
+  default: panelsMock.CalculatedFieldsTable,
+}));
+
 import DeviceDetailPage from './index';
 
 const servicesMock = vi.hoisted(() => ({
@@ -273,5 +283,17 @@ describe('device detail page', () => {
       0,
     );
     expect(historyMock.push).not.toHaveBeenCalled();
+  });
+
+  // M14 wave-5 R17: the calculated-fields tab mounts the SHARED table
+  // (entity mode) — the v1 CalculatedFieldsPanel is retired.
+  it('mounts the shared calculated-fields table in entity mode', async () => {
+    renderPage();
+    await screen.findAllByText('m1-test-detail-alpha');
+    fireEvent.click(screen.getByRole('tab', { name: '计算字段' }));
+    await waitFor(() => {
+      expect(screen.getByTestId('cf-table')).toBeTruthy();
+    });
+    expect(screen.getByTestId('cf-table').textContent).toBe('entity:dev-1');
   });
 });

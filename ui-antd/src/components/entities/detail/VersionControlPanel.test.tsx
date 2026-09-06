@@ -1,7 +1,9 @@
 /**
- * Version-control panel tests: repo-not-configured hint, version list +
- * commit payload shape, AntD-ized diff table, restore payload gated by the
- * versioned-data flags.
+ * Version-control panel tests: repo-not-configured hint + the wave-6
+ * "go to settings" jump, version list + commit payload shape (default
+ * version name, per-type flag visibility / force-false), AntD-ized diff
+ * table, restore payload gated by the versioned-data flags — plus the
+ * wave-7 R23b retirement proof (no auto-commit card in the panel).
  */
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
@@ -10,7 +12,11 @@ import React from 'react';
 import { createIntl, RawIntlProvider } from 'react-intl';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import zhDetail from '@/locales/zh-CN/devices/detail';
+import zhVc from '@/locales/zh-CN/vc';
 import { EntityType } from '@/types/tb';
+
+const historyMock = vi.hoisted(() => ({ push: vi.fn() }));
+vi.mock('@umijs/max', () => ({ history: historyMock }));
 
 import VersionControlPanel from './VersionControlPanel';
 
@@ -24,18 +30,29 @@ const servicesMock = vi.hoisted(() => ({
   getEntityDataInfo: vi.fn(),
   loadEntitiesVersion: vi.fn(),
   awaitVersionLoadResult: vi.fn(),
-  getAutoCommitSettings: vi.fn(),
-  saveAutoCommitSettings: vi.fn(),
-  deleteAutoCommitSettings: vi.fn(),
 }));
 
 vi.mock('@/services/tb/version-control', () => servicesMock);
 
-const intl = createIntl({ locale: 'zh-CN', messages: zhDetail });
+const intl = createIntl({
+  locale: 'zh-CN',
+  messages: { ...zhDetail, ...zhVc },
+});
 
 const deviceEntityId = { entityType: EntityType.DEVICE, id: 'dev-1' };
 
-function renderPanel() {
+function renderPanel(
+  overrides: {
+    entityId?: typeof deviceEntityId;
+    entityType?: EntityType;
+    entityName?: string;
+  } = {},
+) {
+  const {
+    entityId = deviceEntityId,
+    entityType = EntityType.DEVICE,
+    entityName,
+  } = overrides;
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
@@ -44,8 +61,9 @@ function renderPanel() {
       <AntdApp>
         <RawIntlProvider value={intl}>
           <VersionControlPanel
-            entityId={deviceEntityId}
-            entityType={EntityType.DEVICE}
+            entityId={entityId}
+            entityType={entityType}
+            entityName={entityName}
           />
         </RawIntlProvider>
       </AntdApp>
@@ -75,7 +93,6 @@ describe('version control panel', () => {
       totalPages: 1,
       hasNext: false,
     });
-    servicesMock.getAutoCommitSettings.mockResolvedValue(null);
     servicesMock.saveEntitiesVersion.mockResolvedValue('req-1');
     servicesMock.awaitVersionCreateResult.mockResolvedValue({
       done: true,
@@ -97,6 +114,26 @@ describe('version control panel', () => {
     renderPanel();
     expect(await screen.findByText(/Git 仓库/)).toBeTruthy();
     expect(screen.queryByRole('button', { name: /提交到仓库/ })).toBeNull();
+  });
+
+  it('offers the go-to-settings jump when unconfigured (spec 6.2-10)', async () => {
+    servicesMock.getRepositorySettingsInfo.mockResolvedValue({
+      configured: false,
+    });
+    renderPanel();
+    fireEvent.click(
+      await screen.findByRole('button', { name: '前往仓库设置配置' }),
+    );
+    expect(historyMock.push).toHaveBeenCalledWith('/settings/repository');
+  });
+
+  it('defaults the commit version name to "<entityName> update"', async () => {
+    renderPanel({ entityName: 'sensor-a' });
+    await screen.findByText('v1');
+
+    fireEvent.click(screen.getByRole('button', { name: /提交到仓库/ }));
+    const nameInput = await screen.findByLabelText('版本名称');
+    expect((nameInput as HTMLInputElement).value).toBe('sensor-a 更新');
   });
 
   it('lists versions and commits with the single-entity payload', async () => {
@@ -124,6 +161,52 @@ describe('version control panel', () => {
         saveCalculatedFields: true,
       },
     });
+  });
+
+  it('hides DEVICE-only flags for CUSTOMER and force-false hidden flags', async () => {
+    renderPanel({
+      entityId: { entityType: EntityType.CUSTOMER, id: 'cust-1' },
+      entityType: EntityType.CUSTOMER,
+      entityName: 'Acme',
+    });
+    await screen.findByText('v1');
+
+    fireEvent.click(screen.getByRole('button', { name: /提交到仓库/ }));
+    await screen.findByLabelText('版本名称');
+    // Credentials are DEVICE-only; calculated fields cover CUSTOMER.
+    expect(screen.queryByText('导出凭证')).toBeNull();
+    expect(screen.getByText('导出计算字段及告警规则')).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: '创建版本' }));
+    await waitFor(() =>
+      expect(servicesMock.saveEntitiesVersion).toHaveBeenCalled(),
+    );
+    const payload = servicesMock.saveEntitiesVersion.mock.calls[0][0];
+    expect(payload.entityId).toEqual({
+      entityType: EntityType.CUSTOMER,
+      id: 'cust-1',
+    });
+    // Hidden flag travels as explicit false (ngx parity).
+    expect(payload.config.saveCredentials).toBe(false);
+    expect(payload.config.saveAttributes).toBe(true);
+    expect(payload.config.saveRelations).toBe(true);
+    expect(payload.config.saveCalculatedFields).toBe(true);
+  });
+
+  it('surfaces nothing-to-commit when the done terminal moved nothing', async () => {
+    servicesMock.awaitVersionCreateResult.mockResolvedValue({
+      done: true,
+      added: 0,
+      modified: 0,
+      removed: 0,
+    });
+    renderPanel();
+    await screen.findByText('v1');
+
+    fireEvent.click(screen.getByRole('button', { name: /提交到仓库/ }));
+    await screen.findByLabelText('版本名称');
+    fireEvent.click(screen.getByRole('button', { name: '创建版本' }));
+    expect(await screen.findByText('无更改可提交')).toBeTruthy();
   });
 
   it('renders the diff as a changed-fields table', async () => {
@@ -174,5 +257,15 @@ describe('version control panel', () => {
         loadCalculatedFields: false,
       },
     });
+  });
+
+  it('no longer renders the v1 auto-commit card (wave-7 R23b retirement)', async () => {
+    renderPanel();
+    await screen.findByText('v1');
+
+    // The tenant-wide auto-commit editor moved to /settings/auto-commit —
+    // the panel carries commit / versions / diff / restore only.
+    expect(screen.queryByText('自动提交设置')).toBeNull();
+    expect(screen.queryByText(/自动提交/)).toBeNull();
   });
 });

@@ -3,26 +3,38 @@
  * with the scope-qualified fqn, the react-1 preview wiring, the Angular
  * placeholder and the edit exit to the M9 editor. The preview stack is
  * mocked at the module boundary (its compile pipeline has its own suite).
+ *
+ * M14 wave-7 (spec 6.2-8): the version-control tab shows for a TENANT_ADMIN
+ * session on a tenant-owned type and stays absent otherwise (the ngx
+ * widget-type-tabs double guard).
  */
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { createIntl, RawIntlProvider } from 'react-intl';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import zhDeviceDetail from '@/locales/zh-CN/devices/detail';
 import zhWidgetTypes from '@/locales/zh-CN/resources/widget-types';
+import zhVc from '@/locales/zh-CN/vc';
 
 const intl = createIntl({
   locale: 'zh-CN',
-  messages: { ...zhWidgetTypes },
+  messages: { ...zhWidgetTypes, ...zhVc, ...zhDeviceDetail },
 });
 
 const historyMock = vi.hoisted(() => ({ push: vi.fn() }));
 const paramsMock = vi.hoisted(() => ({
   widgetTypeId: 'wt-1' as string | undefined,
 }));
+const initialStateMock = vi.hoisted(() => ({
+  initialState: {
+    currentUser: { authority: 'TENANT_ADMIN' },
+  } as unknown,
+}));
 
 vi.mock('@umijs/max', () => ({
   history: historyMock,
   useParams: () => paramsMock,
+  useModel: () => initialStateMock,
 }));
 
 const servicesMock = vi.hoisted(() => ({
@@ -31,6 +43,20 @@ const servicesMock = vi.hoisted(() => ({
 }));
 
 vi.mock('@/services/tb/widget-type', () => servicesMock);
+
+const vcMock = vi.hoisted(() => ({
+  getRepositorySettingsInfo: vi.fn(),
+  listBranches: vi.fn(),
+  listEntityVersions: vi.fn(),
+  saveEntitiesVersion: vi.fn(),
+  awaitVersionCreateResult: vi.fn(),
+  compareEntityDataToVersion: vi.fn(),
+  getEntityDataInfo: vi.fn(),
+  loadEntitiesVersion: vi.fn(),
+  awaitVersionLoadResult: vi.fn(),
+}));
+
+vi.mock('@/services/tb/version-control', () => vcMock);
 
 vi.mock('@/pages/widgets/editor/preview', () => ({
   WidgetPreview: () => <div data-testid="preview-stub" />,
@@ -76,6 +102,7 @@ function renderPage() {
 describe('widget type details page', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vcMock.getRepositorySettingsInfo.mockResolvedValue({ configured: false });
   });
 
   it('renders metadata with the scope-qualified fqn and jumps to the editor', async () => {
@@ -150,5 +177,64 @@ describe('widget type details page', () => {
       await screen.findByTestId('widget-details-angular'),
     ).toBeInTheDocument();
     expect(servicesMock.getWidgetTypeById).not.toHaveBeenCalled();
+  });
+
+  it('mounts the version-control tab for a TA session on a tenant type (spec 6.2-8)', async () => {
+    servicesMock.getWidgetTypeInfoById.mockResolvedValue({
+      id: { entityType: 'WIDGET_TYPE', id: 'wt-1' },
+      tenantId: { entityType: 'TENANT', id: 'tenant-1' },
+      name: '我的卡片',
+      fqn: 'my_card',
+      widgetType: 'latest',
+      descriptor: { type: 'latest' },
+    });
+    renderPage();
+    await screen.findByText('tenant.my_card');
+
+    fireEvent.click(screen.getByRole('tab', { name: '版本控制' }));
+    // the shared panel degrades to the configure-repository hint
+    expect(
+      await screen.findByText(/版本控制需要先在系统设置中配置 Git 仓库/),
+    ).toBeInTheDocument();
+  });
+
+  it('hides the version-control tab for a system type even for TA', async () => {
+    servicesMock.getWidgetTypeInfoById.mockResolvedValue({
+      id: { entityType: 'WIDGET_TYPE', id: 'wt-2' },
+      tenantId: NULL_TENANT,
+      name: 'angular card',
+      fqn: 'angular_card',
+      widgetType: 'timeseries',
+      descriptor: { type: 'timeseries' },
+    });
+    renderPage();
+
+    expect(
+      await screen.findByTestId('widget-details-angular'),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: '版本控制' })).toBeNull();
+  });
+
+  it('hides the version-control tab for an SA session', async () => {
+    (initialStateMock as { initialState: unknown }).initialState = {
+      currentUser: { authority: 'SYS_ADMIN' },
+    };
+    servicesMock.getWidgetTypeInfoById.mockResolvedValue({
+      id: { entityType: 'WIDGET_TYPE', id: 'wt-1' },
+      tenantId: { entityType: 'TENANT', id: 'tenant-1' },
+      name: '我的卡片',
+      fqn: 'my_card',
+      widgetType: 'latest',
+      descriptor: { type: 'latest' },
+    });
+    renderPage();
+
+    expect(await screen.findByText('tenant.my_card')).toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: '版本控制' })).toBeNull();
+
+    // restore the TA session for any later test
+    (initialStateMock as { initialState: unknown }).initialState = {
+      currentUser: { authority: 'TENANT_ADMIN' },
+    };
   });
 });

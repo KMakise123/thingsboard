@@ -5,9 +5,11 @@
  * verifies zh-CN/en-US key parity and cross-file duplicates.
  */
 import account from './zh-CN/account';
+import aiModel from './zh-CN/ai-model';
 import alarms from './zh-CN/alarms';
 import assetProfiles from './zh-CN/asset-profiles';
 import assets from './zh-CN/assets';
+import calculatedFields from './zh-CN/calculated-fields';
 import common from './zh-CN/common';
 import crashGuard from './zh-CN/crash-guard';
 import customers from './zh-CN/customers';
@@ -46,6 +48,7 @@ import settings from './zh-CN/settings';
 import tenantProfiles from './zh-CN/tenant-profiles';
 import tenants from './zh-CN/tenants';
 import users from './zh-CN/users';
+import vc from './zh-CN/vc';
 import widgetKit from './zh-CN/widget-kit';
 
 export default {
@@ -92,4 +95,7 @@ export default {
   ...editorRulechainPage,
   ...ruleNode,
   ...widgetKit,
+  ...vc,
+  ...calculatedFields,
+  ...aiModel,
 };

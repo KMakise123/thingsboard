@@ -2,9 +2,14 @@
  * Settings-general page smoke test: renders both cards from the mocked
  * settings buckets and the per-card undo/save footer reacts to edits.
  * Services are mocked at the module boundary (list-test convention).
+ *
+ * M14 wave-2: the save mock REPLICATES the server save contract (contract
+ * #2) — a payload without the snapshot id is treated as "create" and
+ * rejected with 400 "Admin settings with such name already exists!". The
+ * consecutive-saves test asserts both round-trips carry the id.
  */
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { App as AntdApp } from 'antd';
 import React from 'react';
 import { createIntl, RawIntlProvider } from 'react-intl';
@@ -57,6 +62,7 @@ describe('settings general page', () => {
     getAdminSettings.mockImplementation((key: string) =>
       key === 'general'
         ? Promise.resolve({
+            id: 'snapshot-general-id',
             key: 'general',
             jsonValue: {
               baseUrl: 'http://localhost:8080',
@@ -64,6 +70,7 @@ describe('settings general page', () => {
             },
           })
         : Promise.resolve({
+            id: 'snapshot-connectivity-id',
             key: 'connectivity',
             jsonValue: {
               http: { enabled: true, host: 'localhost', port: 8080 },
@@ -75,10 +82,15 @@ describe('settings general page', () => {
             },
           }),
     );
-    saveAdminSettings.mockResolvedValue({
-      key: 'general',
-      jsonValue: { baseUrl: 'http://x', prohibitDifferentUrl: true },
-    });
+    // Server save contract (contract #2): a body WITHOUT id is "create"
+    // and 400s because the bucket already exists.
+    saveAdminSettings.mockImplementation((body: { id?: string }) =>
+      body.id
+        ? Promise.resolve(body)
+        : Promise.reject(
+            new Error('Admin settings with such name already exists!'),
+          ),
+    );
   });
 
   it('renders both settings cards with per-card undo/save', async () => {
@@ -94,5 +106,54 @@ describe('settings general page', () => {
       // Pristine form keeps save disabled.
       expect(button).toBeDisabled();
     }
+  });
+
+  it('saves twice in a row with the snapshot id in every payload', async () => {
+    renderPage();
+    // Wait for the general snapshot to hydrate the form.
+    const baseUrlInput = (await screen.findByLabelText(
+      '基础 URL',
+    )) as HTMLInputElement;
+    expect(baseUrlInput.value).toBe('http://localhost:8080');
+
+    // First edit + save.
+    fireEvent.change(baseUrlInput, {
+      target: { value: 'http://thingboard.local' },
+    });
+    await waitFor(() => {
+      const generalCard = baseUrlInput.closest('.ant-card');
+      const save = generalCard?.querySelector(
+        'button[type="button"].ant-btn-primary',
+      );
+      expect(save?.hasAttribute('disabled')).toBe(false);
+    });
+    fireEvent.click(screen.getAllByText(/保\s*存/)[0]);
+    await waitFor(() => {
+      expect(saveAdminSettings).toHaveBeenCalledTimes(1);
+    });
+    expect(saveAdminSettings.mock.calls[0][0]).toMatchObject({
+      id: 'snapshot-general-id',
+      key: 'general',
+    });
+
+    // Second edit + save — the "second save must still be 200" regression
+    // (a payload without id would be rejected by the save mock above).
+    await waitFor(() => {
+      expect(
+        screen.getAllByText(/保\s*存/)[0].closest('button'),
+      ).toBeDisabled();
+    });
+    fireEvent.change(screen.getByLabelText('基础 URL') as HTMLInputElement, {
+      target: { value: 'http://thingboard-2.local' },
+    });
+    fireEvent.click(screen.getAllByText(/保\s*存/)[0]);
+    await waitFor(() => {
+      expect(saveAdminSettings).toHaveBeenCalledTimes(2);
+    });
+    expect(saveAdminSettings.mock.calls[1][0]).toMatchObject({
+      id: 'snapshot-general-id',
+      key: 'general',
+      jsonValue: { baseUrl: 'http://thingboard-2.local' },
+    });
   });
 });

@@ -91,11 +91,17 @@ export function DashboardSelect({
   onChange,
   disabled,
   placeholder,
+  selectedLabel,
 }: {
   value?: string;
   onChange?: (value?: string) => void;
   disabled?: boolean;
   placeholder?: string;
+  /**
+   * Display title for the currently selected id when it is outside the
+   * fetched page (antd would otherwise show the raw UUID).
+   */
+  selectedLabel?: string;
 }) {
   const [search, setSearch] = useState('');
   const dashboardsQuery = useQuery({
@@ -103,6 +109,17 @@ export function DashboardSelect({
     queryFn: () =>
       getTenantDashboards({ ...titleSort, textSearch: search || undefined }),
   });
+  const options = (dashboardsQuery.data?.data ?? []).map((dashboard) => ({
+    label: dashboard.title,
+    value: dashboard.id.id,
+  }));
+  if (
+    value &&
+    selectedLabel &&
+    !options.some((option) => option.value === value)
+  ) {
+    options.unshift({ label: selectedLabel, value });
+  }
   return (
     <Select
       allowClear
@@ -113,10 +130,7 @@ export function DashboardSelect({
       filterOption={false}
       disabled={disabled}
       loading={dashboardsQuery.isPending}
-      options={(dashboardsQuery.data?.data ?? []).map((dashboard) => ({
-        label: dashboard.title,
-        value: dashboard.id.id,
-      }))}
+      options={options}
       placeholder={placeholder ?? 'Select a dashboard'}
       style={{ width: '100%' }}
     />

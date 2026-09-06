@@ -12,8 +12,10 @@
  *   - Page indexes are 0-based on the server.
  */
 
+export * from './ai-model';
 export * from './alarm';
 export * from './asset';
+export * from './calculated-fields';
 export * from './customer';
 export * from './dashboard';
 export * from './device';
@@ -22,6 +24,7 @@ export * from './entity';
 export * from './entity-view';
 export * from './ota';
 export * from './page';
+export * from './queue';
 export * from './rule-chain';
 export * from './telemetry';
 export * from './timewindow';

@@ -15,7 +15,6 @@
 
 import type { QueryParams } from '@/core/http/client';
 import type { AlarmSeverity } from '@/types/tb';
-import type { CalculatedFieldConfiguration } from './calculated-fields';
 
 import { tbHttp } from './http';
 import type {
@@ -63,8 +62,13 @@ export interface AlarmRule {
   alarmDetails?: string;
 }
 
-/** ALARM-type calculated-field configuration (ui-ngx CalculatedFieldAlarmRuleConfiguration). */
-export interface AlarmRuleConfiguration extends CalculatedFieldConfiguration {
+/**
+ * ALARM-type calculated-field configuration (ui-ngx
+ * CalculatedFieldAlarmRuleConfiguration). Standalone since M14 wave-1: the
+ * shared CalculatedFieldConfiguration became a discriminated union in
+ * types/tb/calculated-fields.ts, and interfaces cannot extend a union.
+ */
+export interface AlarmRuleConfiguration {
   type: 'ALARM';
   arguments: Record<
     string,

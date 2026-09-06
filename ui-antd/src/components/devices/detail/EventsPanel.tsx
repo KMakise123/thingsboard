@@ -49,15 +49,18 @@ export default function EventsPanel({
   entityId,
   tenantId,
   eventTypes = DEFAULT_EVENT_TYPES,
+  defaultEventType = 'ERROR',
 }: {
   /** Polymorphic entity reference (DEVICE / EDGE / ...). */
   entityId: EntityId;
   tenantId: string;
   /** Filter options; omit for the full device set. */
   eventTypes?: Array<EventTypeId>;
+  /** Initial filter; the CF standalone page passes DEBUG_CALCULATED_FIELD. */
+  defaultEventType?: EventTypeId;
 }) {
   const { formatMessage } = useIntl();
-  const [eventType, setEventType] = useState<EventTypeId>('ERROR');
+  const [eventType, setEventType] = useState<EventTypeId>(defaultEventType);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 

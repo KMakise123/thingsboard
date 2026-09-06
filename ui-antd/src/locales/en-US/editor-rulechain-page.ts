@@ -137,4 +137,5 @@ export default {
   'ruleChains.details.tabEvents': 'Events',
   'ruleChains.details.tabRelations': 'Relations',
   'ruleChains.details.tabAuditLogs': 'Audit logs',
+  'ruleChains.details.tabVersionControl': 'Version control',
 };

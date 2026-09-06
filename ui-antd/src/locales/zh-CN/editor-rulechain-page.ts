@@ -133,4 +133,5 @@ export default {
   'ruleChains.details.tabEvents': '事件',
   'ruleChains.details.tabRelations': '关联',
   'ruleChains.details.tabAuditLogs': '审计日志',
+  'ruleChains.details.tabVersionControl': '版本控制',
 };

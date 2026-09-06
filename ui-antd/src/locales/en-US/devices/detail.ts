@@ -266,36 +266,6 @@ export default {
   'pages.devices.detail.auditAction.DELETED_COMMENT': 'Comment deleted',
   'pages.devices.detail.auditAction.SMS_SENT': 'SMS sent',
 
-  // calculated fields tab
-  'pages.devices.detail.cfCreatedTime': 'Created time',
-  'pages.devices.detail.cfName': 'Name',
-  'pages.devices.detail.cfNameRequired': 'Name is required.',
-  'pages.devices.detail.cfType': 'Type',
-  'pages.devices.detail.cfType.SIMPLE': 'Simple expression',
-  'pages.devices.detail.cfType.SCRIPT': 'Script',
-  'pages.devices.detail.cfType.GEOFENCING': 'Geofencing',
-  'pages.devices.detail.cfType.ALARM': 'Alarm',
-  'pages.devices.detail.cfType.PROPAGATION': 'Propagation',
-  'pages.devices.detail.cfType.RELATED_ENTITIES_AGGREGATION':
-    'Related entities aggregation',
-  'pages.devices.detail.cfType.ENTITY_AGGREGATION': 'Entity aggregation',
-  'pages.devices.detail.cfAdd': 'Add calculated field',
-  'pages.devices.detail.cfAddTitle': 'Add calculated field',
-  'pages.devices.detail.cfEditTitle': 'Edit calculated field: {name}',
-  'pages.devices.detail.cfDeleteTitle': "Delete calculated field ''{name}''?",
-  'pages.devices.detail.cfSaved': 'Calculated field saved.',
-  'pages.devices.detail.cfDeleted': 'Calculated field deleted.',
-  'pages.devices.detail.cfLoadFailed': 'Failed to load calculated fields',
-  'pages.devices.detail.cfEmpty': 'No calculated fields',
-  'pages.devices.detail.cfDebugMode': 'Debug mode',
-  'pages.devices.detail.cfArgument': 'Argument key (referenced as `a`)',
-  'pages.devices.detail.cfArgumentRequired': 'Argument key is required.',
-  'pages.devices.detail.cfArgTelemetry': 'telemetry',
-  'pages.devices.detail.cfArgAttribute': 'attribute',
-  'pages.devices.detail.cfNoKeys': 'No keys found on this device yet',
-  'pages.devices.detail.cfExpression': 'Expression (e.g. a * 2)',
-  'pages.devices.detail.cfExpressionRequired': 'Expression is required.',
-
   // alarm rules tab
   'pages.devices.detail.ruleCreatedTime': 'Created time',
   'pages.devices.detail.ruleName': 'Alarm type',
@@ -370,10 +340,4 @@ export default {
     'Version restored (created {created}, updated {updated}, deleted {deleted}).',
   'pages.devices.detail.vcInfoLoadFailed':
     'Failed to load the versioned data info',
-  'pages.devices.detail.vcAutoCommitTitle': 'Auto-commit settings',
-  'pages.devices.detail.vcAutoCommitEnable': 'Auto-commit this device on save',
-  'pages.devices.detail.vcAutoCommitDefaultBranch': 'Repository default branch',
-  'pages.devices.detail.vcAutoCommitSaved': 'Auto-commit settings saved.',
-  'pages.devices.detail.vcAutoCommitLoadFailed':
-    'Failed to load auto-commit settings',
 };

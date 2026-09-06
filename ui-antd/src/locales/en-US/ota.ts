@@ -73,6 +73,8 @@ export default {
 
   // detail page
   'pages.ota.detailLoadFailed': 'Failed to load the package',
+  'pages.ota.tabDetails': 'Details',
+  'pages.ota.tabVersionControl': 'Version control',
   'pages.ota.description': 'Description',
   'pages.ota.contentType': 'Content type',
   'pages.ota.url': 'URL',

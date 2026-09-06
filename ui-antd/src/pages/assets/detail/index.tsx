@@ -26,7 +26,6 @@ import AlarmRulesPanel from '@/components/entities/detail/AlarmRulesPanel';
 import AlarmsPanel from '@/components/entities/detail/AlarmsPanel';
 import AttributesPanel from '@/components/entities/detail/AttributesPanel';
 import AuditLogsPanel from '@/components/entities/detail/AuditLogsPanel';
-import CalculatedFieldsPanel from '@/components/entities/detail/CalculatedFieldsPanel';
 import {
   assembleDetailTabs,
   type DetailTabEntry,
@@ -36,6 +35,7 @@ import RelationsPanel from '@/components/entities/detail/RelationsPanel';
 import VersionControlPanel from '@/components/entities/detail/VersionControlPanel';
 import { serverErrorText } from '@/components/entities/server-error-text';
 import PageContainer from '@/components/layout/page-container';
+import CalculatedFieldsTable from '@/pages/calculated-fields/components/calculated-fields-table';
 import {
   getAssetInfoById,
   unassignAssetFromCustomer,
@@ -344,7 +344,13 @@ function buildTabItems({
         defaultMessage: 'Calculated fields',
       }),
       render: () =>
-        asset ? <CalculatedFieldsPanel entityId={asset.id} /> : null,
+        asset ? (
+          <CalculatedFieldsTable
+            mode="entity"
+            entityId={asset.id}
+            tenantId={asset.tenantId?.id ?? ''}
+          />
+        ) : null,
     },
     {
       key: 'alarm-rules',
@@ -397,6 +403,7 @@ function buildTabItems({
           <VersionControlPanel
             entityId={asset.id}
             entityType={EntityType.ASSET}
+            entityName={asset.name}
           />
         ) : null,
     },

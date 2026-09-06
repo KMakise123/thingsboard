@@ -32,6 +32,11 @@ const intl = createIntl({ locale: 'zh-CN', messages: { ...zhSent } });
 vi.mock('@umijs/max', () => ({
   useSelectedRoutes: () => [],
   useAppData: () => ({ clientRoutes: [] }),
+  // The send wizard (M14 6.5-1) reads the session authority to pick the
+  // unconfigured-delivery-method hint (link for SA/TA, copy for CU).
+  useModel: () => ({
+    initialState: { currentUser: { authority: 'TENANT_ADMIN' } },
+  }),
 }));
 
 const servicesMock = vi.hoisted(() => ({
