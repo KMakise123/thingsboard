@@ -327,9 +327,4 @@ export default {
   'pages.devices.detail.vcRestoreDone':
     '版本已恢复（新建 {created}，更新 {updated}，删除 {deleted}）。',
   'pages.devices.detail.vcInfoLoadFailed': '版本数据信息加载失败',
-  'pages.devices.detail.vcAutoCommitTitle': '自动提交设置',
-  'pages.devices.detail.vcAutoCommitEnable': '保存设备时自动提交',
-  'pages.devices.detail.vcAutoCommitDefaultBranch': '仓库默认分支',
-  'pages.devices.detail.vcAutoCommitSaved': '自动提交设置已保存。',
-  'pages.devices.detail.vcAutoCommitLoadFailed': '自动提交设置加载失败',
 };

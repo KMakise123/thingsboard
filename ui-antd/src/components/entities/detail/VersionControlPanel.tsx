@@ -4,9 +4,9 @@
  * Parity with ui-ngx's entity version-control tab, AntD-ized and in-place
  * (spec principle 4 — never navigates to the VC standalone page): commit
  * this entity to the repository, version list, compare-with-current diff
- * (rendered as a changed-fields table) and restore. Plus the auto-commit
- * settings for DEVICE, scoped to its own settings entry (retirement is
- * M14 wave-7, R23b).
+ * (rendered as a changed-fields table) and restore. Polymorphic over
+ * `{entityId, entityType}` — the six entity details plus the wave-7 hosts
+ * (OTA package / widget type / rule chain dialog, spec 6.2-8) share it.
  *
  * M14 wave-6 upgrades (spec 6.2-6 + 6.2-10): the create dialog defaults
  * the version name to "<entityName> update", shows per-family flags per
@@ -18,6 +18,11 @@
  * "go to settings" jump to /settings/repository. The ngx CUSTOMER-only
  * "export/load alarm rules" wording branch is registered-not-implemented —
  * the combined "calculated fields and alarm rules" label covers it.
+ *
+ * M14 wave-7 (R23b): the v1 AutoCommitCard retired — the tenant-wide
+ * auto-commit settings live on /settings/auto-commit (one editor face, no
+ * double-write on the same map). Restores still invalidate every cached
+ * query, so host lists refresh without per-host callbacks.
  *
  * Without a configured repository the tab degrades to a hint + jump
  * instead of dead forms.
@@ -33,7 +38,6 @@ import {
   Alert,
   App,
   Button,
-  Card,
   Checkbox,
   Flex,
   Form,
@@ -66,14 +70,11 @@ import {
   awaitVersionCreateResult,
   awaitVersionLoadResult,
   compareEntityDataToVersion,
-  deleteAutoCommitSettings,
-  getAutoCommitSettings,
   getEntityDataInfo,
   getRepositorySettingsInfo,
   listBranches,
   listEntityVersions,
   loadEntitiesVersion,
-  saveAutoCommitSettings,
   saveEntitiesVersion,
 } from '@/services/tb/version-control';
 import type { EntityId, EntityType } from '@/types/tb';
@@ -413,8 +414,6 @@ function VersionControlContent({
           }),
         }}
       />
-
-      <AutoCommitCard branches={branches} entityType={entityType} />
 
       <CommitModal
         open={commitOpen}
@@ -1021,193 +1020,5 @@ function RestoreModal({
         </Form>
       )}
     </Modal>
-  );
-}
-
-interface AutoCommitFormValues {
-  enabled: boolean;
-  branch?: string;
-  saveCredentials: boolean;
-  saveAttributes: boolean;
-  saveRelations: boolean;
-  saveCalculatedFields: boolean;
-}
-
-/**
- * Auto-commit settings for the panel's entity type (the tenant-wide store
- * keeps other entity types' entries; this card only reads/writes its own
- * entry, and deletes the whole settings object once the map would be empty).
- */
-function AutoCommitCard({
-  branches,
-  entityType,
-}: {
-  branches: Array<BranchInfo>;
-  entityType: EntityType;
-}) {
-  const { formatMessage } = useIntl();
-  const { message } = App.useApp();
-  const queryClient = useQueryClient();
-  const [form] = Form.useForm<AutoCommitFormValues>();
-
-  const settingsQuery = useQuery({
-    queryKey: ['vc-autocommit'],
-    queryFn: getAutoCommitSettings,
-  });
-  const settings = settingsQuery.data ?? {};
-  const domainEntry = settings[entityType];
-
-  useEffect(() => {
-    form.setFieldsValue({
-      enabled: !!domainEntry,
-      branch: domainEntry?.branch,
-      saveCredentials: domainEntry?.saveCredentials ?? true,
-      saveAttributes: domainEntry?.saveAttributes ?? true,
-      saveRelations: domainEntry?.saveRelations ?? true,
-      saveCalculatedFields: domainEntry?.saveCalculatedFields ?? true,
-    });
-  }, [domainEntry, form]);
-
-  const saveMutation = useMutation({
-    mutationFn: async (values: AutoCommitFormValues) => {
-      const { [entityType]: _removed, ...others } = settings;
-      if (!values.enabled) {
-        if (Object.keys(others).length > 0) {
-          return saveAutoCommitSettings(others);
-        }
-        return deleteAutoCommitSettings();
-      }
-      return saveAutoCommitSettings({
-        ...others,
-        [entityType]: {
-          branch: values.branch,
-          saveCredentials: values.saveCredentials,
-          saveAttributes: values.saveAttributes,
-          saveRelations: values.saveRelations,
-          saveCalculatedFields: values.saveCalculatedFields,
-        },
-      });
-    },
-    onSuccess: () => {
-      void message.success(
-        formatMessage({
-          id: 'pages.devices.detail.vcAutoCommitSaved',
-          defaultMessage: 'Auto-commit settings saved.',
-        }),
-      );
-      void queryClient.invalidateQueries({ queryKey: ['vc-autocommit'] });
-    },
-    onError: (error) => void message.error(serverErrorText(error)),
-  });
-
-  const enabled = Form.useWatch('enabled', form);
-
-  return (
-    <Card
-      size="small"
-      title={formatMessage({
-        id: 'pages.devices.detail.vcAutoCommitTitle',
-        defaultMessage: 'Auto-commit settings',
-      })}
-    >
-      {settingsQuery.isError && (
-        <Alert
-          className="!mb-3"
-          type="error"
-          showIcon
-          message={formatMessage({
-            id: 'pages.devices.detail.vcAutoCommitLoadFailed',
-            defaultMessage: 'Failed to load auto-commit settings',
-          })}
-          description={serverErrorText(settingsQuery.error)}
-        />
-      )}
-      <Form<AutoCommitFormValues>
-        form={form}
-        layout="vertical"
-        onFinish={(values) => saveMutation.mutate(values)}
-      >
-        <Form.Item name="enabled" valuePropName="checked" noStyle>
-          <Checkbox>
-            {formatMessage({
-              id: 'pages.devices.detail.vcAutoCommitEnable',
-              defaultMessage: 'Auto-commit this device on save',
-            })}
-          </Checkbox>
-        </Form.Item>
-        {enabled && (
-          <Flex vertical gap={8} className="pt-3">
-            <Form.Item
-              name="branch"
-              label={formatMessage({
-                id: 'pages.devices.detail.vcBranch',
-                defaultMessage: 'Branch',
-              })}
-              className="!mb-0"
-            >
-              <BranchSelect
-                branches={branches}
-                freeInput
-                allowClear
-                defaultHint={false}
-                placeholder={formatMessage({
-                  id: 'pages.devices.detail.vcAutoCommitDefaultBranch',
-                  defaultMessage: 'Repository default branch',
-                })}
-              />
-            </Form.Item>
-            <Space wrap>
-              <Form.Item name="saveCredentials" valuePropName="checked" noStyle>
-                <Checkbox>
-                  {formatMessage({
-                    id: 'pages.devices.detail.vcSaveCredentials',
-                    defaultMessage: 'Export credentials',
-                  })}
-                </Checkbox>
-              </Form.Item>
-              <Form.Item name="saveAttributes" valuePropName="checked" noStyle>
-                <Checkbox>
-                  {formatMessage({
-                    id: 'pages.devices.detail.vcSaveAttributes',
-                    defaultMessage: 'Export attributes',
-                  })}
-                </Checkbox>
-              </Form.Item>
-              <Form.Item name="saveRelations" valuePropName="checked" noStyle>
-                <Checkbox>
-                  {formatMessage({
-                    id: 'pages.devices.detail.vcSaveRelations',
-                    defaultMessage: 'Export relations',
-                  })}
-                </Checkbox>
-              </Form.Item>
-              <Form.Item
-                name="saveCalculatedFields"
-                valuePropName="checked"
-                noStyle
-              >
-                <Checkbox>
-                  {formatMessage({
-                    id: 'pages.devices.detail.vcSaveCalculatedFields',
-                    defaultMessage: 'Export calculated fields',
-                  })}
-                </Checkbox>
-              </Form.Item>
-            </Space>
-          </Flex>
-        )}
-        <Button
-          type="primary"
-          htmlType="submit"
-          loading={saveMutation.isPending}
-          className="mt-3"
-        >
-          {formatMessage({
-            id: 'pages.devices.detail.save',
-            defaultMessage: 'Save',
-          })}
-        </Button>
-      </Form>
-    </Card>
   );
 }

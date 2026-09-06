@@ -340,10 +340,4 @@ export default {
     'Version restored (created {created}, updated {updated}, deleted {deleted}).',
   'pages.devices.detail.vcInfoLoadFailed':
     'Failed to load the versioned data info',
-  'pages.devices.detail.vcAutoCommitTitle': 'Auto-commit settings',
-  'pages.devices.detail.vcAutoCommitEnable': 'Auto-commit this device on save',
-  'pages.devices.detail.vcAutoCommitDefaultBranch': 'Repository default branch',
-  'pages.devices.detail.vcAutoCommitSaved': 'Auto-commit settings saved.',
-  'pages.devices.detail.vcAutoCommitLoadFailed':
-    'Failed to load auto-commit settings',
 };
