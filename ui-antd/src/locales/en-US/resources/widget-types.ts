@@ -40,6 +40,8 @@ export default {
   'pages.resources.widgetTypes.exportSelected': 'Export selected',
   'pages.resources.widgetTypes.details': 'Widget details',
   'pages.resources.widgetTypes.edit': 'Edit widget',
+  'pages.resources.widgetTypes.tabDetails': 'Details',
+  'pages.resources.widgetTypes.tabVersionControl': 'Version control',
   'pages.resources.widgetTypes.delete': 'Delete widget type',
   'pages.resources.widgetTypes.deleteTitle':
     "Are you sure you want to delete the widget type '{name}'?",

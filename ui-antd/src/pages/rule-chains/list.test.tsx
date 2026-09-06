@@ -17,13 +17,15 @@ import React from 'react';
 import { createIntl, RawIntlProvider } from 'react-intl';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import zhCommon from '@/locales/zh-CN/common';
+import zhDeviceDetail from '@/locales/zh-CN/devices/detail';
 import zhPage from '@/locales/zh-CN/editor-rulechain-page';
 import zhMenu from '@/locales/zh-CN/menu';
+import zhVc from '@/locales/zh-CN/vc';
 import { EntityType } from '@/types/tb';
 
 const intl = createIntl({
   locale: 'zh-CN',
-  messages: { ...zhCommon, ...zhMenu, ...zhPage },
+  messages: { ...zhCommon, ...zhMenu, ...zhPage, ...zhVc, ...zhDeviceDetail },
 });
 
 const historyMock = vi.hoisted(() => ({ push: vi.fn() }));
@@ -79,6 +81,24 @@ vi.mock('@/services/tb/audit-log', () => ({
     totalPages: 0,
     hasNext: false,
   }),
+}));
+
+// the details-dialog version-control tab resolves through the shared panel
+vi.mock('@/services/tb/version-control', () => ({
+  getRepositorySettingsInfo: vi.fn().mockResolvedValue({ configured: false }),
+  listBranches: vi.fn().mockResolvedValue([]),
+  listEntityVersions: vi.fn().mockResolvedValue({
+    data: [],
+    totalElements: 0,
+    totalPages: 0,
+    hasNext: false,
+  }),
+  saveEntitiesVersion: vi.fn(),
+  awaitVersionCreateResult: vi.fn(),
+  compareEntityDataToVersion: vi.fn(),
+  getEntityDataInfo: vi.fn(),
+  loadEntitiesVersion: vi.fn(),
+  awaitVersionLoadResult: vi.fn(),
 }));
 
 // vite-node cannot resolve antd's extensionless internal locale imports
@@ -361,5 +381,22 @@ describe('ruleChains list page', () => {
     await waitFor(() => {
       expect(serviceMock.getRuleChains).toHaveBeenCalled();
     });
+  });
+
+  it('details dialog mounts the version-control tab (spec 6.2-8)', async () => {
+    renderPage();
+    await screen.findByText('Thermostats Chain');
+
+    fireEvent.click(screen.getByTestId('rc-more-rc-2'));
+    fireEvent.click(await screen.findByText('详情'));
+
+    const dialog = await screen.findByTestId('rc-details-dialog');
+    fireEvent.click(
+      within(dialog as HTMLElement).getByRole('tab', { name: '版本控制' }),
+    );
+    // the shared panel degrades to the configure-repository hint
+    expect(
+      await screen.findByText(/版本控制需要先在系统设置中配置 Git 仓库/),
+    ).toBeInTheDocument();
   });
 });

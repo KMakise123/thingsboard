@@ -5,6 +5,12 @@
  * alarms, relations, audit-logs — plus the wave-3 D DEBUG_RULE_CHAIN events
  * table. TA-only surface by route (canTenantAdmin), so readOnly is always
  * false in practice; the panels still receive it for shape parity.
+ *
+ * M14 wave-7 (spec 6.2-8): the version-control tab mounts the shared
+ * VersionControlPanel (ui-ngx rulechain-tabs parity, TENANT_ADMIN-only
+ * tab — the route access carries the guard). A restore refreshes the
+ * cached queries from inside the panel, so the host list updates without
+ * an explicit callback.
  */
 import { Modal, Tabs } from 'antd';
 import { useIntl } from 'react-intl';
@@ -12,8 +18,10 @@ import AlarmsPanel from '@/components/entities/detail/AlarmsPanel';
 import AttributesPanel from '@/components/entities/detail/AttributesPanel';
 import AuditLogsPanel from '@/components/entities/detail/AuditLogsPanel';
 import RelationsPanel from '@/components/entities/detail/RelationsPanel';
+import VersionControlPanel from '@/components/entities/detail/VersionControlPanel';
 import type { EntityIdOf, EntityType } from '@/types/tb';
 import { AttributeScope } from '@/types/tb';
+import { EntityType as EntityTypeEnum } from '@/types/tb/entity';
 import type { RuleChain } from '@/types/tb/rule-chain';
 
 import { DebugEventsTable } from '../editor/events/debug-events-table';
@@ -96,6 +104,20 @@ export function RuleChainDetailsDialog({
               'Audit logs',
             ),
             children: <AuditLogsPanel entityId={entityId} />,
+          },
+          {
+            ...tab(
+              'version-control',
+              'ruleChains.details.tabVersionControl',
+              'Version control',
+            ),
+            children: (
+              <VersionControlPanel
+                entityId={entityId}
+                entityType={EntityTypeEnum.RULE_CHAIN}
+                entityName={chain.name}
+              />
+            ),
           },
         ]}
       />

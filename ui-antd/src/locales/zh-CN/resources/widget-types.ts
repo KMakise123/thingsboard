@@ -40,6 +40,8 @@ export default {
   'pages.resources.widgetTypes.exportSelected': '导出所选',
   'pages.resources.widgetTypes.details': '部件详情',
   'pages.resources.widgetTypes.edit': '编辑部件',
+  'pages.resources.widgetTypes.tabDetails': '详情',
+  'pages.resources.widgetTypes.tabVersionControl': '版本控制',
   'pages.resources.widgetTypes.delete': '删除部件类型',
   'pages.resources.widgetTypes.deleteTitle': '确定要删除部件类型“{name}”吗？',
   'pages.resources.widgetTypes.deleteText':

@@ -6,6 +6,10 @@
  * are mocked at the module boundary — the module exposes no full-entity
  * reader, so the forbidden GET /api/otaPackage/{id} is unreachable by
  * construction.
+ *
+ * M14 wave-7 (spec 6.2-8): the two-tab layout — the version-control tab
+ * mounts the shared panel for tenant packages and stays absent for system
+ * ones (isTenantOtaUpdate semantics).
  */
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
@@ -19,15 +23,17 @@ import { App as AntdApp } from 'antd';
 import React from 'react';
 import { createIntl, RawIntlProvider } from 'react-intl';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import zhDeviceDetail from '@/locales/zh-CN/devices/detail';
 import zhMenu from '@/locales/zh-CN/menu';
 import zhOta from '@/locales/zh-CN/ota';
+import zhVc from '@/locales/zh-CN/vc';
 import { EntityType } from '@/types/tb';
 import type { OtaPackageInfo } from '@/types/tb/ota';
 import { OtaPackageType } from '@/types/tb/ota';
 
 const intl = createIntl({
   locale: 'zh-CN',
-  messages: { ...zhMenu, ...zhOta },
+  messages: { ...zhMenu, ...zhOta, ...zhVc, ...zhDeviceDetail },
 });
 
 const historyMock = vi.hoisted(() => ({ push: vi.fn() }));
@@ -51,10 +57,23 @@ const deviceMock = vi.hoisted(() => ({
   getDeviceProfiles: vi.fn(),
 }));
 
+const vcMock = vi.hoisted(() => ({
+  getRepositorySettingsInfo: vi.fn(),
+  listBranches: vi.fn(),
+  listEntityVersions: vi.fn(),
+  saveEntitiesVersion: vi.fn(),
+  awaitVersionCreateResult: vi.fn(),
+  compareEntityDataToVersion: vi.fn(),
+  getEntityDataInfo: vi.fn(),
+  loadEntitiesVersion: vi.fn(),
+  awaitVersionLoadResult: vi.fn(),
+}));
+
 const downloadBlobMock = vi.hoisted(() => ({ downloadBlob: vi.fn() }));
 
 vi.mock('@/services/tb/ota', () => otaMock);
 vi.mock('@/services/tb/device', () => deviceMock);
+vi.mock('@/services/tb/version-control', () => vcMock);
 vi.mock('@/components/shared/download-blob', () => downloadBlobMock);
 
 vi.mock('@ant-design/pro-components', () => ({
@@ -78,6 +97,7 @@ function fixture(extra: Partial<OtaPackageInfo> = {}): OtaPackageInfo {
   return {
     id: { entityType: EntityType.OTA_PACKAGE, id: 'pkg-1' },
     createdTime: 1_700_000_000_000,
+    tenantId: { entityType: EntityType.TENANT, id: 'tenant-1' },
     title: 'Firmware A',
     version: 'v1.0',
     tag: 'stable',
@@ -102,6 +122,14 @@ const URL_PACKAGE = fixture({
   contentType: undefined,
   checksumAlgorithm: undefined,
   checksum: undefined,
+});
+/** System-scoped package (tenantId = the NULL tenant uuid). */
+const SYS_PACKAGE = fixture({
+  id: { entityType: EntityType.OTA_PACKAGE, id: 'pkg-sys' },
+  tenantId: {
+    entityType: EntityType.TENANT,
+    id: '13814000-1dd2-11b2-8080-808080808080',
+  },
 });
 
 const PROFILES_PAGE = {
@@ -132,11 +160,15 @@ function renderPage() {
 }
 
 beforeEach(() => {
+  // The tab URL state reads window.location.search — pin a clean URL per
+  // test (devices/assets detail test precedent).
+  window.history.replaceState({}, '', '/otaPackages/pkg-1');
   otaMock.getOtaPackageInfo.mockResolvedValue(FILE_PACKAGE);
   otaMock.saveOtaPackageInfo.mockResolvedValue(FILE_PACKAGE);
   otaMock.deleteOtaPackage.mockResolvedValue(undefined);
   otaMock.downloadOtaPackage.mockResolvedValue(new Blob(['bytes']));
   deviceMock.getDeviceProfiles.mockResolvedValue(PROFILES_PAGE);
+  vcMock.getRepositorySettingsInfo.mockResolvedValue({ configured: false });
   Object.defineProperty(navigator, 'clipboard', {
     value: { writeText: vi.fn().mockResolvedValue(undefined) },
     configurable: true,
@@ -281,5 +313,26 @@ describe('OtaPackageDetailPage', () => {
     await waitFor(() => {
       expect(historyMock.push).toHaveBeenCalledWith('/otaPackages');
     });
+  });
+
+  it('mounts the version-control tab for a tenant package (spec 6.2-8)', async () => {
+    renderPage();
+    await screen.findByLabelText('标题');
+
+    fireEvent.click(screen.getByRole('tab', { name: '版本控制' }));
+    // The shared panel takes over: repo-not-configured hint (mocked gate)
+    // instead of the frozen details form.
+    expect(
+      await screen.findByText(/版本控制需要先在系统设置中配置 Git 仓库/),
+    ).toBeInTheDocument();
+  });
+
+  it('hides the version-control tab for a system package (isTenantOtaUpdate)', async () => {
+    otaMock.getOtaPackageInfo.mockResolvedValue(SYS_PACKAGE);
+    renderPage();
+    await screen.findByLabelText('标题');
+
+    expect(screen.queryByRole('tab', { name: '版本控制' })).toBeNull();
+    expect(screen.getByRole('tab', { name: '详情' })).toBeInTheDocument();
   });
 });
