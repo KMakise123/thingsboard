@@ -16,28 +16,28 @@ const I18N_PATTERN = /\{i18n:([^}]+)\}/g;
 const I18N_MESSAGES: Record<string, Record<'zh' | 'en', string>> = {
   'api-usage.queue-stats': { zh: '队列统计', en: 'Queue Stats' },
   'api-usage.successful': {
-    zh: '${entityName} 成功',
-    en: '${entityName} Successful',
+    zh: `\${entityName} 成功`,
+    en: `\${entityName} Successful`,
   },
   'api-usage.processing-timeouts': {
-    zh: '${entityName} 处理超时',
-    en: '${entityName} Processing Timeouts',
+    zh: `\${entityName} 处理超时`,
+    en: `\${entityName} Processing Timeouts`,
   },
   'api-usage.processing-failures': {
-    zh: '${entityName} 处理失败',
-    en: '${entityName} Processing Failures',
+    zh: `\${entityName} 处理失败`,
+    en: `\${entityName} Processing Failures`,
   },
   'api-usage.processing-failures-and-timeouts': {
     zh: '处理失败和超时',
     en: 'Processing Failures and Timeouts',
   },
   'api-usage.permanent-timeouts': {
-    zh: '${entityName} 永久超时',
-    en: '${entityName} Permanent Timeouts',
+    zh: `\${entityName} 永久超时`,
+    en: `\${entityName} Permanent Timeouts`,
   },
   'api-usage.permanent-failures': {
-    zh: '${entityName} 永久失败',
-    en: '${entityName} Permanent Failures',
+    zh: `\${entityName} 永久失败`,
+    en: `\${entityName} Permanent Failures`,
   },
   'widgets.maps.layer.roadmap': { zh: '路线图', en: 'Roadmap' },
   'widgets.maps.layer.satellite': { zh: '卫星图', en: 'Satellite' },
