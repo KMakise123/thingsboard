@@ -138,7 +138,6 @@ export default function SettingsOutgoingMailPage() {
           name: url.host,
         } as RedirectDomainValues;
         domainForm.setFieldsValue(parsed);
-        setRedirectDomain(parsed);
       } catch {
         // Unparsable redirect URI: leave the builder at its defaults.
       }
@@ -161,6 +160,10 @@ export default function SettingsOutgoingMailPage() {
   }, [domainForm]);
 
   // Redirect-URI preview follows the builder fields (ui-ngx redirectURI()).
+  // The nested form seeds its store through initialValues AND the mirror
+  // below: antd's onValuesChange second arg only carries REGISTERED values,
+  // so a field the user never touched must still default (a pristine
+  // scheme used to crash this memo — patched M14 wave-2).
   const [redirectDomain, setRedirectDomain] = useState<RedirectDomainValues>({
     scheme: 'HTTPS',
     name: window.location.hostname,
@@ -170,7 +173,8 @@ export default function SettingsOutgoingMailPage() {
     if (!redirectDomain.name) {
       return '';
     }
-    return `${redirectDomain.scheme.toLowerCase()}://${redirectDomain.name}${loginProcessingUrl}`;
+    const scheme = (redirectDomain.scheme ?? 'HTTPS').toLowerCase();
+    return `${scheme}://${redirectDomain.name}${loginProcessingUrl}`;
   }, [redirectDomain, loginProcessingUrl]);
 
   // OFFICE_365 derives the URIs from the tenant id (ui-ngx %s template).
@@ -244,7 +248,9 @@ export default function SettingsOutgoingMailPage() {
       // Locked password stays server-side: never send a stale value.
       delete json.password;
     }
-    return { key: 'mail', jsonValue: json };
+    // Save contract (M14 wave-2, contract #2): echo the snapshot id —
+    // a body without id means "create" and a second save would 400.
+    return { id: snapshot?.id, key: 'mail', jsonValue: json };
   };
 
   const saveMutation = useMutation({
@@ -847,6 +853,10 @@ export default function SettingsOutgoingMailPage() {
                 <Form<RedirectDomainValues>
                   form={domainForm}
                   layout="vertical"
+                  initialValues={{
+                    scheme: 'HTTPS',
+                    name: window.location.hostname,
+                  }}
                   onValuesChange={(_, values) => {
                     setDomainDirty(true);
                     setRedirectDomain(values as RedirectDomainValues);
@@ -907,6 +917,7 @@ export default function SettingsOutgoingMailPage() {
                 >
                   <Input
                     readOnly
+                    id="redirectUriPreview"
                     value={redirectUriPreview}
                     suffix={<CopyButton text={redirectUriPreview} />}
                   />
