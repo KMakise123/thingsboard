@@ -401,6 +401,7 @@
 - securitySettings 的 passwordPolicy 全字段无 @Min/@Max（`UserPasswordPolicy.java:25-48`，可存出 min>max 死锁策略）：前端规避 = maximumLength ≥ minimumLength 联动校验 + 各字段范围（照 ngx 前端）；后端补约束另立 issue。
 - `POST /api/admin/jwtSettings` 保存即签发新 token 对（旧 token 是否失效取决于签名 key 是否变更）：前端规避 = 保存成功就地换发会话（6.4-3 交互链整体对齐）。
 - VC DeferredResult 180s 超时（大 repo 首次 clone 可能顶满，`EntitiesVersionControlController.java:88-89`）：前端 loading/重试按此设计；超时错误形态（AsyncRequestTimeoutException → 500）进错误映射占位。
+- VC 裸仓首次提交前 `listVersions` 500（unborn HEAD，JGit 对空仓无 ref，wave-6 真机实测）：前端按错误 Alert 呈现不崩溃，首次 commit 后自愈——登记为后端行为契约，走查作业单需先做 create 再查版本表。
 - VC swagger 注释 8 种可版本化类型滞后（实际 16 种，`DefaultEntitiesExportImportService.java:67-74`）：验收以真仓实测为准；后端实测不支持的类型走 errata 登记，不擅自裁前端清单。
 - 上游 TS 模型滞后三处对照：ngx `CalculatedFieldGeofencingConfiguration` 漏 entityCoordinates、`RepositorySettings` 漏 readOnly、`UserPasswordPolicy` 漏 passwordReuseFrequencyDays——antd 建模一律补全（后端字段均实存），不照抄缺口。
 - 上游小瑕疵对照：ai-model 对话框标题不随 add/edit 切换；ngx TS 模型 RELATED/ENTITY_AGGREGATION 的 output.decimalsByDefault 字段 UI 不渲染（payload 直传保留）——antd 按「模型补全、UI 照 ngx 面呈现」处理，注释留痕。
