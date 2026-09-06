@@ -9,6 +9,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { createIntl, RawIntlProvider } from 'react-intl';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import zhVc from '@/locales/zh-CN/vc';
+import { ServerErrorError } from '@/core/http/server-error';
 
 const servicesMock = vi.hoisted(() => ({
   listBranches: vi.fn(),
@@ -113,5 +114,30 @@ describe('versions table', () => {
     expect((create as HTMLButtonElement).disabled).toBe(true);
     const restore = screen.getByRole('button', { name: '恢复版本' });
     expect((restore as HTMLButtonElement).disabled).toBe(false);
+  });
+
+  // Walkthrough B (M14 spec 6.2-3/6.7): a bare repo before its first commit
+  // makes listVersions 500 ("Failed to resolve 'origin/main'"), which the
+  // hidden-tab walkthrough environment cannot observe live (timers frozen)
+  // — the error Alert with the verbatim server detail is pinned here.
+  it('surfaces a load error with the verbatim server detail', async () => {
+    servicesMock.listVersions.mockRejectedValue(
+      new ServerErrorError({
+        status: 500,
+        errorCode: 2,
+        titleKey: 'error.server',
+        detail: "Failed to resolve 'origin/main'",
+        timestamp: 0,
+        message: "Failed to resolve 'origin/main'",
+      } as never),
+    );
+    renderTable();
+
+    expect(
+      await screen.findByText(/版本列表加载失败|Failed to load versions/),
+    ).toBeTruthy();
+    expect(
+      await screen.findByText("Failed to resolve 'origin/main'"),
+    ).toBeTruthy();
   });
 });
