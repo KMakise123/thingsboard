@@ -182,8 +182,8 @@ export default function DashboardsListPage() {
     mutationFn: (dashboardId: string) => makeDashboardPublic(dashboardId),
     onSuccess: (dashboard) => {
       void invalidate();
-      // v1 shows the generated link only — the anonymous public page is a
-      // registered omission (brief §0).
+      // M15 wave 3: the anonymous public page ships — the hint now states
+      // the link is live (dashboards.list.publicLinkHint, debt retired).
       const link = publicDashboardLink(dashboard);
       modal.info({
         title: formatMessage({

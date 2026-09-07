@@ -710,12 +710,12 @@ export default [
     ],
   },
 
-  // Dashboard single-page (fullscreen) mode: same auth gate as the shell
-  // page but rendered without the app shell (ui-ngx dashboard-pages.routing
-  // singlePageMode; brief §0.C).
+  // Dashboard single-page (fullscreen) mode: rendered without the app shell
+  // (ui-ngx dashboard-pages.routing singlePageMode; brief §0.C). No access
+  // key — the page itself gates the dual login/public states (page-owned
+  // gate over token claims + URL publicId, M15 R42).
   {
     path: '/dashboard/:dashboardId',
-    access: 'canTenantOrCustomer',
     component: './dashboard-fullscreen',
     layout: false,
   },

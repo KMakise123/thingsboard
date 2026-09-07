@@ -66,8 +66,7 @@ export default {
     '确认后仪表盘将设为私有，其他人将无法访问。',
   'dashboards.list.publicLinkTitle': '仪表盘已公开',
   'dashboards.list.publicLinkLabel': '公开链接',
-  'dashboards.list.publicLinkHint':
-    '匿名公开访问页归后续版本；当前仅生成并展示链接。',
+  'dashboards.list.publicLinkHint': '公开链接已生效，匿名用户可直接访问。',
   'dashboards.list.makePublicSuccess': '仪表盘已设为公开。',
   'dashboards.list.makePrivateSuccess': '仪表盘已设为私有。',
   'dashboards.list.deleteTitle': '确定要删除仪表盘“{title}”吗？',
@@ -115,6 +114,11 @@ export default {
   'dashboards.system.loadFailed': '系统仪表盘加载失败。',
   'dashboards.system.resourceMissing': '后端缺少该系统仪表盘资源。',
   'dashboards.system.retry': '重试',
+
+  // ---- 匿名公共仪表盘 gate（M15 波 3；一律不跳登录） ----
+  'dashboards.public.sessionExpired': '公开会话已过期，请刷新页面重新进入。',
+  'dashboards.public.notPublicAnymore': '此仪表盘已不再公开。',
+  'dashboards.public.notFound': '仪表盘不存在。',
 
   // ---- 全局 timewindow 选择器 ----
   'dashboards.tw.tabRealtime': '实时',

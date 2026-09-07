@@ -290,6 +290,12 @@ describe('dashboards list page (tenant admin)', () => {
     expect(
       await screen.findByText(/dashboard\/dash-2\?publicId=pub-cust/),
     ).toBeInTheDocument();
+    // M15 wave 3: the "ships later" debt wording is retired — the hint
+    // states the link is live for anonymous visitors.
+    expect(
+      await screen.findByText('公开链接已生效，匿名用户可直接访问。'),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/reference only|后续版本/)).toBeNull();
   });
 
   it('makes a public dashboard private after the confirm', async () => {
