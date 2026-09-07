@@ -51,4 +51,4 @@ jobs:
 
       - name: Check and push changes
         run: |
-          git diff --exit-code || git commit -am "License header format" && git push
+          git diff --exit-code || { git commit -am "License header format" && git push; }
