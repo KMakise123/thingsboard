@@ -51,6 +51,38 @@ export async function setTenantHomeDashboardInfo(
   await tbHttp.post<void>('/api/tenant/dashboard/home/info', info);
 }
 
+/**
+ * GET /api/dashboard/home response (`HomeDashboard` = Dashboard wire shape +
+ * `hideDashboardToolbar`). The backend controller reuses the Dashboard
+ * serialization, so `id` / `tenantId` / `assignedCustomers[].customerId` all
+ * arrive in object form `{entityType, id}` — exactly what the `Dashboard`
+ * type already declares (openapi snapshot carries the schema too).
+ *
+ * Empty-body semantics pinned (M15 R41, brief §2A): SA always gets 200 with
+ * a 0-byte body (no tenant-scoped home concept); TA/CU walk the
+ * user → customer(CU only) → tenant `homeDashboardId` fallback chain where
+ * each hop silently degrades to the next on a READ check failure (a dangling
+ * id can never 404 here). The tbHttp parse already yields `undefined` for an
+ * empty text body (core/http/client parseBody), and the falsy guard below
+ * also normalizes a JSON `null` body — the function therefore resolves
+ * `undefined` for every "no home configured" form and never throws on them.
+ */
+export interface HomeDashboard extends Dashboard {
+  hideDashboardToolbar: boolean;
+}
+
+/**
+ * GET /api/dashboard/home — the runtime home read all three roles consume
+ * on /home (do not confuse with the TA-only /api/tenant/dashboard/home/info
+ * settings pair above: CU/SA get 403 on that one).
+ */
+export async function getHomeDashboard(): Promise<HomeDashboard | undefined> {
+  const home = await tbHttp.get<HomeDashboard | undefined>(
+    '/api/dashboard/home',
+  );
+  return home || undefined;
+}
+
 /** GET /api/tenant/dashboards — tenant-scope paged dashboard list. */
 export async function getTenantDashboards(
   pageLink: PageLink,

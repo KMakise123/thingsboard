@@ -33,6 +33,30 @@ export async function login(request: LoginRequest): Promise<LoginResponse> {
   return response;
 }
 
+/**
+ * POST /api/auth/login/public — anonymous public-dashboard token exchange
+ * (publicId = the `public:true` entry of `dashboard.assignedCustomers`).
+ *
+ * Responds with a FULL JwtPair (`{token, refreshToken}`), so the side effect
+ * matches login: the pair is stored here and callers just route on resolve.
+ * Every failure (bad UUID / unknown / non-public / missing publicId) is a
+ * plain 401 and must surface as "link invalid" at the gate — this request is
+ * `authExempt` so the shared 401-refresh chain and the unauthorized exit
+ * (which would bounce to /user/login) can never fire for it.
+ *
+ * Backend anchor: RestPublicLoginProcessingFilter.java:53-79 (filter, not a
+ * controller — the openapi snapshot has no such endpoint; JwtPair shape per
+ * LoginResponse below).
+ */
+export async function publicLogin(publicId: string): Promise<LoginResponse> {
+  const response = await tbHttp.request<LoginResponse>(
+    '/api/auth/login/public',
+    { method: 'POST', body: { publicId }, authExempt: true },
+  );
+  tokenStore.setTokens(response.token, response.refreshToken);
+  return response;
+}
+
 /** POST /api/auth/logout */
 export async function logout(): Promise<void> {
   try {

@@ -1,7 +1,8 @@
 /**
- * Auth login-line 2FA + OAuth2 clients transport endpoints (M4): exact paths
- * pinned against TwoFactorAuthController (/api/auth/2fa) and
- * OAuth2ClientLoginInfoController (/api/noauth/oauth2Clients). The pre-M4
+ * Auth login-line 2FA + OAuth2 clients + public-login transport endpoints:
+ * exact paths pinned against TwoFactorAuthController (/api/auth/2fa),
+ * OAuth2ClientLoginInfoController (/api/noauth/oauth2Clients) and the
+ * RestPublicLoginProcessingFilter (/api/auth/login/public, M15). The pre-M4
  * auth endpoints live in ./endpoints.test.ts.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -16,6 +17,7 @@ vi.mock('./http', () => ({
     post: vi.fn(),
     put: vi.fn(),
     delete: vi.fn(),
+    request: vi.fn(),
   },
 }));
 
@@ -23,11 +25,13 @@ import {
   checkTwoFaVerificationCode,
   getOauth2Clients,
   getTwoFaLoginProviders,
+  publicLogin,
   sendTwoFaVerificationCode,
 } from './auth';
 
 const get = vi.mocked(tbHttp.get);
 const post = vi.mocked(tbHttp.post);
+const request = vi.mocked(tbHttp.request);
 
 function makeJwt(ttlSeconds = 3600): string {
   const enc = (obj: unknown) =>
@@ -82,5 +86,26 @@ describe('auth login-line 2FA + oauth2 clients endpoints', () => {
   it('oauth2 clients failure degrades to an empty list (ui-ngx parity)', async () => {
     post.mockRejectedValue(new Error('oauth2 disabled'));
     await expect(getOauth2Clients()).resolves.toEqual([]);
+  });
+
+  it('publicLogin posts auth-exempt to /api/auth/login/public and stores the full pair', async () => {
+    request.mockResolvedValue({ ...regularPair } as never);
+    await publicLogin('public-customer-id');
+    expect(request).toHaveBeenCalledWith('/api/auth/login/public', {
+      method: 'POST',
+      body: { publicId: 'public-customer-id' },
+      // 401 must surface as "link invalid" at the gate — the shared refresh
+      // chain / unauthorized exit must never fire for this call.
+      authExempt: true,
+    });
+    expect(tokenStore.getToken()).toBe(regularPair.token);
+    expect(tokenStore.getRefreshToken()).toBe(regularPair.refreshToken);
+  });
+
+  it('publicLogin rethrows failures and stores nothing', async () => {
+    request.mockRejectedValue(new Error('401'));
+    await expect(publicLogin('bogus')).rejects.toThrow('401');
+    expect(tokenStore.getToken()).toBeNull();
+    expect(tokenStore.getRefreshToken()).toBeNull();
   });
 });

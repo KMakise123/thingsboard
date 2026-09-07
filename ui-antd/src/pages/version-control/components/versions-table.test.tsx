@@ -8,8 +8,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { createIntl, RawIntlProvider } from 'react-intl';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import zhVc from '@/locales/zh-CN/vc';
 import { ServerErrorError } from '@/core/http/server-error';
+import zhVc from '@/locales/zh-CN/vc';
 
 const servicesMock = vi.hoisted(() => ({
   listBranches: vi.fn(),
