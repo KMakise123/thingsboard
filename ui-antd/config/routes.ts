@@ -351,9 +351,12 @@ export default [
   // ---- M13 OTA packages family (spec §5.5) ----
   // Packages repository: TA-only (backend gates save/download/delete to
   // TENANT_ADMIN; CU has read-only endpoints but no UI entry, spec §5.5).
+  // Icon note: ngx parity is `memory`, but umi's bundled @ant-design/icons
+  // copy has no MemoryOutlined (build-time resolution renders the raw
+  // string as text) — `cloudUpload` is the available OTA-shaped stand-in.
   {
     name: 'otaPackages',
-    icon: 'memory',
+    icon: 'cloudUpload',
     path: '/otaPackages',
     access: 'canTenantAdmin',
     component: './ota/packages',
