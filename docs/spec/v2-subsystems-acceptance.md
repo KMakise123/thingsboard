@@ -416,9 +416,9 @@
 
 - 路由族与角色矩阵：`/home` 三角色可达（ngx `home-links-routing.module.ts:122-137` auth 三角色、组件无角色分支）；公开仪表盘走顶层无壳路由 `/dashboard/:id` + `?publicId=` 匿名可达（无独立公开路由，钉死）；`/usage` TENANT_ADMIN only 维持。
 - 「home」两族端点分工钉死（防混写）：/home 页渲染与落点判断消费 `GET /api/dashboard/home`（三角色；未配置 = 200 **0 字节 body**，SA 恒空；悬挂 id 被后端 extract 吞掉天然免疫）；`GET|POST /api/tenant/dashboard/home/info` 仅供 M14 配置页读写（TA only，未配置 = `{dashboardId:null,hideDashboardToolbar:true}`，**不校验存在性 → 悬挂 id 只从它泄漏**）。前端不得用 tenant info 端点做三角色判断（CU/SA 403）。
-- 匿名换票契约钉死：公开链接恒为 `/dashboard/{id}?publicId={publicCustomerId}`（publicId = `assignedCustomers` 中 `public:true` 条目的 customerId）；publicId 消费路径 = `POST /api/auth/login/public` 换 **完整 JwtPair（含 refreshToken）**，一切失败（非 UUID/查无/非 public/缺失）= **401 非 400**；无 PUBLIC 独立角色（公开会话 = CUSTOMER_USER + isPublic claim，权限全复用 CU 规则：dashboard 分配给 Public customer 才放行，存在但无权 403、不存在 404）；公开会话强制 fullscreen/readonly 是**前端约定非后端强制**；WS `/api/ws/**` permitAll + 首帧 AuthCmd{token}，public JWT 全通，core/ws 零改动。
+- 匿名换票契约钉死：公开链接恒为 `/dashboard/{id}?publicId={publicCustomerId}`（publicId = `assignedCustomers` 中 `public:true` 条目的 customerId）；publicId 消费路径 = `POST /api/auth/login/public` 换 **完整 JwtPair（含 refreshToken）**，一切失败（非 UUID/查无/非 public/缺失）= **401 非 400**（wave-1 实测：errorCode=10，文案两种——非 UUID/查无/非 public = "Invalid username or password"、缺失 publicId = "Authentication failed"）；无 PUBLIC 独立角色（公开会话 = CUSTOMER_USER + isPublic claim，权限全复用 CU 规则：dashboard 分配给 Public customer 才放行，存在但无权 403、不存在 404）；公开会话强制 fullscreen/readonly 是**前端约定非后端强制**；WS `/api/ws/**` permitAll + 首帧 AuthCmd{token}，public JWT 全通，core/ws 零改动；public 刷新链实测定案（POST /api/auth/token 新 JwtPair、sub 仍 publicId）。
 - 登录落点语义钉死：判定序 = `?redirect`（安全回跳）> 用户级 `defaultDashboardId`（仅 TA/CU，`additionalInfo.defaultDashboardId`，响应已被后端清洗读到即有效；全屏语义由 `/dashboard/{id}` 无壳形态承载，收敛单形态）> 统一 `/home`。SA 无 defaultDashboard 分支。isPublic 用户恒落公开 dashboard 不进应用壳。
-- 「空 home」三种响应形态归一钉死：`/api/dashboard/home` 200+0 字节、`/api/dashboard/home/info` 200+JSON `null`、`/api/tenant/dashboard/home/info` 200+`{dashboardId:null,...}`——服务层 falsy 归一为 `null | HomeDashboard`，单测钉住。
+- 「空 home」响应形态（wave-1 实测勘误后定案）：`/api/dashboard/home` 未配置/悬挂/SA 三态均 **200+0 字节**（前端 falsy 归一）；`/api/tenant/dashboard/home/info` 未配置 = `{dashboardId:null,...}`；契约稿「/dashboard/home/info SA 返 JSON null 4 字节」实测不成立（实测同为 0 字节；antd 不消费该端点，仅登记）。服务层归一单测已钉住。
 - 横切沿 §3.7/§6.0 口径随收尾勾账（i18n 双语门禁、零内联色、数据保全终态回基线、门禁四绿）；自动化回归项归 #12 基线扩充；本 spec = 人工验收载体。
 
 ### 7.1 home 首页操作面
@@ -473,7 +473,8 @@
 - tenant 级悬挂 home id（info 端点不校验存在性）：落点/渲染统一走 `/api/dashboard/home`（extract 吞异常免疫）；settings 页可选探活降级非必须；后端补清洗另立 issue
 - 跨租户 403-vs-404（dao 不按租户过滤，存在性可探测）：公开页 404/403 同一兜底空态不区分文案；后端收紧另立 issue
 - 「空 home」三种响应形态（0 字节 / JSON null / `{dashboardId:null}`）：服务层 falsy 归一 + 单测钉住，绝不 JSON.parse 空 body
-- public JWT 调 `GET /api/auth/user` 注定失败：getInitialState 增 isPublic 跳过 fetchUserInfo 分支（isMfaInterim 先例），省一次注定失败的请求
+- public JWT 调 `GET /api/auth/user` 注定失败（wave-1 实测 = **500 NPE** "user is null"，非 4xx）：getInitialState 增 isPublic 跳过 fetchUserInfo 分支（isMfaInterim 先例），由「省一次注定失败的请求」升级为硬必要
+- wave-1 curl 实测已执行（2026-09-07，结论回写本节与 §7.0）：login/public 401 形态、public 刷新链、悬挂链两端点（泄漏点/免疫点双向实锤）、空 body 0 字节、GET /auth/user 500 形态——数据保全终态回基线（scratch 实体全删、home 配置回 null）
 - 公开会话寿命：login/public 响应含 refreshToken，refresh 链自动续期（后端 RefreshTokenAuthenticationProvider 支持 publicId）；「链接永不过期」不成立，过期提示刷新重进
 - make-public 不会连带公开设备/资产：公开页未分配实体的 widget 订阅被权限拒绝是后端语义，走查遇「公开但无数据」先查实体分配再判缺陷
 - demo 模式差异：demo 数据 4 个 dashboard 实体但 home 语义零差异，测试/走查不得假设 demo dashboard 存在，e2e 用自建 dashboard
