@@ -3,7 +3,18 @@
  * filters by access exactly like the side menu (SA never sees the tenant
  * domain, groups collapse onto their first accessible child) and the
  * component renders the cards with menu i18n titles and click navigation.
+ * Fixtures carry umi's runtime shape: the config `icon` string arrives
+ * pre-resolved into an icon element (a raw string = umi found no icon).
  */
+import {
+  BankOutlined,
+  BellOutlined,
+  FunctionOutlined,
+  HomeOutlined,
+  SettingOutlined,
+  TabletOutlined,
+  UserOutlined,
+} from '@ant-design/icons';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { createIntl, RawIntlProvider } from 'react-intl';
 import { describe, expect, it, vi } from 'vitest';
@@ -45,21 +56,29 @@ function shellRoutes(
       id: 'ant-design-pro-layout',
       children: [
         { path: '/' }, // entry — unnamed, skipped
-        mark(stamp({ name: 'home', path: '/home', icon: 'home' })),
-        mark(stamp({ name: 'devices', path: '/devices', icon: 'tablet' })),
-        mark(stamp({ name: 'tenants', path: '/tenants', icon: 'bank' })),
+        mark(stamp({ name: 'home', path: '/home', icon: <HomeOutlined /> })),
+        mark(
+          stamp({
+            name: 'devices',
+            path: '/devices',
+            icon: <TabletOutlined />,
+          }),
+        ),
+        mark(
+          stamp({ name: 'tenants', path: '/tenants', icon: <BankOutlined /> }),
+        ),
         mark(
           stamp({
             name: 'calculatedFields',
             path: '/calculatedFields',
-            icon: 'function',
+            icon: <FunctionOutlined />,
           }),
         ),
         mark(
           stamp({
             name: 'users',
             path: '/users',
-            icon: 'user',
+            icon: <UserOutlined />,
           }),
         ),
         mark(
@@ -73,7 +92,7 @@ function shellRoutes(
           stamp({
             name: 'settings',
             path: '/settings',
-            icon: 'setting',
+            icon: <SettingOutlined />,
             children: [
               { path: '/settings', hideInMenu: true }, // group entry, unnamed
               stamp({ name: 'general', path: '/settings/general' }),
@@ -85,12 +104,17 @@ function shellRoutes(
           stamp({
             name: 'notifications',
             path: '/notifications',
-            icon: 'bell',
+            icon: <BellOutlined />,
             children: [
               { path: '/notifications', redirect: '/notifications/inbox' },
               stamp({ name: 'inbox', path: '/notifications/inbox' }),
             ],
           }),
+        ),
+        // umi keeps the raw string when it has no matching icon (runtime
+        // fact verified on the dev server) — the card falls back instead.
+        mark(
+          stamp({ name: 'otaPackages', path: '/otaPackages', icon: 'memory' }),
         ),
       ],
     },
@@ -114,10 +138,8 @@ describe('deriveQuickLinks (route-tree derivation, arch R40)', () => {
   it('collapses a named group onto its first accessible named child', () => {
     const links = deriveQuickLinks(shellRoutes(allowAll)[0].children);
     const settings = links.find((link) => link.menuKey === 'settings');
-    expect(settings).toMatchObject({
-      path: '/settings/general',
-      icon: 'setting',
-    });
+    expect(settings?.path).toBe('/settings/general');
+    expect(settings?.icon).toEqual(<SettingOutlined />);
     const notifications = links.find(
       (link) => link.menuKey === 'notifications',
     );
@@ -138,6 +160,7 @@ describe('deriveQuickLinks (route-tree derivation, arch R40)', () => {
       '/tenants',
       '/settings/general',
       '/notifications/inbox',
+      '/otaPackages',
     ]);
   });
 
@@ -155,10 +178,11 @@ describe('deriveQuickLinks (route-tree derivation, arch R40)', () => {
       '/users',
       '/settings/home',
       '/notifications/inbox',
+      '/otaPackages',
     ]);
   });
 
-  it('renders cards with menu i18n titles and navigates on click', () => {
+  it('renders cards with menu i18n titles, route icons and click navigation', () => {
     appDataMock.clientRoutes = shellRoutes(allowAll);
     render(
       <RawIntlProvider value={intl}>
@@ -169,9 +193,14 @@ describe('deriveQuickLinks (route-tree derivation, arch R40)', () => {
     expect(screen.getByText('快捷入口')).toBeInTheDocument();
     const card = screen.getByText('设备').closest('.ant-card');
     expect(card).not.toBeNull();
+    expect(card?.querySelector('.anticon-tablet')).not.toBeNull();
     fireEvent.click(card as Element);
     expect(historyMock.push).toHaveBeenCalledWith('/devices');
     // Settings card carries the group title, not the first child's.
     expect(screen.getByText('系统设置')).toBeInTheDocument();
+    // An icon string umi could not resolve falls back instead of leaking.
+    const otaCard = screen.getByText('OTA 包').closest('.ant-card');
+    expect(otaCard?.querySelector('.anticon-appstore')).not.toBeNull();
+    expect(otaCard?.textContent).not.toContain('memory');
   });
 });

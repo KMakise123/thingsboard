@@ -9,30 +9,14 @@
  * home pages stay unported (Angular descriptors would render as a
  * placeholder wall, R40); this native grid is the equivalent "navigation
  * start point" for an unconfigured home.
+ *
+ * Icons: umi has already resolved each route's `icon` string into an antd
+ * icon element on the client routes (the same mapping the side menu
+ * renders), so the card reuses it as-is; a raw string means umi had no
+ * matching icon for that value (e.g. the pre-existing `icon: 'memory'` gap
+ * on the OTA menu) and the neutral fallback applies.
  */
-import {
-  AlertOutlined,
-  ApartmentOutlined,
-  AppstoreOutlined,
-  BankOutlined,
-  BarChartOutlined,
-  BellOutlined,
-  ClusterOutlined,
-  DashboardOutlined,
-  DeploymentUnitOutlined,
-  EyeOutlined,
-  FolderOutlined,
-  FunctionOutlined,
-  HistoryOutlined,
-  HomeOutlined,
-  IdcardOutlined,
-  PartitionOutlined,
-  ProfileOutlined,
-  SettingOutlined,
-  TabletOutlined,
-  TeamOutlined,
-  UserOutlined,
-} from '@ant-design/icons';
+import { AppstoreOutlined } from '@ant-design/icons';
 import { history, useAccessMarkedRoutes, useAppData } from '@umijs/max';
 import { Card, Col, Row, Typography } from 'antd';
 import { useIntl } from 'react-intl';
@@ -42,7 +26,8 @@ export interface MarkedRouteLike {
   id?: string;
   name?: string;
   path?: string;
-  icon?: string;
+  /** umi pre-resolves the config string to an icon element at runtime. */
+  icon?: React.ReactNode;
   redirect?: string;
   hideInMenu?: boolean;
   unaccessible?: boolean;
@@ -55,11 +40,14 @@ export interface MarkedRouteLike {
 export interface QuickLink {
   path: string;
   menuKey: string;
-  icon?: string;
+  icon?: React.ReactNode;
 }
 
 const routeChildren = (node: MarkedRouteLike): Array<MarkedRouteLike> =>
   node.children ?? node.routes ?? [];
+
+const cardIcon = (icon: QuickLink['icon']): React.ReactNode =>
+  icon && typeof icon !== 'string' ? icon : <AppstoreOutlined />;
 
 /**
  * Walk the top level of the (access-marked) shell route tree and collect
@@ -105,35 +93,6 @@ export function deriveQuickLinks(
   return links;
 }
 
-/**
- * routes.ts `icon` string → antd icon. The value domain is the one the
- * config file actually uses (umi generates `<PascalCase>Outlined` for the
- * menu from the same strings); anything unmapped renders without an icon.
- */
-const ROUTE_ICONS: Record<string, React.ReactNode> = {
-  home: <HomeOutlined />,
-  tablet: <TabletOutlined />,
-  dashboard: <DashboardOutlined />,
-  partition: <PartitionOutlined />,
-  function: <FunctionOutlined />,
-  history: <HistoryOutlined />,
-  barChart: <BarChartOutlined />,
-  apartment: <ApartmentOutlined />,
-  cluster: <ClusterOutlined />,
-  eye: <EyeOutlined />,
-  team: <TeamOutlined />,
-  user: <UserOutlined />,
-  alert: <AlertOutlined />,
-  profile: <ProfileOutlined />,
-  appstore: <AppstoreOutlined />,
-  deploymentUnit: <DeploymentUnitOutlined />,
-  bank: <BankOutlined />,
-  idcard: <IdcardOutlined />,
-  setting: <SettingOutlined />,
-  folder: <FolderOutlined />,
-  bell: <BellOutlined />,
-};
-
 const QuickLinks: React.FC = () => {
   const { formatMessage } = useIntl();
   const { clientRoutes } = useAppData() as {
@@ -174,7 +133,7 @@ const QuickLinks: React.FC = () => {
                 body: { display: 'flex', alignItems: 'center', gap: 12 },
               }}
             >
-              {ROUTE_ICONS[link.icon ?? ''] ?? <AppstoreOutlined />}
+              {cardIcon(link.icon)}
               <span>
                 {formatMessage({
                   id: `menu.${link.menuKey}`,
