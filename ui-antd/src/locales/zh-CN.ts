@@ -32,6 +32,7 @@ import editorWidgetEditor from './zh-CN/editor-widget-editor';
 import editorWidgetIo from './zh-CN/editor-widget-io';
 import editorWidgetPreview from './zh-CN/editor-widget-preview';
 import entityViews from './zh-CN/entityViews';
+import home from './zh-CN/home';
 import login from './zh-CN/login';
 import menu from './zh-CN/menu';
 import notifications from './zh-CN/notifications';
@@ -98,4 +99,5 @@ export default {
   ...vc,
   ...calculatedFields,
   ...aiModel,
+  ...home,
 };

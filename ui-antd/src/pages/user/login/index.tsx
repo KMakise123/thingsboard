@@ -16,7 +16,7 @@ import { AuthShell } from '../components/auth-shell';
 import {
   getQueryParam,
   getSafeRedirectUrl,
-  roleDefaultPath,
+  resolveDefaultPath,
   toServerError,
 } from '../utils';
 
@@ -82,7 +82,7 @@ const Login: React.FC = () => {
     if (scope === PRE_VERIFICATION_SCOPE || scope === MFA_CONFIGURATION_SCOPE) {
       return;
     }
-    history.replace(roleDefaultPath(mountedUser.current));
+    history.replace(resolveDefaultPath(mountedUser.current));
   }, []);
 
   // OAuth2 button data (POST /api/noauth/oauth2Clients): the service
@@ -142,7 +142,7 @@ const Login: React.FC = () => {
       setInitialState((s) => ({ ...s, currentUser: user }));
       message.success(formatMessage({ id: 'pages.login.success' }));
       const redirect = getSafeRedirectUrl(getQueryParam('redirect'));
-      history.replace(redirect ?? roleDefaultPath(user));
+      history.replace(redirect ?? resolveDefaultPath(user));
     } catch (reason) {
       const error = toServerError(reason);
       if (isCredentialsExpired(error)) {

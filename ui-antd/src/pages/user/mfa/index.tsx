@@ -19,7 +19,7 @@ import { AuthShell } from '../components/auth-shell';
 import {
   getQueryParam,
   getSafeRedirectUrl,
-  roleDefaultPath,
+  resolveDefaultPath,
   toServerError,
 } from '../utils';
 import {
@@ -187,7 +187,7 @@ const MfaPage: React.FC = () => {
       setInitialState((s) => ({ ...s, currentUser: user }));
       message.success(formatMessage({ id: 'pages.login.success' }));
       const redirect = getSafeRedirectUrl(getQueryParam('redirect'));
-      history.replace(redirect ?? roleDefaultPath(user));
+      history.replace(redirect ?? resolveDefaultPath(user));
     } catch (reason) {
       const error = toServerError(reason);
       if (error.status === 400) {

@@ -217,9 +217,9 @@ describe('tenant-admins scope page', () => {
         'jwt-1',
         'refresh-1',
       );
-      expect(assign).toHaveBeenCalledWith(
-        expect.stringMatching(/^\/(devices|tenants)$/),
-      );
+      // The mocked target user carries no defaultDashboardId, so the M15
+      // landing resolves to /home.
+      expect(assign).toHaveBeenCalledWith('/home');
     } finally {
       assign.mockRestore();
     }

@@ -48,21 +48,8 @@ export function getSafeRedirectUrl(redirect: string | null): string | null {
 }
 
 /**
- * Role landing page (spec §3.2). TA / CU land on the device list; SA lands
- * on the tenants list (sys-domain pages since M3).
- *
- * M15 handover (brief wave-1/2, arch R39): this pre-M15 lookup still feeds
- * the five landing consumers (login / entry / mfa / impersonation / 404).
- * Wave 2 switches them to `resolveDefaultPath` below together with the
- * /home route — switching earlier would bounce users onto a /home that does
- * not exist yet. This function retires once the last consumer moves.
- */
-export function roleDefaultPath(user?: User | null): string {
-  return user?.authority === Authority.SYS_ADMIN ? '/tenants' : '/devices';
-}
-
-/**
- * M15 landing decision, priority below `?redirect` (callers keep
+ * M15 landing decision (arch R39, spec §7.1-2 — replaces the v1 §3.2
+ * role lookup retired with /home), priority below `?redirect` (callers keep
  * `getSafeRedirectUrl` first): TA/CU holding a user-level
  * `additionalInfo.defaultDashboardId` land straight on the shell-less
  * dashboard route (`/dashboard/{id}` — no separate fullscreen form: the

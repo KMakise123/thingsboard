@@ -1,12 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ServerErrorError } from '@/core/http/server-error';
 import { Authority } from '@/types/tb';
-import {
-  getSafeRedirectUrl,
-  resolveDefaultPath,
-  roleDefaultPath,
-  toServerError,
-} from './utils';
+import { getSafeRedirectUrl, resolveDefaultPath, toServerError } from './utils';
 
 describe('getSafeRedirectUrl', () => {
   it('accepts same-origin relative paths with query and hash', () => {
@@ -34,29 +29,7 @@ describe('getSafeRedirectUrl', () => {
   });
 });
 
-describe('roleDefaultPath', () => {
-  it('sends tenant and customer users to the device list', () => {
-    expect(
-      roleDefaultPath({ authority: Authority.TENANT_ADMIN } as never),
-    ).toBe('/devices');
-    expect(
-      roleDefaultPath({ authority: Authority.CUSTOMER_USER } as never),
-    ).toBe('/devices');
-  });
-
-  it('sends sys admins to the tenants list', () => {
-    expect(roleDefaultPath({ authority: Authority.SYS_ADMIN } as never)).toBe(
-      '/tenants',
-    );
-  });
-
-  it('defaults to the device list without a user', () => {
-    expect(roleDefaultPath(null)).toBe('/devices');
-    expect(roleDefaultPath(undefined)).toBe('/devices');
-  });
-});
-
-describe('resolveDefaultPath (M15 wave-1 pure fn, consumers switch in wave 2)', () => {
+describe('resolveDefaultPath (M15 three-level landing, spec §7.1-2)', () => {
   const withDefaultDashboard = (authority: Authority) =>
     ({
       authority,

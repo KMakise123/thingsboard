@@ -176,7 +176,7 @@ describe('mfa verification page', () => {
     expect(screen.queryByText('重新发送验证码')).not.toBeInTheDocument();
   });
 
-  it('lands on the role page after a correct code', async () => {
+  it('lands on the unified home target after a correct code', async () => {
     servicesMock.getTwoFaLoginProviders.mockResolvedValue([smsProvider]);
     servicesMock.checkTwoFaVerificationCode.mockResolvedValue({
       token: 't',
@@ -194,7 +194,7 @@ describe('mfa verification page', () => {
       );
     });
     await waitFor(() => {
-      expect(historyMock.replace).toHaveBeenCalledWith('/devices');
+      expect(historyMock.replace).toHaveBeenCalledWith('/home');
     });
     const updater = modelMock.setInitialState.mock.calls[0][0] as (
       state: unknown,
