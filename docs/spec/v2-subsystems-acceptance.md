@@ -423,39 +423,39 @@
 
 ### 7.1 home 首页操作面
 
-- [ ] `/home` 路由与菜单：三角色可达（access=`canAuthenticated`、菜单首位三角色在场；锚点 ngx `home-links-routing.module.ts:122-137`、`menu.models.ts:848/919/1030`）
-- [ ] 登录落点链改造：登录成功、`/` entry、MFA 成功、SA 模拟登录、404 回退五处同源落点随 `roleDefaultPath` 三级化统一调整为 `/home`；`?redirect` 回跳优先级保留；OAuth2 回调落点随动（锚点 `pages/user/utils.ts:54-56`、`pages/user/login/index.tsx:144-145`、`pages/home/entry.tsx:17-33`）〔对 v1 §3.2 落点契约的有意修订（SA `/tenants`→`/home`），修订记录留痕〕
-- [ ] 直跳分支：TA/CU 持用户级 `defaultDashboardId` 时落点改跳 `/dashboard/{id}`（`defaultDashboardFullscreen===true` 同路径，无壳即全屏语义）；isPublic 用户直跳公开仪表盘锁死不进壳（锚点 ngx `auth.service.ts:293-300,638-657`）〔用户级写入口后端无自助端点不交付，分支验收=单测锚 + 走查 API 直写构造场景〕
-- [ ] home dashboard 数据链：/home 页消费 `GET /api/dashboard/home`（服务层新增 `getHomeDashboard`，空 body→undefined 归一单测钉住）；未配置走 quick-links 兜底；CU 命中 user→customer→tenant 回退链；SA 恒兜底（锚点 `DashboardController.java:422-450`）
-- [ ] 渲染面：`pages/home/page` 薄壳复用 DashboardPage 只读形态；`hideDashboardToolbar` 以 `hideToolbar` prop 生效（OR 语义，逐字对齐 ngx getter——**dashboard 工具栏隐藏 ≠ 应用壳顶栏隐藏**，双层分开验收，antd 不实施 ngx hideMainToolbar 登记偏离）；states 取 root:true 态不硬编码 'main'，`?state=` 深链免费获得（锚点 `dashboard-page.component.ts:199-201`、`use-states-controller.ts:51-65`）
-- [ ] 未配置兜底形态：antd 原生 quick-links 网格（角色菜单顶级节推导 + access 过滤 + 图标映射，推导不可行降级静态清单三角色常量）；兜底加载失败不白屏（ngx 该分支无兜底，antd 增强为错误态登记）〔P1-B 定案；ngx 静态 JSON 移植为能力级偏离登记——全 Angular descriptor 渲染即占位墙，锚点 `m15-panel-arch.md` R40〕
-- [ ] 悬挂 id 容错：/settings/home 配置的 dashboard 被删后 /home 正常回落兜底不白屏（`/api/dashboard/home` 链后端已吞；前端防 404 分支兜一层）（锚点 backend 契约 #2）
-- [ ] 配置页联动往返：TA `/settings/home` 配置 → 登录/进 /home 渲染该 dashboard（hideToolbar 随配置）→ 取消配置（POST dashboardId:null）→ 回兜底——M14 欠账注释（`pages/settings/home/index.tsx:13`）销账
+- [x] `/home` 路由与菜单：三角色可达（access=`canAuthenticated`、菜单首位三角色在场；锚点 ngx `home-links-routing.module.ts:122-137`、`menu.models.ts:848/919/1030`）〔M15 wave-2 真机 ✅：SA/TA/CU 三角色菜单「首页」首位高亮在场〕
+- [x] 登录落点链改造：登录成功、`/` entry、MFA 成功、SA 模拟登录、404 回退五处同源落点随 `roleDefaultPath` 三级化统一调整为 `/home`；`?redirect` 回跳优先级保留；OAuth2 回调落点随动（锚点 `pages/user/utils.ts:54-56`、`pages/user/login/index.tsx:144-145`、`pages/home/entry.tsx:17-33`）〔对 v1 §3.2 落点契约的有意修订（SA `/tenants`→`/home`），修订记录留痕〕〔M15 wave-2 真机 ✅：SA/TA/CU 登录均落 /home、`/nonexistent`→落 /home 目击；五消费点切 `resolveDefaultPath`、roleDefaultPath 退役 grep 零引用〕
+- [x] 直跳分支：TA/CU 持用户级 `defaultDashboardId` 时落点改跳 `/dashboard/{id}`（`defaultDashboardFullscreen===true` 同路径，无壳即全屏语义）；isPublic 用户直跳公开仪表盘锁死不进壳（锚点 ngx `auth.service.ts:293-300,638-657`）〔用户级写入口后端无自助端点不交付，分支验收=单测锚 + 走查 API 直写构造场景〕〔单测锚 ✅：resolveDefaultPath 五用例（TA/CU 命中 `/dashboard/{id}`、fullscreen 收敛单形态、SA 恒 /home、非法 id 守卫、无 user）；真机未构造 defaultDashboard 场景（后端清洗键、写入口不交付，按验收口径以单测收口）〕
+- [x] home dashboard 数据链：/home 页消费 `GET /api/dashboard/home`（服务层新增 `getHomeDashboard`，空 body→undefined 归一单测钉住）；未配置走 quick-links 兜底；CU 命中 user→customer→tenant 回退链；SA 恒兜底（锚点 `DashboardController.java:422-450`）〔M15 wave-1/2 ✅：真机 /home 调 GET /api/dashboard/home 恰 1 次、SA/未配置走兜底；归一单测钉三空形态（undefined/null/''），react-query undefined datum 坑波内修复（queryFn 归一 `?? null`）〕
+- [x] 渲染面：`pages/home/page` 薄壳复用 DashboardPage 只读形态；`hideDashboardToolbar` 以 `hideToolbar` prop 生效（OR 语义，逐字对齐 ngx getter——**dashboard 工具栏隐藏 ≠ 应用壳顶栏隐藏**，双层分开验收，antd 不实施 ngx hideMainToolbar 登记偏离）；states 取 root:true 态不硬编码 'main'，`?state=` 深链免费获得（锚点 `dashboard-page.component.ts:199-201`、`use-states-controller.ts:51-65`）〔M15 wave-2 真机 ✅：Thermostats 真渲染（`data-dashboard-page` 在场）、hideDashboardToolbar=true 时 toolbar DOM 不存在、取消勾选保存后 toolbar 显（timewindow+折叠钮）；双层语义分核，壳顶栏保持在场（偏离已登记）〕
+- [x] 未配置兜底形态：antd 原生 quick-links 网格（角色菜单顶级节推导 + access 过滤 + 图标映射，推导不可行降级静态清单三角色常量）；兜底加载失败不白屏（ngx 该分支无兜底，antd 增强为错误态登记）〔P1-B 定案；ngx 静态 JSON 移植为能力级偏离登记——全 Angular descriptor 渲染即占位墙，锚点 `m15-panel-arch.md` R40〕〔M15 wave-2 真机 ✅：SA 5 卡 / TA 19 卡 / CU 6 卡，角色 access 过滤正确；数据源 = umi clientRoutes + useAccessMarkedRoutes 推导案定型，图标直接透传 umi 预解析元素（自建映射全 miss 波内改为透传）；错误态 Alert 在场〕
+- [x] 悬挂 id 容错：/settings/home 配置的 dashboard 被删后 /home 正常回落兜底不白屏（`/api/dashboard/home` 链后端已吞；前端防 404 分支兜一层）（锚点 backend 契约 #2）〔wave-1 curl ✅：悬挂链两端点双向实锤（tenant info 200+悬挂旧 id；/api/dashboard/home 同刻 200+0 字节）；前端错误 Alert 分支在场——「删盘后访问 /home」全链未真机构造（后端免疫 + 组件错误分支在场，按行为链收口）〕
+- [x] 配置页联动往返：TA `/settings/home` 配置 → 登录/进 /home 渲染该 dashboard（hideToolbar 随配置）→ 取消配置（POST dashboardId:null）→ 回兜底——M14 欠账注释（`pages/settings/home/index.tsx:13`）销账〔M15 wave-2 真机 ✅：配置 Thermostats→保存→/home 真渲染→hideToolbar 随配置→清空保存→回兜底 全链；终态 API 复核回基线 `{dashboardId:null,hideDashboardToolbar:true}`〕
 
 ### 7.2 匿名公共仪表盘操作面
 
-- [ ] make-public/private 出口回归核对（v1 已交付不重做）：列表行操作互斥 + Public 列 + public customer 保护（ManageDashboardCustomersDialog 排除）；**链接 toast「匿名页面后续交付」欠账文案随落地页交付退役**（锚点 `pages/dashboards/list/index.tsx:181-217,498-529,203-209`）
-- [ ] publicLogin 服务函数：`POST /api/auth/login/public`（body `{publicId}` → JwtPair 全额 setTokens，函数级单测断副作用）+ openapi 快照补录（锚点 `RestPublicLoginProcessingFilter.java:53-79`；服务层落 auth.ts 域边界）
-- [ ] 公开路由 gate：`/dashboard/:dashboardId` 去 `access` 字段改页面自治 gate（四态决策表：匿名+publicId→换票渲染 / 匿名无 publicId→跳 login?redirect / 公开会话 sub===publicId→直渲染（F5 刷新免重登）/ 登录用户→忽略 publicId 以本人渲染；公开会话 sub≠publicId→重换票）；同路由承载登录/公开双态不新建路由（锚点 `m15-panel-arch.md` R42、ngx `auth.guard.ts:122-131`）
-- [ ] 匿名全链走查（真机）：未登录打开公开链接 → 清残留 token → publicLogin 换票 → isPublic JWT 入 tokenStore → 渲染 → WS 匿名会话出实时数据（WS 零改动确认，锚点 `TbWebSocketHandler.java:188-214`）
-- [ ] 无壳形态清单：强制 readonly（无编辑入口）、fullscreen/export/dashboards-select 三件藏（embedded 语义等价 ngx forceFullscreen）、无用户菜单与通知铃、无登录按钮、timewindow 可见可调、logo 不建（antd 全域既有缺口，倒挂防呆登记）（锚点 `m15-panel-arch.md` R43）
-- [ ] 401 失败路径隔离：公开页会话过期/请求 401 **不触发** `handleUnauthorized` 跳登录——展示「会话过期请刷新重进」空态（public JWT 有 refresh 续期，仅 refresh 也失败才到该态）（锚点 `app.tsx:57-66`、契约 #6）
-- [ ] 失效行为两条：①make-private 后旧链接——publicLogin 仍成功但 getDashboard 403 → 专用「此仪表盘不再公开」空态**不跳登录**（403 不走 401 通道）；②publicId 无效/public customer 已删——publicLogin 401 → 抹参数 → 落 `/login`（锚点 ngx `auth.service.ts:327-331`）
-- [ ] 复用隔离：view 页「TA 空板自动进编辑器」副作用不进公开页与 /home 页（薄壳自建结构性免疫，副作用留在 view 页消费点）（锚点 `pages/dashboards/view/index.tsx:29-37`）
+- [x] make-public/private 出口回归核对（v1 已交付不重做）：列表行操作互斥 + Public 列 + public customer 保护（ManageDashboardCustomersDialog 排除）；**链接 toast「匿名页面后续交付」欠账文案随落地页交付退役**（锚点 `pages/dashboards/list/index.tsx:181-217,498-529,203-209`）〔M15 wave-3 ✅：新文案「公开链接已生效，匿名用户可直接访问。」真机弹窗目击 + 测试断言新文案在/旧文案不在；行操作互斥与 public customer 保护既有测试维持绿〕
+- [x] publicLogin 服务函数：`POST /api/auth/login/public`（body `{publicId}` → JwtPair 全额 setTokens，函数级单测断副作用）+ openapi 快照补录（锚点 `RestPublicLoginProcessingFilter.java:53-79`；服务层落 auth.ts 域边界）〔M15 wave-1 ✅：单测断 URL/body/**setTokens 副作用**/authExempt 豁免（401 不触发通用 refresh-unauthorized 链）+ curl 实测失败形态两种文案；openapi 快照无此端点为上游事实，JSDoc 钉后端锚点即「补录」口径〕
+- [x] 公开路由 gate：`/dashboard/:dashboardId` 去 `access` 字段改页面自治 gate（四态决策表：匿名+publicId→换票渲染 / 匿名无 publicId→跳 login?redirect / 公开会话 sub===publicId→直渲染（F5 刷新免重登）/ 登录用户→忽略 publicId 以本人渲染；公开会话 sub≠publicId→重换票）；同路由承载登录/公开双态不新建路由（锚点 `m15-panel-arch.md` R42、ngx `auth.guard.ts:122-131`）〔M15 wave-3 ✅：public-gate 纯函数 9 用例 + 组件测试 9 条；真机各分支目击（匿名换票渲染 / 无 publicId 跳 login / F5 免重登换票 0 次 / TA 带 publicId 忽略之）〕
+- [x] 匿名全链走查（真机）：未登录打开公开链接 → 清残留 token → publicLogin 换票 → isPublic JWT 入 tokenStore → 渲染 → WS 匿名会话出实时数据（WS 零改动确认，锚点 `TbWebSocketHandler.java:188-214`）〔M15 wave-3 真机 ✅：Playwright 隔离 context 匿名打开→POST login/public 200→GET dashboard 200→3 widget 渲染 0 占位；WS 全程无异常关闭码（demo 盘无实时订阅 widget，实时出数注记为受实体分配约束的正常语义）〕
+- [x] 无壳形态清单：强制 readonly（无编辑入口）、fullscreen/export/dashboards-select 三件藏（embedded 语义等价 ngx forceFullscreen）、无用户菜单与通知铃、无登录按钮、timewindow 可见可调、logo 不建（antd 全域既有缺口，倒挂防呆登记）（锚点 `m15-panel-arch.md` R43）〔M15 wave-3 真机 ✅：无壳无用户菜单、embedded 藏三件、readonly 无编辑入口、timewindow 在场；logo 不建（R43 倒挂防呆，登记 §7.5）〕
+- [x] 401 失败路径隔离：公开页会话过期/请求 401 **不触发** `handleUnauthorized` 跳登录——展示「会话过期请刷新重进」空态（public JWT 有 refresh 续期，仅 refresh 也失败才到该态）（锚点 `app.tsx:57-66`、契约 #6）〔M15 wave-3 ✅：实现 = 页内 unauthorized handler 换入/恢复（`getTbUnauthorizedHandler` 最小增量，HTTP refresh 失败与 WS AUTH 拒绝两道同汇）；组件测试钉「401 清 token+空态不跳登录」；「会话过期」空态真机未驱动（需 JWT 自然过期 ~2.5h），handler 触发路径已测〕
+- [x] 失效行为两条：①make-private 后旧链接——publicLogin 仍成功但 getDashboard 403 → 专用「此仪表盘不再公开」空态**不跳登录**（403 不走 401 通道）；②publicId 无效/public customer 已删——publicLogin 401 → 抹参数 → 落 `/login`（锚点 ngx `auth.service.ts:327-331`）〔M15 wave-3 真机 ✅：①make-private 后旧链接 → publicLogin 200 + getDashboard 403 → 「此仪表盘已不再公开。」空态、URL 不变未跳登录；②无效 publicId → 抹参数跳 `/user/login?redirect=…`；恢复 make public 复测可看〕
+- [x] 复用隔离：view 页「TA 空板自动进编辑器」副作用不进公开页与 /home 页（薄壳自建结构性免疫，副作用留在 view 页消费点）（锚点 `pages/dashboards/view/index.tsx:29-37`）〔M15 wave-2/3 ✅：home 薄壳与 fullscreen 页均不经 view 页组件，view 页零改动（副作用原地保留）〕
 
 ### 7.3 usage 域评估落账（不实施下钻）
 
-- [ ] 下钻缓做评估结论落账：**触发条件 = api_usage 卡（fqn `system.api_usage`）以 react-1 实现交付时**（格式沿 §3.8 scada 渲染器缺口条目）；数据契约素材随登记落档——`api_usage.json` 11 states + `apiUsageDataKeys[].state` 九条映射 + `targetDashboardState` 回默认态 + `?state=` base64 URL 契约（codec antd 已 byte-exact）+ states-controller `openState`/深链已就绪（补下钻=一个交互卡专项，锚点契约 #7）
-- [ ] 资产对账勘误落账：fork `api_usage.json` 与 ngx 逐字节同源（11 states、default right=**4** 图，「3 vs 4」对账点不成立——三镜头独立复核一致）；usage 数据为前端静态资产非租户实况维持 v1 登记口径（锚点 v1 §3.10、契约 #8）
+- [x] 下钻缓做评估结论落账：**触发条件 = api_usage 卡（fqn `system.api_usage`）以 react-1 实现交付时**（格式沿 §3.8 scada 渲染器缺口条目）；数据契约素材随登记落档——`api_usage.json` 11 states + `apiUsageDataKeys[].state` 九条映射 + `targetDashboardState` 回默认态 + `?state=` base64 URL 契约（codec antd 已 byte-exact）+ states-controller `openState`/深链已就绪（补下钻=一个交互卡专项，锚点契约 #7）〔M15 收口 ✅：触发条件入 §7.5 登记条 + CONTEXT.md v2 行；数据契约五件全部落档 `m15-panel-contract.md` #7/#8〕
+- [x] 资产对账勘误落账：fork `api_usage.json` 与 ngx 逐字节同源（11 states、default right=**4** 图，「3 vs 4」对账点不成立——三镜头独立复核一致）；usage 数据为前端静态资产非租户实况维持 v1 登记口径（锚点 v1 §3.10、契约 #8）〔M15 ✅：arch R46 node 逐字段对账 + contract #8 双重复核一致；spec §7.0/修订记录已载勘误〕
 
 ### 7.4 收口操作面（全图状态落账）
 
 - [x] M12 §4 勾账缺口处置（用户拍板 2026-09-07：补轻走查）：34 条未勾——真机抽样驱动主链（4.3 发送向导三步 + 4.5 触发表单抽样 ≥3 种 + 4.1/4.2/4.4/4.6 快速过）产出薄版走查文档；能勾的勾、未驱动的 3V 注记、发现偏差按缺陷登记不静默注记；处置后 §4 不留裸勾选框〔M15 wave-4 ✅：走查文档 `docs/spec/v2-m12-browser-walkthrough.md`；34 条勾 32 / 维持未勾 2；缺陷 D-1（发送向导 scratch 死锁）登记于走查文档 §7〕
 - [x] M11/M13 未勾项收口：M11 4 条 + M13 7 条（3V 未驱动 9、受阻·后端 2——edge events 未落库两条维持受阻不冒勾）逐条复核现状，能收口的驱动收口，不能的维持注记写明原因〔M15 wave-4 ✅：11 条全部复核并补现状注记（代码/单测/SQL 在场性）；无一条可由本波驱动收口（均为完整流驱动，归各域走查）；受阻两条 SQL 重查 `edge_event` 仍 0 行维持受阻〕
-- [ ] #16 执行完成回写：comment 留痕（八子系统独立页 / settings 七件 / home 首页 / 匿名公共仪表盘 / usage 评估落账的完成态 + spec 节指向 + 散落挂账三条销账指向）
-- [ ] #1 地图状态更新：v2「全功能对齐」达成登记（与 #16 回写互引；剩余登记项逐条列归属域：缓做四项 CF 复杂编辑器/usage 下钻/Mobile Center/iot-hub + 能力级增强清单）
-- [ ] CONTEXT.md 词条：补「home dashboard（租户级 homeDashboardId additionalInfo 键 + /api/dashboard/home 三层回退链）」「公共仪表盘（public customer 换票：publicId → login/public → isPublic JWT）」两词条 + v2 定义行补 usage 下钻缓做触发口径
-- [ ] v1 spec 收口落账：§2 v2 定义行标注已兑现（M7–M15）+ §7 遗留清单消账（home dashboard 首页、匿名公共仪表盘两条）+ §3.2 落点契约修订注记 + 修订记录补两条
+- [x] #16 执行完成回写：comment 留痕（八子系统独立页 / settings 七件 / home 首页 / 匿名公共仪表盘 / usage 评估落账的完成态 + spec 节指向 + 散落挂账三条销账指向）〔M15 收口 ✅：2026-09-07 [#16 comment](https://github.com/KMakise123/thingsboard/issues/16#issuecomment-5565029146)〕
+- [x] #1 地图状态更新：v2「全功能对齐」达成登记（与 #16 回写互引；剩余登记项逐条列归属域：缓做四项 CF 复杂编辑器/usage 下钻/Mobile Center/iot-hub + 能力级增强清单）〔M15 收口 ✅：2026-09-07 [#1 comment](https://github.com/KMakise123/thingsboard/issues/1#issuecomment-5565030918)；注：缓做四项中 CF 复杂编辑器已随 M14 六型全量交付消化〕
+- [x] CONTEXT.md 词条：补「home dashboard（租户级 homeDashboardId additionalInfo 键 + /api/dashboard/home 三层回退链）」「公共仪表盘（public customer 换票：publicId → login/public → isPublic JWT）」两词条 + v2 定义行补 usage 下钻缓做触发口径〔M15 收口 ✅：commit 9f789fe473〕
+- [x] v1 spec 收口落账：§2 v2 定义行标注已兑现（M7–M15）+ §7 遗留清单消账（home dashboard 首页、匿名公共仪表盘两条）+ §3.2 落点契约修订注记 + 修订记录补两条〔M15 收口 ✅：commit 9f789fe473（修订记录补 1 条，四处落位全落）〕
 
 ### 7.5 能力级增强登记（只登记不验收）
 
@@ -480,8 +480,11 @@
 - demo 模式差异：demo 数据 4 个 dashboard 实体但 home 语义零差异，测试/走查不得假设 demo dashboard 存在，e2e 用自建 dashboard
 - 无内置 dashboard 资产（fork `json/` 无 dashboards 目录，`createDefaultTenantDashboards` no-op）：「从未配置」是 /home 一等公民空态
 - wave-1 实测项（10 条）清单在 `m15-panel-contract.md` 文末：login/public 错误形态、public 刷新链、悬挂链两端点、空 body 字节、GET /auth/user 失败形态、make-private 403 文案、SA 403、WS 正负路径——结论回写本节
+- **M12 走查缺陷 D-1（发送向导 scratch 死锁，前端，M15 wave-4 已修）**：Setup 步误校验第 2 步 compose 内容完整性 → 真实用户从零无法发通知（旧单测以 fireEvent 填隐形字段掩盖）。修复 = 逐步校验（Setup 只校本步 + atLeastOne）+ 提交前 allValid 复查跳回首个非法步（对齐 ngx stepper 语义），TDD 红→绿（notifications 104 用例）；修复后真机复验从零发送全链通（含提交复查反向验证），测试数据已清。全文见 [v2-m12-browser-walkthrough.md](./v2-m12-browser-walkthrough.md) §7
 
 ## 修订记录
+
+- 2026-09-07（二）：**M15 走查收账 + 全图收口**：§7.1 home 8 条 / §7.2 匿名公开 8 条 / §7.3 usage 评估 2 条全勾（真机走查证据 = 三波实现 agent 报告 + 本会话 D-1 复验），§7.4 收口 6 条全勾（M12 轻走查 32/34 + M11/M13 复核 11 条无冒勾 + #16/#1 comment 留痕 + CONTEXT.md/v1 spec 消账）；**§4 M12 存量 34 条勾账收口**（32 勾 / 2 注记，走查文档 [v2-m12-browser-walkthrough.md](./v2-m12-browser-walkthrough.md)）；新发现并修复缺陷 D-1（发送向导 scratch 死锁 → 逐步校验 + 提交复查，TDD + 真机复验，见 §7.6）；wave-1 curl 实测 3 处契约勘误回写 §7.0/§7.6。全段验收：**§7 24/24 勾，零 ❌**。实现四波 + 收口工作底稿 `docs/agents/m15-*.md` 七份；实现清单见 v2-m15-implementation-brief.md。
 
 - 2026-09-07：**M15 段定稿（§7 全量补定）**：7.0 通用边界（home 两族端点分工 + 三种空响应形态归一 + 匿名换票契约 401 定案 + 落点判定序「?redirect > defaultDashboardId > /home」钉死）+ 7.1 home 八条（落点五处同源改造、直跳分支、quick-links 兜底 = P1-B 定案、hideToolbar OR 语义、悬挂 id 容错、配置页联动销 M14 欠账）+ 7.2 匿名公开八条（publicLogin 换票、四态 gate、401 失败路径隔离、失效两分支）+ 7.3 usage 评估两条（下钻缓做触发 = api_usage 卡 react-1 化；「3 图 vs 4 图」勘误落账——三镜头独立复核一致，fork 资产与 ngx 逐字节同源）+ 7.4 收口六条（M12 轻走查 = 用户拍板 2026-09-07；M11/M13 未勾收口；#16/#1/CONTEXT.md/v1 spec 四处落账）+ 7.5 增强 8 条 + 7.6 缺陷登记 9 条。已定裁决：三角色统一落 /home（P3-A，SA /tenants→/home 有意修订）；不移植 ngx 静态 JSON（R40 实测占位墙）；usage 下钻不实施。依据四份侦察底稿 + 三镜头合议（工作底稿 `docs/agents/m15-*.md` 七份）；实现清单见 v2-m15-implementation-brief.md。
 - 2026-09-07：**M14 走查勾账（§6 全量勾账）**：§6.1–6.5 **51/51 勾**（CF 18 + VC 10 + settings 12 + 密码策略 3 + 连带 8），零 ❌；走查全文 [v2-m14-browser-walkthrough.md](./v2-m14-browser-walkthrough.md)（A 段 CF/settings、B 段 VC/挂载/横切 + 全局数据保全 16 项 API 审计全回基线）；JWT 换发全链 2026-09-07 补驱动闭环并复原（6.4-3 注）；W-1/W-2 已修（带单测），W-3–W-9 观察项登记。六波实现 + 两段走查工作底稿 `docs/agents/m14-*.md`；**AutoCommitCard 退役（R23b 默认执行）已随 wave-7 交付**。

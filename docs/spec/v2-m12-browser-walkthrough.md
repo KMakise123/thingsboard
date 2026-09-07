@@ -15,7 +15,7 @@
 | §4 条目 | 驱动与证据 | 结论 |
 |---|---|---|
 | 列表 | 四列 createdTime/status/deliveryMethods/templateName + 行内 redo/delete；工具栏仅 刷新/发送通知（无搜索框实证）；两轮发送后新行均登顶（createdTime DESC） | ✅ |
-| 三步 stepper | 设置→编写→审核 步进条目渲染；scratch 两步前进均过校验门；审核步 preview 自动加载 | ✅（gate 见缺陷 D-1） |
+| 三步 stepper | 设置→编写→审核 步进条目渲染；scratch 两步前进均过校验门；审核步 preview 自动加载 | ✅（gate 见缺陷 D-1；**D-1 已修 + 修复后真机复验**，见 §7） |
 | Setup | 从零开始默认（radio useTemplate=false）；接收人多选（服务端搜索候选）；「新建」内联新建接收人对话框（保存后候选即时补入）；计划稍后发送 开关 → 日期时间选择器 + 时区（Asia/Shanghai 默认）字段在场（未真定时） | ✅ |
 | 投递方式开关组 | GET /api/notification/deliveryMethods 200 探测 → WEB/EMAIL/SMS/TEAMS 可用、SLACK/移动应用 禁用；WEB 恒开恒锁（「始终会投递到站内通知铃铛」）；不可用方式挂「前往配置通知渠道」跳转；「至少需要选择一种发送方式」文案在场 | ✅ |
 | Compose | WEB 主题/消息输入（subject/body）；审核预览回显一致 | ✅ |
@@ -84,6 +84,7 @@
 ## 7. 缺陷与观察
 
 - **D-1（缺陷·登记）发送向导从零开始死锁**：`sent/wizard.tsx:304-332` validateSetup() 在第 1 步即校验「已启用方式内容完整性」（:320），而 compose 字段在第 2 步（`hidden`，display:none）才可编辑 → 真实用户从零开始无法前进（gate error「请先补全所有已启用方式的消息内容。」真机复现）。ngx 锚点为逐步校验（setup 步只校验 setup 字段）。单测 `wizard.test.tsx`「walks scratch mode」以 fireEvent 填**隐形**字段绕过（测试注释自认 mounted-hidden），「gates Setup while incomplete」用例则把死锁固化为预期。本次走查以原生 setter 填隐形字段完成主链（属唯一可行路径，非正常用户路径）。建议：scratch 模式 composeIndex 前不校验内容完整性，或把 TemplateConfiguration 前置到 setup 步可见。
+  **【已修（M15 wave-4，commit `1b2d3b38d6`）】**：validateSetup 删 compose 完整性检查（只校验本步字段 + atLeastOne）；send() 增加 ngx `allValid()` 对等的最终提交复查（失败不 POST 并跳回首个非法步）；测试删 fireEvent 掩盖写法、死锁用例反转为逐步语义 + 新增提交复查用例（vitest notifications 104 用例全绿）。**修复后真机复验（2026-09-07）**：scratch 从零 Setup（空 compose）→「下一步」直进编写步（修复前此处死锁）→ 填 WEB 主题/正文 → 审核 → 发送 → toast「通知请求已发送。」+ 新行登顶；附带反向验证提交复查（误开「计划稍后」且无时间 → 提交被拦跳回设置步报「时间为必填项」）——测试通知已删、数据回基线。
 - **O-1（观察）TEAMS useOldApi 形态转译**：ngx 为开关，antd 以「使用旧版 API/使用新版 Workflows API」双选项+停用提示等价交付（语义一致，形态偏差登记）。
 - **O-2（环境+测试缺口）antd Checkbox 无头失联**：隐藏标签页中原生 click() 只翻转 DOM checked，antd rowSelection onChange 不触发 → 批量删除在真机无法驱动（选择态含陈旧 id，DELETE 打旧 id 404）。sent/inbox/customer-edges 三处批量语义均靠单测锚。不判实现缺陷；建议后续在可见窗口环境复验一次。
 - **O-3（观察）ruleNode 子区联动未证**：「跟踪规则节点事件」开关在场（源码 `trigger-forms.tsx:666-716` 应展开规则节点事件多选+仅失败开关），真机未见子区展开且无单测引用——4.5#5 该子句双向未证，如实注记。
