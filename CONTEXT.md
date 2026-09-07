@@ -5,7 +5,7 @@
 ## 产品与范围
 
 - **v1（对齐切片）**：前端重写第一阶段——除编辑器三件套与八个子系统（通知中心、Edge、OTA、版本控制独立页、资源库、计算字段独立页、mobile-center、iot-hub）外，对齐 ui-ngx 全部页面，能力逐项等价、不做简化版；三角色（SYS_ADMIN / TENANT_ADMIN / CUSTOMER_USER）全支持。原「最小运维切片」口径由 #9 废弃。
-- **全功能对齐（v2）**：第二阶段——补齐编辑器三件套与八个子系统，对齐旧前端全部功能；登录后首页调整为 home dashboard。
+- **全功能对齐（v2）**：第二阶段——补齐编辑器三件套与八个子系统，对齐旧前端全部功能；登录后首页调整为 home dashboard（已兑现 M7–M15；usage 下钻 states 缓做，触发 = api_usage 卡 react-1 化，见 v2-subsystems-acceptance §7.3）。
 - **编辑器三件套（v2）**：仪表盘编辑器、widget 编辑器、规则链画布三个画布类编辑器的合称；v1 页面中跳转它们的入口一律隐藏或禁用。
 - **一步切换**：新前端就绪后直接整体替换旧前端 ui-ngx，无双 UI 共存或灰度过渡（系统未上线）。
 - **休眠保留**：ui-ngx 在切换后的状态——目录留在工作树作对照素材，但移出 Maven 构建链（不构建、不进产物）；v1 验收后复审是否删除。
@@ -27,3 +27,5 @@
 - **表单配方（FormProperty）**：widget 设置与规则链节点配置共用的声明式表单描述格式（扁平属性数组 + 控件类型枚举 + 声明式显隐），与上游 ui-ngx 已迁移到的 `settingsForm` 同键同格式；渲染器统一映射到 antd 控件，复杂面板超出配方表达力时走定制组件或 JSON 源码模式。
 - **资源库（Resources Library）**：五合一子系统——widget 类型库、图片库、SCADA 符号库、JS 库、资源文件库的合称；SCADA 符号无独立后端资源类型（以图片子类型存储）。独立页归 v2 后半场（M11 交付），SCADA 符号编辑器页为其最重组件；仪表盘内的符号实例只能换符号、绑设备、绑对象，SVG 结构编辑只发生在符号编辑器页。
 - **SCADA 布局**：仪表盘布局类型（gridSettings.layoutType 枚举值之一，与 default / divider 并列）——零边距满铺、列数限定 24 的倍数、禁用手机断点、新增 widget 自动仪表化（去标题去阴影、透明背景、锁定宽高比）；与普通布局共用同一网格编辑交互，非独立编辑器；SVG 符号结构编辑归资源库子系统的符号编辑器页。
+- **home dashboard（租户首页仪表盘）**：租户级 `homeDashboardId` 配置（存 Tenant.additionalInfo，经 /settings/home 配置页读写）；/home 页渲染消费 `GET /api/dashboard/home`（三角色，user→customer→tenant 三层回退链，未配置 = 200 空 body）；未配置时 /home 落 antd 原生 quick-links 兜底（ngx 的静态 JSON 首页不移植，登记能力级偏离）；与用户级 `defaultDashboardId`（登录直跳分支）是两个键两条生效链。
+- **公共仪表盘（public dashboard）**：把 dashboard 分配给租户内置 "Public" customer（`POST /customer/public/dashboard/{id}`）使其可匿名访问；公开链接 `/dashboard/{id}?publicId={publicCustomerId}`，匿名打开经 `POST /api/auth/login/public` 换 isPublic JWT（CUSTOMER_USER 权限 + isPublic claim，无独立 PUBLIC 角色）后走正常鉴权与 WS；无壳路由 `/dashboard/:id` 页面自治 gate 承载登录/公开双态。
