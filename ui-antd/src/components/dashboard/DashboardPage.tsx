@@ -43,6 +43,13 @@ export interface DashboardPageProps {
   isTenantAdmin?: boolean;
   /** change key from the URL `?reload` param (forces alias re-resolution). */
   reloadKey?: string;
+  /**
+   * External toolbar suppression, OR-ed with `settings.hideToolbar` (ngx
+   * parity: `(input || settings.hideToolbar) && !isEdit`, and v1 pages are
+   * always read-only). The home page passes `HomeDashboard.hideDashboardToolbar`;
+   * public embedding stays with the dashboard's own settings.
+   */
+  hideToolbar?: boolean;
 }
 
 export function DashboardPage({
@@ -51,6 +58,7 @@ export function DashboardPage({
   singlePageMode = false,
   isTenantAdmin = false,
   reloadKey,
+  hideToolbar = false,
 }: DashboardPageProps) {
   const { formatMessage } = useIntl();
   const isMobile = useIsMobile();
@@ -216,7 +224,7 @@ export function DashboardPage({
         </Typography.Title>
       ) : null}
 
-      {settings.hideToolbar ? null : collapsed ? (
+      {settings.hideToolbar || hideToolbar ? null : collapsed ? (
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <ToolbarCollapseToggle
             collapsed

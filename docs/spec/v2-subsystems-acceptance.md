@@ -1,6 +1,6 @@
 # v2 八子系统独立页验收 spec（活文档）
 
-> 状态：**M11 / M12 / M13 / M14 段定稿**（M11 段 2026-09-05 随 M11 开工落盘；M12 段 2026-09-05 随 M12 开工补定；M13 段 2026-09-06 随 M13 开工补定；M14 段 2026-09-06 随 M14 开工补定；依据 [#16](https://github.com/KMakise123/thingsboard/issues/16) 范围定案 + ui-ngx 4.4.0 源码侦察）。M15 段骨架占位，随各段开工补定。
+> 状态：**M11 / M12 / M13 / M14 / M15 段全部定稿**（M11 段 2026-09-05 随 M11 开工落盘；M12 段 2026-09-05 随 M12 开工补定；M13 段 2026-09-06 随 M13 开工补定；M14 段 2026-09-06 随 M14 开工补定；M15 段 2026-09-07 随 M15 开工补定；依据 [#16](https://github.com/KMakise123/thingsboard/issues/16) 范围定案 + ui-ngx 4.4.0 源码侦察）。
 > 路线依据：CONTEXT.md「资源库（五合一）」词条；#14 定案满足 M11 进入条件。验收原则继承 #9/#15：**等价为底线、允许增量增强、禁止删减 TB 已有操作**、分账三档（等价项勾选 / 行为契约勾选 / 能力级增强只登记）。
 > 分工：本 spec = 人工验收载体；自动化回归项归 [#12](https://github.com/KMakise123/thingsboard/issues/12) 基线扩充（§3.8 自动化衔接条）。
 
@@ -26,7 +26,7 @@
 | M12 | 通知族独立页 | §4（开工补定） | M11 |
 | M13 | Edge + OTA | §5（开工补定） | M12 |
 | M14 | 计算字段独立页 + VC 独立页 + settings 七件 + 密码策略页 | §6（已定稿 2026-09-06） | M13 |
-| M15 | home 首页 + 匿名公共仪表盘 + 收口 | §7（开工补定） | M14 |
+| M15 | home 首页 + 匿名公共仪表盘 + 收口 | §7（已定稿 2026-09-07） | M14 |
 
 ## 3. M11 资源库五件套操作面
 
@@ -34,7 +34,7 @@
 
 - [x] widget types 列表：列 createdTime/name/bundles/widgetType(system)/deprecated，搜索/分页/排序，行点击进详情（锚点 `widget-types-table-config.resolver.ts:80-91,216-221`）〔M11 走查 ✅：全列渲染 + 共 684 个分页 + 搜索写 `?textSearch=` 过滤生效；排序以列头控件在场目击，逐列排序未逐一驱动〕
 - [x] deprecated 过滤开关；system 列（SYS 且含 system 类型时显示）〔M11 走查 ✅：segmented 全部/当前/已弃用 三态在场；system badge 列目击〕
-- [ ] 新建 widget 类型：模板类型选择对话框（静态 widgetType 枚举，锚点 `select-widget-type-dialog.component.ts`）→ 进编辑器（M9 已交付）〔未勾（3V）：走查作业单未覆盖新建流，本波未正面驱动〕
+- [ ] 新建 widget 类型：模板类型选择对话框（静态 widgetType 枚举，锚点 `select-widget-type-dialog.component.ts`）→ 进编辑器（M9 已交付）〔未勾（3V）：走查作业单未覆盖新建流，本波未正面驱动；M15 复核：实现在役——`pages/widgets/editor/new-dialog/index.tsx`（`new-dialog.test.tsx`）+ widget-types `select-template-dialog.tsx` 双组件与单测在场〕
 - [x] widget type 详情页：预览渲染 + 元信息 + 编辑入口（跳 `/widgets/editor/:id`）〔M11 走查 ✅：元信息行 + 全限定名徽标 + 「编辑部件」跳 M9 编辑器路由可达；预览对 Angular 类型显示诚实占位（react-1-only 语义，占位三态既有边界）〕
 - [x] 导入/导出：单类型导出（含可选 includeResources）、导入走 `updateExistingByFqn` 通道、批量导出 zip（锚点 `widget-types-table-config.resolver.ts:93-115,231-246`）〔M11 走查 ✅：导出确认框含「嵌入部件图片和资源（自包含导出）」开关、导出 JSON 结构完整（fqn/descriptor/image/resources）；改名导入落库 + 列表 system/tenant 双份目击 + updateExistingByFqn 通道文案目击；**批量 zip 导出未驱动**（按钮在场）〕
 - [x] widgets bundles 列表：列/搜索/分页、新建/编辑/删除/导入/导出（锚点 `widgets-bundles-table-config.resolver.ts:68-130`）〔M11 走查 ✅：28 system 包 + 新建对话框（标题/描述/图片 URL）+ 删除 API 复核；bundle 导入/导出按钮在场未驱动；图片字段仍过渡纯 URL 输入未接 gallery-image-input → 缺陷 V1-2 登记（X 波）〕〔**X 波修复后复测通过（主会话真机复验 ✅）**：bundle 新建/编辑对话框图片字段已换挂 wave-2C `GalleryImageInput`（缩略图 + 图库选择 + 链接录入），值语义不变（仍是图片链接字符串，图库选择带上游 `tb-image;` 前缀），过渡提示文案移除，页面级单测断言控件在场；真机目击新建对话框「无图片/从图片库浏览/设置链接」控件形态〕
@@ -49,7 +49,7 @@
 - [x] embed 公链开关：设 public 后生成免登链接与嵌入代码（锚点 `embed-image-dialog.component.ts:66,90-91`）〔M11 走查 ✅：「公开（对未授权用户可用）」开关 + 公链 + 可复制嵌入代码；**curl 无 token GET 公链 200**（免登实测）〕
 - [x] include system images 开关（SYS/TENANT 语义差异：TENANT 可见 system 图、只读）〔M11 走查 ✅：开关开启后 715 张 system 图 + system badge；system 行无删除操作〕
 - [x] 删除含引用流：单个/批量 → 被引用对话框 → force 删除（§1 通用边界）〔M11 走查 ✅：确认框 → 「图片被其他实体使用」对话框列「widget 类型 → 引用方名称（链接）」→ 仍然删除 → API 复核已删 + 引用链接 404；批量删除通道由资源库页同款组件目击（资源文件批量删除 ✅）〕
-- [ ] 选择模式 selectionMode（弹层复用形态，供 SCADA 预览等调用方嵌入）〔未勾（3V）：走查作业单未覆盖弹层复用形态，本波未驱动〕
+- [ ] 选择模式 selectionMode（弹层复用形态，供 SCADA 预览等调用方嵌入）〔未勾（3V）：走查作业单未覆盖弹层复用形态，本波未驱动；M15 复核：实现在役——`components/images/image-gallery.tsx`/`gallery-image-input.tsx` selectionMode prop + 双测试文件在场〕
 
 ### 3.3 SCADA 符号库 + 编辑器页（对齐 `pages/scada-symbol`，最重组件）
 
@@ -61,9 +61,9 @@
 - [x] 保存链：getContent + metadata 回写 SVG → `updateImage` → title 变更追加 `updateImageInfo` → 重载（锚点 `scada-symbol.component.ts:211-249`）〔M11 走查 ✅：保存 toast + curl 回读 SVG——metadata JSON（description/tags/behavior/properties）与渲染函数字面量全部回写进 CDATA〕
 - [x] 预览模式（**静态形态**）：符号 SVG 按 metadata 尺寸/内边距渲染 + 缩放查看（锚点 `scada-symbol.component.ts:255-298`）。**勘误（2026-09-05）**：原写「内嵌仪表盘活体模拟」——事实核查 fork widget 注册表无 scada 符号运行时渲染器（M7 占位三态覆盖），活体预览无承载，降为静态预览；活体升级随 §3.8 渲染器缺口触发〔M11 走查 ✅：「按属性尺寸渲染（3 × 3 格）」+ 静态渲染完整 + 缩放按钮对 + 预览态保存禁用〕
 - [x] 从符号创建 widget：克隆 system.scada_symbol 模板 → 注入符号链接/尺寸/previewWidth → 保存 + 可选入 bundle（锚点 `scada-symbol.component.ts:406-465`）〔M11 走查 ✅：对话框（Widget 名称 + 可选入包）→ 创建 → API 复核 `v3v_walk_symbol_widget` 落库；入 bundle 分支未走（bundle 通道见 V1-1）〕
-- [ ] 替换 SVG 内容（上传）+ 下载符号（锚点 `scada-symbol.component.ts:358-404`）〔未勾（3V）：替换仅在 readonly 态目击 disabled；下载符号按钮在场未驱动〕
+- [ ] 替换 SVG 内容（上传）+ 下载符号（锚点 `scada-symbol.component.ts:358-404`）〔未勾（3V）：替换仅在 readonly 态目击 disabled；下载符号按钮在场未驱动；M15 复核：handlers 在役——`pages/resources/scada-symbols/editor/index.tsx:257-273` 下载（downloadBlob）+ 上传替换（registered delta）+ `data-testid="scada-download"`〕
 - [x] readonly 边界：TENANT 编辑 system 符号 → 只读（锚点 `scada-symbol.component.ts:486-490`）〔M11 走查 ✅（复验）：system 行无删除操作（tenant 行有）+ 编辑器保存/替换 SVG disabled + 表单 5 输入 disabled（DOM 探针）+ 截图；下载/预览/从符号创建 Widget 保留可用〕
-- [ ] 行为契约：受控退出确认（dirty → 确认 Modal，沿 M10 D1 受控形态）、EditorSession 撤销（结构性操作入栈）——SCADA 画布编辑是否入撤销栈按能力级增强登记，不做硬门槛〔未勾（3V）：走查作业单未覆盖退出确认/撤销栈驱动，单测锚在（use-leave-guard + session 契约）〕
+- [ ] 行为契约：受控退出确认（dirty → 确认 Modal，沿 M10 D1 受控形态）、EditorSession 撤销（结构性操作入栈）——SCADA 画布编辑是否入撤销栈按能力级增强登记，不做硬门槛〔未勾（3V）：走查作业单未覆盖退出确认/撤销栈驱动，单测锚在（use-leave-guard + session 契约）；M15 复核：单测锚核实在场——`dashboards/editor/contract/use-leave-guard.test.tsx` + `core/editor/session.test.ts`（undo/redo 组、undone 组不合并）+ `crash-guard.test.ts`〕
 
 ### 3.4 JS 库（对齐 `js-library-*`）
 
@@ -114,55 +114,55 @@
 
 ### 4.1 收件箱 inbox（三角色）
 
-- [ ] 列表：createdTime/type/subject/text 列，subject/text 经 sanitize 渲染；默认 createdTime DESC；分页/排序/搜索（锚点 `inbox-table-config.resolver.ts:57-103`）
-- [ ] 未读/全部 toggle（默认未读），切换重置排序与过滤（`inbox-table-header.component.*:18-38`）
-- [ ] 行点击详情对话框（通知全量渲染），关闭时标已读（`inbox-table-config.resolver.ts:75-78,155-171`）
-- [ ] 已读三通道：行内单条 / 详情关闭 / 全部标记已读；末页最后一条已读后自动翻上一页（:88-153）
-- [ ] 删除：单条 + 勾选批量 + 确认（:60-74）
+- [x] 列表：createdTime/type/subject/text 列，subject/text 经 sanitize 渲染；默认 createdTime DESC；分页/排序/搜索（锚点 `inbox-table-config.resolver.ts:57-103`）〔M12 走查 ✅：五列 + 文本渲染 + 新行登顶 + 分页（209 条）真机；搜索/排序提交未逐一驱动（URL textSearch/sort 契约锚）〕
+- [x] 未读/全部 toggle（默认未读），切换重置排序与过滤（`inbox-table-header.component.*:18-38`）〔M12 走查 ✅：默认「未读」选中；切「全部」写 URL `?unreadOnly=false` + 已读行回列实证〕
+- [x] 行点击详情对话框（通知全量渲染），关闭时标已读（`inbox-table-config.resolver.ts:75-78,155-171`）〔M12 走查 ✅：详情对话框全量渲染（主题/正文/相对时间），关闭 → PUT read 200 + 行从未读视图消失〕
+- [x] 已读三通道：行内单条 / 详情关闭 / 全部标记已读；末页最后一条已读后自动翻上一页（:88-153）〔M12 走查 ✅：三通道全驱动（PUT read ×2 + PUT /api/notifications/read 200）；末页翻页边缘未构造（3V）〕
+- [x] 删除：单条 + 勾选批量 + 确认（:60-74）〔M12 走查 ✅（单条）：确认框 → DELETE 200 → 行消失；批量勾选无头环境 onChange 不触发未闭环（走查文档 §7 O-2），selectedRowKeys+useBatchRun 在码 + sent 页同构单测锚〕
 
 ### 4.2 顶栏铃铛（三角色）
 
-- [ ] 铃铛按钮 + 未读数徽标（≥100 显示 99+），未读数走 WS 订阅（`notification-bell.component.ts:47-56,102-109`）
-- [ ] popover：标题 + 全部标记已读（有通知时显示）；最近 6 条；未读单条已读；空态；「查看全部」跳 inbox（`show-notification-popover.component.*`）〔已读通道实现为 REST，见 4.0〕
-- [ ] 通知项渲染：自定义图标（additionalConfig.icon）或按 type 图标、标题/正文、动作按钮（LINK 外链新窗 / DASHBOARD 带 state 站内跳转）、ALARM 按严重级别着色、相对时间（`notification.component.*`）
-- [ ] popover 打开期间暂停 count 订阅、关闭恢复（`notification-bell.component.ts:77-100`）
+- [x] 铃铛按钮 + 未读数徽标（≥100 显示 99+），未读数走 WS 订阅（`notification-bell.component.ts:47-56,102-109`）〔M12 走查 ✅：徽标 99+ 实证（≥100 阈值正中）；API 直发一条 → 徽标实时 99+→1（WS 推送驱动渲染实证）〕
+- [x] popover：标题 + 全部标记已读（有通知时显示）；最近 6 条；未读单条已读；空态；「查看全部」跳 inbox（`show-notification-popover.component.*`）〔已读通道实现为 REST，见 4.0〕〔M12 走查 ✅：标题/全部已读/单条已读/空态/查看全部跳转五件全驱动（PUT read 200 ×2 + 落 `/notifications/inbox`）；「最近 6 条」半——店存仅单条在场，cap 由 notification-feed 锚〕
+- [x] 通知项渲染：自定义图标（additionalConfig.icon）或按 type 图标、标题/正文、动作按钮（LINK 外链新窗 / DASHBOARD 带 state 站内跳转）、ALARM 按严重级别着色、相对时间（`notification.component.*`）〔M12 走查 ✅（渲染三项）：按类型图标 + 标题/正文 + 相对时间真机；动作按钮/ALARM 着色/自定义图标未驱动（无带动作按钮通知），`notification-item.test.tsx` 钉住〕
+- [ ] popover 打开期间暂停 count 订阅、关闭恢复（`notification-bell.component.ts:77-100`）〔未勾（3V）：实现按 4.7 收敛为单订阅常开（无暂停/恢复形态，不判缺陷），无可驱动面；M12 轻走查未驱动〕
 
 ### 4.3 已发通知 sent + 发送向导（SYS + TENANT）
 
-- [ ] 列表：createdTime/status/deliveryMethods/templateName 列；无搜索框；默认 createdTime DESC（`sent-table-config.resolver.ts:64-100`）
-- [ ] status 徽标三态（SCHEDULED/PROCESSING/SENT）+ 失败数红色 badge → 失败明细对话框（按投递方式分组、error chip + 文本）（:92-176、`sent-error-dialog.*`）
-- [ ] 行内「再次发送」（SCHEDULED 禁用）；删除单条 + 批量（:69-133）
-- [ ] 发送向导三步 stepper：Setup → Compose（仅从零开始）→ Review，步骤校验全过才可前进（`sent-notification-dialog.componet.ts:267-277`）
-- [ ] Setup：从零开始/使用模板 toggle（模板候选限 GENERAL、可搜索/新建/编辑）；接收人多选 + 新建接收人快捷入口；定时发送（enabled + 时区 + 时间 min=now max=+7 天 → sendingDelayInSec 换算）（:131-318）
-- [ ] 投递方式开关组：atLeastOne 校验、可用方式 API 探测、不可用禁用并归零、刷新按钮；权限门（WEB 任何 admin 可发不可配；SYS 可配全部；TENANT 仅 SLACK；其余「联系管理员」tooltip）（:324-382）
-- [ ] Review：preview 端点（接收总数、按 target 计数、接收人 chips、按启用方式渲染预览块）（:235-249）
-- [ ] 提交 POST /api/notification/request；三入口复用同一向导（sent 页新增 / 行内再发 / 页头发送按钮）
+- [x] 列表：createdTime/status/deliveryMethods/templateName 列；无搜索框；默认 createdTime DESC（`sent-table-config.resolver.ts:64-100`）〔M12 走查 ✅：四列 + 工具栏无搜索框 + 两轮发送新行均登顶实证〕
+- [ ] status 徽标三态（SCHEDULED/PROCESSING/SENT）+ 失败数红色 badge → 失败明细对话框（按投递方式分组、error chip + 文本）（:92-176、`sent-error-dialog.*`）〔未勾（3V）：SENT「已发送」徽标真机；SCHEDULED/PROCESSING 与失败 badge→失败明细对话框未驱动（不真定时 + 无失败通道），实现在役（error-dialog.tsx）+ 单测锚——M12 轻走查未驱动〕
+- [x] 行内「再次发送」（SCHEDULED 禁用）；删除单条 + 批量（:69-133）〔M12 走查 ✅：再次发送预填重开 → 端到端再发 ×2（新行登顶）；单条删除确认框 → DELETE 200；SCHEDULED 禁用分支未证（无 SCHEDULED 行）；批量勾选未真机闭环（§7 O-2），删除所选+逐 id DELETE 通道在码 + 同构单测锚〕
+- [x] 发送向导三步 stepper：Setup → Compose（仅从零开始）→ Review，步骤校验全过才可前进（`sent-notification-dialog.componet.ts:267-277`）〔M12 走查 ✅：三步步进 + 校验门真机；**但 Setup 步过激校验致从零开始死锁——缺陷 D-1 登记（走查文档 §7），主链经原生补填隐形字段完成（非正常用户路径）〕
+- [x] Setup：从零开始/使用模板 toggle（模板候选限 GENERAL、可搜索/新建/编辑）；接收人多选 + 新建接收人快捷入口；定时发送（enabled + 时区 + 时间 min=now max=+7 天 → sendingDelayInSec 换算）（:131-318）〔M12 走查 ✅：从零默认 + 接收人多选 + 内联新建（保存后候选即时补入）+ 定时字段（选择器+时区 Asia/Shanghai）在场；使用模板的候选搜索/新建/编辑未驱动；min=now/max=+7 天边界未逐证（3V）〕
+- [x] 投递方式开关组：atLeastOne 校验、可用方式 API 探测、不可用禁用并归零、刷新按钮；权限门（WEB 任何 admin 可发不可配；SYS 可配全部；TENANT 仅 SLACK；其余「联系管理员」tooltip）（:324-382）〔M12 走查 ✅：deliveryMethods 探测 200 → SLACK/移动应用禁用 + WEB 恒开恒锁 + atLeastOne 文案在场 + 「前往配置通知渠道」跳转（O-4）；「不可用并归零」场景未驱动；权限门角色细分按 4.7 统一口径〕
+- [x] Review：preview 端点（接收总数、按 target 计数、接收人 chips、按启用方式渲染预览块）（:235-249）〔M12 走查 ✅：POST preview 200 + 「6 个收件人」+ per-target 计数 + chips 逐列 + Web 预览块回显一致〕
+- [x] 提交 POST /api/notification/request；三入口复用同一向导（sent 页新增 / 行内再发 / 页头发送按钮）〔M12 走查 ✅：POST 200 + toast ×3 轮；三入口（sent 页头/行内再次通知/rules·recipients·templates 页头同款按钮）全场目击〕
 
 ### 4.4 接收人 recipients（SYS + TENANT）
 
-- [ ] 列表：createdTime/name/类型/描述列；新增/行点击编辑/删除单条+批量（`recipient-table-config.resolver.ts:56-83`）
-- [ ] 对话框：name 必填；类型 radio 三选 PLATFORM_USERS/SLACK/MICROSOFT_TEAMS（`recipient-notification-dialog.component.html:44-52`）
-- [ ] PLATFORM_USERS → usersFilter 八变体按角色收缩：ALL_USERS / TENANT_ADMINISTRATORS（SYS 可配 tenantsIds/tenantProfilesIds）/ CUSTOMER_USERS(customerId) / USER_LIST(usersIds) / ORIGINATOR_ENTITY_OWNER_USERS / AFFECTED_USER / SYSTEM_ADMINISTRATORS 与 AFFECTED_TENANT_ADMINISTRATORS（仅 SYS）（ts :88-221）
-- [ ] SLACK → 会话类型 radio + 会话自动补全（`/api/notification/slack/conversations`）；MICROSOFT_TEAMS → useOldApi 开关（新旧 API 标签切换）+ webhookUrl + channelName（html :126-178）
-- [ ] description 文本域；保存 POST /api/notification/target
+- [x] 列表：createdTime/name/类型/描述列；新增/行点击编辑/删除单条+批量（`recipient-table-config.resolver.ts:56-83`）〔M12 走查 ✅：四列 + 新建/编辑（改名落行）/单条删除真机；删除被引用 → 后端 400「Recipients group is being used in notification rule」原文 toast 错误路径实证，解引用后 DELETE 200；批量勾选未真机驱动（同 O-2 同构锚）〕
+- [x] 对话框：name 必填；类型 radio 三选 PLATFORM_USERS/SLACK/MICROSOFT_TEAMS（`recipient-notification-dialog.component.html:44-52`）〔M12 走查 ✅：三选 radio 全渲染 + 空名保存「名称必填」校验实证〕
+- [x] PLATFORM_USERS → usersFilter 八变体按角色收缩：ALL_USERS / TENANT_ADMINISTRATORS（SYS 可配 tenantsIds/tenantProfilesIds）/ CUSTOMER_USERS(customerId) / USER_LIST(usersIds) / ORIGINATOR_ENTITY_OWNER_USERS / AFFECTED_USER / SYSTEM_ADMINISTRATORS 与 AFFECTED_TENANT_ADMINISTRATORS（仅 SYS）（ts :88-221）〔M12 走查 ✅：TENANT 侧恰 6 变体全枚举（无 SYS 专属两项，收缩实证）；SYS 侧两变体未真机枚举（代码收缩锚，3V）〕
+- [x] SLACK → 会话类型 radio + 会话自动补全（`/api/notification/slack/conversations`）；MICROSOFT_TEAMS → useOldApi 开关（新旧 API 标签切换）+ webhookUrl + channelName（html :126-178）〔M12 走查 ✅：SLACK 三会话类型 + 会话搜索字段在场（未配置不真实调用，按口径）；TEAMS 新旧 API 双选项（形态转译 O-1）+ Workflow URL + 频道名称〕
+- [x] description 文本域；保存 POST /api/notification/target〔M12 走查 ✅：0/500 限长；POST 200（向导内联 + 独立对话框同组件双证）〕
 
 ### 4.5 通知规则 rules（SYS + TENANT，最重组件）
 
-- [ ] 列表：createdTime/name/templateName/triggerType/描述；新增/行点击编辑/删除单条+批量（`rule-table-config.resolver.ts:57-86`）
-- [ ] 行内：启用/停用 toggle（即改即存）+「复制规则」（名称追加 "(copy)"）（:93-144）
-- [ ] 对话框 stepper：基本设置（name/enabled/triggerType/模板选择按 triggerType 过滤搜索；内联新建/编辑模板登记 4.7）→ 触发器设置（按 triggerType 动态步骤）；编辑时 triggerType 锁定（`rule-notification-dialog.*:34-118,374-386`）
-- [ ] 接收面二分：非 ALARM → targets 多选 + 新建接收人入口；ALARM → 升级链（首级 0 秒固定、后续间隔 1 分钟–7 天、动态行增删）+ clearRule（仅升级链 >1 级时可配）（`escalations.*`、`escalation-form.*`）
-- [ ] trigger 配置表单 14 种（候选按 authority 收缩；默认 SYS=ENTITIES_LIMIT、TENANT=ALARM）：ALARM / DEVICE_ACTIVITY（设备|设备配置档二选一）/ ENTITY_ACTION / ALARM_COMMENT / ALARM_ASSIGNMENT / RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT（含 ruleNode 子区联动）/ EDGE_CONNECTION / EDGE_COMMUNICATION_FAILURE / ENTITIES_LIMIT（threshold 0-100% → ÷100）/ API_USAGE_LIMIT / NEW_PLATFORM_VERSION（无字段）/ RATE_LIMITS / TASK_PROCESSING_FAILURE（仅描述）/ RESOURCES_SHORTAGE（三滑杆）——字段级对照见 `docs/agents/m12-ngx-inventory.md` §5
-- [ ] 每个 trigger 步骤底部 additionalConfig.description；保存把表单值并入 triggerConfig（:441-467）
+- [x] 列表：createdTime/name/templateName/triggerType/描述；新增/行点击编辑/删除单条+批量（`rule-table-config.resolver.ts:57-86`）〔M12 走查 ✅：五列 + demo 规则 9 行 + 新建/行点击编辑真机；行内删除按钮在场、单条/批量流未逐一点击（清理走 API DELETE 200 + 同构确认单测锚）〕
+- [x] 行内：启用/停用 toggle（即改即存）+「复制规则」（名称追加 "(copy)"）（:93-144）〔M12 走查 ✅：停用 → API 复核 enabled:false 即改即存；复制 → 向导预填「…(copy)」保存落库〕
+- [x] 对话框 stepper：基本设置（name/enabled/triggerType/模板选择按 triggerType 过滤搜索；内联新建/编辑模板登记 4.7）→ 触发器设置（按 triggerType 动态步骤）；编辑时 triggerType 锁定（`rule-notification-dialog.*:34-118,374-386`）〔M12 走查 ✅：两步 stepper + 模板候选随 triggerType 过滤（网络 notificationTypes=ALARM 实证）+ 编辑态触发器 select disabled；内联新建/编辑模板按 4.7 不驱动〕
+- [x] 接收面二分：非 ALARM → targets 多选 + 新建接收人入口；ALARM → 升级链（首级 0 秒固定、后续间隔 1 分钟–7 天、动态行增删）+ clearRule（仅升级链 >1 级时可配）（`escalations.*`、`escalation-form.*`）〔M12 走查 ✅：ALARM 升级链（「首级接收人（立即通知）」+ 添加阶段 + 间隔文案 + 每级接收人）vs 非 ALARM targets 多选（必填校验）双侧实证；clearRule 仅 >1 级时在场〕
+- [x] trigger 配置表单 14 种（候选按 authority 收缩；默认 SYS=ENTITIES_LIMIT、TENANT=ALARM）：ALARM / DEVICE_ACTIVITY（设备|设备配置档二选一）/ ENTITY_ACTION / ALARM_COMMENT / ALARM_ASSIGNMENT / RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT（含 ruleNode 子区联动）/ EDGE_CONNECTION / EDGE_COMMUNICATION_FAILURE / ENTITIES_LIMIT（threshold 0-100% → ÷100）/ API_USAGE_LIMIT / NEW_PLATFORM_VERSION（无字段）/ RATE_LIMITS / TASK_PROCESSING_FAILURE（仅描述）/ RESOURCES_SHORTAGE（三滑杆）——字段级对照见 `docs/agents/m12-ngx-inventory.md` §5〔M12 走查 ✅（抽样 6/14，≥3 达标）：ALARM/DEVICE_ACTIVITY（Segmented 二选一联动）/ENTITY_ACTION/ALARM_COMMENT/RULE_ENGINE_LIFECYCLE/ENTITIES_LIMIT（SYS 侧，阈值 % 默认 80）真机驱动；候选按角色二分（TENANT 8 + SYS 6）与默认值双向实证；其余 8 种候选在场 + 表单随型重渲机制实证（字段级 3V）；ruleNode 子区联动未证（走查文档 §7 O-3）；threshold 0-100% 边界未逐证〕
+- [x] 每个 trigger 步骤底部 additionalConfig.description；保存把表单值并入 triggerConfig（:441-467）〔M12 走查 ✅：描述字段在场并填写；POST /api/notification/rule 200；payload 并入由 rule-submit 契约/单测锚〕
 
 ### 4.6 模板 templates（SYS + TENANT）
 
-- [ ] 列表：createdTime/notificationType/name；新增/行点击编辑/删除单条+批量/行内复制（"(copy)"）（`template-table-config.resolver.ts:55-95`）
-- [ ] 对话框 stepper：Setup（name/notificationType 下拉按角色收缩、编辑锁定、投递方式开关组 atLeastOne）→ Compose（`template-notification-dialog.*:34-92,182-197`）
-- [ ] compose 六方式字段与校验：WEB（subject≤150 + body≤250 + icon + 动作按钮）/ EMAIL（subject≤250 + body 富文本）/ SMS（body≤320）/ SLACK（body）/ MOBILE_APP（subject≤50 + body≤150 + onClick）/ MICROSOFT_TEAMS（subject + body + themeColor + button）；未启用方式整块禁用；每方式自动注入 enabled+method（`notification-template-configuration.component.ts:219-303`）
-- [ ] 动作按钮配置（WEB/TEAMS/MOBILE 共用）：enabled / text≤50 / linkType(LINK|DASHBOARD) / link≤300 / dashboardId / dashboardState / setEntityIdInState 联动启停（`notification-action-button-configuration.component.ts:84-126`）
-- [ ] 模板参数 `${xxx}`：主题/正文可模板化 + 按类型「查看文档」帮助；保存 POST /api/notification/template
-- [ ] EMAIL 富文本编辑器等价说明：ui-ngx 用 hugeRTE；ui-antd 以 HTML 源码编辑等价交付（能力不降级），WYSIWYG 视觉形态登记为能力级增强
+- [x] 列表：createdTime/notificationType/name；新增/行点击编辑/删除单条+批量/行内复制（"(copy)"）（`template-table-config.resolver.ts:55-95`）〔M12 走查 ✅：三列 + 新建/编辑/行内复制按钮/单条删除（scratch 模板页面删除复核）真机；批量未驱动（同构锚）；行内复制流未单独驱动（按钮在场）〕
+- [x] 对话框 stepper：Setup（name/notificationType 下拉按角色收缩、编辑锁定、投递方式开关组 atLeastOne）→ Compose（`template-notification-dialog.*:34-92,182-197`）〔M12 走查 ✅：两步 stepper；类型候选 TENANT 10 种（RULE_NODE 收缩保留、无 SYS 级）；编辑态 notificationType select disabled〕
+- [x] compose 六方式字段与校验：WEB（subject≤150 + body≤250 + icon + 动作按钮）/ EMAIL（subject≤250 + body 富文本）/ SMS（body≤320）/ SLACK（body）/ MOBILE_APP（subject≤50 + body≤150 + onClick）/ MICROSOFT_TEAMS（subject + body + themeColor + button）；未启用方式整块禁用；每方式自动注入 enabled+method（`notification-template-configuration.component.ts:219-303`）〔M12 走查 ✅（抽样 2/6）：WEB（11/150、17/250 计数器+图标）与 EMAIL（0/250+HTML 源码）真机；只渲已启用方式机制实证；SMS/SLACK/MOBILE/TEAMS 块未逐一驱动，六方式字段规格由 `template-fields.test.ts` 钉住（caps 150/250/50、250/320/150、enabled+method 注入）（3V）〕
+- [x] 动作按钮配置（WEB/TEAMS/MOBILE 共用）：enabled / text≤50 / linkType(LINK|DASHBOARD) / link≤300 / dashboardId / dashboardState / setEntityIdInState 联动启停（`notification-action-button-configuration.component.ts:84-126`）〔M12 走查 ✅：enabled → 按钮文本（0/50）+ 链接；linkType 双选项在场；切 DASHBOARD → 搜索仪表板 + setEntityIdInState 联动出现；link≤300 计数未单独看（3V）〕
+- [x] 模板参数 `${xxx}`：主题/正文可模板化 + 按类型「查看文档」帮助；保存 POST /api/notification/template〔M12 走查 ✅：「输入字段支持模板化。」+「查看文档」按钮在场（帮助页跳转未驱动）；保存 → 行登顶 + API 复核〕
+- [x] EMAIL 富文本编辑器等价说明：ui-ngx 用 hugeRTE；ui-antd 以 HTML 源码编辑等价交付（能力不降级），WYSIWYG 视觉形态登记为能力级增强〔M12 走查 ✅：HTML 源码 textarea + 明示「本 fork 暂无所见即所得编辑器」文案原样落地〕
 
 ### 4.7 能力级增强登记（不设硬门槛）
 
@@ -207,7 +207,7 @@
 - [x] 导入 Edge（tenant）：CSV bulk_import（`POST /api/edge/bulk_import`）；**无导出**（ngx 无此能力，钉死）（锚点 `import-export.service.ts:593-601`）〔M13 走查 ✅：CSV 全链——请求实证 + 结果面板「1 新建，0 错误」+ 新行落列表；无导出按钮实证〕
 - [x] 删除：单条 + 勾选批量，仅 tenant（customer scope 列表行删除实为「解除分配」语义）（锚点 `edges-table-config.resolver.ts:141-143,173-184`）〔M13 走查 ✅（API 通道）：确认四件套单测锚；批量删除由 useBatchRun 契约覆盖〕
 - [x] 行内动作矩阵（tenant）：make public（未分配时）/ assign to customer（未分配时）/ unassign（已分配非 public）/ make private（public 时）/ manage assets/devices/entityViews/dashboards/rule chains 五子页入口 / sync（锚点 `:189-245`）〔M13 走查 ✅（半）：按钮区全场目击（详情页）+ manage 五跳在场 + sync 失败路径实操（阻塞 11s → 错误 toast，成功路径留人工）+ assign 实操（customer 页分配流）；make public/private 未逐一驱动〕
-- [ ] 批量：tenant 批量分配客户；customer scope 批量解除分配（锚点 `:296-315,489-515`）〔未勾（3V）：走查未驱动，useBatchRun 契约 + 单测锚〕
+- [ ] 批量：tenant 批量分配客户；customer scope 批量解除分配（锚点 `:296-315,489-515`）〔未勾（3V）：走查未驱动，useBatchRun 契约 + 单测锚；M15 复核：实现在役——edges list `useBatchRun` 批量通道（list/index.tsx:185-274）+ `use-batch-run.test.ts` + `customer-edges/index.test.tsx:180`「fans batch unassign out per selected edge」〕
 - [x] customer 作用域列表（TENANT_ADMIN）：`/customers/:id/edges`，标题「客户名: Edge instances」；入口三处——客户详情按钮 / 客户列表行内 / 本页头部「分配已有 Edge」对话框（锚点 `customer-routing.module.ts:191-228`、`customers-table-config.resolver.ts:105-118,178-183`）〔M13 走查 ✅：面包屑 + 分配已有 Edge → 行落列表〕
 - [x] customer_user scope：只读列表（强制本人 customerId 取数，`edge_customer_user` 语义），删除/分配类操作不可达，详情只读（锚点 `:105,109-121,263-289`）〔M13 走查 ✅：网络面板证 `GET /api/customer/{cuId}/edgeInfos` 强制客户域；无写操作按钮〕
 
@@ -224,10 +224,10 @@
 ### 5.3 Edge 子实体页五件 + 规则链模板页（本里程碑最重块）
 
 - [x] 平级路由形态：`/edges/:id/{assets|devices|entityViews|dashboards|ruleChains}` 五条作用域页 + 域内外壳（标题=「Edge 名: 实体复数」、面包屑叶=Edge 名、返回详情页、加载失败 Alert；外壳页面私有不泛型化）；**不做详情内嵌 tab**（钉死）；CUSTOMER_USER 全部收缩为只读（`edge_customer_user` 语义）〔M13 走查 ✅：外壳标题「M13 走查边缘: 规则链」实证；CU 四子页无分配控件由实现 + 单测锚〕
-- [ ] assets 子页：列表（`GET /api/edge/{id}/assets`）+ 头部「分配已有资产」对话框 + 行内 Unassign + 批量 unassign（锚点 `assets-table-config.resolver.ts:189-191,246-287,322-328`）〔未勾（3V）：走查驱动渲染 + 分配按钮在场；分配/解除流未真机驱动（与 devices 共享分配对话框组件与域内 hook，单测锚）〕
+- [ ] assets 子页：列表（`GET /api/edge/{id}/assets`）+ 头部「分配已有资产」对话框 + 行内 Unassign + 批量 unassign（锚点 `assets-table-config.resolver.ts:189-191,246-287,322-328`）〔未勾（3V）：走查驱动渲染 + 分配按钮在场；分配/解除流未真机驱动（与 devices 共享分配对话框组件与域内 hook，单测锚）；M15 复核：`edges/assets/index.test.tsx` 覆盖 assign-existing fan-out + 单条解除确认，锚有效〕
 - [x] devices 子页：列表（含 type/deviceProfile/active 过滤能力，走 GET 端点既有 query 参数）+ 分配对话框 + 行内/批量 unassign + CU 只读**可看凭据**；**edge scope 内不能新建/导入设备、无 manage credentials**（钉死）（锚点 `devices-table-config.resolver.ts:270-287,318-366,392-450`）〔M13 走查 ✅：三过滤器在场（type/profile 服务端互斥实测适配）；分配对话框服务端搜索 → dev1+dev2 入列（API 复核）；凭据查看按钮在场（复用 DeviceCredentialsModal readOnly）〕
-- [ ] entityViews 子页：同构（`GET /api/edge/{id}/entityViews` + 分配/unassign/批量 + CU 只读）（锚点 `entity-views-table-config.resolver.ts:187-309`）〔未勾（3V）：同 assets——渲染在场，分配流未真机驱动〕
-- [ ] dashboards 子页：列表 + 分配已有 + 行内导出 + unassign + 批量 unassign + 行内打开仪表盘（锚点 `dashboards-table-config.resolver.ts:208-390`）〔未勾（3V）：同 assets——渲染在场，分配流未真机驱动〕
+- [ ] entityViews 子页：同构（`GET /api/edge/{id}/entityViews` + 分配/unassign/批量 + CU 只读）（锚点 `entity-views-table-config.resolver.ts:187-309`）〔未勾（3V）：同 assets——渲染在场，分配流未真机驱动；M15 复核：`edges/entity-views/index.test.tsx` 覆盖 assign fan-out + 解除确认，锚有效〕
+- [ ] dashboards 子页：列表 + 分配已有 + 行内导出 + unassign + 批量 unassign + 行内打开仪表盘（锚点 `dashboards-table-config.resolver.ts:208-390`）〔未勾（3V）：同 assets——渲染在场，分配流未真机驱动；M15 复核：`edges/dashboards/index.test.tsx` 覆盖分配/解除 + CU 收缩（export 留、分配藏），锚有效〕
 - [x] ruleChains 子页（仅 TENANT_ADMIN）：列表 + root 复选列 + 分配已有（仅 EDGE 类型链可挂）+ 行内 Set root（确认后 `POST /api/edge/{edgeId}/{ruleChainId}/root`）+ 根链禁 unassign + 批量 unassign + **进页缺失检查**（`GET /api/edge/missingToRelatedRuleChains/{id}`，缺则 Alert 列出，antd 形态替代 ngx alert 阻断）；本页禁新建/删除（锚点 `rulechains-table-config.resolver.ts:137-147,183-225,273-287,447-459`）〔M13 走查 ✅：缺检请求进页实证；根链行双禁用 vs 普通行双可用对照；Set root → API 复核 rootRuleChainId 已切（行刷新滞后属后端异步，W-2 登记）〕
 - [x] 规则链模板页 `/edges/rule-chains`（仅 TENANT_ADMIN，Edge Management 组第二项）：auto-assign 链列表（`GET /api/ruleChain/autoAssignToEdgeRuleChains`）+ root 模板复选 + assignToEdge 复选 + 行内 Set Edge template root / Set(Unset) auto-assign to edge + 头部新建/导入（EDGE 类型）+ 打开 EDGE 类型画布（画布本体归规则链域，仅验入口链路）（锚点 `:148-200,251-271,606-612`、`rule-chain.service.ts:265-296`）〔M13 走查 ✅：两路合并列表 + demo 模板根链复选在场 + auto-assign 即改即存（POST + 重取，false→true→false 复原）；新建/导入/画布入口由 wave-5b 交付 + 单测锚〕
 - [x] 子实体详情跳转：assets/devices/entityViews 的 `:entityId` 打开各实体详情（只读按角色）、dashboards 的 `:dashboardId` 打开仪表盘页（锚点 `edge-routing.module.ts:121-137,161-177,201-217,241-255`）〔wave-5a 交付：名称 Link → 既有 v1 详情路由（URL 不搬 ngx 字面量，§5.0）；走查经 devices 子页行链接目击〕
@@ -236,8 +236,8 @@
 
 - [x] 入口与开关：Edge 详情内 tab 仅 TA；时间分页（useTimePageLink 等价）；无搜索/新增/删除/多选/详情面板，表头无时间段选择 UI（锚点 `edge-downlink-table-config.ts:71-84`）〔M13 走查 ✅：tab 在场、六列、空态正确、无写操作控件〕
 - [x] 取数链：先读 Edge 的 SERVER_SCOPE 属性 `queueStartTs`，再 `GET /api/edge/{id}/events`；**顺序 = 服务端返回顺序直渲**（后端恒 `seqId ASC`；ngx 声明 DESC 但被后端忽略且无客户端倒排，源码复核定案——客户端倒排登记 §5.6 增强，不做假排序参数）（锚点 `:89-94`、`JpaBaseEdgeEventDao.java:61,175-187`）〔M13 走查 ✅：网络面板逐请求实证两段管线且事件请求不带排序参数〕
-- [ ] 列与派生状态：createdTime / type（EdgeEventType 译名）/ action（EdgeEventActionType 译名）/ entityId / status（**派生值**：createdTime ≤ queueStartTs → Deployed，否则 Pending；色走 antd token）/ data 查看（锚点 `:105-145`、`edge.models.ts:100-164`）〔未勾（受阻·后端）：多次分配操作后 `edge_event` 表 0 行（SQL 实证），同步事件未落库，真数据行无法构造；派生纯函数（== 判 Deployed、缺失按 0）单测钉住——留人工/后端环境修复后补验〕
-- [ ] data 查看链：非 ADMIN_SETTINGS 且非 DELETED 才可点；内容按类型回查实体或直取 body → JSON 弹窗；取不到则错误 toast（锚点 `:159-194`、`entity.service.ts:1509-1550`）〔未勾（受阻·后端）：同上，事件未落库无法构造〕
+- [ ] 列与派生状态：createdTime / type（EdgeEventType 译名）/ action（EdgeEventActionType 译名）/ entityId / status（**派生值**：createdTime ≤ queueStartTs → Deployed，否则 Pending；色走 antd token）/ data 查看（锚点 `:105-145`、`edge.models.ts:100-164`）〔未勾（受阻·后端）：多次分配操作后 `edge_event` 表 0 行（SQL 实证），同步事件未落库，真数据行无法构造；派生纯函数（== 判 Deployed、缺失按 0）单测钉住——留人工/后端环境修复后补验；M15 复核：SQL 重查 `edge_event` 仍 0 行，受阻维持〕
+- [ ] data 查看链：非 ADMIN_SETTINGS 且非 DELETED 才可点；内容按类型回查实体或直取 body → JSON 弹窗；取不到则错误 toast（锚点 `:159-194`、`entity.service.ts:1509-1550`）〔未勾（受阻·后端）：同上，事件未落库无法构造；M15 复核：`edge_event` SQL 重查仍 0 行，受阻维持〕
 
 ### 5.5 OTA 包管理页操作面
 
@@ -249,7 +249,7 @@
 - [x] 编辑近乎只读：非新增态整表 disable 仅重新启用 description；title/version/tag 双保险 readonly；fileName/dataSize/contentType 只读展示（锚点 ts `:150-153`）〔M13 走查 ✅：详情页逐字段 disabled 探针实证，仅描述启用〕
 - [x] 详情按钮组五件：Download package（disabled 条件 `hasData && !url`；文件型 blob 下载走 `GET /api/otaPackage/{id}/download`；URL 型**下载禁用**——**勘误（2026-09-06）**：原措辞「URL 型新窗口打开外链」与锚点 `isEnabled = hasData && !url` 矛盾，ngx 实为禁用，实现照锚点，外链新窗登记 §5.6）/ Delete / Copy package Id / Copy checksum（有值才显示）/ Copy direct URL（有值才显示）（锚点 `ota-update.component.html:18-63`）〔M13 走查 ✅：文件型下载请求实证；URL 型 disabled=true 实证；直链复制有值才显示实证〕
 - [x] 删除：单条 + 批量 + 确认四件套；被 device/device profile 引用时**提交后吃后端 400 明确报错**（fk_* 四条消息转译展示，无前端预检——预检属增强登记）（锚点 `resolver:117-126`、`BaseOtaPackageService.java:195-218`）〔M13 走查 ✅：引用态删除 → 400 原文 toast「The otaPackage referenced by the device profile cannot be deleted!」，包未删〕
-- [ ] 消费集成（OTA 闭环另一半）：device-profile 表单 firmwareId/softwareId 两个包选择器 + 保存前「变更将影响 N 台设备」确认弹窗（两类计数 forkJoin，0 不弹；device-profile 半边选择器已存在，补保存门）；device 表单同款选择器 + profile 换选候选联动（锚点 `device-profile.component.html:96-111`、`device.component.html:124-139`、`ota-package-autocomplete.component.ts:260-279`）〔wave-6 交付：保存门（计数 0 不弹/取消不落库）+ 双选择器 + 换档清空（ngx 可见行为照搬、model 残留缺陷有意不复制）单测覆盖（349 用例）；真机驱动归设备域走查顺带〕
+- [ ] 消费集成（OTA 闭环另一半）：device-profile 表单 firmwareId/softwareId 两个包选择器 + 保存前「变更将影响 N 台设备」确认弹窗（两类计数 forkJoin，0 不弹；device-profile 半边选择器已存在，补保存门）；device 表单同款选择器 + profile 换选候选联动（锚点 `device-profile.component.html:96-111`、`device.component.html:124-139`、`ota-package-autocomplete.component.ts:260-279`）〔wave-6 交付：保存门（计数 0 不弹/取消不落库）+ 双选择器 + 换档清空（ngx 可见行为照搬、model 残留缺陷有意不复制）单测覆盖（349 用例）；真机驱动归设备域走查顺带；M15 复核：在役确认——`device-profiles/detail/GeneralTab.tsx:182` 受影响设备计数门 + `device-profiles/detail/index.test.tsx:250` firmwareId 保存载荷断言 + `devices/detail/index.test.tsx` OTA 选择器 mock，维持「真机归设备域走查」注记〕
 - [x] 权限契约：CUSTOMER_USER 后端有 3 个只读端点（info/列表×2）但无下载——前端不建入口，页面 TENANT_ADMIN only；真实固件分发/设备侧更新状态追踪归设备域不在本页（登记）〔M13 走查 ✅：CU 菜单无 OTA 项 + `/otaPackages` 直达拒绝页实证〕
 
 ### 5.6 能力级增强登记（只登记不验收，不设硬门槛）
@@ -408,15 +408,89 @@
 - 走查缺陷与观察登记（2026-09-06/07 真机走查）：**W-1/W-2 已修**（CF 测试对话框预填竞态、tab 模式实体缺口无提示——各带单测）；**W-3～W-9 观察项**不构成验收缺口（自动化环境错误边界不复现、beforeunload 只拦刷新/关页为既定等价口径、Windows JGit pack 句柄锁环境问题、版本 id 截断位数不一致等）——全文见 [v2-m14-browser-walkthrough.md](./v2-m14-browser-walkthrough.md) §5/§11。
 - **admin settings 保存缺陷（T6-① 已实锤 2026-09-06，前端，wave-2 修复）**：v1 已交付 general/connectivity/outgoing-mail 三页保存 body 只回传 `{key, jsonValue}` 不带 `id`，后端对同 key 无 id POST 一律 400 "Admin settings with such name already exists!"（dao 层无 upsert，系统初始化预建记录）——真机二次保存 400 复现；修复 = payload 带快照 id（`AdminSettings` 类型已补 `id` 字段），M14 新 settings 页一律带 id 编码；三存量页随 wave-2 回归修复。
 
-## 7. M15 home 首页 + 匿名公共仪表盘 + 收口（骨架，开工补定）
+## 7. M15 home 首页 + 匿名公共仪表盘 + 收口（定稿 2026-09-07）
 
-- 登录落点调整 home → home dashboard；匿名公共仪表盘页；usage 下钻 states 随域评估。
+> 依据：四份侦察底稿（`docs/agents/m15-ngx-inventory-home.md` / `m15-ngx-inventory-public-dashboard.md` / `m15-backend-contract.md` / `m15-antd-current-state.md`）+ 三镜头合议（`m15-panel-scope.md` / `m15-panel-arch.md` / `m15-panel-contract.md`）。已定裁决：兜底形态 = antd 原生 quick links（P1-B，ngx 静态 JSON 移植为能力级偏离登记）；登录落点 = 三角色统一 `/home`（P3-A，SA 落点 `/tenants`→`/home` 为对 v1 §3.2 的有意修订）；usage 下钻 = 缓做触发未满足，只落评估（7.3）；M12 存量勾账 = 收口补轻走查（7.4-1，用户拍板 2026-09-07）。
+
+### 7.0 通用边界（home + 公开 + usage 三面共守，行为契约非勾选条目）
+
+- 路由族与角色矩阵：`/home` 三角色可达（ngx `home-links-routing.module.ts:122-137` auth 三角色、组件无角色分支）；公开仪表盘走顶层无壳路由 `/dashboard/:id` + `?publicId=` 匿名可达（无独立公开路由，钉死）；`/usage` TENANT_ADMIN only 维持。
+- 「home」两族端点分工钉死（防混写）：/home 页渲染与落点判断消费 `GET /api/dashboard/home`（三角色；未配置 = 200 **0 字节 body**，SA 恒空；悬挂 id 被后端 extract 吞掉天然免疫）；`GET|POST /api/tenant/dashboard/home/info` 仅供 M14 配置页读写（TA only，未配置 = `{dashboardId:null,hideDashboardToolbar:true}`，**不校验存在性 → 悬挂 id 只从它泄漏**）。前端不得用 tenant info 端点做三角色判断（CU/SA 403）。
+- 匿名换票契约钉死：公开链接恒为 `/dashboard/{id}?publicId={publicCustomerId}`（publicId = `assignedCustomers` 中 `public:true` 条目的 customerId）；publicId 消费路径 = `POST /api/auth/login/public` 换 **完整 JwtPair（含 refreshToken）**，一切失败（非 UUID/查无/非 public/缺失）= **401 非 400**（wave-1 实测：errorCode=10，文案两种——非 UUID/查无/非 public = "Invalid username or password"、缺失 publicId = "Authentication failed"）；无 PUBLIC 独立角色（公开会话 = CUSTOMER_USER + isPublic claim，权限全复用 CU 规则：dashboard 分配给 Public customer 才放行，存在但无权 403、不存在 404）；公开会话强制 fullscreen/readonly 是**前端约定非后端强制**；WS `/api/ws/**` permitAll + 首帧 AuthCmd{token}，public JWT 全通，core/ws 零改动；public 刷新链实测定案（POST /api/auth/token 新 JwtPair、sub 仍 publicId）。
+- 登录落点语义钉死：判定序 = `?redirect`（安全回跳）> 用户级 `defaultDashboardId`（仅 TA/CU，`additionalInfo.defaultDashboardId`，响应已被后端清洗读到即有效；全屏语义由 `/dashboard/{id}` 无壳形态承载，收敛单形态）> 统一 `/home`。SA 无 defaultDashboard 分支。isPublic 用户恒落公开 dashboard 不进应用壳。
+- 「空 home」响应形态（wave-1 实测勘误后定案）：`/api/dashboard/home` 未配置/悬挂/SA 三态均 **200+0 字节**（前端 falsy 归一）；`/api/tenant/dashboard/home/info` 未配置 = `{dashboardId:null,...}`；契约稿「/dashboard/home/info SA 返 JSON null 4 字节」实测不成立（实测同为 0 字节；antd 不消费该端点，仅登记）。服务层归一单测已钉住。
+- 横切沿 §3.7/§6.0 口径随收尾勾账（i18n 双语门禁、零内联色、数据保全终态回基线、门禁四绿）；自动化回归项归 #12 基线扩充；本 spec = 人工验收载体。
+
+### 7.1 home 首页操作面
+
+- [x] `/home` 路由与菜单：三角色可达（access=`canAuthenticated`、菜单首位三角色在场；锚点 ngx `home-links-routing.module.ts:122-137`、`menu.models.ts:848/919/1030`）〔M15 wave-2 真机 ✅：SA/TA/CU 三角色菜单「首页」首位高亮在场〕
+- [x] 登录落点链改造：登录成功、`/` entry、MFA 成功、SA 模拟登录、404 回退五处同源落点随 `roleDefaultPath` 三级化统一调整为 `/home`；`?redirect` 回跳优先级保留；OAuth2 回调落点随动（锚点 `pages/user/utils.ts:54-56`、`pages/user/login/index.tsx:144-145`、`pages/home/entry.tsx:17-33`）〔对 v1 §3.2 落点契约的有意修订（SA `/tenants`→`/home`），修订记录留痕〕〔M15 wave-2 真机 ✅：SA/TA/CU 登录均落 /home、`/nonexistent`→落 /home 目击；五消费点切 `resolveDefaultPath`、roleDefaultPath 退役 grep 零引用〕
+- [x] 直跳分支：TA/CU 持用户级 `defaultDashboardId` 时落点改跳 `/dashboard/{id}`（`defaultDashboardFullscreen===true` 同路径，无壳即全屏语义）；isPublic 用户直跳公开仪表盘锁死不进壳（锚点 ngx `auth.service.ts:293-300,638-657`）〔用户级写入口后端无自助端点不交付，分支验收=单测锚 + 走查 API 直写构造场景〕〔单测锚 ✅：resolveDefaultPath 五用例（TA/CU 命中 `/dashboard/{id}`、fullscreen 收敛单形态、SA 恒 /home、非法 id 守卫、无 user）；真机未构造 defaultDashboard 场景（后端清洗键、写入口不交付，按验收口径以单测收口）〕
+- [x] home dashboard 数据链：/home 页消费 `GET /api/dashboard/home`（服务层新增 `getHomeDashboard`，空 body→undefined 归一单测钉住）；未配置走 quick-links 兜底；CU 命中 user→customer→tenant 回退链；SA 恒兜底（锚点 `DashboardController.java:422-450`）〔M15 wave-1/2 ✅：真机 /home 调 GET /api/dashboard/home 恰 1 次、SA/未配置走兜底；归一单测钉三空形态（undefined/null/''），react-query undefined datum 坑波内修复（queryFn 归一 `?? null`）〕
+- [x] 渲染面：`pages/home/page` 薄壳复用 DashboardPage 只读形态；`hideDashboardToolbar` 以 `hideToolbar` prop 生效（OR 语义，逐字对齐 ngx getter——**dashboard 工具栏隐藏 ≠ 应用壳顶栏隐藏**，双层分开验收，antd 不实施 ngx hideMainToolbar 登记偏离）；states 取 root:true 态不硬编码 'main'，`?state=` 深链免费获得（锚点 `dashboard-page.component.ts:199-201`、`use-states-controller.ts:51-65`）〔M15 wave-2 真机 ✅：Thermostats 真渲染（`data-dashboard-page` 在场）、hideDashboardToolbar=true 时 toolbar DOM 不存在、取消勾选保存后 toolbar 显（timewindow+折叠钮）；双层语义分核，壳顶栏保持在场（偏离已登记）〕
+- [x] 未配置兜底形态：antd 原生 quick-links 网格（角色菜单顶级节推导 + access 过滤 + 图标映射，推导不可行降级静态清单三角色常量）；兜底加载失败不白屏（ngx 该分支无兜底，antd 增强为错误态登记）〔P1-B 定案；ngx 静态 JSON 移植为能力级偏离登记——全 Angular descriptor 渲染即占位墙，锚点 `m15-panel-arch.md` R40〕〔M15 wave-2 真机 ✅：SA 5 卡 / TA 19 卡 / CU 6 卡，角色 access 过滤正确；数据源 = umi clientRoutes + useAccessMarkedRoutes 推导案定型，图标直接透传 umi 预解析元素（自建映射全 miss 波内改为透传）；错误态 Alert 在场〕
+- [x] 悬挂 id 容错：/settings/home 配置的 dashboard 被删后 /home 正常回落兜底不白屏（`/api/dashboard/home` 链后端已吞；前端防 404 分支兜一层）（锚点 backend 契约 #2）〔wave-1 curl ✅：悬挂链两端点双向实锤（tenant info 200+悬挂旧 id；/api/dashboard/home 同刻 200+0 字节）；前端错误 Alert 分支在场——「删盘后访问 /home」全链未真机构造（后端免疫 + 组件错误分支在场，按行为链收口）〕
+- [x] 配置页联动往返：TA `/settings/home` 配置 → 登录/进 /home 渲染该 dashboard（hideToolbar 随配置）→ 取消配置（POST dashboardId:null）→ 回兜底——M14 欠账注释（`pages/settings/home/index.tsx:13`）销账〔M15 wave-2 真机 ✅：配置 Thermostats→保存→/home 真渲染→hideToolbar 随配置→清空保存→回兜底 全链；终态 API 复核回基线 `{dashboardId:null,hideDashboardToolbar:true}`〕
+
+### 7.2 匿名公共仪表盘操作面
+
+- [x] make-public/private 出口回归核对（v1 已交付不重做）：列表行操作互斥 + Public 列 + public customer 保护（ManageDashboardCustomersDialog 排除）；**链接 toast「匿名页面后续交付」欠账文案随落地页交付退役**（锚点 `pages/dashboards/list/index.tsx:181-217,498-529,203-209`）〔M15 wave-3 ✅：新文案「公开链接已生效，匿名用户可直接访问。」真机弹窗目击 + 测试断言新文案在/旧文案不在；行操作互斥与 public customer 保护既有测试维持绿〕
+- [x] publicLogin 服务函数：`POST /api/auth/login/public`（body `{publicId}` → JwtPair 全额 setTokens，函数级单测断副作用）+ openapi 快照补录（锚点 `RestPublicLoginProcessingFilter.java:53-79`；服务层落 auth.ts 域边界）〔M15 wave-1 ✅：单测断 URL/body/**setTokens 副作用**/authExempt 豁免（401 不触发通用 refresh-unauthorized 链）+ curl 实测失败形态两种文案；openapi 快照无此端点为上游事实，JSDoc 钉后端锚点即「补录」口径〕
+- [x] 公开路由 gate：`/dashboard/:dashboardId` 去 `access` 字段改页面自治 gate（四态决策表：匿名+publicId→换票渲染 / 匿名无 publicId→跳 login?redirect / 公开会话 sub===publicId→直渲染（F5 刷新免重登）/ 登录用户→忽略 publicId 以本人渲染；公开会话 sub≠publicId→重换票）；同路由承载登录/公开双态不新建路由（锚点 `m15-panel-arch.md` R42、ngx `auth.guard.ts:122-131`）〔M15 wave-3 ✅：public-gate 纯函数 9 用例 + 组件测试 9 条；真机各分支目击（匿名换票渲染 / 无 publicId 跳 login / F5 免重登换票 0 次 / TA 带 publicId 忽略之）〕
+- [x] 匿名全链走查（真机）：未登录打开公开链接 → 清残留 token → publicLogin 换票 → isPublic JWT 入 tokenStore → 渲染 → WS 匿名会话出实时数据（WS 零改动确认，锚点 `TbWebSocketHandler.java:188-214`）〔M15 wave-3 真机 ✅：Playwright 隔离 context 匿名打开→POST login/public 200→GET dashboard 200→3 widget 渲染 0 占位；WS 全程无异常关闭码（demo 盘无实时订阅 widget，实时出数注记为受实体分配约束的正常语义）〕
+- [x] 无壳形态清单：强制 readonly（无编辑入口）、fullscreen/export/dashboards-select 三件藏（embedded 语义等价 ngx forceFullscreen）、无用户菜单与通知铃、无登录按钮、timewindow 可见可调、logo 不建（antd 全域既有缺口，倒挂防呆登记）（锚点 `m15-panel-arch.md` R43）〔M15 wave-3 真机 ✅：无壳无用户菜单、embedded 藏三件、readonly 无编辑入口、timewindow 在场；logo 不建（R43 倒挂防呆，登记 §7.5）〕
+- [x] 401 失败路径隔离：公开页会话过期/请求 401 **不触发** `handleUnauthorized` 跳登录——展示「会话过期请刷新重进」空态（public JWT 有 refresh 续期，仅 refresh 也失败才到该态）（锚点 `app.tsx:57-66`、契约 #6）〔M15 wave-3 ✅：实现 = 页内 unauthorized handler 换入/恢复（`getTbUnauthorizedHandler` 最小增量，HTTP refresh 失败与 WS AUTH 拒绝两道同汇）；组件测试钉「401 清 token+空态不跳登录」；「会话过期」空态真机未驱动（需 JWT 自然过期 ~2.5h），handler 触发路径已测〕
+- [x] 失效行为两条：①make-private 后旧链接——publicLogin 仍成功但 getDashboard 403 → 专用「此仪表盘不再公开」空态**不跳登录**（403 不走 401 通道）；②publicId 无效/public customer 已删——publicLogin 401 → 抹参数 → 落 `/login`（锚点 ngx `auth.service.ts:327-331`）〔M15 wave-3 真机 ✅：①make-private 后旧链接 → publicLogin 200 + getDashboard 403 → 「此仪表盘已不再公开。」空态、URL 不变未跳登录；②无效 publicId → 抹参数跳 `/user/login?redirect=…`；恢复 make public 复测可看〕
+- [x] 复用隔离：view 页「TA 空板自动进编辑器」副作用不进公开页与 /home 页（薄壳自建结构性免疫，副作用留在 view 页消费点）（锚点 `pages/dashboards/view/index.tsx:29-37`）〔M15 wave-2/3 ✅：home 薄壳与 fullscreen 页均不经 view 页组件，view 页零改动（副作用原地保留）〕
+
+### 7.3 usage 域评估落账（不实施下钻）
+
+- [x] 下钻缓做评估结论落账：**触发条件 = api_usage 卡（fqn `system.api_usage`）以 react-1 实现交付时**（格式沿 §3.8 scada 渲染器缺口条目）；数据契约素材随登记落档——`api_usage.json` 11 states + `apiUsageDataKeys[].state` 九条映射 + `targetDashboardState` 回默认态 + `?state=` base64 URL 契约（codec antd 已 byte-exact）+ states-controller `openState`/深链已就绪（补下钻=一个交互卡专项，锚点契约 #7）〔M15 收口 ✅：触发条件入 §7.5 登记条 + CONTEXT.md v2 行；数据契约五件全部落档 `m15-panel-contract.md` #7/#8〕
+- [x] 资产对账勘误落账：fork `api_usage.json` 与 ngx 逐字节同源（11 states、default right=**4** 图，「3 vs 4」对账点不成立——三镜头独立复核一致）；usage 数据为前端静态资产非租户实况维持 v1 登记口径（锚点 v1 §3.10、契约 #8）〔M15 ✅：arch R46 node 逐字段对账 + contract #8 双重复核一致；spec §7.0/修订记录已载勘误〕
+
+### 7.4 收口操作面（全图状态落账）
+
+- [x] M12 §4 勾账缺口处置（用户拍板 2026-09-07：补轻走查）：34 条未勾——真机抽样驱动主链（4.3 发送向导三步 + 4.5 触发表单抽样 ≥3 种 + 4.1/4.2/4.4/4.6 快速过）产出薄版走查文档；能勾的勾、未驱动的 3V 注记、发现偏差按缺陷登记不静默注记；处置后 §4 不留裸勾选框〔M15 wave-4 ✅：走查文档 `docs/spec/v2-m12-browser-walkthrough.md`；34 条勾 32 / 维持未勾 2；缺陷 D-1（发送向导 scratch 死锁）登记于走查文档 §7〕
+- [x] M11/M13 未勾项收口：M11 4 条 + M13 7 条（3V 未驱动 9、受阻·后端 2——edge events 未落库两条维持受阻不冒勾）逐条复核现状，能收口的驱动收口，不能的维持注记写明原因〔M15 wave-4 ✅：11 条全部复核并补现状注记（代码/单测/SQL 在场性）；无一条可由本波驱动收口（均为完整流驱动，归各域走查）；受阻两条 SQL 重查 `edge_event` 仍 0 行维持受阻〕
+- [x] #16 执行完成回写：comment 留痕（八子系统独立页 / settings 七件 / home 首页 / 匿名公共仪表盘 / usage 评估落账的完成态 + spec 节指向 + 散落挂账三条销账指向）〔M15 收口 ✅：2026-09-07 [#16 comment](https://github.com/KMakise123/thingsboard/issues/16#issuecomment-5565029146)〕
+- [x] #1 地图状态更新：v2「全功能对齐」达成登记（与 #16 回写互引；剩余登记项逐条列归属域：缓做四项 CF 复杂编辑器/usage 下钻/Mobile Center/iot-hub + 能力级增强清单）〔M15 收口 ✅：2026-09-07 [#1 comment](https://github.com/KMakise123/thingsboard/issues/1#issuecomment-5565030918)；注：缓做四项中 CF 复杂编辑器已随 M14 六型全量交付消化〕
+- [x] CONTEXT.md 词条：补「home dashboard（租户级 homeDashboardId additionalInfo 键 + /api/dashboard/home 三层回退链）」「公共仪表盘（public customer 换票：publicId → login/public → isPublic JWT）」两词条 + v2 定义行补 usage 下钻缓做触发口径〔M15 收口 ✅：commit 9f789fe473〕
+- [x] v1 spec 收口落账：§2 v2 定义行标注已兑现（M7–M15）+ §7 遗留清单消账（home dashboard 首页、匿名公共仪表盘两条）+ §3.2 落点契约修订注记 + 修订记录补两条〔M15 收口 ✅：commit 9f789fe473（修订记录补 1 条，四处落位全落）〕
+
+### 7.5 能力级增强登记（只登记不验收）
+
+- ngx `assets/dashboard/*_home_page.json` 移植（触发：Angular 卡渲染器交付，届时 home 兜底组件换接即可）
+- usage 下钻导航 + api_usage 卡 react-1 化（触发条件见 7.3-1；契约素材已落档）
+- usage 数据源升级为登录租户实况（与下钻同触发链）
+- 公开页社交分享面板（ngx tb-social-share-panel，antd 以复制链接等价交付）
+- 公开页 embedded=true / hideToolbar=true 通用查询参数（ngx 无 UI 生产者，仅移动端深链消费）
+- dashboard logo 渲染（antd 全域既有缺口，触发：dashboard 域交付 logo 面时公开页随 forceFullscreen 条件接线）
+- 用户级 defaultDashboardId 自助写入口（后端无自助端点，确认产品缺口另立 issue）
+- quick-links 网格断点微差（2/3/4 列照 ngx 语义，微差不判缺陷）
+
+### 7.6 缺陷/边界登记（照 §6.7 体例，前端规避姿势已定）
+
+- tenant 级悬挂 home id（info 端点不校验存在性）：落点/渲染统一走 `/api/dashboard/home`（extract 吞异常免疫）；settings 页可选探活降级非必须；后端补清洗另立 issue
+- 跨租户 403-vs-404（dao 不按租户过滤，存在性可探测）：公开页 404/403 同一兜底空态不区分文案；后端收紧另立 issue
+- 「空 home」三种响应形态（0 字节 / JSON null / `{dashboardId:null}`）：服务层 falsy 归一 + 单测钉住，绝不 JSON.parse 空 body
+- public JWT 调 `GET /api/auth/user` 注定失败（wave-1 实测 = **500 NPE** "user is null"，非 4xx）：getInitialState 增 isPublic 跳过 fetchUserInfo 分支（isMfaInterim 先例），由「省一次注定失败的请求」升级为硬必要
+- wave-1 curl 实测已执行（2026-09-07，结论回写本节与 §7.0）：login/public 401 形态、public 刷新链、悬挂链两端点（泄漏点/免疫点双向实锤）、空 body 0 字节、GET /auth/user 500 形态——数据保全终态回基线（scratch 实体全删、home 配置回 null）
+- 公开会话寿命：login/public 响应含 refreshToken，refresh 链自动续期（后端 RefreshTokenAuthenticationProvider 支持 publicId）；「链接永不过期」不成立，过期提示刷新重进
+- make-public 不会连带公开设备/资产：公开页未分配实体的 widget 订阅被权限拒绝是后端语义，走查遇「公开但无数据」先查实体分配再判缺陷
+- demo 模式差异：demo 数据 4 个 dashboard 实体但 home 语义零差异，测试/走查不得假设 demo dashboard 存在，e2e 用自建 dashboard
+- 无内置 dashboard 资产（fork `json/` 无 dashboards 目录，`createDefaultTenantDashboards` no-op）：「从未配置」是 /home 一等公民空态
+- wave-1 实测项（10 条）清单在 `m15-panel-contract.md` 文末：login/public 错误形态、public 刷新链、悬挂链两端点、空 body 字节、GET /auth/user 失败形态、make-private 403 文案、SA 403、WS 正负路径——结论回写本节
+- **M12 走查缺陷 D-1（发送向导 scratch 死锁，前端，M15 wave-4 已修）**：Setup 步误校验第 2 步 compose 内容完整性 → 真实用户从零无法发通知（旧单测以 fireEvent 填隐形字段掩盖）。修复 = 逐步校验（Setup 只校本步 + atLeastOne）+ 提交前 allValid 复查跳回首个非法步（对齐 ngx stepper 语义），TDD 红→绿（notifications 104 用例）；修复后真机复验从零发送全链通（含提交复查反向验证），测试数据已清。全文见 [v2-m12-browser-walkthrough.md](./v2-m12-browser-walkthrough.md) §7
 
 ## 修订记录
 
+- 2026-09-07（二）：**M15 走查收账 + 全图收口**：§7.1 home 8 条 / §7.2 匿名公开 8 条 / §7.3 usage 评估 2 条全勾（真机走查证据 = 三波实现 agent 报告 + 本会话 D-1 复验），§7.4 收口 6 条全勾（M12 轻走查 32/34 + M11/M13 复核 11 条无冒勾 + #16/#1 comment 留痕 + CONTEXT.md/v1 spec 消账）；**§4 M12 存量 34 条勾账收口**（32 勾 / 2 注记，走查文档 [v2-m12-browser-walkthrough.md](./v2-m12-browser-walkthrough.md)）；新发现并修复缺陷 D-1（发送向导 scratch 死锁 → 逐步校验 + 提交复查，TDD + 真机复验，见 §7.6）；wave-1 curl 实测 3 处契约勘误回写 §7.0/§7.6。全段验收：**§7 24/24 勾，零 ❌**。实现四波 + 收口工作底稿 `docs/agents/m15-*.md` 七份；实现清单见 v2-m15-implementation-brief.md。
+
+- 2026-09-07：**M15 段定稿（§7 全量补定）**：7.0 通用边界（home 两族端点分工 + 三种空响应形态归一 + 匿名换票契约 401 定案 + 落点判定序「?redirect > defaultDashboardId > /home」钉死）+ 7.1 home 八条（落点五处同源改造、直跳分支、quick-links 兜底 = P1-B 定案、hideToolbar OR 语义、悬挂 id 容错、配置页联动销 M14 欠账）+ 7.2 匿名公开八条（publicLogin 换票、四态 gate、401 失败路径隔离、失效两分支）+ 7.3 usage 评估两条（下钻缓做触发 = api_usage 卡 react-1 化；「3 图 vs 4 图」勘误落账——三镜头独立复核一致，fork 资产与 ngx 逐字节同源）+ 7.4 收口六条（M12 轻走查 = 用户拍板 2026-09-07；M11/M13 未勾收口；#16/#1/CONTEXT.md/v1 spec 四处落账）+ 7.5 增强 8 条 + 7.6 缺陷登记 9 条。已定裁决：三角色统一落 /home（P3-A，SA /tenants→/home 有意修订）；不移植 ngx 静态 JSON（R40 实测占位墙）；usage 下钻不实施。依据四份侦察底稿 + 三镜头合议（工作底稿 `docs/agents/m15-*.md` 七份）；实现清单见 v2-m15-implementation-brief.md。
 - 2026-09-07：**M14 走查勾账（§6 全量勾账）**：§6.1–6.5 **51/51 勾**（CF 18 + VC 10 + settings 12 + 密码策略 3 + 连带 8），零 ❌；走查全文 [v2-m14-browser-walkthrough.md](./v2-m14-browser-walkthrough.md)（A 段 CF/settings、B 段 VC/挂载/横切 + 全局数据保全 16 项 API 审计全回基线）；JWT 换发全链 2026-09-07 补驱动闭环并复原（6.4-3 注）；W-1/W-2 已修（带单测），W-3–W-9 观察项登记。六波实现 + 两段走查工作底稿 `docs/agents/m14-*.md`；**AutoCommitCard 退役（R23b 默认执行）已随 wave-7 交付**。
 - 2026-09-06：**M14 段定稿（§6 全量补定）**：6.0 通用边界（四域 TENANT/SA/CU 三层角色矩阵钉死——CF/VC 连 SYS 后端能力都没有、queues SYS only 照 ngx、settings 组级放权子级收权；「无」清单钉死 ALARM 不进独立页/GEOFENCING 无地图/pwned-password 双侧不存在；行为契约：CF testScript 先于保存、VC 凭据空串≠留空、16 类型清单照前端常量、mail 留空=不带字段、密码策略前端自校验 min≤max）+ 6.1–6.4 四块操作面（CF 六型全量含 GEOFENCING 末波不降级；VC 复数双面板 + removeOtherEntities 逐字确认 + 详情 tab 6 回归 3 补挂；settings 七件收口勘误 + outgoing-mail 回归不重做；密码策略两卡 + JWT 换发链）+ 6.5 连带交付（M12/M13 三件：向导跳转链接、notification settings 预留函数消费、VC 面板补链）+ 6.6 增强登记 + 6.7 缺陷登记 17 条（admin settings 无 id 保存缺陷静态发现、T6/T10 随 wave-1 实测回写）。依据五份侦察底稿 + 三镜头专家合议（工作底稿 `docs/agents/m14-*.md` 八份）；实现清单见 [v2-m14-implementation-brief.md](./v2-m14-implementation-brief.md)。
 - 2026-09-06：**M13 段定稿（§5 全量补定）**：5.0 通用边界（角色矩阵钉死无 SYS 视角、edgeInfos/info 端点契约、events 两表语义分开、key/secret 前端生成保存后只读、OTA 两步保存 + 后端算 checksum + 创建即定型、edges.enabled 开关不接为有意偏离）+ 5.1–5.5 五块操作面（**CU 只读面经用户拍板随 M13 交付**；子实体平级路由页钉死；Downlinks 排序经 ngx 源码复核定案 = 服务端 seqId ASC 直渲、客户端倒排登记增强）+ 5.6 增强登记 + 5.7 缺陷登记（含本机后端两条实测实锤：customerTitle 排序 500、otaPackage full GET base64 回带；实测新缺陷：OTA 无 profile 上传步 500 空指针）。依据 ui-ngx 源码侦察、后端契约盘点与三镜头专家合议（工作底稿 `docs/agents/m13-*.md` 七份）；实现清单见 [v2-m13-implementation-brief.md](./v2-m13-implementation-brief.md)。
+- 2026-09-07：**M12 轻走查收账（M15 wave-4）+ M11/M13 未勾复核**：§4 34 条逐条勾账（✅ 32 / 维持未勾 2：4.2#4 单订阅收敛登记、4.3#2 徽标三态+失败明细，均带 3V 注记，§4 不留裸勾选框）；新登记缺陷 **D-1 发送向导从零开始死锁**（validateSetup 在 setup 步校验 compose 内容完整性，compose 字段第 2 步才可见——ngx 逐步校验锚偏离，单测以隐形字段填充掩盖）与观察 O-1~O-5（TEAMS 形态转译、无头批量勾选失联、ruleNode 子区未证、权限门跳转兑现、popover 无历史回填）；走查证据全文见 [v2-m12-browser-walkthrough.md](./v2-m12-browser-walkthrough.md)。同波 §3.1–3.3 与 §5 七条未勾项复核注记（代码/单测/SQL 在场性；`edge_event` 重查仍 0 行受阻维持）。
 - 2026-09-06：**M13 走查收账 + 复审回写**：§5.1–5.5 逐条勾账（✅ 30 项 / 未勾 7 项：3V 未驱动 4、受阻·后端事件未落库 2、消费集成单测覆盖 1，均带注记）；§5.2 复制三连与 §5.5 URL 下载两处**勘误**（实现照 ngx 锚点，URL 外链打开降级 §5.6）；§5.7 新增 W-1（「不再显示」同会话失效，已修——保存时现读偏好）与 W-2（Set root 行刷新滞后，后端异步观察）；走查证据全文见 [v2-m13-browser-walkthrough.md](./v2-m13-browser-walkthrough.md)。走查前置双轴 code-review：标准轴 0 硬违规（5 条 smell 已修——剪贴板/authority/批量解除三处去重 + 零引用类型删除 + 9 处依赖抑制逐处复核，6 处真隐患修根因），规格轴缺失 0。
 - 2026-09-05：**M12 复审回写（双轴 code-review + 真机裁决后收口）**：4.0 勘误「候选按角色二分非并集」（SYS trigger=6 种、usersFilter=4 变体，均以 ngx 源码为准）与已读/未读数通道口径（REST + `subscribeNotifications` 快照，WS MARK_* 登记 4.7）；4.5 模板内联新建/编辑降登记；新增 **4.7 六项登记**（共性收敛清单、edge service 迁移、服务层预留函数等）与 **4.8 后端缺陷登记**（filtered targets 500 on createdTime sort、`subscribeUnreadNotificationCount` 字段错读、上游 SYS targets 禁用缺陷）。实现侧同步修复：inbox 列表 useMemo 过期闭包（ADR 0007 §5）、发送向导切回过滤端点（name 排序规避）、不可用投递方式归零。
 - 2026-09-05：**M12 段定稿（§4 全量补定）**：4.0 通用边界（路由/角色矩阵、14 trigger 双级收缩、投递方式运行时探测、**WEB 通道为端到端验收基准、真实 SMS/EMAIL 等到达留人工验收**、settings/account 两处登记不实施）+ 4.1–4.6 六块操作面 + 4.7 能力级增强登记。依据 ui-ngx 通知族源码侦察与后端四控制器契约盘点（工作底稿 `docs/agents/m12-*.md`）；随 M12 开工落盘。

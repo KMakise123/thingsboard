@@ -5,6 +5,7 @@
  */
 export default {
   'menu.login': '登录',
+  'menu.home': '首页',
   'menu.devices': '设备',
   'menu.devices.detail': '设备详情',
   'menu.assets': '资产',

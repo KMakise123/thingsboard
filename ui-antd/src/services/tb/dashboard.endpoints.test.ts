@@ -22,6 +22,7 @@ import {
   exportDashboard,
   getDashboard,
   getDashboardInfo,
+  getHomeDashboard,
   getSystemResourceDashboard,
   getTenantDashboards,
   getTenantHomeDashboardInfo,
@@ -111,6 +112,23 @@ describe('dashboard transport endpoints', () => {
     expect(get).toHaveBeenCalledWith(
       '/api/resource/dashboard/system/gateways_dashboard.json',
     );
+  });
+
+  it('pins getHomeDashboard on /api/dashboard/home with falsy → undefined normalization (M15 wave-1)', async () => {
+    // hit: the object form flows through untouched
+    const home = { id: { entityType: 'DASHBOARD', id: 'd1' } } as never;
+    get.mockResolvedValue(home);
+    await expect(getHomeDashboard()).resolves.toBe(home);
+    expect(get).toHaveBeenCalledWith('/api/dashboard/home');
+
+    // "no home" forms: tbHttp already resolves an empty text body to
+    // undefined (client parseBody); a JSON `null` body must normalize too
+    get.mockResolvedValue(undefined as never);
+    await expect(getHomeDashboard()).resolves.toBeUndefined();
+    get.mockResolvedValue(null as never);
+    await expect(getHomeDashboard()).resolves.toBeUndefined();
+    get.mockResolvedValue('' as never);
+    await expect(getHomeDashboard()).resolves.toBeUndefined();
   });
 
   it('pins the tenant home-dashboard info pair (M14 wave-2)', async () => {

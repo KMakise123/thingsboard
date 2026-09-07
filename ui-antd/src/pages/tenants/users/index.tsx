@@ -22,7 +22,7 @@ import { serverErrorText } from '@/components/entities/server-error-text';
 import PageContainer from '@/components/layout/page-container';
 import { UsersTable } from '@/components/users/users-table';
 import { tokenStore } from '@/core/auth/token-store';
-import { roleDefaultPath } from '@/pages/user/utils';
+import { resolveDefaultPath } from '@/pages/user/utils';
 import { getCurrentUser } from '@/services/tb/auth';
 import { getTenantInfo, getTenantUsers } from '@/services/tb/tenant';
 import { getUserToken, isUserTokenAccessEnabled } from '@/services/tb/user';
@@ -62,7 +62,7 @@ export default function TenantUsersPage() {
       const pair = await getUserToken(user.id.id);
       tokenStore.setTokens(pair.token, pair.refreshToken);
       const me = await getCurrentUser();
-      window.location.assign(roleDefaultPath(me));
+      window.location.assign(resolveDefaultPath(me));
     } catch (error) {
       void message.error(serverErrorText(error));
     }

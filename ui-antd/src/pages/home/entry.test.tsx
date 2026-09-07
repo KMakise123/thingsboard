@@ -68,7 +68,7 @@ describe('home entry (oauth2 callback consumption)', () => {
     );
   });
 
-  it('stores the callback token pair, clears the query and lands on the role page', async () => {
+  it('stores the callback token pair, clears the query and lands on /home', async () => {
     window.history.pushState({}, '', '/?accessToken=a&refreshToken=b');
     servicesMock.getCurrentUser.mockResolvedValue(tenantUser);
 
@@ -82,10 +82,11 @@ describe('home entry (oauth2 callback consumption)', () => {
       expect(historyMock.replace).toHaveBeenCalledWith('/');
     });
     // setInitialState stores the user; the model update re-renders the page
-    // (umi useModel) and the pre-existing redirect effect lands the role page.
+    // (umi useModel) and the pre-existing redirect effect lands on /home
+    // (M15 unified landing — the user holds no defaultDashboardId).
     rerender(<Entry />);
     await waitFor(() => {
-      expect(historyMock.replace).toHaveBeenCalledWith('/devices');
+      expect(historyMock.replace).toHaveBeenCalledWith('/home');
     });
     const updater = modelMock.setInitialState.mock.calls[0][0] as (
       state: unknown,

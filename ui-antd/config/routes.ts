@@ -83,8 +83,19 @@ export default [
   },
 
   // ---- app shell (role-aware) ----
-  // Role-based entry: SA → /tenants, TA/CU → /devices, anonymous → login.
+  // Role-based entry: the unified M15 landing (SA/TA/CU → /home, arch R39)
+  // with anonymous visitors picked up by the layout runtime's onPageChange.
   { path: '/', component: './home/entry' },
+  {
+    // M15 unified landing for all three roles (arch R38): menu first entry;
+    // renders the tenant home dashboard when configured, the quick-links
+    // fallback otherwise.
+    name: 'home',
+    icon: 'home',
+    path: '/home',
+    access: 'canAuthenticated',
+    component: './home/page',
+  },
   {
     name: 'devices',
     icon: 'tablet',
@@ -699,16 +710,17 @@ export default [
     ],
   },
 
-  // Dashboard single-page (fullscreen) mode: same auth gate as the shell
-  // page but rendered without the app shell (ui-ngx dashboard-pages.routing
-  // singlePageMode; brief §0.C).
+  // Dashboard single-page (fullscreen) mode: rendered without the app shell
+  // (ui-ngx dashboard-pages.routing singlePageMode; brief §0.C). No access
+  // key — the page itself gates the dual login/public states (page-owned
+  // gate over token claims + URL publicId, M15 R42).
   {
     path: '/dashboard/:dashboardId',
-    access: 'canTenantOrCustomer',
     component: './dashboard-fullscreen',
     layout: false,
   },
 
-  // 404 → role-aware entry (TA/CU land on the device list, spec §3.2).
+  // 404 → entry → resolveDefaultPath: defaultDashboard (TA/CU) → /home,
+  // everyone else /home (M15 three-level landing, arch R39 / spec §7.1-2).
   { path: '*', redirect: '/' },
 ];

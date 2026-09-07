@@ -114,3 +114,58 @@ test.describe('dashboards — customer user (read-only)', () => {
     await expectReadOnlyDashboardRendered(page);
   });
 });
+
+/**
+ * Shell-less route gate (M15 R49-1): `/dashboard/{id}` carries no access
+ * key anymore — the page gates itself. Low-dependency e2e asserts only the
+ * two logged-in/anonymous states; the full anonymous link lifecycle
+ * (publicId exchange, make-private fallout) stays a manual walkthrough
+ * (arch R49, M14 R35 precedent).
+ */
+async function demoDashboardId(): Promise<string> {
+  const token = await apiLogin('tenant@thingsboard.org', 'tenant');
+  const res = await fetch(
+    `${process.env.E2E_API_URL ?? 'http://localhost:8080'}/api/tenant/dashboards?pageSize=100&page=0&textSearch=${encodeURIComponent(DASHBOARD_TITLE)}`,
+    { headers: { 'X-Authorization': `Bearer ${token}` } },
+  );
+  if (!res.ok)
+    throw new Error(`tenant dashboards lookup failed: ${res.status}`);
+  const page = (await res.json()) as {
+    data: Array<{ id: { id: string }; title: string }>;
+  };
+  const found = page.data.find((row) => row.title === DASHBOARD_TITLE);
+  if (!found)
+    throw new Error(
+      `dashboard "${DASHBOARD_TITLE}" not found in the demo dataset`,
+    );
+  return found.id.id;
+}
+
+// Logged-in state must stay scoped to this describe: a describe-level
+// test.use would leak its storageState into a manual browser.newContext()
+// below (context options merge with test options).
+test.describe('dashboards — shell-less route gate, logged in (M15)', () => {
+  test.use({ storageState: 'e2e/.auth/ta.json' });
+
+  test('TA opens /dashboard/{id} without publicId and the page renders', async ({
+    page,
+  }) => {
+    const dashboardId = await demoDashboardId();
+    await page.goto(`/dashboard/${dashboardId}`);
+    await expectReadOnlyDashboardRendered(page);
+  });
+});
+
+test.describe('dashboards — shell-less route gate, anonymous (M15)', () => {
+  test('anonymous visitor on /dashboard/{id} is bounced to login', async ({
+    browser,
+  }) => {
+    const dashboardId = await demoDashboardId();
+    // A storage-less context = the anonymous public visitor.
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    await page.goto(`/dashboard/${dashboardId}`);
+    await expect(page).toHaveURL(/\/user\/login\?redirect=/);
+    await context.close();
+  });
+});

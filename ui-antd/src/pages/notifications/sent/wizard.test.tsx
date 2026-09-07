@@ -1,9 +1,11 @@
 /**
  * Send-notification wizard tests (services mocked at the module boundary):
  * the Setup → Compose → Review flow in both from-scratch and template modes,
- * the setup gate (recipients / compose completeness), the WEB-always-on
- * switch, the preview call and the final POST /api/notification/request
- * payload, plus the schedule required-fields gate.
+ * the per-step gates (Setup: recipients/methods-at-least-one/schedule;
+ * Compose: enabled-method content completeness; final submit re-validates
+ * everything — ngx stepper semantics), the WEB-always-on switch, the preview
+ * call and the final POST /api/notification/request payload, plus the
+ * schedule required-fields gate.
  */
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
@@ -218,23 +220,24 @@ describe('SendNotificationWizard', () => {
     expect(screen.queryByText('请先补全所有已启用方式的消息内容。')).toBeNull();
   });
 
-  it('walks scratch mode: setup → compose → review → send', async () => {
+  it('walks scratch mode: setup → compose → review → send, each step only its own fields (D-1)', async () => {
     const { onClose } = renderWizard();
     await screen.findByTestId('wizard-method-WEB');
 
     await pickTarget('ops-group');
 
-    // Compose fields are mounted (hidden) alongside setup — fill them here.
+    // Setup only: recipients + WEB-always-on. The compose fields are NOT
+    // editable on this step, so they must not gate it (D-1 deadlock).
+    await gotoStep('wizard-step-compose');
+    expect(screen.getByTestId('template-configuration')).toBeInTheDocument();
+
+    // Compose only: fill the enabled method's message before leaving.
     fireEvent.change(screen.getByLabelText('主题'), {
       target: { value: 'Hello' },
     });
     fireEvent.change(screen.getByTestId('template-body-WEB'), {
       target: { value: 'Body text' },
     });
-
-    // Compose completeness gate before filling would fire; now Next passes.
-    await gotoStep('wizard-step-compose');
-    expect(screen.getByTestId('template-configuration')).toBeInTheDocument();
 
     await gotoStep('wizard-step-review');
     await screen.findByTestId('wizard-review');
@@ -269,14 +272,55 @@ describe('SendNotificationWizard', () => {
     await waitFor(() => expect(onClose).toHaveBeenCalled());
   });
 
-  it('gates Setup while the composed message is incomplete', async () => {
+  it('lets Setup pass with incomplete compose; leaving Compose is what gates (D-1)', async () => {
     renderWizard();
     await screen.findByTestId('wizard-method-WEB');
     await pickTarget('ops-group');
+
+    // Setup step: recipients are enough — no compose-completeness error.
+    await gotoStep('wizard-step-compose');
+    expect(screen.getByTestId('wizard-step-setup').className).toContain(
+      'hidden',
+    );
+
+    // Leaving Compose without content is blocked on the Compose step.
     fireEvent.click(screen.getByTestId('wizard-next'));
     expect(
       await screen.findByText('请先补全所有已启用方式的消息内容。'),
     ).toBeInTheDocument();
+    expect(screen.getByTestId('wizard-step-compose').className).not.toContain(
+      'hidden',
+    );
+  });
+
+  it('re-validates compose completeness at final submit and jumps back (ngx allValid parity)', async () => {
+    renderWizard();
+    await screen.findByTestId('wizard-method-WEB');
+    await pickTarget('ops-group');
+
+    await gotoStep('wizard-step-compose');
+    fireEvent.change(screen.getByLabelText('主题'), {
+      target: { value: 'Hello' },
+    });
+    fireEvent.change(screen.getByTestId('template-body-WEB'), {
+      target: { value: 'Body text' },
+    });
+    await gotoStep('wizard-step-review');
+    await screen.findByTestId('wizard-review');
+
+    // State changed behind the compose gate (fields stay mounted, hidden):
+    // the submit must re-check, NOT POST, and jump to the owning step.
+    fireEvent.change(screen.getByTestId('template-body-WEB'), {
+      target: { value: '' },
+    });
+    fireEvent.click(screen.getByTestId('wizard-next'));
+    expect(
+      await screen.findByText('请先补全所有已启用方式的消息内容。'),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId('wizard-step-compose').className).not.toContain(
+      'hidden',
+    );
+    expect(servicesMock.sendNotificationRequest).not.toHaveBeenCalled();
   });
 
   it('template mode renders the template select and blocks empty submit', async () => {
@@ -345,12 +389,6 @@ describe('SendNotificationWizard', () => {
     renderWizard();
     await screen.findByTestId('wizard-method-WEB');
     await pickTarget('ops-group');
-    fireEvent.change(screen.getByLabelText('主题'), {
-      target: { value: 'Hello' },
-    });
-    fireEvent.change(screen.getByTestId('template-body-WEB'), {
-      target: { value: 'Body text' },
-    });
     fireEvent.click(screen.getByTestId('wizard-schedule-switch'));
     // Wait for the schedule fields to mount before validating.
     await screen.findByText('时间');

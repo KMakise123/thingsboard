@@ -1,6 +1,7 @@
 /** en-US menu keys — key-for-key identical with zh-CN/menu.ts. */
 export default {
   'menu.login': 'Sign in',
+  'menu.home': 'Home',
   'menu.devices': 'Devices',
   'menu.devices.detail': 'Device detail',
   'menu.assets': 'Assets',

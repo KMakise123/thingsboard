@@ -30,6 +30,18 @@ export function setTbUnauthorizedHandler(
   unauthorizedHandler = handler;
 }
 
+/**
+ * Current exit handler. Anonymous public-dashboard sessions (M15) swap a
+ * page-scoped exit in for the lifetime of the render and restore the
+ * previous one on unmount — the contract forbids a dead public session
+ * from bouncing to /user/login.
+ */
+export function getTbUnauthorizedHandler():
+  | ((event: UnauthorizedEvent) => void)
+  | undefined {
+  return unauthorizedHandler;
+}
+
 export const tbHttp: TbHttpClient = createTbHttpClient({
   language: () => languageSource(),
   onUnauthorized: (event) => unauthorizedHandler?.(event),

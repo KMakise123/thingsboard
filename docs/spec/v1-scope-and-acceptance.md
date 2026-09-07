@@ -36,7 +36,7 @@ v1 = **除编辑器三件套与八个子系统外，对齐 ui-ngx 全部页面�
 | 仪表盘只读 | `dashboards` 列表（含 export / import JSON、assign、make public / manage customers）+ 只读页（states / timewindow / toolbar）+ `dashboard/:id` 全屏模式 + `usage` 页〔裁定 6.5〕 | TA / CU | M5 |
 | 收口 | 横切全绿 + 一步切换演练 + 测试基线 + 遗留清单 → gate | — | M6 |
 
-**v2（不在本 spec）**：编辑器三件套（仪表盘编辑器、widget 编辑器、规则链画布 + `ruleChains` 全域）、八子系统独立页、settings 其余 tab（queues / notifications / home / repository / auto-commit / trendz / ai-models）、home dashboard 首页（登录落点届时调整为 home → home dashboard）、`account/notificationSettings`。
+**v2（不在本 spec）**：编辑器三件套（仪表盘编辑器、widget 编辑器、规则链画布 + `ruleChains` 全域）、八子系统独立页、settings 其余 tab（queues / notifications / home / repository / auto-commit / trendz / ai-models）、home dashboard 首页（登录落点届时调整为 home → home dashboard）、`account/notificationSettings`。〔**已兑现（M7–M15，2026-09-07）**：上述各项逐段定稿并验收于 `docs/spec/v2-editors-acceptance.md` 与 `docs/spec/v2-subsystems-acceptance.md`（M15 段 = §7 home 首页 + 匿名公共仪表盘 + 收口）；usage 下钻 states 缓做（触发 = api_usage 卡 react-1 化，§7.3 落账）。〕
 
 ## 3. 每域验收标准（操作级 checklist）
 
@@ -78,7 +78,7 @@ OAuth2（M4，验收前置：sys 已配置 provider，见 3.7）：
 - [x] 无权限路由手输 → 拒绝（403 形态对齐 ui-ngx）
 - [x] locale 切换即生效并持久化；双语完整由 CI `check-locale` 门禁兜底
 - [x] 404 → 重定向设备列表；面包屑随路由（M2 ✅：ADR 0008 PageContainer 面包屑落地，动态段实体名随路由验收）
-- [x] SA 登录落 `/tenants`，TA / CU 落 `/devices`（M3 ✅：`roleDefaultPath` SA → `/tenants`，登录 / `/` entry / 404 回退三处同源；M1 临时 `/home` 页面、路由与文案已删）
+- [x] SA 登录落 `/tenants`，TA / CU 落 `/devices`（M3 ✅：`roleDefaultPath` SA → `/tenants`，登录 / `/` entry / 404 回退三处同源；M1 临时 `/home` 页面、路由与文案已删）〔**M15 有意修订（2026-09-07）**：三角色统一落 `/home` + TA/CU 持用户级 defaultDashboardId 直跳仪表盘（`resolveDefaultPath` 三级化，v2-subsystems-acceptance §7.1-2）；本条保留为 v1 验收历史记录〕
 
 ### 3.3 设备域（M1）——资产 / 实体视图 / 网关按 3.4 差分引用本节
 
@@ -216,7 +216,7 @@ OAuth2（M4，验收前置：sys 已配置 provider，见 3.7）：
 ## 7. v1 遗留限制登记（M6 成文基线的种子）
 
 - Edge 全域、通知中心全域、OTA、版本控制独立页、资源库（widget 类型 / 包库、图片库、SCADA 符号、JS 库、资源文件）、计算字段独立页、mobile-center、iot-hub（BCR 保留，见 #7）
-- home dashboard 首页（v1 登录落 `/devices`）
+- home dashboard 首页（v1 登录落 `/devices`）〔**已消账（M15，2026-09-07）**：/home 首页 + 登录落点统一 + 匿名公共仪表盘页全部交付，见 v2-subsystems-acceptance §7〕
 - settings 其余 tab（queues / notifications / home / repository / auto-commit / trendz / ai-models）
 - widget 冷门类型（demo 锚点外）渲染占位
 - MFA / OAuth2 / 邮件链路可用性依赖 sys 侧正确配置（outgoing-mail / 2fa / oauth2）；MFA 的 SMS / EMAIL 发码真实链路另依赖短信网关 / SMTP 真实通道
@@ -224,6 +224,8 @@ OAuth2（M4，验收前置：sys 已配置 provider，见 3.7）：
 - 无双 UI 共存（一步切换，建图已钉死）
 
 ## 修订记录
+
+- 2026-09-07：**M15 收口消账**：§2 v2 定义行标注已兑现（M7–M15）；§3.2 落点契约标注 M15 有意修订（三角色统一落 `/home` + defaultDashboardId 直跳，resolveDefaultPath 三级化）；§7「home dashboard 首页」遗留条消账（连同 M5 遗留登记的「匿名公共仪表盘页」一并交付，见 docs/spec/v2-subsystems-acceptance.md §7）。usage 下钻 states 维持缓做（触发 = api_usage 卡 react-1 化）。
 
 
 - 2026-08-31：初版定案（#9 三轮 grilling：Round 1 骨架八问、Round 2 九域「全都要」、Round 3 边界 / 里程碑 / widget 锚点收口）。

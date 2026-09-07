@@ -48,9 +48,33 @@ export function getSafeRedirectUrl(redirect: string | null): string | null {
 }
 
 /**
- * Role landing page (spec §3.2). TA / CU land on the device list; SA lands
- * on the tenants list (sys-domain pages since M3).
+ * M15 landing decision (arch R39, spec §7.1-2 — replaces the v1 §3.2
+ * role lookup retired with /home), priority below `?redirect` (callers keep
+ * `getSafeRedirectUrl` first): TA/CU holding a user-level
+ * `additionalInfo.defaultDashboardId` land straight on the shell-less
+ * dashboard route (`/dashboard/{id}` — no separate fullscreen form: the
+ * shell-less page IS the fullscreen semantics, arch R39); everyone else —
+ * SA always, and any unconfigured user — lands on `/home`.
+ *
+ * `defaultDashboardId` is a plain UUID string in the `/api/auth/user`
+ * response and arrives server-sanitized (BaseController.checkDashboardInfo
+ * deletes the key when the dashboard is gone), so a hit needs no second
+ * probe; the `defaultDashboardFullscreen` flag collapses into the same
+ * single form. The string type-guard narrows `additionalInfo`'s declared
+ * `Record<string, unknown>`.
  */
-export function roleDefaultPath(user?: User | null): string {
-  return user?.authority === Authority.SYS_ADMIN ? '/tenants' : '/devices';
+export function resolveDefaultPath(user?: User | null): string {
+  const authority = user?.authority;
+  if (
+    authority !== Authority.TENANT_ADMIN &&
+    authority !== Authority.CUSTOMER_USER
+  ) {
+    // SA never takes the defaultDashboard branch (ngx defaultUrl parity).
+    return '/home';
+  }
+  const dashboardId = user?.additionalInfo?.defaultDashboardId;
+  if (typeof dashboardId === 'string' && dashboardId) {
+    return `/dashboard/${dashboardId}`;
+  }
+  return '/home';
 }

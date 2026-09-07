@@ -107,7 +107,7 @@ describe('login page (password line)', () => {
     tokenStoreMock.decodeTokenClaims.mockReturnValue(null);
   });
 
-  it('signs in a tenant admin and lands on the device list', async () => {
+  it('signs in a tenant admin and lands on /home (M15 unified landing)', async () => {
     servicesMock.login.mockResolvedValue({
       token: 't',
       refreshToken: 'r',
@@ -118,7 +118,7 @@ describe('login page (password line)', () => {
     await submitCredentials('tenant@thingsboard.org', 'tenant');
 
     await waitFor(() => {
-      expect(historyMock.replace).toHaveBeenCalledWith('/devices');
+      expect(historyMock.replace).toHaveBeenCalledWith('/home');
     });
     expect(servicesMock.login).toHaveBeenCalledWith({
       username: 'tenant@thingsboard.org',
@@ -131,7 +131,7 @@ describe('login page (password line)', () => {
     expect(updater({})).toEqual({ currentUser: tenantUser });
   });
 
-  it('lands a sys admin on the tenants list', async () => {
+  it('lands a sys admin on /home too (M15 unified landing)', async () => {
     servicesMock.login.mockResolvedValue({ token: 't', refreshToken: 'r' });
     servicesMock.getCurrentUser.mockResolvedValue(sysAdmin);
 
@@ -139,7 +139,7 @@ describe('login page (password line)', () => {
     await submitCredentials('sysadmin@thingsboard.org', 'sysadmin');
 
     await waitFor(() => {
-      expect(historyMock.replace).toHaveBeenCalledWith('/tenants');
+      expect(historyMock.replace).toHaveBeenCalledWith('/home');
     });
   });
 
@@ -225,7 +225,7 @@ describe('login page (password line)', () => {
 
     renderLogin();
 
-    expect(historyMock.replace).toHaveBeenCalledWith('/devices');
+    expect(historyMock.replace).toHaveBeenCalledWith('/home');
   });
 
   it('shows the verbatim server error on bad credentials and stays put', async () => {

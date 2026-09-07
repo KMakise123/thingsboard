@@ -24,7 +24,9 @@
       "!biome.json",
       "!tailwind.css",
       "!package-lock.json",
-      "!**/.worktrees"
+      "!**/.worktrees",
+      "!**/e2e/.auth",
+      "!**/test-results"
     ]
   },
   "formatter": {

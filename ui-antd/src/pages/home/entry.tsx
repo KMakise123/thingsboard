@@ -2,17 +2,20 @@ import { history, useModel } from '@umijs/max';
 import { Spin } from 'antd';
 import React, { useEffect, useRef } from 'react';
 import { tokenStore } from '@/core/auth/token-store';
-import { getQueryParam, roleDefaultPath } from '@/pages/user/utils';
+import { getQueryParam, resolveDefaultPath } from '@/pages/user/utils';
 import { getCurrentUser } from '@/services/tb';
 
 /**
- * Role-aware entry for `/` and the 404 fallback: TA / CU → device list,
- * SA → tenants list. Anonymous visitors are picked up by the layout
- * runtime's onPageChange and sent to the login page.
+ * Entry for `/` and the 404 fallback: every authenticated user lands on the
+ * unified M15 target — the tenant home dashboard when their
+ * additionalInfo.defaultDashboardId says so (TA/CU), /home otherwise
+ * (resolveDefaultPath, arch R39 / spec §7.1-2). Anonymous visitors are
+ * picked up by the layout runtime's onPageChange and sent to the login
+ * page.
  *
  * Also the OAuth2 success-callback consumer (brief §1.4): the backend 302s
  * back to `/?accessToken=…&refreshToken=…`, so the pair is stored, the query
- * stripped and the regular user fetch + role landing takes over.
+ * stripped and the regular user fetch + landing takes over.
  */
 const HomeEntry: React.FC = () => {
   const { initialState, setInitialState } = useModel('@@initialState');
@@ -29,7 +32,7 @@ const HomeEntry: React.FC = () => {
     if (!tokenStore.isTokenValid('jwt')) {
       return;
     }
-    history.replace(roleDefaultPath(user));
+    history.replace(resolveDefaultPath(user));
   }, [initialState?.currentUser]);
 
   // Mount-only: the callback lands exactly once and must survive the

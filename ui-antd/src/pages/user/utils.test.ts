@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ServerErrorError } from '@/core/http/server-error';
 import { Authority } from '@/types/tb';
-import { getSafeRedirectUrl, roleDefaultPath, toServerError } from './utils';
+import { getSafeRedirectUrl, resolveDefaultPath, toServerError } from './utils';
 
 describe('getSafeRedirectUrl', () => {
   it('accepts same-origin relative paths with query and hash', () => {
@@ -29,25 +29,65 @@ describe('getSafeRedirectUrl', () => {
   });
 });
 
-describe('roleDefaultPath', () => {
-  it('sends tenant and customer users to the device list', () => {
+describe('resolveDefaultPath (M15 three-level landing, spec §7.1-2)', () => {
+  const withDefaultDashboard = (authority: Authority) =>
+    ({
+      authority,
+      additionalInfo: { defaultDashboardId: 'dash-uuid-1' },
+    }) as never;
+
+  it('lands TA/CU holding a defaultDashboardId on the shell-less dashboard route', () => {
     expect(
-      roleDefaultPath({ authority: Authority.TENANT_ADMIN } as never),
-    ).toBe('/devices');
+      resolveDefaultPath(withDefaultDashboard(Authority.TENANT_ADMIN)),
+    ).toBe('/dashboard/dash-uuid-1');
     expect(
-      roleDefaultPath({ authority: Authority.CUSTOMER_USER } as never),
-    ).toBe('/devices');
+      resolveDefaultPath(withDefaultDashboard(Authority.CUSTOMER_USER)),
+    ).toBe('/dashboard/dash-uuid-1');
   });
 
-  it('sends sys admins to the tenants list', () => {
-    expect(roleDefaultPath({ authority: Authority.SYS_ADMIN } as never)).toBe(
-      '/tenants',
+  it('collapses defaultDashboardFullscreen into the same single form', () => {
+    expect(
+      resolveDefaultPath({
+        authority: Authority.TENANT_ADMIN,
+        additionalInfo: {
+          defaultDashboardId: 'dash-uuid-1',
+          defaultDashboardFullscreen: true,
+        },
+      } as never),
+    ).toBe('/dashboard/dash-uuid-1');
+  });
+
+  it('never takes the dashboard branch for SA (ngx defaultUrl parity)', () => {
+    expect(resolveDefaultPath(withDefaultDashboard(Authority.SYS_ADMIN))).toBe(
+      '/home',
     );
   });
 
-  it('defaults to the device list without a user', () => {
-    expect(roleDefaultPath(null)).toBe('/devices');
-    expect(roleDefaultPath(undefined)).toBe('/devices');
+  it('falls back to /home without a usable defaultDashboardId', () => {
+    expect(
+      resolveDefaultPath({ authority: Authority.TENANT_ADMIN } as never),
+    ).toBe('/home');
+    // non-string junk (object form / empty string) fails the type guard
+    expect(
+      resolveDefaultPath({
+        authority: Authority.CUSTOMER_USER,
+        additionalInfo: {
+          defaultDashboardId: { entityType: 'DASHBOARD', id: 'x' },
+        },
+      } as never),
+    ).toBe('/home');
+    expect(
+      resolveDefaultPath({
+        authority: Authority.TENANT_ADMIN,
+        additionalInfo: { defaultDashboardId: '' },
+      } as never),
+    ).toBe('/home');
+  });
+
+  it('lands everything else (no user / unknown authority) on /home', () => {
+    expect(resolveDefaultPath(null)).toBe('/home');
+    expect(resolveDefaultPath(undefined)).toBe('/home');
+    expect(resolveDefaultPath({} as never)).toBe('/home');
   });
 });
 

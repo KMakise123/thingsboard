@@ -30,6 +30,7 @@ import editorWidgetEditor from './en-US/editor-widget-editor';
 import editorWidgetIo from './en-US/editor-widget-io';
 import editorWidgetPreview from './en-US/editor-widget-preview';
 import entityViews from './en-US/entityViews';
+import home from './en-US/home';
 import login from './en-US/login';
 import menu from './en-US/menu';
 import notifications from './en-US/notifications';
@@ -96,4 +97,5 @@ export default {
   ...vc,
   ...calculatedFields,
   ...aiModel,
+  ...home,
 };

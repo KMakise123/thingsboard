@@ -136,6 +136,25 @@ function renderPage() {
   );
 }
 
+function renderDashboard(
+  dashboard: Dashboard,
+  props: { hideToolbar?: boolean } = {},
+) {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return render(
+    <RawIntlProvider value={intl}>
+      <QueryClientProvider client={queryClient}>
+        <DashboardPage
+          dashboard={validateAndUpdateDashboard(dashboard)}
+          {...props}
+        />
+      </QueryClientProvider>
+    </RawIntlProvider>,
+  );
+}
+
 function pushUrl(search: string) {
   window.history.replaceState(null, '', `/dashboards/d1${search}`);
   fireEvent(window, new Event('popstate'));
@@ -235,5 +254,34 @@ describe('DashboardPage runtime smoke (状态切换 → 布局 → 容器)', () 
         callsBefore,
       );
     });
+  });
+});
+
+describe('DashboardPage hideToolbar prop (M15 wave-1 OR semantics)', () => {
+  const withSettings = (settings: Record<string, unknown>) =>
+    ({
+      ...dashboardJson,
+      configuration: { ...dashboardJson.configuration, settings },
+    }) as unknown as Dashboard;
+
+  it('renders the toolbar when neither settings nor the prop suppress it', async () => {
+    renderDashboard(dashboardJson);
+    expect(await screen.findByTestId('tw-picker-label')).toBeInTheDocument();
+  });
+
+  it('hides the toolbar with the external hideToolbar prop', async () => {
+    renderDashboard(dashboardJson, { hideToolbar: true });
+    await waitFor(() => {
+      expect(screen.getByText(TEST_FQN_TABLE)).toBeInTheDocument();
+    });
+    expect(screen.queryByTestId('tw-picker-label')).toBeNull();
+  });
+
+  it('keeps settings.hideToolbar alone authoritative (OR input)', async () => {
+    renderDashboard(withSettings({ hideToolbar: true }));
+    await waitFor(() => {
+      expect(screen.getByText(TEST_FQN_TABLE)).toBeInTheDocument();
+    });
+    expect(screen.queryByTestId('tw-picker-label')).toBeNull();
   });
 });

@@ -71,7 +71,7 @@ export default {
   'dashboards.list.publicLinkTitle': 'Dashboard is now public',
   'dashboards.list.publicLinkLabel': 'Public link',
   'dashboards.list.publicLinkHint':
-    'The anonymous public page ships later; the link is generated for reference only.',
+    'The public link is live — anonymous visitors can open it directly.',
   'dashboards.list.makePublicSuccess': 'Dashboard is now public.',
   'dashboards.list.makePrivateSuccess': 'Dashboard is now private.',
   'dashboards.list.deleteTitle':
@@ -125,6 +125,12 @@ export default {
   'dashboards.system.resourceMissing':
     'The system dashboard resource is missing on this backend.',
   'dashboards.system.retry': 'Retry',
+
+  // ---- anonymous public-dashboard gate (M15 wave 3; never a redirect) ----
+  'dashboards.public.sessionExpired':
+    'This public session has expired. Refresh the page to re-enter.',
+  'dashboards.public.notPublicAnymore': 'This dashboard is no longer public.',
+  'dashboards.public.notFound': 'This dashboard does not exist.',
 
   // ---- global timewindow picker ----
   'dashboards.tw.tabRealtime': 'Realtime',

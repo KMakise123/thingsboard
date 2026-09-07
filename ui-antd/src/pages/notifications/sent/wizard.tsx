@@ -1,10 +1,12 @@
 /**
  * Send-notification wizard (M12 wave 3-B, spec §4.3) — ui-ngx
  * sent-notification-dialog parity: Setup → Compose (from-scratch only) →
- * Review, with the step gate on all validity, delivery-method availability
- * probing, the WEB-always-on rule, scheduled sending (timezone →
- * sendingDelayInSec), a live preview via POST request/preview and the shared
- * RecipientDialog as the inline "create new" entry.
+ * Review, with per-step gating (Setup: its own form + at-least-one method;
+ * Compose: enabled-method content completeness; final submit re-validates
+ * every step, ngx allValid), delivery-method availability probing, the
+ * WEB-always-on rule, scheduled sending (timezone → sendingDelayInSec), a
+ * live preview via POST request/preview and the shared RecipientDialog as
+ * the inline "create new" entry.
  *
  * Mounted by the sent list (toolbar + row "notify again") and by
  * SendNotificationButton for other pages.
@@ -300,32 +302,25 @@ export function SendNotificationWizard({
     placeholderData: keepPreviousData,
   });
 
-  // ---- step gating ------------------------------------------------------------
+  // ---- step gating (ngx stepper semantics: each step validates only its own
+  // fields; the compose content is re-checked at final submit — allValid) ----
   const validateSetup = async (): Promise<boolean> => {
     try {
       await form.validateFields();
     } catch {
       return false;
     }
-    if (!useTemplate) {
-      if (!hasEnabledMethod(templateValue)) {
-        setGateError(
-          label(
-            'pages.notifications.sent.wizard.atLeastOneMethod',
-            'At least one delivery method should be selected',
-          ),
-        );
-        return false;
-      }
-      if (validateTemplateConfiguration(templateValue).length > 0) {
-        setGateError(
-          label(
-            'pages.notifications.sent.wizard.composeIncomplete',
-            'Complete every enabled message before continuing.',
-          ),
-        );
-        return false;
-      }
+    // Setup owns the delivery-method switches (atLeastOne); the composed
+    // message itself is not editable on this step and must not gate it
+    // (M12 walkthrough D-1: that check deadlocked the from-scratch flow).
+    if (!useTemplate && !hasEnabledMethod(templateValue)) {
+      setGateError(
+        label(
+          'pages.notifications.sent.wizard.atLeastOneMethod',
+          'At least one delivery method should be selected',
+        ),
+      );
+      return false;
     }
     setGateError(undefined);
     return true;
@@ -346,6 +341,17 @@ export function SendNotificationWizard({
   };
 
   const send = async () => {
+    // ngx allValid() parity: the final submit re-walks every step's control
+    // and jumps back to the first invalid one instead of POSTing (state can
+    // have changed behind the compose gate since it last ran).
+    if (!(await validateSetup())) {
+      setStepIndex(0);
+      return;
+    }
+    if (!useTemplate && !validateCompose()) {
+      setStepIndex(composeIndex);
+      return;
+    }
     const values = form.getFieldsValue();
     const delay =
       values.scheduleEnabled && values.scheduledAt

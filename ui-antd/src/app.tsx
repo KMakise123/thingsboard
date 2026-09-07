@@ -122,8 +122,12 @@ export async function getInitialState(): Promise<{
   const scope = tokenStore.decodeTokenClaims()?.scopes?.[0];
   const isMfaInterim =
     scope === 'PRE_VERIFICATION_TOKEN' || scope === 'MFA_CONFIGURATION_TOKEN';
+  // Public-dashboard sessions (M15 R44): a public JWT has no User entity
+  // behind it — /api/auth/user would fail for it just like the interim MFA
+  // tokens. currentUser stays null and the public route renders shell-less.
+  const isPublic = tokenStore.decodeTokenClaims()?.isPublic === true;
   const currentUser =
-    hasSession && !isMfaInterim ? await fetchUserInfo() : null;
+    hasSession && !isMfaInterim && !isPublic ? await fetchUserInfo() : null;
 
   return {
     fetchUserInfo,
